@@ -1,0 +1,32 @@
+@relation FilterTest-weka.filters.unsupervised.attribute.Standardize
+
+@attribute StringAtt1 string
+@attribute NominalAtt1 {r,g,b}
+@attribute NumericAtt1 numeric
+@attribute StringAtt2 string
+@attribute NominalAtt2 {a,b,c,d}
+@attribute NumericAtt2 numeric
+@attribute DateAtt1 date yyyy-MM-dd
+
+@data
+humpty,g,-1.414386,the,a,0.542597,1969-12-31
+dumpty,b,-1.069814,quick,b,0.230759,1969-12-31
+sat,r,-0.725242,brown,c,0.511413,1969-12-31
+on,r,-0.38067,fox,d,-0.392915,1969-12-31
+a,b,-0.036098,jumped,a,0.449046,1969-12-31
+wall,r,0.308474,over,b,-1.016589,1969-12-31
+humpty,r,0.653046,the,c,0.386678,1969-12-31
+dumpty,g,0.997618,lazy,d,-1.640263,1969-12-31
+had,b,1.34219,dog,?,0.636148,1969-12-31
+a,r,1.480019,?,?,-1.546712,1969-12-31
+great,r,-1.276558,the,a,-1.328426,1969-12-31
+fall,b,-0.966443,quick,b,-1.016589,1969-12-31
+all,r,-0.621871,brown,c,?,1969-12-31
+the,r,-0.277298,fox,d,-0.392915,1969-12-31
+kings,g,0.067274,jumped,?,-0.486466,1969-12-31
+horses,b,0.48076,over,b,-0.081078,1969-12-31
+and,r,0.825332,the,c,0.074841,1969-12-31
+all,r,1.169904,lazy,d,0.542597,1969-12-31
+the,r,1.480019,?,a,0.947985,1969-12-31
+{0 wall,2 -0.277298,4 d,5 1.259822,6 1969-12-31}
+{1 b,2 -1.758959,3 lazy,5 2.320068,6 1969-12-31}
