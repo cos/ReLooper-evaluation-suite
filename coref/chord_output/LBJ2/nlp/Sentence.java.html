@@ -1,0 +1,537 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.Sentence (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Sentence.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.util.regex.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * This representation of a sentence simply stores the entire text of the
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * sentence in a string.  This may include any newlines present in the input,
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * depending on the parser (e.g., {@link SentenceSplitter} will leave them
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * in).  However, this class also provides methods to convert that string to
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * other representations.
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  *
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  * @author Nick Rizzolo
+<FONT ID="LN">16  </FONT><A NAME="16"></A> **/</FONT>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Sentence <FONT ID="Extends">extends</FONT> LinkedChild
+<FONT ID="LN">18  </FONT><A NAME="18"></A>{
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    * URL prefixes; used by {@link #partOfURL(int)}.  The values in this array
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    * need to be sorted by decreasing order of length to make the regular
+<FONT ID="LN">22  </FONT><A NAME="22"></A>    * expressions that use them work properly.
+<FONT ID="LN">23  </FONT><A NAME="23"></A>   **/</FONT>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String[] protocols =
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    <FONT ID="StringLiteral">"telnet"</FONT>, <FONT ID="StringLiteral">"https"</FONT>, <FONT ID="StringLiteral">"file"</FONT>, <FONT ID="StringLiteral">"http"</FONT>, <FONT ID="StringLiteral">"nntp"</FONT>, <FONT ID="StringLiteral">"smtp"</FONT>,
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  };
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    * Domain name suffixes; used by {@link #partOfURL(int)}.  The values in
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    * this array need to be sorted by decreasing order of length to make the
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    * regular expressions that use them work properly.
+<FONT ID="LN">33  </FONT><A NAME="33"></A>   **/</FONT>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String[] topLevelDomains =
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  {
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="StringLiteral">"museum"</FONT>, <FONT ID="StringLiteral">"travel"</FONT>, <FONT ID="StringLiteral">"aero"</FONT>, <FONT ID="StringLiteral">"arpa"</FONT>, <FONT ID="StringLiteral">"coop"</FONT>, <FONT ID="StringLiteral">"info"</FONT>, <FONT ID="StringLiteral">"jobs"</FONT>, <FONT ID="StringLiteral">"name"</FONT>, <FONT ID="StringLiteral">"biz"</FONT>,
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="StringLiteral">"com"</FONT>, <FONT ID="StringLiteral">"edu"</FONT>, <FONT ID="StringLiteral">"gov"</FONT>, <FONT ID="StringLiteral">"int"</FONT>, <FONT ID="StringLiteral">"mil"</FONT>, <FONT ID="StringLiteral">"net"</FONT>, <FONT ID="StringLiteral">"org"</FONT>, <FONT ID="StringLiteral">"pro"</FONT>, <FONT ID="StringLiteral">"ac"</FONT>, <FONT ID="StringLiteral">"ad"</FONT>, <FONT ID="StringLiteral">"ae"</FONT>,
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    <FONT ID="StringLiteral">"af"</FONT>, <FONT ID="StringLiteral">"ag"</FONT>, <FONT ID="StringLiteral">"ai"</FONT>, <FONT ID="StringLiteral">"al"</FONT>, <FONT ID="StringLiteral">"am"</FONT>, <FONT ID="StringLiteral">"an"</FONT>, <FONT ID="StringLiteral">"ao"</FONT>, <FONT ID="StringLiteral">"aq"</FONT>, <FONT ID="StringLiteral">"ar"</FONT>, <FONT ID="StringLiteral">"as"</FONT>, <FONT ID="StringLiteral">"at"</FONT>, <FONT ID="StringLiteral">"au"</FONT>,
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    <FONT ID="StringLiteral">"aw"</FONT>, <FONT ID="StringLiteral">"az"</FONT>, <FONT ID="StringLiteral">"ba"</FONT>, <FONT ID="StringLiteral">"bb"</FONT>, <FONT ID="StringLiteral">"bd"</FONT>, <FONT ID="StringLiteral">"be"</FONT>, <FONT ID="StringLiteral">"bf"</FONT>, <FONT ID="StringLiteral">"bg"</FONT>, <FONT ID="StringLiteral">"bh"</FONT>, <FONT ID="StringLiteral">"bi"</FONT>, <FONT ID="StringLiteral">"bj"</FONT>, <FONT ID="StringLiteral">"bm"</FONT>,
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="StringLiteral">"bn"</FONT>, <FONT ID="StringLiteral">"bo"</FONT>, <FONT ID="StringLiteral">"br"</FONT>, <FONT ID="StringLiteral">"bs"</FONT>, <FONT ID="StringLiteral">"bt"</FONT>, <FONT ID="StringLiteral">"bv"</FONT>, <FONT ID="StringLiteral">"bw"</FONT>, <FONT ID="StringLiteral">"by"</FONT>, <FONT ID="StringLiteral">"bz"</FONT>, <FONT ID="StringLiteral">"ca"</FONT>, <FONT ID="StringLiteral">"cc"</FONT>, <FONT ID="StringLiteral">"cd"</FONT>,
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    <FONT ID="StringLiteral">"cf"</FONT>, <FONT ID="StringLiteral">"cg"</FONT>, <FONT ID="StringLiteral">"ch"</FONT>, <FONT ID="StringLiteral">"ci"</FONT>, <FONT ID="StringLiteral">"ck"</FONT>, <FONT ID="StringLiteral">"cl"</FONT>, <FONT ID="StringLiteral">"cm"</FONT>, <FONT ID="StringLiteral">"cn"</FONT>, <FONT ID="StringLiteral">"co"</FONT>, <FONT ID="StringLiteral">"cr"</FONT>, <FONT ID="StringLiteral">"cu"</FONT>, <FONT ID="StringLiteral">"cv"</FONT>,
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="StringLiteral">"cx"</FONT>, <FONT ID="StringLiteral">"cy"</FONT>, <FONT ID="StringLiteral">"cz"</FONT>, <FONT ID="StringLiteral">"de"</FONT>, <FONT ID="StringLiteral">"dj"</FONT>, <FONT ID="StringLiteral">"dk"</FONT>, <FONT ID="StringLiteral">"dm"</FONT>, <FONT ID="StringLiteral">"do"</FONT>, <FONT ID="StringLiteral">"dz"</FONT>, <FONT ID="StringLiteral">"ec"</FONT>, <FONT ID="StringLiteral">"ee"</FONT>, <FONT ID="StringLiteral">"eg"</FONT>,
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    <FONT ID="StringLiteral">"er"</FONT>, <FONT ID="StringLiteral">"es"</FONT>, <FONT ID="StringLiteral">"et"</FONT>, <FONT ID="StringLiteral">"eu"</FONT>, <FONT ID="StringLiteral">"fi"</FONT>, <FONT ID="StringLiteral">"fj"</FONT>, <FONT ID="StringLiteral">"fk"</FONT>, <FONT ID="StringLiteral">"fm"</FONT>, <FONT ID="StringLiteral">"fo"</FONT>, <FONT ID="StringLiteral">"fr"</FONT>, <FONT ID="StringLiteral">"ga"</FONT>, <FONT ID="StringLiteral">"gb"</FONT>,
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="StringLiteral">"gd"</FONT>, <FONT ID="StringLiteral">"ge"</FONT>, <FONT ID="StringLiteral">"gf"</FONT>, <FONT ID="StringLiteral">"gg"</FONT>, <FONT ID="StringLiteral">"gh"</FONT>, <FONT ID="StringLiteral">"gi"</FONT>, <FONT ID="StringLiteral">"gl"</FONT>, <FONT ID="StringLiteral">"gm"</FONT>, <FONT ID="StringLiteral">"gn"</FONT>, <FONT ID="StringLiteral">"gp"</FONT>, <FONT ID="StringLiteral">"gq"</FONT>, <FONT ID="StringLiteral">"gr"</FONT>,
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="StringLiteral">"gs"</FONT>, <FONT ID="StringLiteral">"gt"</FONT>, <FONT ID="StringLiteral">"gu"</FONT>, <FONT ID="StringLiteral">"gw"</FONT>, <FONT ID="StringLiteral">"gy"</FONT>, <FONT ID="StringLiteral">"hk"</FONT>, <FONT ID="StringLiteral">"hm"</FONT>, <FONT ID="StringLiteral">"hn"</FONT>, <FONT ID="StringLiteral">"hr"</FONT>, <FONT ID="StringLiteral">"ht"</FONT>, <FONT ID="StringLiteral">"hu"</FONT>, <FONT ID="StringLiteral">"id"</FONT>,
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="StringLiteral">"ie"</FONT>, <FONT ID="StringLiteral">"il"</FONT>, <FONT ID="StringLiteral">"im"</FONT>, <FONT ID="StringLiteral">"in"</FONT>, <FONT ID="StringLiteral">"io"</FONT>, <FONT ID="StringLiteral">"iq"</FONT>, <FONT ID="StringLiteral">"ir"</FONT>, <FONT ID="StringLiteral">"is"</FONT>, <FONT ID="StringLiteral">"it"</FONT>, <FONT ID="StringLiteral">"je"</FONT>, <FONT ID="StringLiteral">"jm"</FONT>, <FONT ID="StringLiteral">"jo"</FONT>,
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    <FONT ID="StringLiteral">"jp"</FONT>, <FONT ID="StringLiteral">"ke"</FONT>, <FONT ID="StringLiteral">"kg"</FONT>, <FONT ID="StringLiteral">"kh"</FONT>, <FONT ID="StringLiteral">"ki"</FONT>, <FONT ID="StringLiteral">"km"</FONT>, <FONT ID="StringLiteral">"kn"</FONT>, <FONT ID="StringLiteral">"kr"</FONT>, <FONT ID="StringLiteral">"kw"</FONT>, <FONT ID="StringLiteral">"ky"</FONT>, <FONT ID="StringLiteral">"kz"</FONT>, <FONT ID="StringLiteral">"la"</FONT>,
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="StringLiteral">"lb"</FONT>, <FONT ID="StringLiteral">"lc"</FONT>, <FONT ID="StringLiteral">"li"</FONT>, <FONT ID="StringLiteral">"lk"</FONT>, <FONT ID="StringLiteral">"lr"</FONT>, <FONT ID="StringLiteral">"ls"</FONT>, <FONT ID="StringLiteral">"lt"</FONT>, <FONT ID="StringLiteral">"lu"</FONT>, <FONT ID="StringLiteral">"lv"</FONT>, <FONT ID="StringLiteral">"ly"</FONT>, <FONT ID="StringLiteral">"ma"</FONT>, <FONT ID="StringLiteral">"mc"</FONT>,
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="StringLiteral">"md"</FONT>, <FONT ID="StringLiteral">"mg"</FONT>, <FONT ID="StringLiteral">"mh"</FONT>, <FONT ID="StringLiteral">"mk"</FONT>, <FONT ID="StringLiteral">"ml"</FONT>, <FONT ID="StringLiteral">"mm"</FONT>, <FONT ID="StringLiteral">"mn"</FONT>, <FONT ID="StringLiteral">"mo"</FONT>, <FONT ID="StringLiteral">"mp"</FONT>, <FONT ID="StringLiteral">"mq"</FONT>, <FONT ID="StringLiteral">"mr"</FONT>, <FONT ID="StringLiteral">"ms"</FONT>,
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="StringLiteral">"mt"</FONT>, <FONT ID="StringLiteral">"mu"</FONT>, <FONT ID="StringLiteral">"mv"</FONT>, <FONT ID="StringLiteral">"mw"</FONT>, <FONT ID="StringLiteral">"mx"</FONT>, <FONT ID="StringLiteral">"my"</FONT>, <FONT ID="StringLiteral">"mz"</FONT>, <FONT ID="StringLiteral">"na"</FONT>, <FONT ID="StringLiteral">"nc"</FONT>, <FONT ID="StringLiteral">"ne"</FONT>, <FONT ID="StringLiteral">"nf"</FONT>, <FONT ID="StringLiteral">"ng"</FONT>,
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="StringLiteral">"ni"</FONT>, <FONT ID="StringLiteral">"nl"</FONT>, <FONT ID="StringLiteral">"no"</FONT>, <FONT ID="StringLiteral">"np"</FONT>, <FONT ID="StringLiteral">"nr"</FONT>, <FONT ID="StringLiteral">"nu"</FONT>, <FONT ID="StringLiteral">"nz"</FONT>, <FONT ID="StringLiteral">"om"</FONT>, <FONT ID="StringLiteral">"pa"</FONT>, <FONT ID="StringLiteral">"pe"</FONT>, <FONT ID="StringLiteral">"pf"</FONT>, <FONT ID="StringLiteral">"pg"</FONT>,
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="StringLiteral">"ph"</FONT>, <FONT ID="StringLiteral">"pk"</FONT>, <FONT ID="StringLiteral">"pl"</FONT>, <FONT ID="StringLiteral">"pm"</FONT>, <FONT ID="StringLiteral">"pn"</FONT>, <FONT ID="StringLiteral">"pr"</FONT>, <FONT ID="StringLiteral">"ps"</FONT>, <FONT ID="StringLiteral">"pt"</FONT>, <FONT ID="StringLiteral">"pw"</FONT>, <FONT ID="StringLiteral">"py"</FONT>, <FONT ID="StringLiteral">"qa"</FONT>, <FONT ID="StringLiteral">"re"</FONT>,
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="StringLiteral">"ro"</FONT>, <FONT ID="StringLiteral">"ru"</FONT>, <FONT ID="StringLiteral">"rw"</FONT>, <FONT ID="StringLiteral">"sa"</FONT>, <FONT ID="StringLiteral">"sb"</FONT>, <FONT ID="StringLiteral">"sc"</FONT>, <FONT ID="StringLiteral">"sd"</FONT>, <FONT ID="StringLiteral">"se"</FONT>, <FONT ID="StringLiteral">"sg"</FONT>, <FONT ID="StringLiteral">"sh"</FONT>, <FONT ID="StringLiteral">"si"</FONT>, <FONT ID="StringLiteral">"sj"</FONT>,
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="StringLiteral">"sk"</FONT>, <FONT ID="StringLiteral">"sl"</FONT>, <FONT ID="StringLiteral">"sm"</FONT>, <FONT ID="StringLiteral">"sn"</FONT>, <FONT ID="StringLiteral">"so"</FONT>, <FONT ID="StringLiteral">"sr"</FONT>, <FONT ID="StringLiteral">"st"</FONT>, <FONT ID="StringLiteral">"su"</FONT>, <FONT ID="StringLiteral">"sv"</FONT>, <FONT ID="StringLiteral">"sy"</FONT>, <FONT ID="StringLiteral">"sz"</FONT>, <FONT ID="StringLiteral">"tc"</FONT>,
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="StringLiteral">"td"</FONT>, <FONT ID="StringLiteral">"tf"</FONT>, <FONT ID="StringLiteral">"tg"</FONT>, <FONT ID="StringLiteral">"th"</FONT>, <FONT ID="StringLiteral">"tj"</FONT>, <FONT ID="StringLiteral">"tk"</FONT>, <FONT ID="StringLiteral">"tl"</FONT>, <FONT ID="StringLiteral">"tm"</FONT>, <FONT ID="StringLiteral">"tn"</FONT>, <FONT ID="StringLiteral">"to"</FONT>, <FONT ID="StringLiteral">"tp"</FONT>, <FONT ID="StringLiteral">"tr"</FONT>,
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="StringLiteral">"tt"</FONT>, <FONT ID="StringLiteral">"tv"</FONT>, <FONT ID="StringLiteral">"tw"</FONT>, <FONT ID="StringLiteral">"tz"</FONT>, <FONT ID="StringLiteral">"ua"</FONT>, <FONT ID="StringLiteral">"ug"</FONT>, <FONT ID="StringLiteral">"uk"</FONT>, <FONT ID="StringLiteral">"um"</FONT>, <FONT ID="StringLiteral">"us"</FONT>, <FONT ID="StringLiteral">"uy"</FONT>, <FONT ID="StringLiteral">"uz"</FONT>, <FONT ID="StringLiteral">"va"</FONT>,
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="StringLiteral">"vc"</FONT>, <FONT ID="StringLiteral">"ve"</FONT>, <FONT ID="StringLiteral">"vg"</FONT>, <FONT ID="StringLiteral">"vi"</FONT>, <FONT ID="StringLiteral">"vn"</FONT>, <FONT ID="StringLiteral">"vu"</FONT>, <FONT ID="StringLiteral">"wf"</FONT>, <FONT ID="StringLiteral">"ws"</FONT>, <FONT ID="StringLiteral">"ye"</FONT>, <FONT ID="StringLiteral">"yt"</FONT>, <FONT ID="StringLiteral">"yu"</FONT>, <FONT ID="StringLiteral">"za"</FONT>,
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="StringLiteral">"zm"</FONT>, <FONT ID="StringLiteral">"zw"</FONT>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  };
+<FONT ID="LN">60  </FONT><A NAME="60"></A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    * Indicates whether the corresponding index in the text has been
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    * determined to be part of a URL; used by {@link #partOfURL(int)}.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   **/</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT>[] inURL = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="FormalComment">/** The actual text of the sentence. */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Public">public</FONT> String text = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    * Constructs a sentence from its text.
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    *
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    * @param t  The text of the sentence.
+<FONT ID="LN">76  </FONT><A NAME="76"></A>   **/</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="Public">public</FONT> Sentence(String t) { text = t; }
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    * Constructor that sets the character offsets of this sentence.
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    *
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    * @param t  The text of the sentence.
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    * @param s  The offset at which this child starts.
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    * @param e  The offset at which this child ends.
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   **/</FONT>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Public">public</FONT> Sentence(String t, <FONT ID="Int">int</FONT> s, <FONT ID="Int">int</FONT> e)
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  {
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="Super">super</FONT>(s, e);
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    text = t;
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    * For debugging purposes, it's useful to insert print statements here.
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    *
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    * @param l            The list to add to.
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    * @param i            The item to add.
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    * @param description  A string describing why the addition is happening.
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   **/</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> myAdd(LinkedList l, <FONT ID="Int">int</FONT> i, String description)
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    l.add(<FONT ID="New">new</FONT> Integer(i));
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="SingleLineComment">//System.out.println("Adding boundary at " + i + ": " + description);
+<FONT ID="LN">104 </FONT><A NAME="104"></A></FONT>  }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    * Creates and returns a &lt;code&gt;LinkedVector&lt;/code&gt; representation of this
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    * sentence in which every &lt;code&gt;LinkedChild&lt;/code&gt; is a &lt;code&gt;Word&lt;/code&gt;.
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    * Offset information is respected and propagated.
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    *
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    * @see    Word
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    * @return A &lt;code&gt;LinkedVector&lt;/code&gt; representation of this sentence.
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   **/</FONT>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>  <FONT ID="Public">public</FONT> LinkedVector wordSplit()
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    LinkedList boundaries = <FONT ID="New">new</FONT> LinkedList();
+<FONT ID="LN">118 </FONT><A NAME="118"></A>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    <FONT ID="SingleLineComment">// Whitespace always signals a word boundary.
+<FONT ID="LN">120 </FONT><A NAME="120"></A></FONT>    Matcher m = Pattern.compile(<FONT ID="StringLiteral">"\\s+"</FONT>).matcher(text);
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="While">while</FONT> (m.find())
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    {
+<FONT ID="LN">123 </FONT><A NAME="123"></A>      myAdd(boundaries, m.start() - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")whitespace"</FONT>);
+<FONT ID="LN">124 </FONT><A NAME="124"></A>      myAdd(boundaries, m.end(), <FONT ID="StringLiteral">"(whitespace"</FONT>);
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    }
+<FONT ID="LN">126 </FONT><A NAME="126"></A>
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <FONT ID="SingleLineComment">// The beginning and end of the text are also word boundaries, unless
+<FONT ID="LN">128 </FONT><A NAME="128"></A></FONT>    <FONT ID="SingleLineComment">// there's whitespace there.
+<FONT ID="LN">129 </FONT><A NAME="129"></A></FONT>    <FONT ID="If">if</FONT> (boundaries.size() &gt; <FONT ID="IntegerLiteral">0</FONT>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        &amp;&amp; ((Integer) boundaries.getLast()).intValue() &gt;= text.length())
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      boundaries.removeLast();
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    <FONT ID="Else">else</FONT> myAdd(boundaries, text.length() - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")$"</FONT>);
+<FONT ID="LN">133 </FONT><A NAME="133"></A>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    <FONT ID="If">if</FONT> (boundaries.size() &gt; <FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        &amp;&amp; ((Integer) boundaries.getFirst()).intValue() == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">136 </FONT><A NAME="136"></A>      boundaries.removeFirst();
+<FONT ID="LN">137 </FONT><A NAME="137"></A>    <FONT ID="Else">else</FONT> myAdd(boundaries, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"(^"</FONT>);
+<FONT ID="LN">138 </FONT><A NAME="138"></A>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    Pattern pNoSpaceOrDigit = Pattern.compile(<FONT ID="StringLiteral">"[^\\s\\d]"</FONT>);
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    Pattern pDigit = Pattern.compile(<FONT ID="StringLiteral">"\\d"</FONT>);
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    Pattern pDigitCommaNoDigit = Pattern.compile(<FONT ID="StringLiteral">"\\d,\\D"</FONT>);
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    Pattern pNoDigitCommaDigit = Pattern.compile(<FONT ID="StringLiteral">"\\D,\\d"</FONT>);
+<FONT ID="LN">143 </FONT><A NAME="143"></A>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    <FONT ID="SingleLineComment">// Commas are separate words unless they're part of a number.
+<FONT ID="LN">145 </FONT><A NAME="145"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = text.indexOf(<FONT ID="CharacerLiteral">','</FONT>); i != -<FONT ID="IntegerLiteral">1</FONT>; i = text.indexOf(<FONT ID="CharacerLiteral">','</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    {
+<FONT ID="LN">147 </FONT><A NAME="147"></A>      <FONT ID="If">if</FONT> (i &gt; <FONT ID="IntegerLiteral">0</FONT>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>          &amp;&amp; (pNoSpaceOrDigit.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i)).find()
+<FONT ID="LN">149 </FONT><A NAME="149"></A>              || i + <FONT ID="IntegerLiteral">1</FONT> == text.length()
+<FONT ID="LN">150 </FONT><A NAME="150"></A>                 &amp;&amp; pDigit.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i)).find()
+<FONT ID="LN">151 </FONT><A NAME="151"></A>              || i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">152 </FONT><A NAME="152"></A>                 &amp;&amp; pDigitCommaNoDigit
+<FONT ID="LN">153 </FONT><A NAME="153"></A>                    .matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find()))
+<FONT ID="LN">154 </FONT><A NAME="154"></A>      {
+<FONT ID="LN">155 </FONT><A NAME="155"></A>        myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")comma1"</FONT>);
+<FONT ID="LN">156 </FONT><A NAME="156"></A>        myAdd(boundaries, i, <FONT ID="StringLiteral">"(comma1"</FONT>);
+<FONT ID="LN">157 </FONT><A NAME="157"></A>      }
+<FONT ID="LN">158 </FONT><A NAME="158"></A>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>      <FONT ID="If">if</FONT> (i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">160 </FONT><A NAME="160"></A>          &amp;&amp; (pNoSpaceOrDigit.matcher(text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find()
+<FONT ID="LN">161 </FONT><A NAME="161"></A>              || i == <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; pDigit.matcher(text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find()
+<FONT ID="LN">162 </FONT><A NAME="162"></A>              || i &gt; <FONT ID="IntegerLiteral">0</FONT>
+<FONT ID="LN">163 </FONT><A NAME="163"></A>                 &amp;&amp; pNoDigitCommaDigit.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>))
+<FONT ID="LN">164 </FONT><A NAME="164"></A>                                      .find()))
+<FONT ID="LN">165 </FONT><A NAME="165"></A>      {
+<FONT ID="LN">166 </FONT><A NAME="166"></A>        myAdd(boundaries, i, <FONT ID="StringLiteral">")comma2"</FONT>);
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        myAdd(boundaries, i + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(comma2"</FONT>);
+<FONT ID="LN">168 </FONT><A NAME="168"></A>      }
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    }
+<FONT ID="LN">170 </FONT><A NAME="170"></A>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    Pattern pApostropheMask = Pattern.compile(<FONT ID="StringLiteral">"[^\\s,']"</FONT>);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    Pattern pAbbreviation = Pattern.compile(<FONT ID="StringLiteral">"[A-Za-z]'[A-Za-z]"</FONT>);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    Pattern pPossessive = Pattern.compile(<FONT ID="StringLiteral">"s[^A-Za-z']"</FONT>);
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    Pattern pShortWill = Pattern.compile(<FONT ID="StringLiteral">"ll[^A-Za-z']"</FONT>);
+<FONT ID="LN">175 </FONT><A NAME="175"></A>
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    <FONT ID="SingleLineComment">// Apostrophes are handled by making consecutive occurrences a single
+<FONT ID="LN">177 </FONT><A NAME="177"></A></FONT>    <FONT ID="SingleLineComment">// separate word and treating all other occurences as abbreviations which
+<FONT ID="LN">178 </FONT><A NAME="178"></A></FONT>    <FONT ID="SingleLineComment">// should not be separated, with the following exceptions which are
+<FONT ID="LN">179 </FONT><A NAME="179"></A></FONT>    <FONT ID="SingleLineComment">// considered contractions:
+<FONT ID="LN">180 </FONT><A NAME="180"></A></FONT>    <FONT ID="SingleLineComment">//    '         Plural possessive (must follow the letter 's')
+<FONT ID="LN">181 </FONT><A NAME="181"></A></FONT>    <FONT ID="SingleLineComment">//    'd        "I'd", "he'd", "they'd"
+<FONT ID="LN">182 </FONT><A NAME="182"></A></FONT>    <FONT ID="SingleLineComment">//    'll       "I'll", "he'll", "they'll"
+<FONT ID="LN">183 </FONT><A NAME="183"></A></FONT>    <FONT ID="SingleLineComment">//    'm        "I'm"
+<FONT ID="LN">184 </FONT><A NAME="184"></A></FONT>    <FONT ID="SingleLineComment">//    're       "they're"
+<FONT ID="LN">185 </FONT><A NAME="185"></A></FONT>    <FONT ID="SingleLineComment">//    's        Possessive
+<FONT ID="LN">186 </FONT><A NAME="186"></A></FONT>    <FONT ID="SingleLineComment">//    've       "I've", "they've"
+<FONT ID="LN">187 </FONT><A NAME="187"></A></FONT>    <FONT ID="SingleLineComment">//    n't       "can't", "won't", "shouldn't", "aren't"
+<FONT ID="LN">188 </FONT><A NAME="188"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = text.indexOf(<FONT ID="CharacerLiteral">'\''</FONT>); i != -<FONT ID="IntegerLiteral">1</FONT>; i = text.indexOf(<FONT ID="CharacerLiteral">'\''</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>      <FONT ID="If">if</FONT> (i - <FONT ID="IntegerLiteral">1</FONT> &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; Character.isLetter(text.charAt(i - <FONT ID="IntegerLiteral">2</FONT>))
+<FONT ID="LN">191 </FONT><A NAME="191"></A>          &amp;&amp; text.charAt(i - <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'n'</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">192 </FONT><A NAME="192"></A>          &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'t'</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>          &amp;&amp; (i + <FONT ID="IntegerLiteral">2</FONT> == text.length()
+<FONT ID="LN">194 </FONT><A NAME="194"></A>              || !Character.isLetter(text.charAt(i + <FONT ID="IntegerLiteral">2</FONT>))
+<FONT ID="LN">195 </FONT><A NAME="195"></A>                 &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">2</FONT>) != <FONT ID="CharacerLiteral">'\''</FONT>))
+<FONT ID="LN">196 </FONT><A NAME="196"></A>      {
+<FONT ID="LN">197 </FONT><A NAME="197"></A>        myAdd(boundaries, i - <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="StringLiteral">")n't"</FONT>);
+<FONT ID="LN">198 </FONT><A NAME="198"></A>        myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(n't"</FONT>);
+<FONT ID="LN">199 </FONT><A NAME="199"></A>      }
+<FONT ID="LN">200 </FONT><A NAME="200"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>        <FONT ID="If">if</FONT> (i &gt; <FONT ID="IntegerLiteral">0</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>            &amp;&amp; (pApostropheMask.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i)).find()
+<FONT ID="LN">203 </FONT><A NAME="203"></A>                   &amp;&amp; i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length() &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'\''</FONT>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>                || text.charAt(i - <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'s'</FONT>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>                   &amp;&amp; (i + <FONT ID="IntegerLiteral">1</FONT> == text.length()
+<FONT ID="LN">206 </FONT><A NAME="206"></A>                       || !Character.isLetter(text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">207 </FONT><A NAME="207"></A>                          &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>) != <FONT ID="CharacerLiteral">'\''</FONT>)
+<FONT ID="LN">208 </FONT><A NAME="208"></A>                || Character.isLetter(text.charAt(i - <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">209 </FONT><A NAME="209"></A>                   &amp;&amp; (i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">210 </FONT><A NAME="210"></A>                          &amp;&amp; (i + <FONT ID="IntegerLiteral">2</FONT> == text.length()
+<FONT ID="LN">211 </FONT><A NAME="211"></A>                              || !Character.isLetter(text.charAt(i + <FONT ID="IntegerLiteral">2</FONT>))
+<FONT ID="LN">212 </FONT><A NAME="212"></A>                                 &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">2</FONT>) != <FONT ID="CharacerLiteral">'\''</FONT>)
+<FONT ID="LN">213 </FONT><A NAME="213"></A>                          &amp;&amp; (text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'d'</FONT>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>                              || text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'m'</FONT>
+<FONT ID="LN">215 </FONT><A NAME="215"></A>                              || text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'s'</FONT>)
+<FONT ID="LN">216 </FONT><A NAME="216"></A>                       || i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">217 </FONT><A NAME="217"></A>                          &amp;&amp; (i + <FONT ID="IntegerLiteral">3</FONT> == text.length()
+<FONT ID="LN">218 </FONT><A NAME="218"></A>                              || !Character.isLetter(text.charAt(i + <FONT ID="IntegerLiteral">3</FONT>))
+<FONT ID="LN">219 </FONT><A NAME="219"></A>                                 &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">3</FONT>) != <FONT ID="CharacerLiteral">'\''</FONT>)
+<FONT ID="LN">220 </FONT><A NAME="220"></A>                          &amp;&amp; (text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>).equals(<FONT ID="StringLiteral">"ll"</FONT>)
+<FONT ID="LN">221 </FONT><A NAME="221"></A>                              || text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>).equals(<FONT ID="StringLiteral">"re"</FONT>)
+<FONT ID="LN">222 </FONT><A NAME="222"></A>                              || text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>).equals(<FONT ID="StringLiteral">"ve"</FONT>)))
+<FONT ID="LN">223 </FONT><A NAME="223"></A>                || text.charAt(i - <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'.'</FONT> &amp;&amp; i - <FONT ID="IntegerLiteral">1</FONT> &gt; <FONT ID="IntegerLiteral">0</FONT>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>                   &amp;&amp; Character.isLetter(text.charAt(i - <FONT ID="IntegerLiteral">2</FONT>))
+<FONT ID="LN">225 </FONT><A NAME="225"></A>                   &amp;&amp; i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">226 </FONT><A NAME="226"></A>                   &amp;&amp; (i + <FONT ID="IntegerLiteral">2</FONT> == text.length()
+<FONT ID="LN">227 </FONT><A NAME="227"></A>                       || !Character.isLetter(text.charAt(i + <FONT ID="IntegerLiteral">2</FONT>))
+<FONT ID="LN">228 </FONT><A NAME="228"></A>                          &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">2</FONT>) != <FONT ID="CharacerLiteral">'\''</FONT>)
+<FONT ID="LN">229 </FONT><A NAME="229"></A>                   &amp;&amp; text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'s'</FONT>))
+<FONT ID="LN">230 </FONT><A NAME="230"></A>        {
+<FONT ID="LN">231 </FONT><A NAME="231"></A>          myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")contraction1"</FONT>);
+<FONT ID="LN">232 </FONT><A NAME="232"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">"(contraction1"</FONT>);
+<FONT ID="LN">233 </FONT><A NAME="233"></A>        }
+<FONT ID="LN">234 </FONT><A NAME="234"></A>
+<FONT ID="LN">235 </FONT><A NAME="235"></A>      <FONT ID="If">if</FONT> (i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">236 </FONT><A NAME="236"></A>          &amp;&amp; pApostropheMask.matcher(text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find()
+<FONT ID="LN">237 </FONT><A NAME="237"></A>          &amp;&amp; (!Character.isLetter(text.charAt(i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">238 </FONT><A NAME="238"></A>              || i &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; text.charAt(i - <FONT ID="IntegerLiteral">1</FONT>) == <FONT ID="CharacerLiteral">'\''</FONT>))
+<FONT ID="LN">239 </FONT><A NAME="239"></A>      {
+<FONT ID="LN">240 </FONT><A NAME="240"></A>        myAdd(boundaries, i, <FONT ID="StringLiteral">")contraction2"</FONT>);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>        myAdd(boundaries, i + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(contraction2"</FONT>);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>      }
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    }
+<FONT ID="LN">244 </FONT><A NAME="244"></A>
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    Pattern pColonMask = Pattern.compile(<FONT ID="StringLiteral">"[^\\s,':]"</FONT>);
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    Pattern pColonSeparator = Pattern.compile(<FONT ID="StringLiteral">"\\d:\\d"</FONT>);
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    <FONT ID="SingleLineComment">// Colons get separated into their own word unless it looks like they're
+<FONT ID="LN">248 </FONT><A NAME="248"></A></FONT>    <FONT ID="SingleLineComment">// part of a time (or some other useful structure involving digits) or a
+<FONT ID="LN">249 </FONT><A NAME="249"></A></FONT>    <FONT ID="SingleLineComment">// URL.
+<FONT ID="LN">250 </FONT><A NAME="250"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = text.indexOf(<FONT ID="CharacerLiteral">':'</FONT>); i != -<FONT ID="IntegerLiteral">1</FONT>; i = text.indexOf(<FONT ID="CharacerLiteral">':'</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">251 </FONT><A NAME="251"></A>      <FONT ID="If">if</FONT> (!(i &gt;= <FONT ID="IntegerLiteral">2</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">252 </FONT><A NAME="252"></A>              &amp;&amp; pColonSeparator.matcher(text.substring(i - <FONT ID="IntegerLiteral">2</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>)).find()
+<FONT ID="LN">253 </FONT><A NAME="253"></A>            || i &gt; <FONT ID="IntegerLiteral">2</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">254 </FONT><A NAME="254"></A>               &amp;&amp; (text.substring(i - <FONT ID="IntegerLiteral">2</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>).equals(<FONT ID="StringLiteral">"tp://"</FONT>)
+<FONT ID="LN">255 </FONT><A NAME="255"></A>                   || text.substring(i - <FONT ID="IntegerLiteral">2</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>).equals(<FONT ID="StringLiteral">"TP://"</FONT>))
+<FONT ID="LN">256 </FONT><A NAME="256"></A>            || partOfURL(i)))
+<FONT ID="LN">257 </FONT><A NAME="257"></A>      {
+<FONT ID="LN">258 </FONT><A NAME="258"></A>        <FONT ID="If">if</FONT> (i &gt;= <FONT ID="IntegerLiteral">1</FONT> &amp;&amp; pColonMask.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i)).find())
+<FONT ID="LN">259 </FONT><A NAME="259"></A>        {
+<FONT ID="LN">260 </FONT><A NAME="260"></A>          myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")colon1"</FONT>);
+<FONT ID="LN">261 </FONT><A NAME="261"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">"(colon1"</FONT>);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>        }
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>        <FONT ID="If">if</FONT> (i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">265 </FONT><A NAME="265"></A>            &amp;&amp; pColonMask.matcher(text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find())
+<FONT ID="LN">266 </FONT><A NAME="266"></A>        {
+<FONT ID="LN">267 </FONT><A NAME="267"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">")colon2"</FONT>);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>          myAdd(boundaries, i + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(colon2"</FONT>);
+<FONT ID="LN">269 </FONT><A NAME="269"></A>        }
+<FONT ID="LN">270 </FONT><A NAME="270"></A>      }
+<FONT ID="LN">271 </FONT><A NAME="271"></A>
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    Pattern pSlashMask = Pattern.compile(<FONT ID="StringLiteral">"[^\\s,':/]"</FONT>);
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    Pattern pSlashSeparator = Pattern.compile(<FONT ID="StringLiteral">"\\d/\\d"</FONT>);
+<FONT ID="LN">274 </FONT><A NAME="274"></A>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    <FONT ID="SingleLineComment">// Slashes get separated into their own word unless it looks like they're
+<FONT ID="LN">276 </FONT><A NAME="276"></A></FONT>    <FONT ID="SingleLineComment">// part of a date (or some other useful structure involving digits) or a
+<FONT ID="LN">277 </FONT><A NAME="277"></A></FONT>    <FONT ID="SingleLineComment">// URL.
+<FONT ID="LN">278 </FONT><A NAME="278"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = text.indexOf(<FONT ID="CharacerLiteral">'/'</FONT>); i != -<FONT ID="IntegerLiteral">1</FONT>; i = text.indexOf(<FONT ID="CharacerLiteral">'/'</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">279 </FONT><A NAME="279"></A>      <FONT ID="If">if</FONT> (!(i &gt;= <FONT ID="IntegerLiteral">2</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">280 </FONT><A NAME="280"></A>              &amp;&amp; pSlashSeparator.matcher(text.substring(i - <FONT ID="IntegerLiteral">2</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>)).find()
+<FONT ID="LN">281 </FONT><A NAME="281"></A>            || i &gt; <FONT ID="IntegerLiteral">3</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">282 </FONT><A NAME="282"></A>               &amp;&amp; (text.substring(i - <FONT ID="IntegerLiteral">3</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>).equals(<FONT ID="StringLiteral">"tp://"</FONT>)
+<FONT ID="LN">283 </FONT><A NAME="283"></A>                   || text.substring(i - <FONT ID="IntegerLiteral">3</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>).equals(<FONT ID="StringLiteral">"TP://"</FONT>))
+<FONT ID="LN">284 </FONT><A NAME="284"></A>            || i &gt; <FONT ID="IntegerLiteral">4</FONT>
+<FONT ID="LN">285 </FONT><A NAME="285"></A>               &amp;&amp; (text.substring(i - <FONT ID="IntegerLiteral">4</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>).equals(<FONT ID="StringLiteral">"tp://"</FONT>)
+<FONT ID="LN">286 </FONT><A NAME="286"></A>                   || text.substring(i - <FONT ID="IntegerLiteral">4</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>).equals(<FONT ID="StringLiteral">"TP://"</FONT>))
+<FONT ID="LN">287 </FONT><A NAME="287"></A>            || partOfURL(i)))
+<FONT ID="LN">288 </FONT><A NAME="288"></A>      {
+<FONT ID="LN">289 </FONT><A NAME="289"></A>        <FONT ID="If">if</FONT> (i &gt;= <FONT ID="IntegerLiteral">1</FONT> &amp;&amp; pSlashMask.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i)).find())
+<FONT ID="LN">290 </FONT><A NAME="290"></A>        {
+<FONT ID="LN">291 </FONT><A NAME="291"></A>          myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")slash1"</FONT>);
+<FONT ID="LN">292 </FONT><A NAME="292"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">"(slash1"</FONT>);
+<FONT ID="LN">293 </FONT><A NAME="293"></A>        }
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>        <FONT ID="If">if</FONT> (i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">296 </FONT><A NAME="296"></A>            &amp;&amp; pSlashMask.matcher(text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find())
+<FONT ID="LN">297 </FONT><A NAME="297"></A>        {
+<FONT ID="LN">298 </FONT><A NAME="298"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">")slash2"</FONT>);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>          myAdd(boundaries, i + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(slash2"</FONT>);
+<FONT ID="LN">300 </FONT><A NAME="300"></A>        }
+<FONT ID="LN">301 </FONT><A NAME="301"></A>      }
+<FONT ID="LN">302 </FONT><A NAME="302"></A>
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    Pattern pDashMask = Pattern.compile(<FONT ID="StringLiteral">"[^\\s,':/-]"</FONT>);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    Pattern pDashSeparator = Pattern.compile(<FONT ID="StringLiteral">"\\w-\\w"</FONT>);
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    Pattern pNegative1 = Pattern.compile(<FONT ID="StringLiteral">"-\\.?\\d"</FONT>);
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    Pattern pNegative2 = Pattern.compile(<FONT ID="StringLiteral">"\\s-\\.?\\d"</FONT>);
+<FONT ID="LN">307 </FONT><A NAME="307"></A>
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="SingleLineComment">// Dashes get separated into their own words unless it looks like they're
+<FONT ID="LN">309 </FONT><A NAME="309"></A></FONT>    <FONT ID="SingleLineComment">// part of some useful structure like a compound word, a number, or a URL.
+<FONT ID="LN">310 </FONT><A NAME="310"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = text.indexOf(<FONT ID="CharacerLiteral">'-'</FONT>); i != -<FONT ID="IntegerLiteral">1</FONT>; i = text.indexOf(<FONT ID="CharacerLiteral">'-'</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">311 </FONT><A NAME="311"></A>      <FONT ID="If">if</FONT> (!(i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length() &amp;&amp; i &gt;= <FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">312 </FONT><A NAME="312"></A>              &amp;&amp; pDashSeparator.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find()
+<FONT ID="LN">313 </FONT><A NAME="313"></A>            || (i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">314 </FONT><A NAME="314"></A>                &amp;&amp; (i == <FONT ID="IntegerLiteral">0</FONT>
+<FONT ID="LN">315 </FONT><A NAME="315"></A>                      &amp;&amp; pNegative1.matcher(text.substring(i, i + <FONT ID="IntegerLiteral">3</FONT>)).find()
+<FONT ID="LN">316 </FONT><A NAME="316"></A>                    || i &gt; <FONT ID="IntegerLiteral">0</FONT>
+<FONT ID="LN">317 </FONT><A NAME="317"></A>                       &amp;&amp; pNegative2.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>))
+<FONT ID="LN">318 </FONT><A NAME="318"></A>                                    .find()))
+<FONT ID="LN">319 </FONT><A NAME="319"></A>            || partOfURL(i)))
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      {
+<FONT ID="LN">321 </FONT><A NAME="321"></A>        <FONT ID="If">if</FONT> (i &gt;= <FONT ID="IntegerLiteral">1</FONT> &amp;&amp; pDashMask.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i)).find())
+<FONT ID="LN">322 </FONT><A NAME="322"></A>        {
+<FONT ID="LN">323 </FONT><A NAME="323"></A>          myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")dash1"</FONT>);
+<FONT ID="LN">324 </FONT><A NAME="324"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">"(dash1"</FONT>);
+<FONT ID="LN">325 </FONT><A NAME="325"></A>        }
+<FONT ID="LN">326 </FONT><A NAME="326"></A>
+<FONT ID="LN">327 </FONT><A NAME="327"></A>        <FONT ID="If">if</FONT> (i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">328 </FONT><A NAME="328"></A>            &amp;&amp; pDashMask.matcher(text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find())
+<FONT ID="LN">329 </FONT><A NAME="329"></A>        {
+<FONT ID="LN">330 </FONT><A NAME="330"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">")dash2"</FONT>);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>          myAdd(boundaries, i + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(dash2"</FONT>);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>        }
+<FONT ID="LN">333 </FONT><A NAME="333"></A>      }
+<FONT ID="LN">334 </FONT><A NAME="334"></A>
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    Pattern pDollarMask = Pattern.compile(<FONT ID="StringLiteral">"[^\\s,':/\\$-]"</FONT>);
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    Pattern pMoney1 = Pattern.compile(<FONT ID="StringLiteral">"\\$\\.?\\d"</FONT>);
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    Pattern pMoney2 = Pattern.compile(<FONT ID="StringLiteral">"(\\s|-)\\$\\.?\\d"</FONT>);
+<FONT ID="LN">338 </FONT><A NAME="338"></A>
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    <FONT ID="SingleLineComment">// Dollar signs get separated into their own words unless it looks like
+<FONT ID="LN">340 </FONT><A NAME="340"></A></FONT>    <FONT ID="SingleLineComment">// they're in fact delimiting the start of a dollar amount, or are part of
+<FONT ID="LN">341 </FONT><A NAME="341"></A></FONT>    <FONT ID="SingleLineComment">// a URL.
+<FONT ID="LN">342 </FONT><A NAME="342"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = text.indexOf(<FONT ID="CharacerLiteral">'$'</FONT>); i != -<FONT ID="IntegerLiteral">1</FONT>; i = text.indexOf(<FONT ID="CharacerLiteral">'$'</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">343 </FONT><A NAME="343"></A>      <FONT ID="If">if</FONT> (!(i == <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">344 </FONT><A NAME="344"></A>              &amp;&amp; pMoney1.matcher(text.substring(i, i + <FONT ID="IntegerLiteral">3</FONT>)).find()
+<FONT ID="LN">345 </FONT><A NAME="345"></A>            || i &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">346 </FONT><A NAME="346"></A>               &amp;&amp; pMoney2.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>)).find()
+<FONT ID="LN">347 </FONT><A NAME="347"></A>            || partOfURL(i)))
+<FONT ID="LN">348 </FONT><A NAME="348"></A>      {
+<FONT ID="LN">349 </FONT><A NAME="349"></A>        <FONT ID="If">if</FONT> (i &gt;= <FONT ID="IntegerLiteral">1</FONT> &amp;&amp; pDollarMask.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i)).find())
+<FONT ID="LN">350 </FONT><A NAME="350"></A>        {
+<FONT ID="LN">351 </FONT><A NAME="351"></A>          myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")dollar1"</FONT>);
+<FONT ID="LN">352 </FONT><A NAME="352"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">"(dollar1"</FONT>);
+<FONT ID="LN">353 </FONT><A NAME="353"></A>        }
+<FONT ID="LN">354 </FONT><A NAME="354"></A>
+<FONT ID="LN">355 </FONT><A NAME="355"></A>        <FONT ID="If">if</FONT> (i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">356 </FONT><A NAME="356"></A>            &amp;&amp; pDollarMask.matcher(text.substring(i + <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find())
+<FONT ID="LN">357 </FONT><A NAME="357"></A>        {
+<FONT ID="LN">358 </FONT><A NAME="358"></A>          myAdd(boundaries, i, <FONT ID="StringLiteral">")dollar2"</FONT>);
+<FONT ID="LN">359 </FONT><A NAME="359"></A>          myAdd(boundaries, i + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(dollar2"</FONT>);
+<FONT ID="LN">360 </FONT><A NAME="360"></A>        }
+<FONT ID="LN">361 </FONT><A NAME="361"></A>      }
+<FONT ID="LN">362 </FONT><A NAME="362"></A>
+<FONT ID="LN">363 </FONT><A NAME="363"></A>    Pattern pBeforeElipsis = Pattern.compile(<FONT ID="StringLiteral">"[^\\s,':/\\$\\.-]\\.\\.\\."</FONT>);
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    Pattern pAfterElipsis = Pattern.compile(<FONT ID="StringLiteral">"\\.\\.\\.[^\\s,':/\\$\\.-]"</FONT>);
+<FONT ID="LN">365 </FONT><A NAME="365"></A>
+<FONT ID="LN">366 </FONT><A NAME="366"></A>    <FONT ID="SingleLineComment">// Three or more consecutive periods form their own word.
+<FONT ID="LN">367 </FONT><A NAME="367"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = text.indexOf(<FONT ID="CharacerLiteral">'.'</FONT>); i != -<FONT ID="IntegerLiteral">1</FONT>; i = text.indexOf(<FONT ID="CharacerLiteral">'.'</FONT>, i + <FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    {
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      <FONT ID="If">if</FONT> (i &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">2</FONT> &lt; text.length()
+<FONT ID="LN">370 </FONT><A NAME="370"></A>          &amp;&amp; pBeforeElipsis.matcher(text.substring(i - <FONT ID="IntegerLiteral">1</FONT>, i + <FONT ID="IntegerLiteral">3</FONT>)).find())
+<FONT ID="LN">371 </FONT><A NAME="371"></A>      {
+<FONT ID="LN">372 </FONT><A NAME="372"></A>        myAdd(boundaries, i - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")ellipsis1"</FONT>);
+<FONT ID="LN">373 </FONT><A NAME="373"></A>        myAdd(boundaries, i, <FONT ID="StringLiteral">"(ellipsis1"</FONT>);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>      }
+<FONT ID="LN">375 </FONT><A NAME="375"></A>
+<FONT ID="LN">376 </FONT><A NAME="376"></A>      <FONT ID="If">if</FONT> (i &gt;= <FONT ID="IntegerLiteral">2</FONT> &amp;&amp; i + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">377 </FONT><A NAME="377"></A>          &amp;&amp; pAfterElipsis.matcher(text.substring(i - <FONT ID="IntegerLiteral">2</FONT>, i + <FONT ID="IntegerLiteral">2</FONT>)).find())
+<FONT ID="LN">378 </FONT><A NAME="378"></A>      {
+<FONT ID="LN">379 </FONT><A NAME="379"></A>        myAdd(boundaries, i, <FONT ID="StringLiteral">")ellipsis2"</FONT>);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>        myAdd(boundaries, i + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(ellipsis2"</FONT>);
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      }
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    }
+<FONT ID="LN">383 </FONT><A NAME="383"></A>
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    <FONT ID="SingleLineComment">// If the last occurrence of a period in the sentence comes after all
+<FONT ID="LN">385 </FONT><A NAME="385"></A></FONT>    <FONT ID="SingleLineComment">// occurrences of letters and digits, it is an end of sentence marker
+<FONT ID="LN">386 </FONT><A NAME="386"></A></FONT>    <FONT ID="SingleLineComment">// which constitutes its own word, unless it appears immediately after two
+<FONT ID="LN">387 </FONT><A NAME="387"></A></FONT>    <FONT ID="SingleLineComment">// other periods.
+<FONT ID="LN">388 </FONT><A NAME="388"></A></FONT>    <FONT ID="Int">int</FONT> period = text.lastIndexOf(<FONT ID="CharacerLiteral">'.'</FONT>);
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    <FONT ID="If">if</FONT> (period != -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    {
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      <FONT ID="Boolean">boolean</FONT> endOfSentence = <FONT ID="True">true</FONT>;
+<FONT ID="LN">392 </FONT><A NAME="392"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = period + <FONT ID="IntegerLiteral">1</FONT>; i &lt; text.length() &amp;&amp; endOfSentence; ++i)
+<FONT ID="LN">393 </FONT><A NAME="393"></A>        endOfSentence = !Character.isLetterOrDigit(text.charAt(i));
+<FONT ID="LN">394 </FONT><A NAME="394"></A>
+<FONT ID="LN">395 </FONT><A NAME="395"></A>      <FONT ID="If">if</FONT> (endOfSentence)
+<FONT ID="LN">396 </FONT><A NAME="396"></A>      {
+<FONT ID="LN">397 </FONT><A NAME="397"></A>        <FONT ID="If">if</FONT> (period &gt;= <FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">398 </FONT><A NAME="398"></A>            &amp;&amp; (text.charAt(period - <FONT ID="IntegerLiteral">1</FONT>) != <FONT ID="CharacerLiteral">'.'</FONT> || period == <FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">399 </FONT><A NAME="399"></A>                || text.charAt(period - <FONT ID="IntegerLiteral">2</FONT>) != <FONT ID="CharacerLiteral">'.'</FONT>)
+<FONT ID="LN">400 </FONT><A NAME="400"></A>            &amp;&amp; pDollarMask.matcher(text.substring(period - <FONT ID="IntegerLiteral">1</FONT>, period)).find())
+<FONT ID="LN">401 </FONT><A NAME="401"></A>        {
+<FONT ID="LN">402 </FONT><A NAME="402"></A>          myAdd(boundaries, period - <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">")period1"</FONT>);
+<FONT ID="LN">403 </FONT><A NAME="403"></A>          myAdd(boundaries, period, <FONT ID="StringLiteral">"(period1"</FONT>);
+<FONT ID="LN">404 </FONT><A NAME="404"></A>        }
+<FONT ID="LN">405 </FONT><A NAME="405"></A>
+<FONT ID="LN">406 </FONT><A NAME="406"></A>        <FONT ID="If">if</FONT> (period + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">407 </FONT><A NAME="407"></A>            &amp;&amp; (period == <FONT ID="IntegerLiteral">0</FONT> || text.charAt(period - <FONT ID="IntegerLiteral">1</FONT>) != <FONT ID="CharacerLiteral">'.'</FONT> || period == <FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">408 </FONT><A NAME="408"></A>                || text.charAt(period - <FONT ID="IntegerLiteral">2</FONT>) != <FONT ID="CharacerLiteral">'.'</FONT>)
+<FONT ID="LN">409 </FONT><A NAME="409"></A>            &amp;&amp; pDollarMask.matcher(text.substring(period + <FONT ID="IntegerLiteral">1</FONT>, period + <FONT ID="IntegerLiteral">2</FONT>))
+<FONT ID="LN">410 </FONT><A NAME="410"></A>                          .find())
+<FONT ID="LN">411 </FONT><A NAME="411"></A>        {
+<FONT ID="LN">412 </FONT><A NAME="412"></A>          myAdd(boundaries, period, <FONT ID="StringLiteral">")period2"</FONT>);
+<FONT ID="LN">413 </FONT><A NAME="413"></A>          myAdd(boundaries, period + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(period2"</FONT>);
+<FONT ID="LN">414 </FONT><A NAME="414"></A>        }
+<FONT ID="LN">415 </FONT><A NAME="415"></A>      }
+<FONT ID="LN">416 </FONT><A NAME="416"></A>      <FONT ID="Else">else</FONT> period = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    }
+<FONT ID="LN">418 </FONT><A NAME="418"></A>
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    <FONT ID="SingleLineComment">// All other punctuation marks constitute their own words, unless they
+<FONT ID="LN">420 </FONT><A NAME="420"></A></FONT>    <FONT ID="SingleLineComment">// appear immediately after themselves (consecutive identical punctuation
+<FONT ID="LN">421 </FONT><A NAME="421"></A></FONT>    <FONT ID="SingleLineComment">// marks form a single word) or are part of a URL.
+<FONT ID="LN">422 </FONT><A NAME="422"></A></FONT>    Pattern pPunctuation = Pattern.compile(<FONT ID="StringLiteral">"[^\\s\\w,'\\.:/\\$-]"</FONT>);
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    m = pPunctuation.matcher(text);
+<FONT ID="LN">424 </FONT><A NAME="424"></A>
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    <FONT ID="While">while</FONT> (m.find())
+<FONT ID="LN">426 </FONT><A NAME="426"></A>      <FONT ID="If">if</FONT> (!partOfURL(m.start()))
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      {
+<FONT ID="LN">428 </FONT><A NAME="428"></A>        <FONT ID="If">if</FONT> (m.start() + <FONT ID="IntegerLiteral">1</FONT> &lt; text.length()
+<FONT ID="LN">429 </FONT><A NAME="429"></A>            &amp;&amp; text.charAt(m.start()) != text.charAt(m.start() + <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">430 </FONT><A NAME="430"></A>            &amp;&amp; m.start() + <FONT ID="IntegerLiteral">1</FONT> != period
+<FONT ID="LN">431 </FONT><A NAME="431"></A>            &amp;&amp; pPunctuation
+<FONT ID="LN">432 </FONT><A NAME="432"></A>               .matcher(text.substring(m.start() + <FONT ID="IntegerLiteral">1</FONT>, m.start() + <FONT ID="IntegerLiteral">2</FONT>)).find())
+<FONT ID="LN">433 </FONT><A NAME="433"></A>        {
+<FONT ID="LN">434 </FONT><A NAME="434"></A>          myAdd(boundaries, m.start(), <FONT ID="StringLiteral">")punctuation1"</FONT>);
+<FONT ID="LN">435 </FONT><A NAME="435"></A>          myAdd(boundaries, m.start() + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(punctuation1"</FONT>);
+<FONT ID="LN">436 </FONT><A NAME="436"></A>        }
+<FONT ID="LN">437 </FONT><A NAME="437"></A>      }
+<FONT ID="LN">438 </FONT><A NAME="438"></A>
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    m = Pattern.compile(<FONT ID="StringLiteral">"[^\\s\\w,'\\.:/\\$-]\\w|\\w[^\\s\\w,'\\.:/\\$-]"</FONT>)
+<FONT ID="LN">440 </FONT><A NAME="440"></A>        .matcher(text);
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="While">while</FONT> (m.find())
+<FONT ID="LN">442 </FONT><A NAME="442"></A>      <FONT ID="If">if</FONT> (!partOfURL(m.start()))
+<FONT ID="LN">443 </FONT><A NAME="443"></A>      {
+<FONT ID="LN">444 </FONT><A NAME="444"></A>        myAdd(boundaries, m.start(), <FONT ID="StringLiteral">")punctuation2"</FONT>);
+<FONT ID="LN">445 </FONT><A NAME="445"></A>        myAdd(boundaries, m.start() + <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"(punctuation2"</FONT>);
+<FONT ID="LN">446 </FONT><A NAME="446"></A>      }
+<FONT ID="LN">447 </FONT><A NAME="447"></A>
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    <FONT ID="SingleLineComment">// Now we just have to create the LinkedVector.
+<FONT ID="LN">449 </FONT><A NAME="449"></A></FONT>    Integer[] temp =
+<FONT ID="LN">450 </FONT><A NAME="450"></A>      (Integer[]) boundaries.toArray(<FONT ID="New">new</FONT> Integer[boundaries.size()]);
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    <FONT ID="Int">int</FONT>[] I = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[temp.length];
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; I.length; ++i) I[i] = temp[i].intValue();
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    Arrays.sort(I);
+<FONT ID="LN">454 </FONT><A NAME="454"></A>
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    <A HREF="../../LBJ2/nlp/Word.java.html">Word</A> w = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/Word.java.html">Word</A>(text.substring(I[<FONT ID="IntegerLiteral">0</FONT>], I[<FONT ID="IntegerLiteral">1</FONT>] + <FONT ID="IntegerLiteral">1</FONT>), I[<FONT ID="IntegerLiteral">0</FONT>] + start,
+<FONT ID="LN">456 </FONT><A NAME="456"></A>                      I[<FONT ID="IntegerLiteral">1</FONT>] + start);
+<FONT ID="LN">457 </FONT><A NAME="457"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">2</FONT>; i &lt; I.length; i += <FONT ID="IntegerLiteral">2</FONT>)
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    {
+<FONT ID="LN">459 </FONT><A NAME="459"></A>      w.next = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/Word.java.html">Word</A>(text.substring(I[i], I[i + <FONT ID="IntegerLiteral">1</FONT>] + <FONT ID="IntegerLiteral">1</FONT>),
+<FONT ID="LN">460 </FONT><A NAME="460"></A>                        w,
+<FONT ID="LN">461 </FONT><A NAME="461"></A>                        I[i] + start,
+<FONT ID="LN">462 </FONT><A NAME="462"></A>                        I[i + <FONT ID="IntegerLiteral">1</FONT>] + start);
+<FONT ID="LN">463 </FONT><A NAME="463"></A>      w = (<A HREF="../../LBJ2/nlp/Word.java.html">Word</A>) w.next;
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    }
+<FONT ID="LN">465 </FONT><A NAME="465"></A>
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    inURL = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">467 </FONT><A NAME="467"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> LinkedVector(w);
+<FONT ID="LN">468 </FONT><A NAME="468"></A>  }
+<FONT ID="LN">469 </FONT><A NAME="469"></A>
+<FONT ID="LN">470 </FONT><A NAME="470"></A>
+<FONT ID="LN">471 </FONT><A NAME="471"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    * Does a simple check to determine if the symbol at the specified index in
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    * the specified string is likely to be part of a URL.  If the specified
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    * text contains any of the following strings before the specified symbol,
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    * and there is no whitespace in between the two, the specified symbol is
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    * deemed likely to be part of a URL.
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    *
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    * @param index  The index of the symbol in question.
+<FONT ID="LN">479 </FONT><A NAME="479"></A>    * @return       &lt;code&gt;true&lt;/code&gt; if and only if the specified symbol
+<FONT ID="LN">480 </FONT><A NAME="480"></A>    *               appears to be part of a URL.
+<FONT ID="LN">481 </FONT><A NAME="481"></A>   **/</FONT>
+<FONT ID="LN">482 </FONT><A NAME="482"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> partOfURL(<FONT ID="Int">int</FONT> index)
+<FONT ID="LN">483 </FONT><A NAME="483"></A>  {
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    <FONT ID="If">if</FONT> (inURL != <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT> inURL[index];
+<FONT ID="LN">485 </FONT><A NAME="485"></A>    inURL = <FONT ID="New">new</FONT> <FONT ID="Boolean">boolean</FONT>[text.length()];
+<FONT ID="LN">486 </FONT><A NAME="486"></A>
+<FONT ID="LN">487 </FONT><A NAME="487"></A>    String pattern = <FONT ID="StringLiteral">"(?i)("</FONT> + protocols[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">488 </FONT><A NAME="488"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">1</FONT>; i &lt; protocols.length; ++i) pattern += <FONT ID="StringLiteral">"|"</FONT> + protocols[i];
+<FONT ID="LN">489 </FONT><A NAME="489"></A>    pattern += <FONT ID="StringLiteral">")://\\S+|[a-zA-Z0-9][a-zA-Z0-9-]*\\.("</FONT> + topLevelDomains[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">490 </FONT><A NAME="490"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; topLevelDomains.length; ++i)
+<FONT ID="LN">491 </FONT><A NAME="491"></A>      pattern += <FONT ID="StringLiteral">"|"</FONT> + topLevelDomains[i];
+<FONT ID="LN">492 </FONT><A NAME="492"></A>    pattern += <FONT ID="StringLiteral">")(/\\S+)?"</FONT>;
+<FONT ID="LN">493 </FONT><A NAME="493"></A>
+<FONT ID="LN">494 </FONT><A NAME="494"></A>    Matcher m = Pattern.compile(pattern).matcher(text);
+<FONT ID="LN">495 </FONT><A NAME="495"></A>    <FONT ID="While">while</FONT> (m.find())
+<FONT ID="LN">496 </FONT><A NAME="496"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = m.start(); i &lt; m.end(); ++i) inURL[i] = <FONT ID="True">true</FONT>;
+<FONT ID="LN">497 </FONT><A NAME="497"></A>    <FONT ID="Return">return</FONT> inURL[index];
+<FONT ID="LN">498 </FONT><A NAME="498"></A>  }
+<FONT ID="LN">499 </FONT><A NAME="499"></A>
+<FONT ID="LN">500 </FONT><A NAME="500"></A>
+<FONT ID="LN">501 </FONT><A NAME="501"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    * The string representation of a &lt;code&gt;Sentence&lt;/code&gt; is just its text.
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    *
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    * @return The text of this sentence.
+<FONT ID="LN">505 </FONT><A NAME="505"></A>   **/</FONT>
+<FONT ID="LN">506 </FONT><A NAME="506"></A>  <FONT ID="Public">public</FONT> String toString() { <FONT ID="Return">return</FONT> text; }
+<FONT ID="LN">507 </FONT><A NAME="507"></A>}
+<FONT ID="LN">508 </FONT><A NAME="508"></A>
+<FONT ID="LN">509 </FONT><A NAME="509"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Sentence.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

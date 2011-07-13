@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.seg.Token (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Token.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.seg;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/nlp/Word.java.html">LBJ2.nlp.Word</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * Simple extension of the {@link LBJ2.nlp.Word} class from LBJ's NLP
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * library.  Two extra fields are provided to store the token's type.  First,
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * {@link #type} is intended to store the type of the token &lt;i&gt;as computed by
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * some classifier&lt;/i&gt;.  Second, {@link #label} is intended for use only when
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * the data is labeled.
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  *
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * @author Nick Rizzolo
+<FONT ID="LN">14  </FONT><A NAME="14"></A> **/</FONT>
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Token <FONT ID="Extends">extends</FONT> <A HREF="../../../LBJ2/nlp/Word.java.html">Word</A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>{
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  <FONT ID="FormalComment">/** This field is used to store a computed type tag. */</FONT>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  <FONT ID="Public">public</FONT> String type;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  <FONT ID="FormalComment">/** This field stores the type tag found in labeled data. */</FONT>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="Public">public</FONT> String label;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    * A &lt;code&gt;Token&lt;/code&gt; can be constructed from a &lt;code&gt;Word&lt;/code&gt;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    * object representing the same word, a &lt;code&gt;Token&lt;/code&gt; representing
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    * the previous word in the sentence, and the type label found in the data.
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    *
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    * @param w    Represents the same word as the &lt;code&gt;Token&lt;/code&gt; being
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    *             constructed.
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    * @param p    The previous word in the sentence.
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    * @param type The type label for this word from the data.
+<FONT ID="LN">32  </FONT><A NAME="32"></A>   **/</FONT>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  <FONT ID="Public">public</FONT> Token(<A HREF="../../../LBJ2/nlp/Word.java.html">Word</A> w, <A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A> p, String type)
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  {
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    <FONT ID="Super">super</FONT>(w.form, w.partOfSpeech, w.lemma, w.wordSense, p, w.start, w.end);
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    label = type;
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  }
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    * Produces a simple &lt;code&gt;String&lt;/code&gt; representation of this word in
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    * which the {@link #label} field appears followed by the word's part
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    * of speech and finally the form (i.e., spelling) of the word all
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    * surrounded by parentheses.
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   **/</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Public">public</FONT> String toString()
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  {
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"("</FONT> + label + <FONT ID="StringLiteral">" "</FONT> + partOfSpeech + <FONT ID="StringLiteral">" "</FONT> + form + <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  }
+<FONT ID="LN">50  </FONT><A NAME="50"></A>}
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Token.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

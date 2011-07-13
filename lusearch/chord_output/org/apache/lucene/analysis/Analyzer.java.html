@@ -1,0 +1,180 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.analysis.Analyzer (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Analyzer.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.analysis;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.Reader;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.lang.reflect.Method;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/CloseableThreadLocal.java.html">org.apache.lucene.util.CloseableThreadLocal</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/AlreadyClosedException.java.html">org.apache.lucene.store.AlreadyClosedException</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/Fieldable.java.html">org.apache.lucene.document.Fieldable</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="FormalComment">/** An Analyzer builds TokenStreams, which analyze text.  It thus represents a
+<FONT ID="LN">30  </FONT><A NAME="30"></A> *  policy for extracting index terms from text.
+<FONT ID="LN">31  </FONT><A NAME="31"></A> *  &lt;p&gt;
+<FONT ID="LN">32  </FONT><A NAME="32"></A> *  Typical implementations first build a Tokenizer, which breaks the stream of
+<FONT ID="LN">33  </FONT><A NAME="33"></A> *  characters from the Reader into raw Tokens.  One or more TokenFilters may
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *  then be applied to the output of the Tokenizer.
+<FONT ID="LN">35  </FONT><A NAME="35"></A> */</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> Analyzer {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="FormalComment">/** Creates a TokenStream which tokenizes all the text in the provided
+<FONT ID="LN">38  </FONT><A NAME="38"></A>   * Reader.  Must be able to handle null field name for
+<FONT ID="LN">39  </FONT><A NAME="39"></A>   * backward compatibility.
+<FONT ID="LN">40  </FONT><A NAME="40"></A>   */</FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/analysis/TokenStream.java.html">TokenStream</A> tokenStream(String fieldName, Reader reader);
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="FormalComment">/** Creates a TokenStream that is allowed to be re-used
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   *  from the previous time that the same thread called
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   *  this method.  Callers that do not need to use more
+<FONT ID="LN">46  </FONT><A NAME="46"></A>   *  than one TokenStream at the same time from this
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   *  analyzer should use this method for better
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   *  performance.
+<FONT ID="LN">49  </FONT><A NAME="49"></A>   */</FONT>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/analysis/TokenStream.java.html">TokenStream</A> reusableTokenStream(String fieldName, Reader reader) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="Return">return</FONT> tokenStream(fieldName, reader);
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  }
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/util/CloseableThreadLocal.java.html">CloseableThreadLocal</A> tokenStreams = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/CloseableThreadLocal.java.html">CloseableThreadLocal</A>();
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="FormalComment">/** Used by Analyzers that implement reusableTokenStream
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   *  to retrieve previously saved TokenStreams for re-use
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   *  by the same thread. */</FONT>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="Protected">protected</FONT> Object getPreviousTokenStream() {
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>      <FONT ID="Return">return</FONT> tokenStreams.get();
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    } <FONT ID="Catch">catch</FONT> (NullPointerException npe) {
+<FONT ID="LN">63  </FONT><A NAME="63"></A>      <FONT ID="If">if</FONT> (tokenStreams == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">64  </FONT><A NAME="64"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/AlreadyClosedException.java.html">AlreadyClosedException</A>(<FONT ID="StringLiteral">"this Analyzer is closed"</FONT>);
+<FONT ID="LN">65  </FONT><A NAME="65"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        <FONT ID="Throw">throw</FONT> npe;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>      }
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    }
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  }
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="FormalComment">/** Used by Analyzers that implement reusableTokenStream
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   *  to save a TokenStream for later re-use by the same
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   *  thread. */</FONT>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setPreviousTokenStream(Object obj) {
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>      tokenStreams.set(obj);
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    } <FONT ID="Catch">catch</FONT> (NullPointerException npe) {
+<FONT ID="LN">78  </FONT><A NAME="78"></A>      <FONT ID="If">if</FONT> (tokenStreams == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">79  </FONT><A NAME="79"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/AlreadyClosedException.java.html">AlreadyClosedException</A>(<FONT ID="StringLiteral">"this Analyzer is closed"</FONT>);
+<FONT ID="LN">80  </FONT><A NAME="80"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">81  </FONT><A NAME="81"></A>        <FONT ID="Throw">throw</FONT> npe;
+<FONT ID="LN">82  </FONT><A NAME="82"></A>      }
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  }
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> overridesTokenStreamMethod;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="FormalComment">/** @deprecated This is only present to preserve
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   *  back-compat of classes that subclass a core analyzer
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   *  and override tokenStream but not reusableTokenStream */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setOverridesTokenStreamMethod(Class baseClass) {
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="Final">final</FONT> Class[] params = <FONT ID="New">new</FONT> Class[<FONT ID="IntegerLiteral">2</FONT>];
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    params[<FONT ID="IntegerLiteral">0</FONT>] = String.<FONT ID="Class">class</FONT>;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    params[<FONT ID="IntegerLiteral">1</FONT>] = Reader.<FONT ID="Class">class</FONT>;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">98  </FONT><A NAME="98"></A>      Method m = <FONT ID="This">this</FONT>.getClass().getMethod(<FONT ID="StringLiteral">"tokenStream"</FONT>, params);
+<FONT ID="LN">99  </FONT><A NAME="99"></A>      <FONT ID="If">if</FONT> (m != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        overridesTokenStreamMethod = m.getDeclaringClass() != baseClass;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        overridesTokenStreamMethod = <FONT ID="False">false</FONT>;
+<FONT ID="LN">103 </FONT><A NAME="103"></A>      }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    } <FONT ID="Catch">catch</FONT> (NoSuchMethodException nsme) {
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      overridesTokenStreamMethod = <FONT ID="False">false</FONT>;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   * Invoked before indexing a Fieldable instance if
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   * terms have already been added to that field.  This allows custom
+<FONT ID="LN">113 </FONT><A NAME="113"></A>   * analyzers to place an automatic position increment gap between
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   * Fieldable instances using the same field name.  The default value
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   * position increment gap is 0.  With a 0 position increment gap and
+<FONT ID="LN">116 </FONT><A NAME="116"></A>   * the typical default token position increment of 1, all terms in a field,
+<FONT ID="LN">117 </FONT><A NAME="117"></A>   * including across Fieldable instances, are in successive positions, allowing
+<FONT ID="LN">118 </FONT><A NAME="118"></A>   * exact PhraseQuery matches, for instance, across Fieldable instance boundaries.
+<FONT ID="LN">119 </FONT><A NAME="119"></A>   *
+<FONT ID="LN">120 </FONT><A NAME="120"></A>   * @param fieldName Fieldable name being indexed.
+<FONT ID="LN">121 </FONT><A NAME="121"></A>   * @return position increment gap, added to the next token emitted from {@link #tokenStream(String,Reader)}
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   */</FONT>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getPositionIncrementGap(String fieldName)
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  {
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  }
+<FONT ID="LN">127 </FONT><A NAME="127"></A>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">129 </FONT><A NAME="129"></A>   * Just like {@link #getPositionIncrementGap}, except for
+<FONT ID="LN">130 </FONT><A NAME="130"></A>   * Token offsets instead.  By default this returns 1 for
+<FONT ID="LN">131 </FONT><A NAME="131"></A>   * tokenized fields and, as if the fields were joined
+<FONT ID="LN">132 </FONT><A NAME="132"></A>   * with an extra space character, and 0 for un-tokenized
+<FONT ID="LN">133 </FONT><A NAME="133"></A>   * fields.  This method is only called if the field
+<FONT ID="LN">134 </FONT><A NAME="134"></A>   * produced at least one token for indexing.
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   *
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * @param field the field just indexed
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * @return offset gap, added to the next token emitted from {@link #tokenStream(String,Reader)}
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   */</FONT>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getOffsetGap(<A HREF="../../../../org/apache/lucene/document/Fieldable.java.html">Fieldable</A> field) {
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    <FONT ID="If">if</FONT> (field.isTokenized())
+<FONT ID="LN">141 </FONT><A NAME="141"></A>      <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>      <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  }
+<FONT ID="LN">145 </FONT><A NAME="145"></A>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="FormalComment">/** Frees persistent resources used by this Analyzer */</FONT>
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> close() {
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    tokenStreams.close();
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    tokenStreams = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  }
+<FONT ID="LN">151 </FONT><A NAME="151"></A>}
+<FONT ID="LN">152 </FONT><A NAME="152"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Analyzer.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

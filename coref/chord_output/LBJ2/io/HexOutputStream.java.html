@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.io.HexOutputStream (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">HexOutputStream.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.io;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * This class will convert whatever data is sent to it into little endian,
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * hexidecimal text and send that text on to another
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * &lt;code&gt;OutputStream&lt;/code&gt;.  The most common usage of this class will
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * involve passing it to the constructor of another
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * &lt;code&gt;OutputStream&lt;/code&gt;.  For instance: &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  *
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * &lt;pre&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  *   ObjectOutputStream oos =
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  *     new ObjectOutputStream(
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  *       new GZIPOutputStream(
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  *         new HexOutputStream(new FileOutputStream(fileName))));
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  * &lt;/pre&gt;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  *
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  * @see HexInputStream
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  * @author Nick Rizzolo
+<FONT ID="LN">22  </FONT><A NAME="22"></A> **/</FONT>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> HexOutputStream <FONT ID="Extends">extends</FONT> OutputStream
+<FONT ID="LN">24  </FONT><A NAME="24"></A>{
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="FormalComment">/** Characters representing a hexidecimal digit. */</FONT>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String digits = <FONT ID="StringLiteral">"0123456789ABCDEF"</FONT>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    * The &lt;code&gt;OutputStream&lt;/code&gt; to which converted output should be sent.
+<FONT ID="LN">30  </FONT><A NAME="30"></A>   **/</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  <FONT ID="Private">private</FONT> OutputStream out;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    * Initializes this stream with another output stream.
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    *
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    * @param o  The output stream to which converted output should be sent.
+<FONT ID="LN">38  </FONT><A NAME="38"></A>   **/</FONT>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  <FONT ID="Public">public</FONT> HexOutputStream(OutputStream o) { out = o; }
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    * Writes the specified byte to this output stream.  The general contract
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    * for &lt;code&gt;write&lt;/code&gt; is that one byte is written to the output stream.
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    * The byte to be written is the eight low-order bits of the argument
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    * &lt;code&gt;b&lt;/code&gt;.  The 24 high-order bits of &lt;code&gt;b&lt;/code&gt; are ignored.
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    *
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    * @param b  The byte to be written.
+<FONT ID="LN">49  </FONT><A NAME="49"></A>   **/</FONT>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(<FONT ID="Int">int</FONT> b) <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  {
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    b &amp;= <FONT ID="IntegerLiteral">255</FONT>;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    out.write(digits.charAt(b &amp; <FONT ID="IntegerLiteral">15</FONT>));
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    out.write(digits.charAt((b &amp; <FONT ID="IntegerLiteral">240</FONT>) &gt;&gt; <FONT ID="IntegerLiteral">4</FONT>));
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  }
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    * Writes &lt;code&gt;b.length&lt;/code&gt; bytes from the specified byte array to this
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    * output stream.  The general contract for &lt;code&gt;write(b)&lt;/code&gt; is that
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    * it should have exactly the same effect as the call &lt;code&gt;write(b, 0,
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    * b.length)&lt;/code&gt;.
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    *
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    * @param b  The bytes to be written.
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   **/</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(<FONT ID="Byte">byte</FONT>[] b) <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    write(b, <FONT ID="IntegerLiteral">0</FONT>, b.length);
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  }
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    * Writes &lt;code&gt;len&lt;/code&gt; bytes from the specified byte array starting at
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    * offset &lt;code&gt;off&lt;/code&gt; to this output stream.  The general contract for
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    * &lt;code&gt;write(b, off, len)&lt;/code&gt; is that some of the bytes in the array
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    * &lt;code&gt;b&lt;/code&gt; are written to the output stream in order; element
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    * &lt;code&gt;b[off]&lt;/code&gt; is the first byte written and
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    * &lt;code&gt;b[off+len-1]&lt;/code&gt; is the last byte written by this operation.
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    * &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    *
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    * If &lt;code&gt;b&lt;/code&gt; is &lt;code&gt;null&lt;/code&gt;, a
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    * &lt;code&gt;NullPointerException&lt;/code&gt; is thrown. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    *
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    * If &lt;code&gt;off&lt;/code&gt; is negative, or &lt;code&gt;len&lt;/code&gt; is negative, or
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    * &lt;code&gt;off+len&lt;/code&gt; is greater than the length of the array
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    * &lt;code&gt;b&lt;/code&gt;, then an &lt;code&gt;IndexOutOfBoundsException&lt;/code&gt; is
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    * thrown.
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    *
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    * @param b    A buffer containing the bytes to be written.
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    * @param off  The offset of the first byte to be written.
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    * @param len  The amount of bytes to be written.
+<FONT ID="LN">92  </FONT><A NAME="92"></A>   **/</FONT>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(<FONT ID="Byte">byte</FONT>[] b, <FONT ID="Int">int</FONT> off, <FONT ID="Int">int</FONT> len) <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    <FONT ID="Byte">byte</FONT>[] hex = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[<FONT ID="IntegerLiteral">2</FONT> * len];
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; len; ++i)
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    {
+<FONT ID="LN">98  </FONT><A NAME="98"></A>      hex[<FONT ID="IntegerLiteral">2</FONT> * i] = (<FONT ID="Byte">byte</FONT>) digits.charAt(b[off + i] &amp; <FONT ID="IntegerLiteral">15</FONT>);
+<FONT ID="LN">99  </FONT><A NAME="99"></A>      hex[<FONT ID="IntegerLiteral">2</FONT> * i + <FONT ID="IntegerLiteral">1</FONT>] = (<FONT ID="Byte">byte</FONT>) digits.charAt((b[off + i] &amp; <FONT ID="IntegerLiteral">240</FONT>) &gt;&gt; <FONT ID="IntegerLiteral">4</FONT>);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    }
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    out.write(hex);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>  }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    * Flushes this output stream and forces any buffered output bytes to be
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    * written out.  The general contract of &lt;code&gt;flush&lt;/code&gt; is that calling
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    * it is an indication that, if any bytes previously written have been
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    * buffered by the implementation of the output stream, such bytes should
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    * immediately be written to their intended destination.
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   **/</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> flush() <FONT ID="Throws">throws</FONT> IOException { out.flush(); }
+<FONT ID="LN">114 </FONT><A NAME="114"></A>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    * Closes this output stream and releases any system resources associated
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    * with this stream.  The general contract of &lt;code&gt;close&lt;/code&gt; is that it
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    * closes the output stream.  A closed stream cannot perform output
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    * operations and cannot be reopened.
+<FONT ID="LN">121 </FONT><A NAME="121"></A>   **/</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> close() <FONT ID="Throws">throws</FONT> IOException { out.close(); }
+<FONT ID="LN">123 </FONT><A NAME="123"></A>}
+<FONT ID="LN">124 </FONT><A NAME="124"></A>
+<FONT ID="LN">125 </FONT><A NAME="125"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">HexOutputStream.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

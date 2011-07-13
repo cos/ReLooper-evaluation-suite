@@ -1,0 +1,257 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.TermInfosWriter (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TermInfosWriter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">org.apache.lucene.store.IndexOutput</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">org.apache.lucene.store.Directory</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/UnicodeUtil.java.html">org.apache.lucene.util.UnicodeUtil</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="FormalComment">/** This stores a monotonically increasing set of &lt;Term, TermInfo&gt; pairs in a
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  Directory.  A TermInfos can be written once, in order.  */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> TermInfosWriter {
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  <FONT ID="FormalComment">/** The file format version, a negative number. */</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> FORMAT = -<FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  <FONT ID="SingleLineComment">// Changed strings to true utf8 with length-in-bytes not
+<FONT ID="LN">34  </FONT><A NAME="34"></A></FONT>  <FONT ID="SingleLineComment">// length-in-chars
+<FONT ID="LN">35  </FONT><A NAME="35"></A></FONT>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> FORMAT_VERSION_UTF8_LENGTH_IN_BYTES = -<FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="SingleLineComment">// NOTE: always change this if you switch to a new format!
+<FONT ID="LN">38  </FONT><A NAME="38"></A></FONT>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> FORMAT_CURRENT = FORMAT_VERSION_UTF8_LENGTH_IN_BYTES;
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfos.java.html">FieldInfos</A> fieldInfos;
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">IndexOutput</A> output;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/TermInfo.java.html">TermInfo</A> lastTi = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/TermInfo.java.html">TermInfo</A>();
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> size;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="SingleLineComment">// TODO: the default values for these two parameters should be settable from
+<FONT ID="LN">46  </FONT><A NAME="46"></A></FONT>  <FONT ID="SingleLineComment">// IndexWriter.  However, once that's done, folks will start setting them to
+<FONT ID="LN">47  </FONT><A NAME="47"></A></FONT>  <FONT ID="SingleLineComment">// ridiculous values and complaining that things don't work well, as with
+<FONT ID="LN">48  </FONT><A NAME="48"></A></FONT>  <FONT ID="SingleLineComment">// mergeFactor.  So, let's wait until a number of folks find that alternate
+<FONT ID="LN">49  </FONT><A NAME="49"></A></FONT>  <FONT ID="SingleLineComment">// values work better.  Note that both of these values are stored in the
+<FONT ID="LN">50  </FONT><A NAME="50"></A></FONT>  <FONT ID="SingleLineComment">// segment, so that it's safe to change these w/o rebuilding all indexes.
+<FONT ID="LN">51  </FONT><A NAME="51"></A></FONT>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  <FONT ID="FormalComment">/** Expert: The fraction of terms in the "dictionary" which should be stored
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   * in RAM.  Smaller values use more memory, but make searching slightly
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   * faster, while larger values use less memory and make searching slightly
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   * slower.  Searching is typically not dominated by dictionary lookup, so
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   * tweaking this is rarely useful.*/</FONT>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="Int">int</FONT> indexInterval = <FONT ID="IntegerLiteral">128</FONT>;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="FormalComment">/** Expert: The fraction of {@link TermDocs} entries stored in skip tables,
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   * used to accelerate {@link TermDocs#skipTo(int)}.  Larger values result in
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * smaller indexes, greater acceleration, but fewer accelerable cases, while
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * smaller values result in bigger indexes, less acceleration and more
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * accelerable cases. More detailed experiments would be useful here. */</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="Int">int</FONT> skipInterval = <FONT ID="IntegerLiteral">16</FONT>;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="FormalComment">/** Expert: The maximum number of skip levels. Smaller values result in 
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   * slightly smaller indexes, but slower skipping in big posting lists.
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Int">int</FONT> maxSkipLevels = <FONT ID="IntegerLiteral">10</FONT>;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> lastIndexPointer;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> isIndex;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  <FONT ID="Private">private</FONT> <FONT ID="Byte">byte</FONT>[] lastTermBytes = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[<FONT ID="IntegerLiteral">10</FONT>];
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> lastTermBytesLength = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> lastFieldNumber = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/TermInfosWriter.java.html">TermInfosWriter</A> other;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/util/UnicodeUtil.java.html">UnicodeUtil.UTF8Result</A> utf8Result = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/UnicodeUtil.java.html">UnicodeUtil.UTF8Result</A>();
+<FONT ID="LN">79  </FONT><A NAME="79"></A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  TermInfosWriter(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> directory, String segment, <A HREF="../../../../org/apache/lucene/index/FieldInfos.java.html">FieldInfos</A> fis,
+<FONT ID="LN">81  </FONT><A NAME="81"></A>                  <FONT ID="Int">int</FONT> interval)
+<FONT ID="LN">82  </FONT><A NAME="82"></A>       <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    initialize(directory, segment, fis, interval, <FONT ID="False">false</FONT>);
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    other = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/TermInfosWriter.java.html">TermInfosWriter</A>(directory, segment, fis, interval, <FONT ID="True">true</FONT>);
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    other.other = <FONT ID="This">this</FONT>;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="Private">private</FONT> TermInfosWriter(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> directory, String segment, <A HREF="../../../../org/apache/lucene/index/FieldInfos.java.html">FieldInfos</A> fis,
+<FONT ID="LN">89  </FONT><A NAME="89"></A>                          <FONT ID="Int">int</FONT> interval, <FONT ID="Boolean">boolean</FONT> isIndex) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    initialize(directory, segment, fis, interval, isIndex);
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> initialize(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> directory, String segment, <A HREF="../../../../org/apache/lucene/index/FieldInfos.java.html">FieldInfos</A> fis,
+<FONT ID="LN">94  </FONT><A NAME="94"></A>                          <FONT ID="Int">int</FONT> interval, <FONT ID="Boolean">boolean</FONT> isi) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    indexInterval = interval;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    fieldInfos = fis;
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    isIndex = isi;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    output = directory.createOutput(segment + (isIndex ? <FONT ID="StringLiteral">".tii"</FONT> : <FONT ID="StringLiteral">".tis"</FONT>));
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    output.writeInt(FORMAT_CURRENT);              <FONT ID="SingleLineComment">// write format
+<FONT ID="LN">100 </FONT><A NAME="100"></A></FONT>    output.writeLong(<FONT ID="IntegerLiteral">0</FONT>);                          <FONT ID="SingleLineComment">// leave space for size
+<FONT ID="LN">101 </FONT><A NAME="101"></A></FONT>    output.writeInt(indexInterval);               <FONT ID="SingleLineComment">// write indexInterval
+<FONT ID="LN">102 </FONT><A NAME="102"></A></FONT>    output.writeInt(skipInterval);                <FONT ID="SingleLineComment">// write skipInterval
+<FONT ID="LN">103 </FONT><A NAME="103"></A></FONT>    output.writeInt(maxSkipLevels);               <FONT ID="SingleLineComment">// write maxSkipLevels
+<FONT ID="LN">104 </FONT><A NAME="104"></A></FONT>    assert initUTF16Results();
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  }
+<FONT ID="LN">106 </FONT><A NAME="106"></A>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  <FONT ID="Void">void</FONT> add(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term, <A HREF="../../../../org/apache/lucene/index/TermInfo.java.html">TermInfo</A> ti) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    UnicodeUtil.UTF16toUTF8(term.text, <FONT ID="IntegerLiteral">0</FONT>, term.text.length(), utf8Result);
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    add(fieldInfos.fieldNumber(term.field), utf8Result.result, utf8Result.length, ti);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  }
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="SingleLineComment">// Currently used only by assert statements
+<FONT ID="LN">113 </FONT><A NAME="113"></A></FONT>  <A HREF="../../../../org/apache/lucene/util/UnicodeUtil.java.html">UnicodeUtil.UTF16Result</A> utf16Result1;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <A HREF="../../../../org/apache/lucene/util/UnicodeUtil.java.html">UnicodeUtil.UTF16Result</A> utf16Result2;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="SingleLineComment">// Currently used only by assert statements
+<FONT ID="LN">117 </FONT><A NAME="117"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> initUTF16Results() {
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    utf16Result1 = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/UnicodeUtil.java.html">UnicodeUtil.UTF16Result</A>();
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    utf16Result2 = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/UnicodeUtil.java.html">UnicodeUtil.UTF16Result</A>();
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="SingleLineComment">// Currently used only by assert statement
+<FONT ID="LN">124 </FONT><A NAME="124"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> compareToLastTerm(<FONT ID="Int">int</FONT> fieldNumber, <FONT ID="Byte">byte</FONT>[] termBytes, <FONT ID="Int">int</FONT> termBytesLength) {
+<FONT ID="LN">125 </FONT><A NAME="125"></A>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <FONT ID="If">if</FONT> (lastFieldNumber != fieldNumber) {
+<FONT ID="LN">127 </FONT><A NAME="127"></A>      <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> cmp = fieldInfos.fieldName(lastFieldNumber).compareTo(fieldInfos.fieldName(fieldNumber));
+<FONT ID="LN">128 </FONT><A NAME="128"></A>      <FONT ID="SingleLineComment">// If there is a field named "" (empty string) then we
+<FONT ID="LN">129 </FONT><A NAME="129"></A></FONT>      <FONT ID="SingleLineComment">// will get 0 on this comparison, yet, it's "OK".  But
+<FONT ID="LN">130 </FONT><A NAME="130"></A></FONT>      <FONT ID="SingleLineComment">// it's not OK if two different field numbers map to
+<FONT ID="LN">131 </FONT><A NAME="131"></A></FONT>      <FONT ID="SingleLineComment">// the same name.
+<FONT ID="LN">132 </FONT><A NAME="132"></A></FONT>      <FONT ID="If">if</FONT> (cmp != <FONT ID="IntegerLiteral">0</FONT> || lastFieldNumber != -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">133 </FONT><A NAME="133"></A>        <FONT ID="Return">return</FONT> cmp;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    }
+<FONT ID="LN">135 </FONT><A NAME="135"></A>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    UnicodeUtil.UTF8toUTF16(lastTermBytes, <FONT ID="IntegerLiteral">0</FONT>, lastTermBytesLength, utf16Result1);
+<FONT ID="LN">137 </FONT><A NAME="137"></A>    UnicodeUtil.UTF8toUTF16(termBytes, <FONT ID="IntegerLiteral">0</FONT>, termBytesLength, utf16Result2);
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> len;
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    <FONT ID="If">if</FONT> (utf16Result1.length &lt; utf16Result2.length)
+<FONT ID="LN">140 </FONT><A NAME="140"></A>      len = utf16Result1.length;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>      len = utf16Result2.length;
+<FONT ID="LN">143 </FONT><A NAME="143"></A>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;len;i++) {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>      <FONT ID="Final">final</FONT> <FONT ID="Char">char</FONT> ch1 = utf16Result1.result[i];
+<FONT ID="LN">146 </FONT><A NAME="146"></A>      <FONT ID="Final">final</FONT> <FONT ID="Char">char</FONT> ch2 = utf16Result2.result[i];
+<FONT ID="LN">147 </FONT><A NAME="147"></A>      <FONT ID="If">if</FONT> (ch1 != ch2)
+<FONT ID="LN">148 </FONT><A NAME="148"></A>        <FONT ID="Return">return</FONT> ch1-ch2;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    }
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    <FONT ID="Return">return</FONT> utf16Result1.length - utf16Result2.length;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  }
+<FONT ID="LN">152 </FONT><A NAME="152"></A>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  <FONT ID="FormalComment">/** Adds a new &lt;&lt;fieldNumber, termBytes&gt;, TermInfo&gt; pair to the set.
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    Term must be lexicographically greater than all previous Terms added.
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    TermInfo pointers must be positive and greater than all previous.*/</FONT>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  <FONT ID="Void">void</FONT> add(<FONT ID="Int">int</FONT> fieldNumber, <FONT ID="Byte">byte</FONT>[] termBytes, <FONT ID="Int">int</FONT> termBytesLength, <A HREF="../../../../org/apache/lucene/index/TermInfo.java.html">TermInfo</A> ti)
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">158 </FONT><A NAME="158"></A>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    assert compareToLastTerm(fieldNumber, termBytes, termBytesLength) &lt; <FONT ID="IntegerLiteral">0</FONT> ||
+<FONT ID="LN">160 </FONT><A NAME="160"></A>      (isIndex &amp;&amp; termBytesLength == <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; lastTermBytesLength == <FONT ID="IntegerLiteral">0</FONT>) :
+<FONT ID="LN">161 </FONT><A NAME="161"></A>      <FONT ID="StringLiteral">"Terms are out of order: field="</FONT> + fieldInfos.fieldName(fieldNumber) + <FONT ID="StringLiteral">" (number "</FONT> + fieldNumber + <FONT ID="StringLiteral">")"</FONT> +
+<FONT ID="LN">162 </FONT><A NAME="162"></A>        <FONT ID="StringLiteral">" lastField="</FONT> + fieldInfos.fieldName(lastFieldNumber) + <FONT ID="StringLiteral">" (number "</FONT> + lastFieldNumber + <FONT ID="StringLiteral">")"</FONT> +
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        <FONT ID="StringLiteral">" text="</FONT> + <FONT ID="New">new</FONT> String(termBytes, <FONT ID="IntegerLiteral">0</FONT>, termBytesLength, <FONT ID="StringLiteral">"UTF-8"</FONT>) + <FONT ID="StringLiteral">" lastText="</FONT> + <FONT ID="New">new</FONT> String(lastTermBytes, <FONT ID="IntegerLiteral">0</FONT>, lastTermBytesLength, <FONT ID="StringLiteral">"UTF-8"</FONT>);
+<FONT ID="LN">164 </FONT><A NAME="164"></A>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    assert ti.freqPointer &gt;= lastTi.freqPointer: <FONT ID="StringLiteral">"freqPointer out of order ("</FONT> + ti.freqPointer + <FONT ID="StringLiteral">" &lt; "</FONT> + lastTi.freqPointer + <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    assert ti.proxPointer &gt;= lastTi.proxPointer: <FONT ID="StringLiteral">"proxPointer out of order ("</FONT> + ti.proxPointer + <FONT ID="StringLiteral">" &lt; "</FONT> + lastTi.proxPointer + <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">167 </FONT><A NAME="167"></A>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    <FONT ID="If">if</FONT> (!isIndex &amp;&amp; size % indexInterval == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">169 </FONT><A NAME="169"></A>      other.add(lastFieldNumber, lastTermBytes, lastTermBytesLength, lastTi);                      <FONT ID="SingleLineComment">// add an index term
+<FONT ID="LN">170 </FONT><A NAME="170"></A></FONT>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    writeTerm(fieldNumber, termBytes, termBytesLength);                        <FONT ID="SingleLineComment">// write term
+<FONT ID="LN">172 </FONT><A NAME="172"></A></FONT>
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    output.writeVInt(ti.docFreq);                       <FONT ID="SingleLineComment">// write doc freq
+<FONT ID="LN">174 </FONT><A NAME="174"></A></FONT>    output.writeVLong(ti.freqPointer - lastTi.freqPointer); <FONT ID="SingleLineComment">// write pointers
+<FONT ID="LN">175 </FONT><A NAME="175"></A></FONT>    output.writeVLong(ti.proxPointer - lastTi.proxPointer);
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="If">if</FONT> (ti.docFreq &gt;= skipInterval) {
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      output.writeVInt(ti.skipOffset);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    }
+<FONT ID="LN">180 </FONT><A NAME="180"></A>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    <FONT ID="If">if</FONT> (isIndex) {
+<FONT ID="LN">182 </FONT><A NAME="182"></A>      output.writeVLong(other.output.getFilePointer() - lastIndexPointer);
+<FONT ID="LN">183 </FONT><A NAME="183"></A>      lastIndexPointer = other.output.getFilePointer(); <FONT ID="SingleLineComment">// write pointer
+<FONT ID="LN">184 </FONT><A NAME="184"></A></FONT>    }
+<FONT ID="LN">185 </FONT><A NAME="185"></A>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    lastFieldNumber = fieldNumber;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    lastTi.set(ti);
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    size++;
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  }
+<FONT ID="LN">190 </FONT><A NAME="190"></A>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> writeTerm(<FONT ID="Int">int</FONT> fieldNumber, <FONT ID="Byte">byte</FONT>[] termBytes, <FONT ID="Int">int</FONT> termBytesLength)
+<FONT ID="LN">192 </FONT><A NAME="192"></A>       <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    <FONT ID="SingleLineComment">// TODO: UTF16toUTF8 could tell us this prefix
+<FONT ID="LN">195 </FONT><A NAME="195"></A></FONT>    <FONT ID="SingleLineComment">// Compute prefix in common with last term:
+<FONT ID="LN">196 </FONT><A NAME="196"></A></FONT>    <FONT ID="Int">int</FONT> start = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> limit = termBytesLength &lt; lastTermBytesLength ? termBytesLength : lastTermBytesLength;
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    <FONT ID="While">while</FONT>(start &lt; limit) {
+<FONT ID="LN">199 </FONT><A NAME="199"></A>      <FONT ID="If">if</FONT> (termBytes[start] != lastTermBytes[start])
+<FONT ID="LN">200 </FONT><A NAME="200"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">201 </FONT><A NAME="201"></A>      start++;
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    }
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> length = termBytesLength - start;
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    output.writeVInt(start);                     <FONT ID="SingleLineComment">// write shared prefix length
+<FONT ID="LN">206 </FONT><A NAME="206"></A></FONT>    output.writeVInt(length);                  <FONT ID="SingleLineComment">// write delta length
+<FONT ID="LN">207 </FONT><A NAME="207"></A></FONT>    output.writeBytes(termBytes, start, length);  <FONT ID="SingleLineComment">// write delta bytes
+<FONT ID="LN">208 </FONT><A NAME="208"></A></FONT>    output.writeVInt(fieldNumber); <FONT ID="SingleLineComment">// write field num
+<FONT ID="LN">209 </FONT><A NAME="209"></A></FONT>    <FONT ID="If">if</FONT> (lastTermBytes.length &lt; termBytesLength) {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>      <FONT ID="Byte">byte</FONT>[] newArray = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[(<FONT ID="Int">int</FONT>) (termBytesLength*<FONT ID="FloatPointLiteral">1.5</FONT>)];
+<FONT ID="LN">211 </FONT><A NAME="211"></A>      System.arraycopy(lastTermBytes, <FONT ID="IntegerLiteral">0</FONT>, newArray, <FONT ID="IntegerLiteral">0</FONT>, start);
+<FONT ID="LN">212 </FONT><A NAME="212"></A>      lastTermBytes = newArray;
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    }
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    System.arraycopy(termBytes, start, lastTermBytes, start, length);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    lastTermBytesLength = termBytesLength;
+<FONT ID="LN">216 </FONT><A NAME="216"></A>  }
+<FONT ID="LN">217 </FONT><A NAME="217"></A>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  <FONT ID="FormalComment">/** Called to complete TermInfos creation. */</FONT>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>  <FONT ID="Void">void</FONT> close() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    output.seek(<FONT ID="IntegerLiteral">4</FONT>);          <FONT ID="SingleLineComment">// write size after format
+<FONT ID="LN">221 </FONT><A NAME="221"></A></FONT>    output.writeLong(size);
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    output.close();
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    <FONT ID="If">if</FONT> (!isIndex)
+<FONT ID="LN">225 </FONT><A NAME="225"></A>      other.close();
+<FONT ID="LN">226 </FONT><A NAME="226"></A>  }
+<FONT ID="LN">227 </FONT><A NAME="227"></A>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>}
+<FONT ID="LN">229 </FONT><A NAME="229"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TermInfosWriter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

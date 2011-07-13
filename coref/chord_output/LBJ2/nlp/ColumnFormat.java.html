@@ -1,0 +1,69 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.ColumnFormat (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ColumnFormat.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * This parser returns arrays of &lt;code&gt;String&lt;/code&gt;s representing the rows
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * of a file in column format.  The input file is assumed to contain fields
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * of non-whitespace characters separated by any amount of whitespace, one
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * line of which is usually used to represent a word in a corpus.  This
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * parser breaks a given line into one &lt;code&gt;String&lt;/code&gt; per field,
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * omitting all of the whitespace.  They are then returned in an array via
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * &lt;code&gt;next()&lt;/code&gt;.  If the input line is empty or contains only
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * whitespace, a zero length array will be returned.
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  *
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  * @author Nick Rizzolo
+<FONT ID="LN">17  </FONT><A NAME="17"></A> **/</FONT>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ColumnFormat <FONT ID="Extends">extends</FONT> LineByLine
+<FONT ID="LN">19  </FONT><A NAME="19"></A>{
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    * Creates the parser.
+<FONT ID="LN">22  </FONT><A NAME="22"></A>    *
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    * @param file The name of the file to parse.
+<FONT ID="LN">24  </FONT><A NAME="24"></A>   **/</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="Public">public</FONT> ColumnFormat(String file) { <FONT ID="Super">super</FONT>(file); }
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    * Returns an array of &lt;code&gt;String&lt;/code&gt;s representing the information in
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    * the columns of this row.
+<FONT ID="LN">31  </FONT><A NAME="31"></A>   **/</FONT>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  <FONT ID="Public">public</FONT> Object next()
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  {
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    String line = readLine();
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    <FONT ID="If">if</FONT> (line == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="If">if</FONT> (line.equals(<FONT ID="StringLiteral">""</FONT>)) <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> String[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="Return">return</FONT> line.split(<FONT ID="StringLiteral">"\\s+"</FONT>);
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  }
+<FONT ID="LN">39  </FONT><A NAME="39"></A>}
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ColumnFormat.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

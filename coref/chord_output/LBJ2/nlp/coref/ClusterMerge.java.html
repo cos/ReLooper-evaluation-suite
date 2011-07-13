@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.coref.ClusterMerge (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ClusterMerge.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.coref;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> LBJ2.learn.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> LBJ2.infer.*;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * Attempts to merge clusters produced by a coreference classifier via a
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * beam search.  This inference algorithm is specifically designed to work
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * with coreference classifiers that take pairs of
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * &lt;code&gt;LBJ2.nlp.coref.Document.Mention&lt;/code&gt;s in an array as input and
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * coherence classifiers that take pairs of
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  * &lt;code&gt;LBJ2.nlp.coref.Document&lt;/code&gt;s in an array as input and will not
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  * work with any other classifiers.
+<FONT ID="LN">17  </FONT><A NAME="17"></A> **/</FONT>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ClusterMerge <FONT ID="Extends">extends</FONT> Inference
+<FONT ID="LN">19  </FONT><A NAME="19"></A>{
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="FormalComment">/** The classifier being reranked. */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/nlp/coref/DataCoref.java.html">DataCoref</A> classifier;
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  <FONT ID="FormalComment">/** A coherence classifier to do the reranking. */</FONT>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="Private">private</FONT> Learner cohere;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  <FONT ID="FormalComment">/** The "head" document, more conveniently accessible. */</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> headDocument;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    * All coreference scores are multiplied by this weight, and all coherence
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    * scores are multiplied by 1 minus this weight.
+<FONT ID="LN">29  </FONT><A NAME="29"></A>   **/</FONT>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> alpha;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    * Don't use this constructor, because it doesn't set values for
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    * {@link #classifier} or {@link #cohere}.
+<FONT ID="LN">36  </FONT><A NAME="36"></A>   **/</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="Public">public</FONT> ClusterMerge() { <FONT ID="This">this</FONT>(<FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>, <FONT ID="FloatPointLiteral">.5</FONT>); }
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    * Initializes member variables, but not the head object.
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    *
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    * @param c  The classifier being reranked.
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    * @param cc A coherence classifier to do the re-ranking.
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    * @param a  A value for {@link #alpha}.
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   **/</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Public">public</FONT> ClusterMerge(<A HREF="../../../LBJ2/nlp/coref/DataCoref.java.html">DataCoref</A> c, Learner cc, <FONT ID="Double">double</FONT> a)
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  {
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="This">this</FONT>(<FONT ID="Null">null</FONT>, c, cc, a);
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  }
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    * Initializes member variables including the head object.
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    *
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    * @param h  The head object.
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    * @param c  The classifier being reranked.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    * @param cc A coherence classifier to do the re-ranking.
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    * @param a  A value for {@link #alpha}.
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   **/</FONT>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="Public">public</FONT> ClusterMerge(Object h, <A HREF="../../../LBJ2/nlp/coref/DataCoref.java.html">DataCoref</A> c, Learner cc, <FONT ID="Double">double</FONT> a)
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="Super">super</FONT>(h);
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    classifier = c;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    cohere = cc;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    alpha = a;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  }
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="FormalComment">/** Performs the cluster merging inference. */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> infer() <FONT ID="Throws">throws</FONT> Exception
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    instantiateVariables();
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    Normalizer norm = getNormalizer(cohere);
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  }
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    * Creates the first order variables involved in this inference problem.
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   **/</FONT>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> instantiateVariables()
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    Normalizer norm = getNormalizer(classifier);
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; headDocument.sentences(); ++i)
+<FONT ID="LN">86  </FONT><A NAME="86"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; headDocument.mentionsInSentence(i); ++j)
+<FONT ID="LN">87  </FONT><A NAME="87"></A>      {
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> k = <FONT ID="IntegerLiteral">0</FONT>; k &lt; i; ++k)
+<FONT ID="LN">89  </FONT><A NAME="89"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> l = <FONT ID="IntegerLiteral">0</FONT>; l &lt; headDocument.mentionsInSentence(k); ++l)
+<FONT ID="LN">90  </FONT><A NAME="90"></A>          {
+<FONT ID="LN">91  </FONT><A NAME="91"></A>            FirstOrderVariable v =
+<FONT ID="LN">92  </FONT><A NAME="92"></A>              <FONT ID="New">new</FONT> FirstOrderVariable(
+<FONT ID="LN">93  </FONT><A NAME="93"></A>                  classifier,
+<FONT ID="LN">94  </FONT><A NAME="94"></A>                  headDocument.getMentionPair(headDocument.getMention(k, l),
+<FONT ID="LN">95  </FONT><A NAME="95"></A>                                              headDocument.getMention(i, j)));
+<FONT ID="LN">96  </FONT><A NAME="96"></A>            variables.put(v, v);
+<FONT ID="LN">97  </FONT><A NAME="97"></A>          }
+<FONT ID="LN">98  </FONT><A NAME="98"></A>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> l = <FONT ID="IntegerLiteral">0</FONT>; l &lt; j; ++l)
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        {
+<FONT ID="LN">101 </FONT><A NAME="101"></A>          FirstOrderVariable v =
+<FONT ID="LN">102 </FONT><A NAME="102"></A>            <FONT ID="New">new</FONT> FirstOrderVariable(
+<FONT ID="LN">103 </FONT><A NAME="103"></A>                classifier,
+<FONT ID="LN">104 </FONT><A NAME="104"></A>                headDocument.getMentionPair(headDocument.getMention(i, l),
+<FONT ID="LN">105 </FONT><A NAME="105"></A>                                            headDocument.getMention(i, j)));
+<FONT ID="LN">106 </FONT><A NAME="106"></A>          variables.put(v, v);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>        }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>      }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  }
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    * Retrieves the value of the specified variable as identified by the
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    * classifier and the object that produce that variable.
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    *
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    * @param c  The classifier producing the variable.
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    * @param o  The object from which the variable is produced.
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    * @return   The current value of the requested variable.
+<FONT ID="LN">119 </FONT><A NAME="119"></A>   **/</FONT>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>  <FONT ID="Public">public</FONT> String valueOf(Learner c, Object o) <FONT ID="Throws">throws</FONT> Exception
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  {
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    infer();
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="Return">return</FONT> getVariable(<FONT ID="New">new</FONT> FirstOrderVariable(c, o)).getValue();
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  }
+<FONT ID="LN">125 </FONT><A NAME="125"></A>}
+<FONT ID="LN">126 </FONT><A NAME="126"></A>
+<FONT ID="LN">127 </FONT><A NAME="127"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ClusterMerge.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

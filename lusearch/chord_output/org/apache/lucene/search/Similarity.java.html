@@ -1,0 +1,1006 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.search.Similarity (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Similarity.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.search;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInvertState.java.html">org.apache.lucene.index.FieldInvertState</A>;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/Term.java.html">org.apache.lucene.index.Term</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/Explanation.java.html">org.apache.lucene.search.Explanation.IDFExplanation</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/SmallFloat.java.html">org.apache.lucene.util.SmallFloat</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.util.Collection;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.util.IdentityHashMap;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="FormalComment">/** 
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * Expert: Scoring API.
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * &lt;p&gt;Similarity defines the components of Lucene scoring.
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * Overriding computation of these components is a convenient
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * way to alter Lucene scoring.
+<FONT ID="LN">38  </FONT><A NAME="38"></A> *
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * &lt;p&gt;Suggested reading:
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * &lt;a href="http://nlp.stanford.edu/IR-book/html/htmledition/queries-as-vectors-1.html"&gt;
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * Introduction To Information Retrieval, Chapter 6&lt;/a&gt;.
+<FONT ID="LN">42  </FONT><A NAME="42"></A> *
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * &lt;p&gt;The following describes how Lucene scoring evolves from
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * underlying information retrieval models to (efficient) implementation.
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * We first brief on &lt;i&gt;VSM Score&lt;/i&gt;, 
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * then derive from it &lt;i&gt;Lucene's Conceptual Scoring Formula&lt;/i&gt;,
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * from which, finally, evolves &lt;i&gt;Lucene's Practical Scoring Function&lt;/i&gt; 
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * (the latter is connected directly with Lucene classes and methods).    
+<FONT ID="LN">49  </FONT><A NAME="49"></A> *
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * &lt;p&gt;Lucene combines
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * &lt;a href="http://en.wikipedia.org/wiki/Standard_Boolean_model"&gt;
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * Boolean model (BM) of Information Retrieval&lt;/a&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * with
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * &lt;a href="http://en.wikipedia.org/wiki/Vector_Space_Model"&gt;
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * Vector Space Model (VSM) of Information Retrieval&lt;/a&gt; -
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * documents "approved" by BM are scored by VSM.
+<FONT ID="LN">57  </FONT><A NAME="57"></A> *
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * &lt;p&gt;In VSM, documents and queries are represented as
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * weighted vectors in a multi-dimensional space,
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * where each distinct index term is a dimension,
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * and weights are
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * &lt;a href="http://en.wikipedia.org/wiki/Tfidf"&gt;Tf-idf&lt;/a&gt; values.
+<FONT ID="LN">63  </FONT><A NAME="63"></A> *
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * &lt;p&gt;VSM does not require weights to be &lt;i&gt;Tf-idf&lt;/i&gt; values,
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * but &lt;i&gt;Tf-idf&lt;/i&gt; values are believed to produce search results of high quality,
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * and so Lucene is using &lt;i&gt;Tf-idf&lt;/i&gt;.
+<FONT ID="LN">67  </FONT><A NAME="67"></A> * &lt;i&gt;Tf&lt;/i&gt; and &lt;i&gt;Idf&lt;/i&gt; are described in more detail below,
+<FONT ID="LN">68  </FONT><A NAME="68"></A> * but for now, for completion, let's just say that
+<FONT ID="LN">69  </FONT><A NAME="69"></A> * for given term &lt;i&gt;t&lt;/i&gt; and document (or query) &lt;i&gt;x&lt;/i&gt;,
+<FONT ID="LN">70  </FONT><A NAME="70"></A> * &lt;i&gt;Tf(t,x)&lt;/i&gt; varies with the number of occurrences of term &lt;i&gt;t&lt;/i&gt; in &lt;i&gt;x&lt;/i&gt;
+<FONT ID="LN">71  </FONT><A NAME="71"></A> * (when one increases so does the other) and
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * &lt;i&gt;idf(t)&lt;/i&gt; similarly varies with the inverse of the
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * number of index documents containing term &lt;i&gt;t&lt;/i&gt;.
+<FONT ID="LN">74  </FONT><A NAME="74"></A> *
+<FONT ID="LN">75  </FONT><A NAME="75"></A> * &lt;p&gt;&lt;i&gt;VSM score&lt;/i&gt; of document &lt;i&gt;d&lt;/i&gt; for query &lt;i&gt;q&lt;/i&gt; is the
+<FONT ID="LN">76  </FONT><A NAME="76"></A> * &lt;a href="http://en.wikipedia.org/wiki/Cosine_similarity"&gt;
+<FONT ID="LN">77  </FONT><A NAME="77"></A> * Cosine Similarity&lt;/a&gt;
+<FONT ID="LN">78  </FONT><A NAME="78"></A> * of the weighted query vectors &lt;i&gt;V(q)&lt;/i&gt; and &lt;i&gt;V(d)&lt;/i&gt;:
+<FONT ID="LN">79  </FONT><A NAME="79"></A> *
+<FONT ID="LN">80  </FONT><A NAME="80"></A> *  &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">81  </FONT><A NAME="81"></A> *  &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">82  </FONT><A NAME="82"></A> *    &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">83  </FONT><A NAME="83"></A> *    &lt;table cellpadding="1" cellspacing="0" border="1" align="center"&gt;
+<FONT ID="LN">84  </FONT><A NAME="84"></A> *      &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">85  </FONT><A NAME="85"></A> *      &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">86  </FONT><A NAME="86"></A> *        &lt;tr&gt;
+<FONT ID="LN">87  </FONT><A NAME="87"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">88  </FONT><A NAME="88"></A> *            cosine-similarity(q,d) &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">89  </FONT><A NAME="89"></A> *          &lt;/td&gt;
+<FONT ID="LN">90  </FONT><A NAME="90"></A> *          &lt;td valign="middle" align="center"&gt;
+<FONT ID="LN">91  </FONT><A NAME="91"></A> *            &lt;table&gt;
+<FONT ID="LN">92  </FONT><A NAME="92"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;small&gt;V(q)&amp;nbsp;&amp;middot;&amp;nbsp;V(d)&lt;/small&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">93  </FONT><A NAME="93"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">94  </FONT><A NAME="94"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;small&gt;|V(q)|&amp;nbsp;|V(d)|&lt;/small&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">95  </FONT><A NAME="95"></A> *            &lt;/table&gt;
+<FONT ID="LN">96  </FONT><A NAME="96"></A> *          &lt;/td&gt;
+<FONT ID="LN">97  </FONT><A NAME="97"></A> *        &lt;/tr&gt;
+<FONT ID="LN">98  </FONT><A NAME="98"></A> *      &lt;/table&gt;
+<FONT ID="LN">99  </FONT><A NAME="99"></A> *      &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">100 </FONT><A NAME="100"></A> *    &lt;/table&gt;
+<FONT ID="LN">101 </FONT><A NAME="101"></A> *    &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">102 </FONT><A NAME="102"></A> *    &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">103 </FONT><A NAME="103"></A> *    &lt;center&gt;&lt;font=-1&gt;&lt;u&gt;VSM Score&lt;/u&gt;&lt;/font&gt;&lt;/center&gt;
+<FONT ID="LN">104 </FONT><A NAME="104"></A> *    &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">105 </FONT><A NAME="105"></A> *  &lt;/table&gt;
+<FONT ID="LN">106 </FONT><A NAME="106"></A> *  &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">107 </FONT><A NAME="107"></A> *   
+<FONT ID="LN">108 </FONT><A NAME="108"></A> *
+<FONT ID="LN">109 </FONT><A NAME="109"></A> * Where &lt;i&gt;V(q)&lt;/i&gt; &amp;middot; &lt;i&gt;V(d)&lt;/i&gt; is the
+<FONT ID="LN">110 </FONT><A NAME="110"></A> * &lt;a href="http://en.wikipedia.org/wiki/Dot_product"&gt;dot product&lt;/a&gt;
+<FONT ID="LN">111 </FONT><A NAME="111"></A> * of the weighted vectors,
+<FONT ID="LN">112 </FONT><A NAME="112"></A> * and &lt;i&gt;|V(q)|&lt;/i&gt; and &lt;i&gt;|V(d)|&lt;/i&gt; are their
+<FONT ID="LN">113 </FONT><A NAME="113"></A> * &lt;a href="http://en.wikipedia.org/wiki/Euclidean_norm#Euclidean_norm"&gt;Euclidean norms&lt;/a&gt;.
+<FONT ID="LN">114 </FONT><A NAME="114"></A> *
+<FONT ID="LN">115 </FONT><A NAME="115"></A> * &lt;p&gt;Note: the above equation can be viewed as the dot product of
+<FONT ID="LN">116 </FONT><A NAME="116"></A> * the normalized weighted vectors, in the sense that dividing
+<FONT ID="LN">117 </FONT><A NAME="117"></A> * &lt;i&gt;V(q)&lt;/i&gt; by its euclidean norm is normalizing it to a unit vector.
+<FONT ID="LN">118 </FONT><A NAME="118"></A> *
+<FONT ID="LN">119 </FONT><A NAME="119"></A> * &lt;p&gt;Lucene refines &lt;i&gt;VSM score&lt;/i&gt; for both search quality and usability:
+<FONT ID="LN">120 </FONT><A NAME="120"></A> * &lt;ul&gt;
+<FONT ID="LN">121 </FONT><A NAME="121"></A> *  &lt;li&gt;Normalizing &lt;i&gt;V(d)&lt;/i&gt; to the unit vector is known to be problematic in that 
+<FONT ID="LN">122 </FONT><A NAME="122"></A> *  it removes all document length information. 
+<FONT ID="LN">123 </FONT><A NAME="123"></A> *  For some documents removing this info is probably ok, 
+<FONT ID="LN">124 </FONT><A NAME="124"></A> *  e.g. a document made by duplicating a certain paragraph &lt;i&gt;10&lt;/i&gt; times,
+<FONT ID="LN">125 </FONT><A NAME="125"></A> *  especially if that paragraph is made of distinct terms. 
+<FONT ID="LN">126 </FONT><A NAME="126"></A> *  But for a document which contains no duplicated paragraphs, 
+<FONT ID="LN">127 </FONT><A NAME="127"></A> *  this might be wrong. 
+<FONT ID="LN">128 </FONT><A NAME="128"></A> *  To avoid this problem, a different document length normalization 
+<FONT ID="LN">129 </FONT><A NAME="129"></A> *  factor is used, which normalizes to a vector equal to or larger 
+<FONT ID="LN">130 </FONT><A NAME="130"></A> *  than the unit vector: &lt;i&gt;doc-len-norm(d)&lt;/i&gt;.
+<FONT ID="LN">131 </FONT><A NAME="131"></A> *  &lt;/li&gt;
+<FONT ID="LN">132 </FONT><A NAME="132"></A> *
+<FONT ID="LN">133 </FONT><A NAME="133"></A> *  &lt;li&gt;At indexing, users can specify that certain documents are more
+<FONT ID="LN">134 </FONT><A NAME="134"></A> *  important than others, by assigning a document boost.
+<FONT ID="LN">135 </FONT><A NAME="135"></A> *  For this, the score of each document is also multiplied by its boost value
+<FONT ID="LN">136 </FONT><A NAME="136"></A> *  &lt;i&gt;doc-boost(d)&lt;/i&gt;.
+<FONT ID="LN">137 </FONT><A NAME="137"></A> *  &lt;/li&gt;
+<FONT ID="LN">138 </FONT><A NAME="138"></A> *
+<FONT ID="LN">139 </FONT><A NAME="139"></A> *  &lt;li&gt;Lucene is field based, hence each query term applies to a single
+<FONT ID="LN">140 </FONT><A NAME="140"></A> *  field, document length normalization is by the length of the certain field,
+<FONT ID="LN">141 </FONT><A NAME="141"></A> *  and in addition to document boost there are also document fields boosts.
+<FONT ID="LN">142 </FONT><A NAME="142"></A> *  &lt;/li&gt;
+<FONT ID="LN">143 </FONT><A NAME="143"></A> *
+<FONT ID="LN">144 </FONT><A NAME="144"></A> *  &lt;li&gt;The same field can be added to a document during indexing several times,
+<FONT ID="LN">145 </FONT><A NAME="145"></A> *  and so the boost of that field is the multiplication of the boosts of
+<FONT ID="LN">146 </FONT><A NAME="146"></A> *  the separate additions (or parts) of that field within the document.
+<FONT ID="LN">147 </FONT><A NAME="147"></A> *  &lt;/li&gt;
+<FONT ID="LN">148 </FONT><A NAME="148"></A> *
+<FONT ID="LN">149 </FONT><A NAME="149"></A> *  &lt;li&gt;At search time users can specify boosts to each query, sub-query, and
+<FONT ID="LN">150 </FONT><A NAME="150"></A> *  each query term, hence the contribution of a query term to the score of
+<FONT ID="LN">151 </FONT><A NAME="151"></A> *  a document is multiplied by the boost of that query term &lt;i&gt;query-boost(q)&lt;/i&gt;.
+<FONT ID="LN">152 </FONT><A NAME="152"></A> *  &lt;/li&gt;
+<FONT ID="LN">153 </FONT><A NAME="153"></A> *
+<FONT ID="LN">154 </FONT><A NAME="154"></A> *  &lt;li&gt;A document may match a multi term query without containing all
+<FONT ID="LN">155 </FONT><A NAME="155"></A> *  the terms of that query (this is correct for some of the queries),
+<FONT ID="LN">156 </FONT><A NAME="156"></A> *  and users can further reward documents matching more query terms
+<FONT ID="LN">157 </FONT><A NAME="157"></A> *  through a coordination factor, which is usually larger when
+<FONT ID="LN">158 </FONT><A NAME="158"></A> *  more terms are matched: &lt;i&gt;coord-factor(q,d)&lt;/i&gt;.
+<FONT ID="LN">159 </FONT><A NAME="159"></A> *  &lt;/li&gt;
+<FONT ID="LN">160 </FONT><A NAME="160"></A> * &lt;/ul&gt;
+<FONT ID="LN">161 </FONT><A NAME="161"></A> *
+<FONT ID="LN">162 </FONT><A NAME="162"></A> * &lt;p&gt;Under the simplifying assumption of a single field in the index,
+<FONT ID="LN">163 </FONT><A NAME="163"></A> * we get &lt;i&gt;Lucene's Conceptual scoring formula&lt;/i&gt;:
+<FONT ID="LN">164 </FONT><A NAME="164"></A> *
+<FONT ID="LN">165 </FONT><A NAME="165"></A> *  &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">166 </FONT><A NAME="166"></A> *  &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">167 </FONT><A NAME="167"></A> *    &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">168 </FONT><A NAME="168"></A> *    &lt;table cellpadding="1" cellspacing="0" border="1" align="center"&gt;
+<FONT ID="LN">169 </FONT><A NAME="169"></A> *      &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">170 </FONT><A NAME="170"></A> *      &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">171 </FONT><A NAME="171"></A> *        &lt;tr&gt;
+<FONT ID="LN">172 </FONT><A NAME="172"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">173 </FONT><A NAME="173"></A> *            score(q,d) &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">174 </FONT><A NAME="174"></A> *            &lt;font color="#FF9933"&gt;coord-factor(q,d)&lt;/font&gt; &amp;middot; &amp;nbsp;
+<FONT ID="LN">175 </FONT><A NAME="175"></A> *            &lt;font color="#CCCC00"&gt;query-boost(q)&lt;/font&gt; &amp;middot; &amp;nbsp;
+<FONT ID="LN">176 </FONT><A NAME="176"></A> *          &lt;/td&gt;
+<FONT ID="LN">177 </FONT><A NAME="177"></A> *          &lt;td valign="middle" align="center"&gt;
+<FONT ID="LN">178 </FONT><A NAME="178"></A> *            &lt;table&gt;
+<FONT ID="LN">179 </FONT><A NAME="179"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;small&gt;&lt;font color="#993399"&gt;V(q)&amp;nbsp;&amp;middot;&amp;nbsp;V(d)&lt;/font&gt;&lt;/small&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">180 </FONT><A NAME="180"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">181 </FONT><A NAME="181"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;small&gt;&lt;font color="#FF33CC"&gt;|V(q)|&lt;/font&gt;&lt;/small&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">182 </FONT><A NAME="182"></A> *            &lt;/table&gt;
+<FONT ID="LN">183 </FONT><A NAME="183"></A> *          &lt;/td&gt;
+<FONT ID="LN">184 </FONT><A NAME="184"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">185 </FONT><A NAME="185"></A> *            &amp;nbsp; &amp;middot; &amp;nbsp; &lt;font color="#3399FF"&gt;doc-len-norm(d)&lt;/font&gt;
+<FONT ID="LN">186 </FONT><A NAME="186"></A> *            &amp;nbsp; &amp;middot; &amp;nbsp; &lt;font color="#3399FF"&gt;doc-boost(d)&lt;/font&gt;
+<FONT ID="LN">187 </FONT><A NAME="187"></A> *          &lt;/td&gt;
+<FONT ID="LN">188 </FONT><A NAME="188"></A> *        &lt;/tr&gt;
+<FONT ID="LN">189 </FONT><A NAME="189"></A> *      &lt;/table&gt;
+<FONT ID="LN">190 </FONT><A NAME="190"></A> *      &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">191 </FONT><A NAME="191"></A> *    &lt;/table&gt;
+<FONT ID="LN">192 </FONT><A NAME="192"></A> *    &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">193 </FONT><A NAME="193"></A> *    &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">194 </FONT><A NAME="194"></A> *    &lt;center&gt;&lt;font=-1&gt;&lt;u&gt;Lucene Conceptual Scoring Formula&lt;/u&gt;&lt;/font&gt;&lt;/center&gt;
+<FONT ID="LN">195 </FONT><A NAME="195"></A> *    &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">196 </FONT><A NAME="196"></A> *  &lt;/table&gt;
+<FONT ID="LN">197 </FONT><A NAME="197"></A> *  &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">198 </FONT><A NAME="198"></A> *
+<FONT ID="LN">199 </FONT><A NAME="199"></A> * &lt;p&gt;The conceptual formula is a simplification in the sense that (1) terms and documents
+<FONT ID="LN">200 </FONT><A NAME="200"></A> * are fielded and (2) boosts are usually per query term rather than per query.
+<FONT ID="LN">201 </FONT><A NAME="201"></A> *
+<FONT ID="LN">202 </FONT><A NAME="202"></A> * &lt;p&gt;We now describe how Lucene implements this conceptual scoring formula, and
+<FONT ID="LN">203 </FONT><A NAME="203"></A> * derive from it &lt;i&gt;Lucene's Practical Scoring Function&lt;/i&gt;.
+<FONT ID="LN">204 </FONT><A NAME="204"></A> *  
+<FONT ID="LN">205 </FONT><A NAME="205"></A> * &lt;p&gt;For efficient score computation some scoring components
+<FONT ID="LN">206 </FONT><A NAME="206"></A> * are computed and aggregated in advance:
+<FONT ID="LN">207 </FONT><A NAME="207"></A> *
+<FONT ID="LN">208 </FONT><A NAME="208"></A> * &lt;ul&gt;
+<FONT ID="LN">209 </FONT><A NAME="209"></A> *  &lt;li&gt;&lt;i&gt;Query-boost&lt;/i&gt; for the query (actually for each query term)
+<FONT ID="LN">210 </FONT><A NAME="210"></A> *  is known when search starts.
+<FONT ID="LN">211 </FONT><A NAME="211"></A> *  &lt;/li&gt;
+<FONT ID="LN">212 </FONT><A NAME="212"></A> *
+<FONT ID="LN">213 </FONT><A NAME="213"></A> *  &lt;li&gt;Query Euclidean norm &lt;i&gt;|V(q)|&lt;/i&gt; can be computed when search starts,
+<FONT ID="LN">214 </FONT><A NAME="214"></A> *  as it is independent of the document being scored.
+<FONT ID="LN">215 </FONT><A NAME="215"></A> *  From search optimization perspective, it is a valid question
+<FONT ID="LN">216 </FONT><A NAME="216"></A> *  why bother to normalize the query at all, because all
+<FONT ID="LN">217 </FONT><A NAME="217"></A> *  scored documents will be multiplied by the same &lt;i&gt;|V(q)|&lt;/i&gt;,
+<FONT ID="LN">218 </FONT><A NAME="218"></A> *  and hence documents ranks (their order by score) will not
+<FONT ID="LN">219 </FONT><A NAME="219"></A> *  be affected by this normalization.
+<FONT ID="LN">220 </FONT><A NAME="220"></A> *  There are two good reasons to keep this normalization:
+<FONT ID="LN">221 </FONT><A NAME="221"></A> *  &lt;ul&gt;
+<FONT ID="LN">222 </FONT><A NAME="222"></A> *   &lt;li&gt;Recall that
+<FONT ID="LN">223 </FONT><A NAME="223"></A> *   &lt;a href="http://en.wikipedia.org/wiki/Cosine_similarity"&gt;
+<FONT ID="LN">224 </FONT><A NAME="224"></A> *   Cosine Similarity&lt;/a&gt; can be used find how similar
+<FONT ID="LN">225 </FONT><A NAME="225"></A> *   two documents are. One can use Lucene for e.g.
+<FONT ID="LN">226 </FONT><A NAME="226"></A> *   clustering, and use a document as a query to compute
+<FONT ID="LN">227 </FONT><A NAME="227"></A> *   its similarity to other documents.
+<FONT ID="LN">228 </FONT><A NAME="228"></A> *   In this use case it is important that the score of document &lt;i&gt;d3&lt;/i&gt;
+<FONT ID="LN">229 </FONT><A NAME="229"></A> *   for query &lt;i&gt;d1&lt;/i&gt; is comparable to the score of document &lt;i&gt;d3&lt;/i&gt;
+<FONT ID="LN">230 </FONT><A NAME="230"></A> *   for query &lt;i&gt;d2&lt;/i&gt;. In other words, scores of a document for two
+<FONT ID="LN">231 </FONT><A NAME="231"></A> *   distinct queries should be comparable.
+<FONT ID="LN">232 </FONT><A NAME="232"></A> *   There are other applications that may require this.
+<FONT ID="LN">233 </FONT><A NAME="233"></A> *   And this is exactly what normalizing the query vector &lt;i&gt;V(q)&lt;/i&gt;
+<FONT ID="LN">234 </FONT><A NAME="234"></A> *   provides: comparability (to a certain extent) of two or more queries.
+<FONT ID="LN">235 </FONT><A NAME="235"></A> *   &lt;/li&gt;
+<FONT ID="LN">236 </FONT><A NAME="236"></A> *
+<FONT ID="LN">237 </FONT><A NAME="237"></A> *   &lt;li&gt;Applying query normalization on the scores helps to keep the
+<FONT ID="LN">238 </FONT><A NAME="238"></A> *   scores around the unit vector, hence preventing loss of score data
+<FONT ID="LN">239 </FONT><A NAME="239"></A> *   because of floating point precision limitations.
+<FONT ID="LN">240 </FONT><A NAME="240"></A> *   &lt;/li&gt;
+<FONT ID="LN">241 </FONT><A NAME="241"></A> *  &lt;/ul&gt;
+<FONT ID="LN">242 </FONT><A NAME="242"></A> *  &lt;/li&gt;
+<FONT ID="LN">243 </FONT><A NAME="243"></A> *
+<FONT ID="LN">244 </FONT><A NAME="244"></A> *  &lt;li&gt;Document length norm &lt;i&gt;doc-len-norm(d)&lt;/i&gt; and document
+<FONT ID="LN">245 </FONT><A NAME="245"></A> *  boost &lt;i&gt;doc-boost(d)&lt;/i&gt; are known at indexing time.
+<FONT ID="LN">246 </FONT><A NAME="246"></A> *  They are computed in advance and their multiplication
+<FONT ID="LN">247 </FONT><A NAME="247"></A> *  is saved as a single value in the index: &lt;i&gt;norm(d)&lt;/i&gt;.
+<FONT ID="LN">248 </FONT><A NAME="248"></A> *  (In the equations below, &lt;i&gt;norm(t in d)&lt;/i&gt; means &lt;i&gt;norm(field(t) in doc d)&lt;/i&gt;
+<FONT ID="LN">249 </FONT><A NAME="249"></A> *  where &lt;i&gt;field(t)&lt;/i&gt; is the field associated with term &lt;i&gt;t&lt;/i&gt;.)
+<FONT ID="LN">250 </FONT><A NAME="250"></A> *  &lt;/li&gt;
+<FONT ID="LN">251 </FONT><A NAME="251"></A> * &lt;/ul&gt;
+<FONT ID="LN">252 </FONT><A NAME="252"></A> *
+<FONT ID="LN">253 </FONT><A NAME="253"></A> * &lt;p&gt;&lt;i&gt;Lucene's Practical Scoring Function&lt;/i&gt; is derived from the above.
+<FONT ID="LN">254 </FONT><A NAME="254"></A> * The color codes demonstrate how it relates
+<FONT ID="LN">255 </FONT><A NAME="255"></A> * to those of the &lt;i&gt;conceptual&lt;/i&gt; formula:
+<FONT ID="LN">256 </FONT><A NAME="256"></A> *
+<FONT ID="LN">257 </FONT><A NAME="257"></A> * &lt;P&gt;
+<FONT ID="LN">258 </FONT><A NAME="258"></A> * &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">259 </FONT><A NAME="259"></A> *  &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">260 </FONT><A NAME="260"></A> *  &lt;table cellpadding="" cellspacing="2" border="2" align="center"&gt;
+<FONT ID="LN">261 </FONT><A NAME="261"></A> *  &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">262 </FONT><A NAME="262"></A> *   &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">263 </FONT><A NAME="263"></A> *   &lt;tr&gt;
+<FONT ID="LN">264 </FONT><A NAME="264"></A> *     &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">265 </FONT><A NAME="265"></A> *       score(q,d) &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">266 </FONT><A NAME="266"></A> *       &lt;A HREF="#formula_coord"&gt;&lt;font color="#FF9933"&gt;coord(q,d)&lt;/font&gt;&lt;/A&gt; &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">267 </FONT><A NAME="267"></A> *       &lt;A HREF="#formula_queryNorm"&gt;&lt;font color="#FF33CC"&gt;queryNorm(q)&lt;/font&gt;&lt;/A&gt; &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">268 </FONT><A NAME="268"></A> *     &lt;/td&gt;
+<FONT ID="LN">269 </FONT><A NAME="269"></A> *     &lt;td valign="bottom" align="center" rowspan="1"&gt;
+<FONT ID="LN">270 </FONT><A NAME="270"></A> *       &lt;big&gt;&lt;big&gt;&lt;big&gt;&amp;sum;&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;
+<FONT ID="LN">271 </FONT><A NAME="271"></A> *     &lt;/td&gt;
+<FONT ID="LN">272 </FONT><A NAME="272"></A> *     &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">273 </FONT><A NAME="273"></A> *       &lt;big&gt;&lt;big&gt;(&lt;/big&gt;&lt;/big&gt;
+<FONT ID="LN">274 </FONT><A NAME="274"></A> *       &lt;A HREF="#formula_tf"&gt;&lt;font color="#993399"&gt;tf(t in d)&lt;/font&gt;&lt;/A&gt; &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">275 </FONT><A NAME="275"></A> *       &lt;A HREF="#formula_idf"&gt;&lt;font color="#993399"&gt;idf(t)&lt;/font&gt;&lt;/A&gt;&lt;sup&gt;2&lt;/sup&gt; &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">276 </FONT><A NAME="276"></A> *       &lt;A HREF="#formula_termBoost"&gt;&lt;font color="#CCCC00"&gt;t.getBoost()&lt;/font&gt;&lt;/A&gt;&amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">277 </FONT><A NAME="277"></A> *       &lt;A HREF="#formula_norm"&gt;&lt;font color="#3399FF"&gt;norm(t,d)&lt;/font&gt;&lt;/A&gt;
+<FONT ID="LN">278 </FONT><A NAME="278"></A> *       &lt;big&gt;&lt;big&gt;)&lt;/big&gt;&lt;/big&gt;
+<FONT ID="LN">279 </FONT><A NAME="279"></A> *     &lt;/td&gt;
+<FONT ID="LN">280 </FONT><A NAME="280"></A> *   &lt;/tr&gt;
+<FONT ID="LN">281 </FONT><A NAME="281"></A> *   &lt;tr valigh="top"&gt;
+<FONT ID="LN">282 </FONT><A NAME="282"></A> *    &lt;td&gt;&lt;/td&gt;
+<FONT ID="LN">283 </FONT><A NAME="283"></A> *    &lt;td align="center"&gt;&lt;small&gt;t in q&lt;/small&gt;&lt;/td&gt;
+<FONT ID="LN">284 </FONT><A NAME="284"></A> *    &lt;td&gt;&lt;/td&gt;
+<FONT ID="LN">285 </FONT><A NAME="285"></A> *   &lt;/tr&gt;
+<FONT ID="LN">286 </FONT><A NAME="286"></A> *   &lt;/table&gt;
+<FONT ID="LN">287 </FONT><A NAME="287"></A> *  &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">288 </FONT><A NAME="288"></A> *  &lt;/table&gt;
+<FONT ID="LN">289 </FONT><A NAME="289"></A> * &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">290 </FONT><A NAME="290"></A> * &lt;tr&gt;&lt;td&gt;
+<FONT ID="LN">291 </FONT><A NAME="291"></A> *  &lt;center&gt;&lt;font=-1&gt;&lt;u&gt;Lucene Practical Scoring Function&lt;/u&gt;&lt;/font&gt;&lt;/center&gt;
+<FONT ID="LN">292 </FONT><A NAME="292"></A> * &lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">293 </FONT><A NAME="293"></A> * &lt;/table&gt;
+<FONT ID="LN">294 </FONT><A NAME="294"></A> *
+<FONT ID="LN">295 </FONT><A NAME="295"></A> * &lt;p&gt; where
+<FONT ID="LN">296 </FONT><A NAME="296"></A> * &lt;ol&gt;
+<FONT ID="LN">297 </FONT><A NAME="297"></A> *    &lt;li&gt;
+<FONT ID="LN">298 </FONT><A NAME="298"></A> *      &lt;A NAME="formula_tf"&gt;&lt;/A&gt;
+<FONT ID="LN">299 </FONT><A NAME="299"></A> *      &lt;b&gt;&lt;i&gt;tf(t in d)&lt;/i&gt;&lt;/b&gt;
+<FONT ID="LN">300 </FONT><A NAME="300"></A> *      correlates to the term's &lt;i&gt;frequency&lt;/i&gt;,
+<FONT ID="LN">301 </FONT><A NAME="301"></A> *      defined as the number of times term &lt;i&gt;t&lt;/i&gt; appears in the currently scored document &lt;i&gt;d&lt;/i&gt;.
+<FONT ID="LN">302 </FONT><A NAME="302"></A> *      Documents that have more occurrences of a given term receive a higher score.
+<FONT ID="LN">303 </FONT><A NAME="303"></A> *      Note that &lt;i&gt;tf(t in q)&lt;/i&gt; is assumed to be &lt;i&gt;1&lt;/i&gt; and therefore it does not appear in this equation,
+<FONT ID="LN">304 </FONT><A NAME="304"></A> *      However if a query contains twice the same term, there will be
+<FONT ID="LN">305 </FONT><A NAME="305"></A> *      two term-queries with that same term and hence the computation would still be correct (although
+<FONT ID="LN">306 </FONT><A NAME="306"></A> *      not very efficient).
+<FONT ID="LN">307 </FONT><A NAME="307"></A> *      The default computation for &lt;i&gt;tf(t in d)&lt;/i&gt; in
+<FONT ID="LN">308 </FONT><A NAME="308"></A> *      {@link org.apache.lucene.search.DefaultSimilarity#tf(float) DefaultSimilarity} is:
+<FONT ID="LN">309 </FONT><A NAME="309"></A> *
+<FONT ID="LN">310 </FONT><A NAME="310"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">311 </FONT><A NAME="311"></A> *      &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">312 </FONT><A NAME="312"></A> *        &lt;tr&gt;
+<FONT ID="LN">313 </FONT><A NAME="313"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">314 </FONT><A NAME="314"></A> *            {@link org.apache.lucene.search.DefaultSimilarity#tf(float) tf(t in d)} &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">315 </FONT><A NAME="315"></A> *          &lt;/td&gt;
+<FONT ID="LN">316 </FONT><A NAME="316"></A> *          &lt;td valign="top" align="center" rowspan="1"&gt;
+<FONT ID="LN">317 </FONT><A NAME="317"></A> *               frequency&lt;sup&gt;&lt;big&gt;&amp;frac12;&lt;/big&gt;&lt;/sup&gt;
+<FONT ID="LN">318 </FONT><A NAME="318"></A> *          &lt;/td&gt;
+<FONT ID="LN">319 </FONT><A NAME="319"></A> *        &lt;/tr&gt;
+<FONT ID="LN">320 </FONT><A NAME="320"></A> *      &lt;/table&gt;
+<FONT ID="LN">321 </FONT><A NAME="321"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">322 </FONT><A NAME="322"></A> *    &lt;/li&gt;
+<FONT ID="LN">323 </FONT><A NAME="323"></A> *
+<FONT ID="LN">324 </FONT><A NAME="324"></A> *    &lt;li&gt;
+<FONT ID="LN">325 </FONT><A NAME="325"></A> *      &lt;A NAME="formula_idf"&gt;&lt;/A&gt;
+<FONT ID="LN">326 </FONT><A NAME="326"></A> *      &lt;b&gt;&lt;i&gt;idf(t)&lt;/i&gt;&lt;/b&gt; stands for Inverse Document Frequency. This value
+<FONT ID="LN">327 </FONT><A NAME="327"></A> *      correlates to the inverse of &lt;i&gt;docFreq&lt;/i&gt;
+<FONT ID="LN">328 </FONT><A NAME="328"></A> *      (the number of documents in which the term &lt;i&gt;t&lt;/i&gt; appears).
+<FONT ID="LN">329 </FONT><A NAME="329"></A> *      This means rarer terms give higher contribution to the total score.
+<FONT ID="LN">330 </FONT><A NAME="330"></A> *      &lt;i&gt;idf(t)&lt;/i&gt; appears for &lt;i&gt;t&lt;/i&gt; in both the query and the document,
+<FONT ID="LN">331 </FONT><A NAME="331"></A> *      hence it is squared in the equation.
+<FONT ID="LN">332 </FONT><A NAME="332"></A> *      The default computation for &lt;i&gt;idf(t)&lt;/i&gt; in
+<FONT ID="LN">333 </FONT><A NAME="333"></A> *      {@link org.apache.lucene.search.DefaultSimilarity#idf(int, int) DefaultSimilarity} is:
+<FONT ID="LN">334 </FONT><A NAME="334"></A> *
+<FONT ID="LN">335 </FONT><A NAME="335"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">336 </FONT><A NAME="336"></A> *      &lt;table cellpadding="2" cellspacing="2" border="0" align="center"&gt;
+<FONT ID="LN">337 </FONT><A NAME="337"></A> *        &lt;tr&gt;
+<FONT ID="LN">338 </FONT><A NAME="338"></A> *          &lt;td valign="middle" align="right"&gt;
+<FONT ID="LN">339 </FONT><A NAME="339"></A> *            {@link org.apache.lucene.search.DefaultSimilarity#idf(int, int) idf(t)}&amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">340 </FONT><A NAME="340"></A> *          &lt;/td&gt;
+<FONT ID="LN">341 </FONT><A NAME="341"></A> *          &lt;td valign="middle" align="center"&gt;
+<FONT ID="LN">342 </FONT><A NAME="342"></A> *            1 + log &lt;big&gt;(&lt;/big&gt;
+<FONT ID="LN">343 </FONT><A NAME="343"></A> *          &lt;/td&gt;
+<FONT ID="LN">344 </FONT><A NAME="344"></A> *          &lt;td valign="middle" align="center"&gt;
+<FONT ID="LN">345 </FONT><A NAME="345"></A> *            &lt;table&gt;
+<FONT ID="LN">346 </FONT><A NAME="346"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;small&gt;numDocs&lt;/small&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">347 </FONT><A NAME="347"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">348 </FONT><A NAME="348"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;small&gt;docFreq+1&lt;/small&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">349 </FONT><A NAME="349"></A> *            &lt;/table&gt;
+<FONT ID="LN">350 </FONT><A NAME="350"></A> *          &lt;/td&gt;
+<FONT ID="LN">351 </FONT><A NAME="351"></A> *          &lt;td valign="middle" align="center"&gt;
+<FONT ID="LN">352 </FONT><A NAME="352"></A> *            &lt;big&gt;)&lt;/big&gt;
+<FONT ID="LN">353 </FONT><A NAME="353"></A> *          &lt;/td&gt;
+<FONT ID="LN">354 </FONT><A NAME="354"></A> *        &lt;/tr&gt;
+<FONT ID="LN">355 </FONT><A NAME="355"></A> *      &lt;/table&gt;
+<FONT ID="LN">356 </FONT><A NAME="356"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">357 </FONT><A NAME="357"></A> *    &lt;/li&gt;
+<FONT ID="LN">358 </FONT><A NAME="358"></A> *
+<FONT ID="LN">359 </FONT><A NAME="359"></A> *    &lt;li&gt;
+<FONT ID="LN">360 </FONT><A NAME="360"></A> *      &lt;A NAME="formula_coord"&gt;&lt;/A&gt;
+<FONT ID="LN">361 </FONT><A NAME="361"></A> *      &lt;b&gt;&lt;i&gt;coord(q,d)&lt;/i&gt;&lt;/b&gt;
+<FONT ID="LN">362 </FONT><A NAME="362"></A> *      is a score factor based on how many of the query terms are found in the specified document.
+<FONT ID="LN">363 </FONT><A NAME="363"></A> *      Typically, a document that contains more of the query's terms will receive a higher score
+<FONT ID="LN">364 </FONT><A NAME="364"></A> *      than another document with fewer query terms.
+<FONT ID="LN">365 </FONT><A NAME="365"></A> *      This is a search time factor computed in
+<FONT ID="LN">366 </FONT><A NAME="366"></A> *      {@link #coord(int, int) coord(q,d)}
+<FONT ID="LN">367 </FONT><A NAME="367"></A> *      by the Similarity in effect at search time.
+<FONT ID="LN">368 </FONT><A NAME="368"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">369 </FONT><A NAME="369"></A> *    &lt;/li&gt;
+<FONT ID="LN">370 </FONT><A NAME="370"></A> *
+<FONT ID="LN">371 </FONT><A NAME="371"></A> *    &lt;li&gt;&lt;b&gt;
+<FONT ID="LN">372 </FONT><A NAME="372"></A> *      &lt;A NAME="formula_queryNorm"&gt;&lt;/A&gt;
+<FONT ID="LN">373 </FONT><A NAME="373"></A> *      &lt;i&gt;queryNorm(q)&lt;/i&gt;
+<FONT ID="LN">374 </FONT><A NAME="374"></A> *      &lt;/b&gt;
+<FONT ID="LN">375 </FONT><A NAME="375"></A> *      is a normalizing factor used to make scores between queries comparable.
+<FONT ID="LN">376 </FONT><A NAME="376"></A> *      This factor does not affect document ranking (since all ranked documents are multiplied by the same factor),
+<FONT ID="LN">377 </FONT><A NAME="377"></A> *      but rather just attempts to make scores from different queries (or even different indexes) comparable.
+<FONT ID="LN">378 </FONT><A NAME="378"></A> *      This is a search time factor computed by the Similarity in effect at search time.
+<FONT ID="LN">379 </FONT><A NAME="379"></A> *
+<FONT ID="LN">380 </FONT><A NAME="380"></A> *      The default computation in
+<FONT ID="LN">381 </FONT><A NAME="381"></A> *      {@link org.apache.lucene.search.DefaultSimilarity#queryNorm(float) DefaultSimilarity}
+<FONT ID="LN">382 </FONT><A NAME="382"></A> *      produces a &lt;a href="http://en.wikipedia.org/wiki/Euclidean_norm#Euclidean_norm"&gt;Euclidean norm&lt;/a&gt;:
+<FONT ID="LN">383 </FONT><A NAME="383"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">384 </FONT><A NAME="384"></A> *      &lt;table cellpadding="1" cellspacing="0" border="0" align="center"&gt;
+<FONT ID="LN">385 </FONT><A NAME="385"></A> *        &lt;tr&gt;
+<FONT ID="LN">386 </FONT><A NAME="386"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">387 </FONT><A NAME="387"></A> *            queryNorm(q)  &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">388 </FONT><A NAME="388"></A> *            {@link org.apache.lucene.search.DefaultSimilarity#queryNorm(float) queryNorm(sumOfSquaredWeights)}
+<FONT ID="LN">389 </FONT><A NAME="389"></A> *            &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">390 </FONT><A NAME="390"></A> *          &lt;/td&gt;
+<FONT ID="LN">391 </FONT><A NAME="391"></A> *          &lt;td valign="middle" align="center" rowspan="1"&gt;
+<FONT ID="LN">392 </FONT><A NAME="392"></A> *            &lt;table&gt;
+<FONT ID="LN">393 </FONT><A NAME="393"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;big&gt;1&lt;/big&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">394 </FONT><A NAME="394"></A> *               &lt;tr&gt;&lt;td align="center"&gt;&lt;big&gt;
+<FONT ID="LN">395 </FONT><A NAME="395"></A> *                  &amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;&amp;ndash;
+<FONT ID="LN">396 </FONT><A NAME="396"></A> *               &lt;/big&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">397 </FONT><A NAME="397"></A> *               &lt;tr&gt;&lt;td align="center"&gt;sumOfSquaredWeights&lt;sup&gt;&lt;big&gt;&amp;frac12;&lt;/big&gt;&lt;/sup&gt;&lt;/td&gt;&lt;/tr&gt;
+<FONT ID="LN">398 </FONT><A NAME="398"></A> *            &lt;/table&gt;
+<FONT ID="LN">399 </FONT><A NAME="399"></A> *          &lt;/td&gt;
+<FONT ID="LN">400 </FONT><A NAME="400"></A> *        &lt;/tr&gt;
+<FONT ID="LN">401 </FONT><A NAME="401"></A> *      &lt;/table&gt;
+<FONT ID="LN">402 </FONT><A NAME="402"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">403 </FONT><A NAME="403"></A> *
+<FONT ID="LN">404 </FONT><A NAME="404"></A> *      The sum of squared weights (of the query terms) is
+<FONT ID="LN">405 </FONT><A NAME="405"></A> *      computed by the query {@link org.apache.lucene.search.Weight} object.
+<FONT ID="LN">406 </FONT><A NAME="406"></A> *      For example, a {@link org.apache.lucene.search.BooleanQuery boolean query}
+<FONT ID="LN">407 </FONT><A NAME="407"></A> *      computes this value as:
+<FONT ID="LN">408 </FONT><A NAME="408"></A> *
+<FONT ID="LN">409 </FONT><A NAME="409"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">410 </FONT><A NAME="410"></A> *      &lt;table cellpadding="1" cellspacing="0" border="0"n align="center"&gt;
+<FONT ID="LN">411 </FONT><A NAME="411"></A> *        &lt;tr&gt;
+<FONT ID="LN">412 </FONT><A NAME="412"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">413 </FONT><A NAME="413"></A> *            {@link org.apache.lucene.search.Weight#sumOfSquaredWeights() sumOfSquaredWeights} &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">414 </FONT><A NAME="414"></A> *            {@link org.apache.lucene.search.Query#getBoost() q.getBoost()} &lt;sup&gt;&lt;big&gt;2&lt;/big&gt;&lt;/sup&gt;
+<FONT ID="LN">415 </FONT><A NAME="415"></A> *            &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">416 </FONT><A NAME="416"></A> *          &lt;/td&gt;
+<FONT ID="LN">417 </FONT><A NAME="417"></A> *          &lt;td valign="bottom" align="center" rowspan="1"&gt;
+<FONT ID="LN">418 </FONT><A NAME="418"></A> *            &lt;big&gt;&lt;big&gt;&lt;big&gt;&amp;sum;&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;
+<FONT ID="LN">419 </FONT><A NAME="419"></A> *          &lt;/td&gt;
+<FONT ID="LN">420 </FONT><A NAME="420"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">421 </FONT><A NAME="421"></A> *            &lt;big&gt;&lt;big&gt;(&lt;/big&gt;&lt;/big&gt;
+<FONT ID="LN">422 </FONT><A NAME="422"></A> *            &lt;A HREF="#formula_idf"&gt;idf(t)&lt;/A&gt; &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">423 </FONT><A NAME="423"></A> *            &lt;A HREF="#formula_termBoost"&gt;t.getBoost()&lt;/A&gt;
+<FONT ID="LN">424 </FONT><A NAME="424"></A> *            &lt;big&gt;&lt;big&gt;) &lt;sup&gt;2&lt;/sup&gt; &lt;/big&gt;&lt;/big&gt;
+<FONT ID="LN">425 </FONT><A NAME="425"></A> *          &lt;/td&gt;
+<FONT ID="LN">426 </FONT><A NAME="426"></A> *        &lt;/tr&gt;
+<FONT ID="LN">427 </FONT><A NAME="427"></A> *        &lt;tr valigh="top"&gt;
+<FONT ID="LN">428 </FONT><A NAME="428"></A> *          &lt;td&gt;&lt;/td&gt;
+<FONT ID="LN">429 </FONT><A NAME="429"></A> *          &lt;td align="center"&gt;&lt;small&gt;t in q&lt;/small&gt;&lt;/td&gt;
+<FONT ID="LN">430 </FONT><A NAME="430"></A> *          &lt;td&gt;&lt;/td&gt;
+<FONT ID="LN">431 </FONT><A NAME="431"></A> *        &lt;/tr&gt;
+<FONT ID="LN">432 </FONT><A NAME="432"></A> *      &lt;/table&gt;
+<FONT ID="LN">433 </FONT><A NAME="433"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">434 </FONT><A NAME="434"></A> *
+<FONT ID="LN">435 </FONT><A NAME="435"></A> *    &lt;/li&gt;
+<FONT ID="LN">436 </FONT><A NAME="436"></A> *
+<FONT ID="LN">437 </FONT><A NAME="437"></A> *    &lt;li&gt;
+<FONT ID="LN">438 </FONT><A NAME="438"></A> *      &lt;A NAME="formula_termBoost"&gt;&lt;/A&gt;
+<FONT ID="LN">439 </FONT><A NAME="439"></A> *      &lt;b&gt;&lt;i&gt;t.getBoost()&lt;/i&gt;&lt;/b&gt;
+<FONT ID="LN">440 </FONT><A NAME="440"></A> *      is a search time boost of term &lt;i&gt;t&lt;/i&gt; in the query &lt;i&gt;q&lt;/i&gt; as
+<FONT ID="LN">441 </FONT><A NAME="441"></A> *      specified in the query text
+<FONT ID="LN">442 </FONT><A NAME="442"></A> *      (see &lt;A HREF="../../../../../../queryparsersyntax.html#Boosting a Term"&gt;query syntax&lt;/A&gt;),
+<FONT ID="LN">443 </FONT><A NAME="443"></A> *      or as set by application calls to
+<FONT ID="LN">444 </FONT><A NAME="444"></A> *      {@link org.apache.lucene.search.Query#setBoost(float) setBoost()}.
+<FONT ID="LN">445 </FONT><A NAME="445"></A> *      Notice that there is really no direct API for accessing a boost of one term in a multi term query,
+<FONT ID="LN">446 </FONT><A NAME="446"></A> *      but rather multi terms are represented in a query as multi
+<FONT ID="LN">447 </FONT><A NAME="447"></A> *      {@link org.apache.lucene.search.TermQuery TermQuery} objects,
+<FONT ID="LN">448 </FONT><A NAME="448"></A> *      and so the boost of a term in the query is accessible by calling the sub-query
+<FONT ID="LN">449 </FONT><A NAME="449"></A> *      {@link org.apache.lucene.search.Query#getBoost() getBoost()}.
+<FONT ID="LN">450 </FONT><A NAME="450"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">451 </FONT><A NAME="451"></A> *    &lt;/li&gt;
+<FONT ID="LN">452 </FONT><A NAME="452"></A> *
+<FONT ID="LN">453 </FONT><A NAME="453"></A> *    &lt;li&gt;
+<FONT ID="LN">454 </FONT><A NAME="454"></A> *      &lt;A NAME="formula_norm"&gt;&lt;/A&gt;
+<FONT ID="LN">455 </FONT><A NAME="455"></A> *      &lt;b&gt;&lt;i&gt;norm(t,d)&lt;/i&gt;&lt;/b&gt; encapsulates a few (indexing time) boost and length factors:
+<FONT ID="LN">456 </FONT><A NAME="456"></A> *
+<FONT ID="LN">457 </FONT><A NAME="457"></A> *      &lt;ul&gt;
+<FONT ID="LN">458 </FONT><A NAME="458"></A> *        &lt;li&gt;&lt;b&gt;Document boost&lt;/b&gt; - set by calling
+<FONT ID="LN">459 </FONT><A NAME="459"></A> *        {@link org.apache.lucene.document.Document#setBoost(float) doc.setBoost()}
+<FONT ID="LN">460 </FONT><A NAME="460"></A> *        before adding the document to the index.
+<FONT ID="LN">461 </FONT><A NAME="461"></A> *        &lt;/li&gt;
+<FONT ID="LN">462 </FONT><A NAME="462"></A> *        &lt;li&gt;&lt;b&gt;Field boost&lt;/b&gt; - set by calling
+<FONT ID="LN">463 </FONT><A NAME="463"></A> *        {@link org.apache.lucene.document.Fieldable#setBoost(float) field.setBoost()}
+<FONT ID="LN">464 </FONT><A NAME="464"></A> *        before adding the field to a document.
+<FONT ID="LN">465 </FONT><A NAME="465"></A> *        &lt;/li&gt;
+<FONT ID="LN">466 </FONT><A NAME="466"></A> *        &lt;li&gt;{@link #lengthNorm(String, int) &lt;b&gt;lengthNorm&lt;/b&gt;(field)} - computed
+<FONT ID="LN">467 </FONT><A NAME="467"></A> *        when the document is added to the index in accordance with the number of tokens
+<FONT ID="LN">468 </FONT><A NAME="468"></A> *        of this field in the document, so that shorter fields contribute more to the score.
+<FONT ID="LN">469 </FONT><A NAME="469"></A> *        LengthNorm is computed by the Similarity class in effect at indexing.
+<FONT ID="LN">470 </FONT><A NAME="470"></A> *        &lt;/li&gt;
+<FONT ID="LN">471 </FONT><A NAME="471"></A> *      &lt;/ul&gt;
+<FONT ID="LN">472 </FONT><A NAME="472"></A> *
+<FONT ID="LN">473 </FONT><A NAME="473"></A> *      &lt;p&gt;
+<FONT ID="LN">474 </FONT><A NAME="474"></A> *      When a document is added to the index, all the above factors are multiplied.
+<FONT ID="LN">475 </FONT><A NAME="475"></A> *      If the document has multiple fields with the same name, all their boosts are multiplied together:
+<FONT ID="LN">476 </FONT><A NAME="476"></A> *
+<FONT ID="LN">477 </FONT><A NAME="477"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">478 </FONT><A NAME="478"></A> *      &lt;table cellpadding="1" cellspacing="0" border="0"n align="center"&gt;
+<FONT ID="LN">479 </FONT><A NAME="479"></A> *        &lt;tr&gt;
+<FONT ID="LN">480 </FONT><A NAME="480"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">481 </FONT><A NAME="481"></A> *            norm(t,d) &amp;nbsp; = &amp;nbsp;
+<FONT ID="LN">482 </FONT><A NAME="482"></A> *            {@link org.apache.lucene.document.Document#getBoost() doc.getBoost()}
+<FONT ID="LN">483 </FONT><A NAME="483"></A> *            &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">484 </FONT><A NAME="484"></A> *            {@link #lengthNorm(String, int) lengthNorm(field)}
+<FONT ID="LN">485 </FONT><A NAME="485"></A> *            &amp;nbsp;&amp;middot;&amp;nbsp;
+<FONT ID="LN">486 </FONT><A NAME="486"></A> *          &lt;/td&gt;
+<FONT ID="LN">487 </FONT><A NAME="487"></A> *          &lt;td valign="bottom" align="center" rowspan="1"&gt;
+<FONT ID="LN">488 </FONT><A NAME="488"></A> *            &lt;big&gt;&lt;big&gt;&lt;big&gt;&amp;prod;&lt;/big&gt;&lt;/big&gt;&lt;/big&gt;
+<FONT ID="LN">489 </FONT><A NAME="489"></A> *          &lt;/td&gt;
+<FONT ID="LN">490 </FONT><A NAME="490"></A> *          &lt;td valign="middle" align="right" rowspan="1"&gt;
+<FONT ID="LN">491 </FONT><A NAME="491"></A> *            {@link org.apache.lucene.document.Fieldable#getBoost() f.getBoost}()
+<FONT ID="LN">492 </FONT><A NAME="492"></A> *          &lt;/td&gt;
+<FONT ID="LN">493 </FONT><A NAME="493"></A> *        &lt;/tr&gt;
+<FONT ID="LN">494 </FONT><A NAME="494"></A> *        &lt;tr valigh="top"&gt;
+<FONT ID="LN">495 </FONT><A NAME="495"></A> *          &lt;td&gt;&lt;/td&gt;
+<FONT ID="LN">496 </FONT><A NAME="496"></A> *          &lt;td align="center"&gt;&lt;small&gt;field &lt;i&gt;&lt;b&gt;f&lt;/b&gt;&lt;/i&gt; in &lt;i&gt;d&lt;/i&gt; named as &lt;i&gt;&lt;b&gt;t&lt;/b&gt;&lt;/i&gt;&lt;/small&gt;&lt;/td&gt;
+<FONT ID="LN">497 </FONT><A NAME="497"></A> *          &lt;td&gt;&lt;/td&gt;
+<FONT ID="LN">498 </FONT><A NAME="498"></A> *        &lt;/tr&gt;
+<FONT ID="LN">499 </FONT><A NAME="499"></A> *      &lt;/table&gt;
+<FONT ID="LN">500 </FONT><A NAME="500"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">501 </FONT><A NAME="501"></A> *      However the resulted &lt;i&gt;norm&lt;/i&gt; value is {@link #encodeNorm(float) encoded} as a single byte
+<FONT ID="LN">502 </FONT><A NAME="502"></A> *      before being stored.
+<FONT ID="LN">503 </FONT><A NAME="503"></A> *      At search time, the norm byte value is read from the index
+<FONT ID="LN">504 </FONT><A NAME="504"></A> *      {@link org.apache.lucene.store.Directory directory} and
+<FONT ID="LN">505 </FONT><A NAME="505"></A> *      {@link #decodeNorm(byte) decoded} back to a float &lt;i&gt;norm&lt;/i&gt; value.
+<FONT ID="LN">506 </FONT><A NAME="506"></A> *      This encoding/decoding, while reducing index size, comes with the price of
+<FONT ID="LN">507 </FONT><A NAME="507"></A> *      precision loss - it is not guaranteed that &lt;i&gt;decode(encode(x)) = x&lt;/i&gt;.
+<FONT ID="LN">508 </FONT><A NAME="508"></A> *      For instance, &lt;i&gt;decode(encode(0.89)) = 0.75&lt;/i&gt;.
+<FONT ID="LN">509 </FONT><A NAME="509"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">510 </FONT><A NAME="510"></A> *      Compression of norm values to a single byte saves memory at search time, 
+<FONT ID="LN">511 </FONT><A NAME="511"></A> *      because once a field is referenced at search time, its norms - for 
+<FONT ID="LN">512 </FONT><A NAME="512"></A> *      all documents - are maintained in memory.
+<FONT ID="LN">513 </FONT><A NAME="513"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">514 </FONT><A NAME="514"></A> *      The rationale supporting such lossy compression of norm values is that
+<FONT ID="LN">515 </FONT><A NAME="515"></A> *      given the difficulty (and inaccuracy) of users to express their true information
+<FONT ID="LN">516 </FONT><A NAME="516"></A> *      need by a query, only big differences matter.
+<FONT ID="LN">517 </FONT><A NAME="517"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">518 </FONT><A NAME="518"></A> *      Last, note that search time is too late to modify this &lt;i&gt;norm&lt;/i&gt; part of scoring, e.g. by
+<FONT ID="LN">519 </FONT><A NAME="519"></A> *      using a different {@link Similarity} for search.
+<FONT ID="LN">520 </FONT><A NAME="520"></A> *      &lt;br&gt;&amp;nbsp;&lt;br&gt;
+<FONT ID="LN">521 </FONT><A NAME="521"></A> *    &lt;/li&gt;
+<FONT ID="LN">522 </FONT><A NAME="522"></A> * &lt;/ol&gt;
+<FONT ID="LN">523 </FONT><A NAME="523"></A> *
+<FONT ID="LN">524 </FONT><A NAME="524"></A> * @see #setDefault(Similarity)
+<FONT ID="LN">525 </FONT><A NAME="525"></A> * @see org.apache.lucene.index.IndexWriter#setSimilarity(Similarity)
+<FONT ID="LN">526 </FONT><A NAME="526"></A> * @see Searcher#setSimilarity(Similarity)
+<FONT ID="LN">527 </FONT><A NAME="527"></A> */</FONT>
+<FONT ID="LN">528 </FONT><A NAME="528"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> Similarity <FONT ID="Implements">implements</FONT> Serializable {
+<FONT ID="LN">529 </FONT><A NAME="529"></A>
+<FONT ID="LN">530 </FONT><A NAME="530"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> NO_DOC_ID_PROVIDED = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">531 </FONT><A NAME="531"></A>
+<FONT ID="LN">532 </FONT><A NAME="532"></A>  <FONT ID="FormalComment">/** Set the default Similarity implementation used by indexing and search
+<FONT ID="LN">533 </FONT><A NAME="533"></A>   * code.
+<FONT ID="LN">534 </FONT><A NAME="534"></A>   *
+<FONT ID="LN">535 </FONT><A NAME="535"></A>   * @see Searcher#setSimilarity(Similarity)
+<FONT ID="LN">536 </FONT><A NAME="536"></A>   * @see org.apache.lucene.index.IndexWriter#setSimilarity(Similarity)
+<FONT ID="LN">537 </FONT><A NAME="537"></A>   */</FONT>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> setDefault(<A HREF="../../../../org/apache/lucene/search/Similarity.java.html">Similarity</A> similarity) {
+<FONT ID="LN">539 </FONT><A NAME="539"></A>    Similarity.defaultImpl = similarity;
+<FONT ID="LN">540 </FONT><A NAME="540"></A>  }
+<FONT ID="LN">541 </FONT><A NAME="541"></A>
+<FONT ID="LN">542 </FONT><A NAME="542"></A>  <FONT ID="FormalComment">/** Return the default Similarity implementation used by indexing and search
+<FONT ID="LN">543 </FONT><A NAME="543"></A>   * code.
+<FONT ID="LN">544 </FONT><A NAME="544"></A>   *
+<FONT ID="LN">545 </FONT><A NAME="545"></A>   * &lt;p&gt;This is initially an instance of {@link DefaultSimilarity}.
+<FONT ID="LN">546 </FONT><A NAME="546"></A>   *
+<FONT ID="LN">547 </FONT><A NAME="547"></A>   * @see Searcher#setSimilarity(Similarity)
+<FONT ID="LN">548 </FONT><A NAME="548"></A>   * @see org.apache.lucene.index.IndexWriter#setSimilarity(Similarity)
+<FONT ID="LN">549 </FONT><A NAME="549"></A>   */</FONT>
+<FONT ID="LN">550 </FONT><A NAME="550"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/search/Similarity.java.html">Similarity</A> getDefault() {
+<FONT ID="LN">551 </FONT><A NAME="551"></A>    <FONT ID="Return">return</FONT> Similarity.defaultImpl;
+<FONT ID="LN">552 </FONT><A NAME="552"></A>  }
+<FONT ID="LN">553 </FONT><A NAME="553"></A>
+<FONT ID="LN">554 </FONT><A NAME="554"></A>  <FONT ID="FormalComment">/** Cache of decoded bytes. */</FONT>
+<FONT ID="LN">555 </FONT><A NAME="555"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Float">float</FONT>[] NORM_TABLE = <FONT ID="New">new</FONT> <FONT ID="Float">float</FONT>[<FONT ID="IntegerLiteral">256</FONT>];
+<FONT ID="LN">556 </FONT><A NAME="556"></A>
+<FONT ID="LN">557 </FONT><A NAME="557"></A>  <FONT ID="Static">static</FONT> {
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; <FONT ID="IntegerLiteral">256</FONT>; i++)
+<FONT ID="LN">559 </FONT><A NAME="559"></A>      NORM_TABLE[i] = SmallFloat.byte315ToFloat((<FONT ID="Byte">byte</FONT>)i);
+<FONT ID="LN">560 </FONT><A NAME="560"></A>  }
+<FONT ID="LN">561 </FONT><A NAME="561"></A>
+<FONT ID="LN">562 </FONT><A NAME="562"></A>  <FONT ID="FormalComment">/** Decodes a normalization factor stored in an index.
+<FONT ID="LN">563 </FONT><A NAME="563"></A>   * @see #encodeNorm(float)
+<FONT ID="LN">564 </FONT><A NAME="564"></A>   */</FONT>
+<FONT ID="LN">565 </FONT><A NAME="565"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Float">float</FONT> decodeNorm(<FONT ID="Byte">byte</FONT> b) {
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    <FONT ID="Return">return</FONT> NORM_TABLE[b &amp; <FONT ID="IntegerLiteral">0xFF</FONT>];  <FONT ID="SingleLineComment">// &amp; 0xFF maps negative bytes to positive above 127
+<FONT ID="LN">567 </FONT><A NAME="567"></A></FONT>  }
+<FONT ID="LN">568 </FONT><A NAME="568"></A>
+<FONT ID="LN">569 </FONT><A NAME="569"></A>  <FONT ID="FormalComment">/** Returns a table for decoding normalization bytes.
+<FONT ID="LN">570 </FONT><A NAME="570"></A>   * @see #encodeNorm(float)
+<FONT ID="LN">571 </FONT><A NAME="571"></A>   */</FONT>
+<FONT ID="LN">572 </FONT><A NAME="572"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Float">float</FONT>[] getNormDecoder() {
+<FONT ID="LN">573 </FONT><A NAME="573"></A>    <FONT ID="Return">return</FONT> NORM_TABLE;
+<FONT ID="LN">574 </FONT><A NAME="574"></A>  }
+<FONT ID="LN">575 </FONT><A NAME="575"></A>
+<FONT ID="LN">576 </FONT><A NAME="576"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">577 </FONT><A NAME="577"></A>   * Compute the normalization value for a field, given the accumulated
+<FONT ID="LN">578 </FONT><A NAME="578"></A>   * state of term processing for this field (see {@link FieldInvertState}).
+<FONT ID="LN">579 </FONT><A NAME="579"></A>   * 
+<FONT ID="LN">580 </FONT><A NAME="580"></A>   * &lt;p&gt;Implementations should calculate a float value based on the field
+<FONT ID="LN">581 </FONT><A NAME="581"></A>   * state and then return that value.
+<FONT ID="LN">582 </FONT><A NAME="582"></A>   *
+<FONT ID="LN">583 </FONT><A NAME="583"></A>   * &lt;p&gt;For backward compatibility this method by default calls
+<FONT ID="LN">584 </FONT><A NAME="584"></A>   * {@link #lengthNorm(String, int)} passing
+<FONT ID="LN">585 </FONT><A NAME="585"></A>   * {@link FieldInvertState#getLength()} as the second argument, and
+<FONT ID="LN">586 </FONT><A NAME="586"></A>   * then multiplies this value by {@link FieldInvertState#getBoost()}.&lt;/p&gt;
+<FONT ID="LN">587 </FONT><A NAME="587"></A>   * 
+<FONT ID="LN">588 </FONT><A NAME="588"></A>   * &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: This API is new and experimental and may
+<FONT ID="LN">589 </FONT><A NAME="589"></A>   * suddenly change.&lt;/p&gt;
+<FONT ID="LN">590 </FONT><A NAME="590"></A>   * 
+<FONT ID="LN">591 </FONT><A NAME="591"></A>   * @param field field name
+<FONT ID="LN">592 </FONT><A NAME="592"></A>   * @param state current processing state for this field
+<FONT ID="LN">593 </FONT><A NAME="593"></A>   * @return the calculated float norm
+<FONT ID="LN">594 </FONT><A NAME="594"></A>   */</FONT>
+<FONT ID="LN">595 </FONT><A NAME="595"></A>  <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> computeNorm(String field, <A HREF="../../../../org/apache/lucene/index/FieldInvertState.java.html">FieldInvertState</A> state) {
+<FONT ID="LN">596 </FONT><A NAME="596"></A>    <FONT ID="Return">return</FONT> (<FONT ID="Float">float</FONT>) (state.getBoost() * lengthNorm(field, state.getLength()));
+<FONT ID="LN">597 </FONT><A NAME="597"></A>  }
+<FONT ID="LN">598 </FONT><A NAME="598"></A>  
+<FONT ID="LN">599 </FONT><A NAME="599"></A>  <FONT ID="FormalComment">/** Computes the normalization value for a field given the total number of
+<FONT ID="LN">600 </FONT><A NAME="600"></A>   * terms contained in a field.  These values, together with field boosts, are
+<FONT ID="LN">601 </FONT><A NAME="601"></A>   * stored in an index and multipled into scores for hits on each field by the
+<FONT ID="LN">602 </FONT><A NAME="602"></A>   * search code.
+<FONT ID="LN">603 </FONT><A NAME="603"></A>   *
+<FONT ID="LN">604 </FONT><A NAME="604"></A>   * &lt;p&gt;Matches in longer fields are less precise, so implementations of this
+<FONT ID="LN">605 </FONT><A NAME="605"></A>   * method usually return smaller values when &lt;code&gt;numTokens&lt;/code&gt; is large,
+<FONT ID="LN">606 </FONT><A NAME="606"></A>   * and larger values when &lt;code&gt;numTokens&lt;/code&gt; is small.
+<FONT ID="LN">607 </FONT><A NAME="607"></A>   * 
+<FONT ID="LN">608 </FONT><A NAME="608"></A>   * &lt;p&gt;Note that the return values are computed under 
+<FONT ID="LN">609 </FONT><A NAME="609"></A>   * {@link org.apache.lucene.index.IndexWriter#addDocument(org.apache.lucene.document.Document)} 
+<FONT ID="LN">610 </FONT><A NAME="610"></A>   * and then stored using
+<FONT ID="LN">611 </FONT><A NAME="611"></A>   * {@link #encodeNorm(float)}.  
+<FONT ID="LN">612 </FONT><A NAME="612"></A>   * Thus they have limited precision, and documents
+<FONT ID="LN">613 </FONT><A NAME="613"></A>   * must be re-indexed if this method is altered.
+<FONT ID="LN">614 </FONT><A NAME="614"></A>   *
+<FONT ID="LN">615 </FONT><A NAME="615"></A>   * @param fieldName the name of the field
+<FONT ID="LN">616 </FONT><A NAME="616"></A>   * @param numTokens the total number of tokens contained in fields named
+<FONT ID="LN">617 </FONT><A NAME="617"></A>   * &lt;i&gt;fieldName&lt;/i&gt; of &lt;i&gt;doc&lt;/i&gt;.
+<FONT ID="LN">618 </FONT><A NAME="618"></A>   * @return a normalization factor for hits on this field of this document
+<FONT ID="LN">619 </FONT><A NAME="619"></A>   *
+<FONT ID="LN">620 </FONT><A NAME="620"></A>   * @see org.apache.lucene.document.Field#setBoost(float)
+<FONT ID="LN">621 </FONT><A NAME="621"></A>   */</FONT>
+<FONT ID="LN">622 </FONT><A NAME="622"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Float">float</FONT> lengthNorm(String fieldName, <FONT ID="Int">int</FONT> numTokens);
+<FONT ID="LN">623 </FONT><A NAME="623"></A>
+<FONT ID="LN">624 </FONT><A NAME="624"></A>  <FONT ID="FormalComment">/** Computes the normalization value for a query given the sum of the squared
+<FONT ID="LN">625 </FONT><A NAME="625"></A>   * weights of each of the query terms.  This value is multiplied into the
+<FONT ID="LN">626 </FONT><A NAME="626"></A>   * weight of each query term. While the classic query normalization factor is
+<FONT ID="LN">627 </FONT><A NAME="627"></A>   * computed as 1/sqrt(sumOfSquaredWeights), other implementations might
+<FONT ID="LN">628 </FONT><A NAME="628"></A>   * completely ignore sumOfSquaredWeights (ie return 1).
+<FONT ID="LN">629 </FONT><A NAME="629"></A>   *
+<FONT ID="LN">630 </FONT><A NAME="630"></A>   * &lt;p&gt;This does not affect ranking, but the default implementation does make scores
+<FONT ID="LN">631 </FONT><A NAME="631"></A>   * from different queries more comparable than they would be by eliminating the
+<FONT ID="LN">632 </FONT><A NAME="632"></A>   * magnitude of the Query vector as a factor in the score.
+<FONT ID="LN">633 </FONT><A NAME="633"></A>   *
+<FONT ID="LN">634 </FONT><A NAME="634"></A>   * @param sumOfSquaredWeights the sum of the squares of query term weights
+<FONT ID="LN">635 </FONT><A NAME="635"></A>   * @return a normalization factor for query weights
+<FONT ID="LN">636 </FONT><A NAME="636"></A>   */</FONT>
+<FONT ID="LN">637 </FONT><A NAME="637"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Float">float</FONT> queryNorm(<FONT ID="Float">float</FONT> sumOfSquaredWeights);
+<FONT ID="LN">638 </FONT><A NAME="638"></A>
+<FONT ID="LN">639 </FONT><A NAME="639"></A>  <FONT ID="FormalComment">/** Encodes a normalization factor for storage in an index.
+<FONT ID="LN">640 </FONT><A NAME="640"></A>   *
+<FONT ID="LN">641 </FONT><A NAME="641"></A>   * &lt;p&gt;The encoding uses a three-bit mantissa, a five-bit exponent, and
+<FONT ID="LN">642 </FONT><A NAME="642"></A>   * the zero-exponent point at 15, thus
+<FONT ID="LN">643 </FONT><A NAME="643"></A>   * representing values from around 7x10^9 to 2x10^-9 with about one
+<FONT ID="LN">644 </FONT><A NAME="644"></A>   * significant decimal digit of accuracy.  Zero is also represented.
+<FONT ID="LN">645 </FONT><A NAME="645"></A>   * Negative numbers are rounded up to zero.  Values too large to represent
+<FONT ID="LN">646 </FONT><A NAME="646"></A>   * are rounded down to the largest representable value.  Positive values too
+<FONT ID="LN">647 </FONT><A NAME="647"></A>   * small to represent are rounded up to the smallest positive representable
+<FONT ID="LN">648 </FONT><A NAME="648"></A>   * value.
+<FONT ID="LN">649 </FONT><A NAME="649"></A>   *
+<FONT ID="LN">650 </FONT><A NAME="650"></A>   * @see org.apache.lucene.document.Field#setBoost(float)
+<FONT ID="LN">651 </FONT><A NAME="651"></A>   * @see org.apache.lucene.util.SmallFloat
+<FONT ID="LN">652 </FONT><A NAME="652"></A>   */</FONT>
+<FONT ID="LN">653 </FONT><A NAME="653"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Byte">byte</FONT> encodeNorm(<FONT ID="Float">float</FONT> f) {
+<FONT ID="LN">654 </FONT><A NAME="654"></A>    <FONT ID="Return">return</FONT> SmallFloat.floatToByte315(f);
+<FONT ID="LN">655 </FONT><A NAME="655"></A>  }
+<FONT ID="LN">656 </FONT><A NAME="656"></A>
+<FONT ID="LN">657 </FONT><A NAME="657"></A>
+<FONT ID="LN">658 </FONT><A NAME="658"></A>  <FONT ID="FormalComment">/** Computes a score factor based on a term or phrase's frequency in a
+<FONT ID="LN">659 </FONT><A NAME="659"></A>   * document.  This value is multiplied by the {@link #idf(Term, Searcher)}
+<FONT ID="LN">660 </FONT><A NAME="660"></A>   * factor for each term in the query and these products are then summed to
+<FONT ID="LN">661 </FONT><A NAME="661"></A>   * form the initial score for a document.
+<FONT ID="LN">662 </FONT><A NAME="662"></A>   *
+<FONT ID="LN">663 </FONT><A NAME="663"></A>   * &lt;p&gt;Terms and phrases repeated in a document indicate the topic of the
+<FONT ID="LN">664 </FONT><A NAME="664"></A>   * document, so implementations of this method usually return larger values
+<FONT ID="LN">665 </FONT><A NAME="665"></A>   * when &lt;code&gt;freq&lt;/code&gt; is large, and smaller values when &lt;code&gt;freq&lt;/code&gt;
+<FONT ID="LN">666 </FONT><A NAME="666"></A>   * is small.
+<FONT ID="LN">667 </FONT><A NAME="667"></A>   *
+<FONT ID="LN">668 </FONT><A NAME="668"></A>   * &lt;p&gt;The default implementation calls {@link #tf(float)}.
+<FONT ID="LN">669 </FONT><A NAME="669"></A>   *
+<FONT ID="LN">670 </FONT><A NAME="670"></A>   * @param freq the frequency of a term within a document
+<FONT ID="LN">671 </FONT><A NAME="671"></A>   * @return a score factor based on a term's within-document frequency
+<FONT ID="LN">672 </FONT><A NAME="672"></A>   */</FONT>
+<FONT ID="LN">673 </FONT><A NAME="673"></A>  <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> tf(<FONT ID="Int">int</FONT> freq) {
+<FONT ID="LN">674 </FONT><A NAME="674"></A>    <FONT ID="Return">return</FONT> tf((<FONT ID="Float">float</FONT>)freq);
+<FONT ID="LN">675 </FONT><A NAME="675"></A>  }
+<FONT ID="LN">676 </FONT><A NAME="676"></A>
+<FONT ID="LN">677 </FONT><A NAME="677"></A>  <FONT ID="FormalComment">/** Computes the amount of a sloppy phrase match, based on an edit distance.
+<FONT ID="LN">678 </FONT><A NAME="678"></A>   * This value is summed for each sloppy phrase match in a document to form
+<FONT ID="LN">679 </FONT><A NAME="679"></A>   * the frequency that is passed to {@link #tf(float)}.
+<FONT ID="LN">680 </FONT><A NAME="680"></A>   *
+<FONT ID="LN">681 </FONT><A NAME="681"></A>   * &lt;p&gt;A phrase match with a small edit distance to a document passage more
+<FONT ID="LN">682 </FONT><A NAME="682"></A>   * closely matches the document, so implementations of this method usually
+<FONT ID="LN">683 </FONT><A NAME="683"></A>   * return larger values when the edit distance is small and smaller values
+<FONT ID="LN">684 </FONT><A NAME="684"></A>   * when it is large.
+<FONT ID="LN">685 </FONT><A NAME="685"></A>   *
+<FONT ID="LN">686 </FONT><A NAME="686"></A>   * @see PhraseQuery#setSlop(int)
+<FONT ID="LN">687 </FONT><A NAME="687"></A>   * @param distance the edit distance of this sloppy phrase match
+<FONT ID="LN">688 </FONT><A NAME="688"></A>   * @return the frequency increment for this match
+<FONT ID="LN">689 </FONT><A NAME="689"></A>   */</FONT>
+<FONT ID="LN">690 </FONT><A NAME="690"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Float">float</FONT> sloppyFreq(<FONT ID="Int">int</FONT> distance);
+<FONT ID="LN">691 </FONT><A NAME="691"></A>
+<FONT ID="LN">692 </FONT><A NAME="692"></A>  <FONT ID="FormalComment">/** Computes a score factor based on a term or phrase's frequency in a
+<FONT ID="LN">693 </FONT><A NAME="693"></A>   * document.  This value is multiplied by the {@link #idf(Term, Searcher)}
+<FONT ID="LN">694 </FONT><A NAME="694"></A>   * factor for each term in the query and these products are then summed to
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   * form the initial score for a document.
+<FONT ID="LN">696 </FONT><A NAME="696"></A>   *
+<FONT ID="LN">697 </FONT><A NAME="697"></A>   * &lt;p&gt;Terms and phrases repeated in a document indicate the topic of the
+<FONT ID="LN">698 </FONT><A NAME="698"></A>   * document, so implementations of this method usually return larger values
+<FONT ID="LN">699 </FONT><A NAME="699"></A>   * when &lt;code&gt;freq&lt;/code&gt; is large, and smaller values when &lt;code&gt;freq&lt;/code&gt;
+<FONT ID="LN">700 </FONT><A NAME="700"></A>   * is small.
+<FONT ID="LN">701 </FONT><A NAME="701"></A>   *
+<FONT ID="LN">702 </FONT><A NAME="702"></A>   * @param freq the frequency of a term within a document
+<FONT ID="LN">703 </FONT><A NAME="703"></A>   * @return a score factor based on a term's within-document frequency
+<FONT ID="LN">704 </FONT><A NAME="704"></A>   */</FONT>
+<FONT ID="LN">705 </FONT><A NAME="705"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Float">float</FONT> tf(<FONT ID="Float">float</FONT> freq);
+<FONT ID="LN">706 </FONT><A NAME="706"></A>
+<FONT ID="LN">707 </FONT><A NAME="707"></A>  <FONT ID="FormalComment">/** Computes a score factor for a simple term.
+<FONT ID="LN">708 </FONT><A NAME="708"></A>   *
+<FONT ID="LN">709 </FONT><A NAME="709"></A>   * &lt;p&gt;The default implementation is:&lt;pre&gt;
+<FONT ID="LN">710 </FONT><A NAME="710"></A>   *   return idf(searcher.docFreq(term), searcher.maxDoc());
+<FONT ID="LN">711 </FONT><A NAME="711"></A>   * &lt;/pre&gt;
+<FONT ID="LN">712 </FONT><A NAME="712"></A>   *
+<FONT ID="LN">713 </FONT><A NAME="713"></A>   * Note that {@link Searcher#maxDoc()} is used instead of
+<FONT ID="LN">714 </FONT><A NAME="714"></A>   * {@link org.apache.lucene.index.IndexReader#numDocs() IndexReader#numDocs()} because also 
+<FONT ID="LN">715 </FONT><A NAME="715"></A>   * {@link Searcher#docFreq(Term)} is used, and when the latter 
+<FONT ID="LN">716 </FONT><A NAME="716"></A>   * is inaccurate, so is {@link Searcher#maxDoc()}, and in the same direction.
+<FONT ID="LN">717 </FONT><A NAME="717"></A>   * In addition, {@link Searcher#maxDoc()} is more efficient to compute
+<FONT ID="LN">718 </FONT><A NAME="718"></A>   *
+<FONT ID="LN">719 </FONT><A NAME="719"></A>   * @param term the term in question
+<FONT ID="LN">720 </FONT><A NAME="720"></A>   * @param searcher the document collection being searched
+<FONT ID="LN">721 </FONT><A NAME="721"></A>   * @return a score factor for the term
+<FONT ID="LN">722 </FONT><A NAME="722"></A>   * @deprecated see {@link #idfExplain(Term, Searcher)}
+<FONT ID="LN">723 </FONT><A NAME="723"></A>   */</FONT>
+<FONT ID="LN">724 </FONT><A NAME="724"></A>  <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> idf(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term, <A HREF="../../../../org/apache/lucene/search/Searcher.java.html">Searcher</A> searcher) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">725 </FONT><A NAME="725"></A>    <FONT ID="Return">return</FONT> idf(searcher.docFreq(term), searcher.maxDoc());
+<FONT ID="LN">726 </FONT><A NAME="726"></A>  }
+<FONT ID="LN">727 </FONT><A NAME="727"></A>  
+<FONT ID="LN">728 </FONT><A NAME="728"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">729 </FONT><A NAME="729"></A>   * Computes a score factor for a simple term and returns an explanation
+<FONT ID="LN">730 </FONT><A NAME="730"></A>   * for that score factor.
+<FONT ID="LN">731 </FONT><A NAME="731"></A>   * 
+<FONT ID="LN">732 </FONT><A NAME="732"></A>   * &lt;p&gt;
+<FONT ID="LN">733 </FONT><A NAME="733"></A>   * The default implementation uses:
+<FONT ID="LN">734 </FONT><A NAME="734"></A>   * 
+<FONT ID="LN">735 </FONT><A NAME="735"></A>   * &lt;pre&gt;
+<FONT ID="LN">736 </FONT><A NAME="736"></A>   * idf(searcher.docFreq(term), searcher.maxDoc());
+<FONT ID="LN">737 </FONT><A NAME="737"></A>   * &lt;/pre&gt;
+<FONT ID="LN">738 </FONT><A NAME="738"></A>   * 
+<FONT ID="LN">739 </FONT><A NAME="739"></A>   * Note that {@link Searcher#maxDoc()} is used instead of
+<FONT ID="LN">740 </FONT><A NAME="740"></A>   * {@link org.apache.lucene.index.IndexReader#numDocs() IndexReader#numDocs()} because also 
+<FONT ID="LN">741 </FONT><A NAME="741"></A>   * {@link Searcher#docFreq(Term)} is used, and when the latter 
+<FONT ID="LN">742 </FONT><A NAME="742"></A>   * is inaccurate, so is {@link Searcher#maxDoc()}, and in the same direction.
+<FONT ID="LN">743 </FONT><A NAME="743"></A>   * In addition, {@link Searcher#maxDoc()} is more efficient to compute
+<FONT ID="LN">744 </FONT><A NAME="744"></A>   *   
+<FONT ID="LN">745 </FONT><A NAME="745"></A>   * @param term the term in question
+<FONT ID="LN">746 </FONT><A NAME="746"></A>   * @param searcher the document collection being searched
+<FONT ID="LN">747 </FONT><A NAME="747"></A>   * @return an IDFExplain object that includes both an idf score factor 
+<FONT ID="LN">748 </FONT><A NAME="748"></A>             and an explanation for the term.
+<FONT ID="LN">749 </FONT><A NAME="749"></A>   * @throws IOException
+<FONT ID="LN">750 </FONT><A NAME="750"></A>   */</FONT>
+<FONT ID="LN">751 </FONT><A NAME="751"></A>  <FONT ID="Public">public</FONT> IDFExplanation idfExplain(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term, <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/search/Searcher.java.html">Searcher</A> searcher) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">752 </FONT><A NAME="752"></A>    <FONT ID="If">if</FONT>(supportedMethods.overridesTermIDF) {
+<FONT ID="LN">753 </FONT><A NAME="753"></A>      <FONT ID="Final">final</FONT> <FONT ID="Float">float</FONT> idf = idf(term, searcher);
+<FONT ID="LN">754 </FONT><A NAME="754"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> IDFExplanation() {
+<FONT ID="LN">755 </FONT><A NAME="755"></A>        <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">756 </FONT><A NAME="756"></A></FONT>        <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> getIdf() {
+<FONT ID="LN">757 </FONT><A NAME="757"></A>          <FONT ID="Return">return</FONT> idf;
+<FONT ID="LN">758 </FONT><A NAME="758"></A>        }
+<FONT ID="LN">759 </FONT><A NAME="759"></A>        <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">760 </FONT><A NAME="760"></A></FONT>        <FONT ID="Public">public</FONT> String explain() {
+<FONT ID="LN">761 </FONT><A NAME="761"></A>          <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Inexplicable"</FONT>;
+<FONT ID="LN">762 </FONT><A NAME="762"></A>        }
+<FONT ID="LN">763 </FONT><A NAME="763"></A>      };
+<FONT ID="LN">764 </FONT><A NAME="764"></A>    }
+<FONT ID="LN">765 </FONT><A NAME="765"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> df = searcher.docFreq(term);
+<FONT ID="LN">766 </FONT><A NAME="766"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> max = searcher.maxDoc();
+<FONT ID="LN">767 </FONT><A NAME="767"></A>    <FONT ID="Final">final</FONT> <FONT ID="Float">float</FONT> idf = idf(df, max);
+<FONT ID="LN">768 </FONT><A NAME="768"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> IDFExplanation() {
+<FONT ID="LN">769 </FONT><A NAME="769"></A>        <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">770 </FONT><A NAME="770"></A></FONT>        <FONT ID="Public">public</FONT> String explain() {
+<FONT ID="LN">771 </FONT><A NAME="771"></A>          <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"idf(docFreq="</FONT> + df +
+<FONT ID="LN">772 </FONT><A NAME="772"></A>          <FONT ID="StringLiteral">", maxDocs="</FONT> + max + <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">773 </FONT><A NAME="773"></A>        }
+<FONT ID="LN">774 </FONT><A NAME="774"></A>        <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">775 </FONT><A NAME="775"></A></FONT>        <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> getIdf() {
+<FONT ID="LN">776 </FONT><A NAME="776"></A>          <FONT ID="Return">return</FONT> idf;
+<FONT ID="LN">777 </FONT><A NAME="777"></A>        }};
+<FONT ID="LN">778 </FONT><A NAME="778"></A>   }
+<FONT ID="LN">779 </FONT><A NAME="779"></A>
+<FONT ID="LN">780 </FONT><A NAME="780"></A>  <FONT ID="FormalComment">/** Computes a score factor for a phrase.
+<FONT ID="LN">781 </FONT><A NAME="781"></A>   *
+<FONT ID="LN">782 </FONT><A NAME="782"></A>   * &lt;p&gt;The default implementation sums the {@link #idf(Term,Searcher)} factor
+<FONT ID="LN">783 </FONT><A NAME="783"></A>   * for each term in the phrase.
+<FONT ID="LN">784 </FONT><A NAME="784"></A>   *
+<FONT ID="LN">785 </FONT><A NAME="785"></A>   * @param terms the terms in the phrase
+<FONT ID="LN">786 </FONT><A NAME="786"></A>   * @param searcher the document collection being searched
+<FONT ID="LN">787 </FONT><A NAME="787"></A>   * @return idf score factor
+<FONT ID="LN">788 </FONT><A NAME="788"></A>   * @deprecated see {@link #idfExplain(Collection, Searcher)}
+<FONT ID="LN">789 </FONT><A NAME="789"></A>   */</FONT>
+<FONT ID="LN">790 </FONT><A NAME="790"></A>  <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> idf(Collection terms, <A HREF="../../../../org/apache/lucene/search/Searcher.java.html">Searcher</A> searcher) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">791 </FONT><A NAME="791"></A>    <FONT ID="Float">float</FONT> idf = <FONT ID="FloatPointLiteral">0.0f</FONT>;
+<FONT ID="LN">792 </FONT><A NAME="792"></A>    Iterator i = terms.iterator();
+<FONT ID="LN">793 </FONT><A NAME="793"></A>    <FONT ID="While">while</FONT> (i.hasNext()) {
+<FONT ID="LN">794 </FONT><A NAME="794"></A>      idf += idf((<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A>)i.next(), searcher);
+<FONT ID="LN">795 </FONT><A NAME="795"></A>    }
+<FONT ID="LN">796 </FONT><A NAME="796"></A>    <FONT ID="Return">return</FONT> idf;
+<FONT ID="LN">797 </FONT><A NAME="797"></A>  }
+<FONT ID="LN">798 </FONT><A NAME="798"></A>  
+<FONT ID="LN">799 </FONT><A NAME="799"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">800 </FONT><A NAME="800"></A>   * Computes a score factor for a phrase.
+<FONT ID="LN">801 </FONT><A NAME="801"></A>   * 
+<FONT ID="LN">802 </FONT><A NAME="802"></A>   * &lt;p&gt;
+<FONT ID="LN">803 </FONT><A NAME="803"></A>   * The default implementation sums the idf factor for
+<FONT ID="LN">804 </FONT><A NAME="804"></A>   * each term in the phrase.
+<FONT ID="LN">805 </FONT><A NAME="805"></A>   * 
+<FONT ID="LN">806 </FONT><A NAME="806"></A>   * @param terms the terms in the phrase
+<FONT ID="LN">807 </FONT><A NAME="807"></A>   * @param searcher the document collection being searched
+<FONT ID="LN">808 </FONT><A NAME="808"></A>   * @return an IDFExplain object that includes both an idf 
+<FONT ID="LN">809 </FONT><A NAME="809"></A>   *         score factor for the phrase and an explanation 
+<FONT ID="LN">810 </FONT><A NAME="810"></A>   *         for each term.
+<FONT ID="LN">811 </FONT><A NAME="811"></A>   * @throws IOException
+<FONT ID="LN">812 </FONT><A NAME="812"></A>   */</FONT>
+<FONT ID="LN">813 </FONT><A NAME="813"></A>  <FONT ID="Public">public</FONT> IDFExplanation idfExplain(Collection terms, <A HREF="../../../../org/apache/lucene/search/Searcher.java.html">Searcher</A> searcher) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">814 </FONT><A NAME="814"></A>    <FONT ID="If">if</FONT>(supportedMethods.overridesCollectionIDF) {
+<FONT ID="LN">815 </FONT><A NAME="815"></A>      <FONT ID="Final">final</FONT> <FONT ID="Float">float</FONT> idf = idf(terms, searcher);
+<FONT ID="LN">816 </FONT><A NAME="816"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> IDFExplanation() {
+<FONT ID="LN">817 </FONT><A NAME="817"></A>        <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">818 </FONT><A NAME="818"></A></FONT>        <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> getIdf() {
+<FONT ID="LN">819 </FONT><A NAME="819"></A>          <FONT ID="Return">return</FONT> idf;
+<FONT ID="LN">820 </FONT><A NAME="820"></A>        }
+<FONT ID="LN">821 </FONT><A NAME="821"></A>        <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">822 </FONT><A NAME="822"></A></FONT>        <FONT ID="Public">public</FONT> String explain() {
+<FONT ID="LN">823 </FONT><A NAME="823"></A>          <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Inexplicable"</FONT>;
+<FONT ID="LN">824 </FONT><A NAME="824"></A>        }
+<FONT ID="LN">825 </FONT><A NAME="825"></A>      };
+<FONT ID="LN">826 </FONT><A NAME="826"></A>    }
+<FONT ID="LN">827 </FONT><A NAME="827"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> max = searcher.maxDoc();
+<FONT ID="LN">828 </FONT><A NAME="828"></A>    <FONT ID="Float">float</FONT> idf = <FONT ID="FloatPointLiteral">0.0f</FONT>;
+<FONT ID="LN">829 </FONT><A NAME="829"></A>    <FONT ID="Final">final</FONT> StringBuffer exp = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">830 </FONT><A NAME="830"></A>    Iterator i = terms.iterator();
+<FONT ID="LN">831 </FONT><A NAME="831"></A>    <FONT ID="While">while</FONT> (i.hasNext()) {
+<FONT ID="LN">832 </FONT><A NAME="832"></A>      <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term = (<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A>)i.next();
+<FONT ID="LN">833 </FONT><A NAME="833"></A>      <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> df = searcher.docFreq(term);
+<FONT ID="LN">834 </FONT><A NAME="834"></A>      idf += idf(df, max);
+<FONT ID="LN">835 </FONT><A NAME="835"></A>      exp.append(<FONT ID="StringLiteral">" "</FONT>);
+<FONT ID="LN">836 </FONT><A NAME="836"></A>      exp.append(term.text());
+<FONT ID="LN">837 </FONT><A NAME="837"></A>      exp.append(<FONT ID="StringLiteral">"="</FONT>);
+<FONT ID="LN">838 </FONT><A NAME="838"></A>      exp.append(df);
+<FONT ID="LN">839 </FONT><A NAME="839"></A>    }
+<FONT ID="LN">840 </FONT><A NAME="840"></A>    <FONT ID="Final">final</FONT> <FONT ID="Float">float</FONT> fIdf = idf;
+<FONT ID="LN">841 </FONT><A NAME="841"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> IDFExplanation() {
+<FONT ID="LN">842 </FONT><A NAME="842"></A>      <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">843 </FONT><A NAME="843"></A></FONT>      <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> getIdf() {
+<FONT ID="LN">844 </FONT><A NAME="844"></A>        <FONT ID="Return">return</FONT> fIdf;
+<FONT ID="LN">845 </FONT><A NAME="845"></A>      }
+<FONT ID="LN">846 </FONT><A NAME="846"></A>      <FONT ID="SingleLineComment">//@Override
+<FONT ID="LN">847 </FONT><A NAME="847"></A></FONT>      <FONT ID="Public">public</FONT> String explain() {
+<FONT ID="LN">848 </FONT><A NAME="848"></A>        <FONT ID="Return">return</FONT> exp.toString();
+<FONT ID="LN">849 </FONT><A NAME="849"></A>      }
+<FONT ID="LN">850 </FONT><A NAME="850"></A>    };
+<FONT ID="LN">851 </FONT><A NAME="851"></A>  }
+<FONT ID="LN">852 </FONT><A NAME="852"></A>
+<FONT ID="LN">853 </FONT><A NAME="853"></A>  <FONT ID="FormalComment">/** Computes a score factor based on a term's document frequency (the number
+<FONT ID="LN">854 </FONT><A NAME="854"></A>   * of documents which contain the term).  This value is multiplied by the
+<FONT ID="LN">855 </FONT><A NAME="855"></A>   * {@link #tf(int)} factor for each term in the query and these products are
+<FONT ID="LN">856 </FONT><A NAME="856"></A>   * then summed to form the initial score for a document.
+<FONT ID="LN">857 </FONT><A NAME="857"></A>   *
+<FONT ID="LN">858 </FONT><A NAME="858"></A>   * &lt;p&gt;Terms that occur in fewer documents are better indicators of topic, so
+<FONT ID="LN">859 </FONT><A NAME="859"></A>   * implementations of this method usually return larger values for rare terms,
+<FONT ID="LN">860 </FONT><A NAME="860"></A>   * and smaller values for common terms.
+<FONT ID="LN">861 </FONT><A NAME="861"></A>   *
+<FONT ID="LN">862 </FONT><A NAME="862"></A>   * @param docFreq the number of documents which contain the term
+<FONT ID="LN">863 </FONT><A NAME="863"></A>   * @param numDocs the total number of documents in the collection
+<FONT ID="LN">864 </FONT><A NAME="864"></A>   * @return a score factor based on the term's document frequency
+<FONT ID="LN">865 </FONT><A NAME="865"></A>   */</FONT>
+<FONT ID="LN">866 </FONT><A NAME="866"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Float">float</FONT> idf(<FONT ID="Int">int</FONT> docFreq, <FONT ID="Int">int</FONT> numDocs);
+<FONT ID="LN">867 </FONT><A NAME="867"></A>
+<FONT ID="LN">868 </FONT><A NAME="868"></A>  <FONT ID="FormalComment">/** Computes a score factor based on the fraction of all query terms that a
+<FONT ID="LN">869 </FONT><A NAME="869"></A>   * document contains.  This value is multiplied into scores.
+<FONT ID="LN">870 </FONT><A NAME="870"></A>   *
+<FONT ID="LN">871 </FONT><A NAME="871"></A>   * &lt;p&gt;The presence of a large portion of the query terms indicates a better
+<FONT ID="LN">872 </FONT><A NAME="872"></A>   * match with the query, so implementations of this method usually return
+<FONT ID="LN">873 </FONT><A NAME="873"></A>   * larger values when the ratio between these parameters is large and smaller
+<FONT ID="LN">874 </FONT><A NAME="874"></A>   * values when the ratio between them is small.
+<FONT ID="LN">875 </FONT><A NAME="875"></A>   *
+<FONT ID="LN">876 </FONT><A NAME="876"></A>   * @param overlap the number of query terms matched in the document
+<FONT ID="LN">877 </FONT><A NAME="877"></A>   * @param maxOverlap the total number of terms in the query
+<FONT ID="LN">878 </FONT><A NAME="878"></A>   * @return a score factor based on term overlap with the query
+<FONT ID="LN">879 </FONT><A NAME="879"></A>   */</FONT>
+<FONT ID="LN">880 </FONT><A NAME="880"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Float">float</FONT> coord(<FONT ID="Int">int</FONT> overlap, <FONT ID="Int">int</FONT> maxOverlap);
+<FONT ID="LN">881 </FONT><A NAME="881"></A>
+<FONT ID="LN">882 </FONT><A NAME="882"></A>
+<FONT ID="LN">883 </FONT><A NAME="883"></A>
+<FONT ID="LN">884 </FONT><A NAME="884"></A>
+<FONT ID="LN">885 </FONT><A NAME="885"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">886 </FONT><A NAME="886"></A>   * Calculate a scoring factor based on the data in the payload.  Overriding implementations
+<FONT ID="LN">887 </FONT><A NAME="887"></A>   * are responsible for interpreting what is in the payload.  Lucene makes no assumptions about
+<FONT ID="LN">888 </FONT><A NAME="888"></A>   * what is in the byte array.
+<FONT ID="LN">889 </FONT><A NAME="889"></A>   * &lt;p&gt;
+<FONT ID="LN">890 </FONT><A NAME="890"></A>   * The default implementation returns 1.
+<FONT ID="LN">891 </FONT><A NAME="891"></A>   *
+<FONT ID="LN">892 </FONT><A NAME="892"></A>   * @param fieldName The fieldName of the term this payload belongs to
+<FONT ID="LN">893 </FONT><A NAME="893"></A>   * @param payload The payload byte array to be scored
+<FONT ID="LN">894 </FONT><A NAME="894"></A>   * @param offset The offset into the payload array
+<FONT ID="LN">895 </FONT><A NAME="895"></A>   * @param length The length in the array
+<FONT ID="LN">896 </FONT><A NAME="896"></A>   * @return An implementation dependent float to be used as a scoring factor
+<FONT ID="LN">897 </FONT><A NAME="897"></A>   *
+<FONT ID="LN">898 </FONT><A NAME="898"></A>   * @deprecated See {@link #scorePayload(int, String, int, int, byte[], int, int)}
+<FONT ID="LN">899 </FONT><A NAME="899"></A>   */</FONT>
+<FONT ID="LN">900 </FONT><A NAME="900"></A>  <FONT ID="SingleLineComment">//TODO: When removing this, set the default value below to return 1.
+<FONT ID="LN">901 </FONT><A NAME="901"></A></FONT>  <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> scorePayload(String fieldName, <FONT ID="Byte">byte</FONT> [] payload, <FONT ID="Int">int</FONT> offset, <FONT ID="Int">int</FONT> length)
+<FONT ID="LN">902 </FONT><A NAME="902"></A>  {
+<FONT ID="LN">903 </FONT><A NAME="903"></A>    <FONT ID="SingleLineComment">//Do nothing
+<FONT ID="LN">904 </FONT><A NAME="904"></A></FONT>    <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">905 </FONT><A NAME="905"></A>  }
+<FONT ID="LN">906 </FONT><A NAME="906"></A>
+<FONT ID="LN">907 </FONT><A NAME="907"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">908 </FONT><A NAME="908"></A>   * Calculate a scoring factor based on the data in the payload.  Overriding implementations
+<FONT ID="LN">909 </FONT><A NAME="909"></A>   * are responsible for interpreting what is in the payload.  Lucene makes no assumptions about
+<FONT ID="LN">910 </FONT><A NAME="910"></A>   * what is in the byte array.
+<FONT ID="LN">911 </FONT><A NAME="911"></A>   * &lt;p&gt;
+<FONT ID="LN">912 </FONT><A NAME="912"></A>   * The default implementation returns 1.
+<FONT ID="LN">913 </FONT><A NAME="913"></A>   *
+<FONT ID="LN">914 </FONT><A NAME="914"></A>   * @param docId The docId currently being scored.  If this value is {@link #NO_DOC_ID_PROVIDED}, then it should be assumed that the PayloadQuery implementation does not provide document information
+<FONT ID="LN">915 </FONT><A NAME="915"></A>   * @param fieldName The fieldName of the term this payload belongs to
+<FONT ID="LN">916 </FONT><A NAME="916"></A>   * @param start The start position of the payload
+<FONT ID="LN">917 </FONT><A NAME="917"></A>   * @param end The end position of the payload
+<FONT ID="LN">918 </FONT><A NAME="918"></A>   * @param payload The payload byte array to be scored
+<FONT ID="LN">919 </FONT><A NAME="919"></A>   * @param offset The offset into the payload array
+<FONT ID="LN">920 </FONT><A NAME="920"></A>   * @param length The length in the array
+<FONT ID="LN">921 </FONT><A NAME="921"></A>   * @return An implementation dependent float to be used as a scoring factor
+<FONT ID="LN">922 </FONT><A NAME="922"></A>   *
+<FONT ID="LN">923 </FONT><A NAME="923"></A>   */</FONT>
+<FONT ID="LN">924 </FONT><A NAME="924"></A>  <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> scorePayload(<FONT ID="Int">int</FONT> docId, String fieldName, <FONT ID="Int">int</FONT> start, <FONT ID="Int">int</FONT> end, <FONT ID="Byte">byte</FONT> [] payload, <FONT ID="Int">int</FONT> offset, <FONT ID="Int">int</FONT> length)
+<FONT ID="LN">925 </FONT><A NAME="925"></A>  {
+<FONT ID="LN">926 </FONT><A NAME="926"></A>    <FONT ID="SingleLineComment">//TODO: When removing the deprecated scorePayload above, set this to return 1
+<FONT ID="LN">927 </FONT><A NAME="927"></A></FONT>    <FONT ID="Return">return</FONT> scorePayload(fieldName, payload, offset, length);
+<FONT ID="LN">928 </FONT><A NAME="928"></A>  }
+<FONT ID="LN">929 </FONT><A NAME="929"></A>  
+<FONT ID="LN">930 </FONT><A NAME="930"></A>  <FONT ID="FormalComment">/** @deprecated Remove this when old API is removed! */</FONT>
+<FONT ID="LN">931 </FONT><A NAME="931"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> MethodSupport supportedMethods = getSupportedMethods(<FONT ID="This">this</FONT>.getClass());
+<FONT ID="LN">932 </FONT><A NAME="932"></A>  
+<FONT ID="LN">933 </FONT><A NAME="933"></A>    <FONT ID="FormalComment">/** @deprecated Remove this when old API is removed! */</FONT>
+<FONT ID="LN">934 </FONT><A NAME="934"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> MethodSupport <FONT ID="Implements">implements</FONT> Serializable {
+<FONT ID="LN">935 </FONT><A NAME="935"></A>    <FONT ID="Final">final</FONT> <FONT ID="Boolean">boolean</FONT> overridesCollectionIDF, overridesTermIDF;
+<FONT ID="LN">936 </FONT><A NAME="936"></A>
+<FONT ID="LN">937 </FONT><A NAME="937"></A>    MethodSupport(Class clazz) {
+<FONT ID="LN">938 </FONT><A NAME="938"></A>      overridesCollectionIDF = isMethodOverridden(clazz, <FONT ID="StringLiteral">"idf"</FONT>, C_IDF_METHOD_PARAMS);
+<FONT ID="LN">939 </FONT><A NAME="939"></A>      overridesTermIDF = isMethodOverridden(clazz, <FONT ID="StringLiteral">"idf"</FONT>, T_IDF_METHOD_PARAMS);
+<FONT ID="LN">940 </FONT><A NAME="940"></A>    }
+<FONT ID="LN">941 </FONT><A NAME="941"></A>    
+<FONT ID="LN">942 </FONT><A NAME="942"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isMethodOverridden(Class clazz, String name, Class[] params) {
+<FONT ID="LN">943 </FONT><A NAME="943"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">944 </FONT><A NAME="944"></A>        <FONT ID="Return">return</FONT> clazz.getMethod(name, params).getDeclaringClass() != <A HREF="../../../../org/apache/lucene/search/Similarity.java.html">Similarity</A>.<FONT ID="Class">class</FONT>;
+<FONT ID="LN">945 </FONT><A NAME="945"></A>      } <FONT ID="Catch">catch</FONT> (NoSuchMethodException e) {
+<FONT ID="LN">946 </FONT><A NAME="946"></A>        <FONT ID="SingleLineComment">// should not happen
+<FONT ID="LN">947 </FONT><A NAME="947"></A></FONT>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(e);
+<FONT ID="LN">948 </FONT><A NAME="948"></A>      }
+<FONT ID="LN">949 </FONT><A NAME="949"></A>    }
+<FONT ID="LN">950 </FONT><A NAME="950"></A>    <FONT ID="FormalComment">/** @deprecated Remove this when old API is removed! */</FONT>
+<FONT ID="LN">951 </FONT><A NAME="951"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> Class[] T_IDF_METHOD_PARAMS = <FONT ID="New">new</FONT> Class[]{<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A>.<FONT ID="Class">class</FONT>, <A HREF="../../../../org/apache/lucene/search/Searcher.java.html">Searcher</A>.<FONT ID="Class">class</FONT>};
+<FONT ID="LN">952 </FONT><A NAME="952"></A>    
+<FONT ID="LN">953 </FONT><A NAME="953"></A>    <FONT ID="FormalComment">/** @deprecated Remove this when old API is removed! */</FONT>
+<FONT ID="LN">954 </FONT><A NAME="954"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> Class[] C_IDF_METHOD_PARAMS = <FONT ID="New">new</FONT> Class[]{Collection.<FONT ID="Class">class</FONT>, <A HREF="../../../../org/apache/lucene/search/Searcher.java.html">Searcher</A>.<FONT ID="Class">class</FONT>};
+<FONT ID="LN">955 </FONT><A NAME="955"></A>  }
+<FONT ID="LN">956 </FONT><A NAME="956"></A>  
+<FONT ID="LN">957 </FONT><A NAME="957"></A>  <FONT ID="FormalComment">/** @deprecated Remove this when old API is removed! */</FONT>
+<FONT ID="LN">958 </FONT><A NAME="958"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> IdentityHashMap<FONT ID="MultiLineComment">/*&lt;Class&lt;? extends Similarity&gt;,MethodSupport&gt;*/</FONT> knownMethodSupport = <FONT ID="New">new</FONT> IdentityHashMap();
+<FONT ID="LN">959 </FONT><A NAME="959"></A>  
+<FONT ID="LN">960 </FONT><A NAME="960"></A>  <FONT ID="FormalComment">/** @deprecated Remove this when old API is removed! */</FONT>
+<FONT ID="LN">961 </FONT><A NAME="961"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> MethodSupport getSupportedMethods(Class clazz) {
+<FONT ID="LN">962 </FONT><A NAME="962"></A>    MethodSupport supportedMethods;
+<FONT ID="LN">963 </FONT><A NAME="963"></A>    <FONT ID="Synchronized">synchronized</FONT>(knownMethodSupport) {
+<FONT ID="LN">964 </FONT><A NAME="964"></A>      supportedMethods = (MethodSupport) knownMethodSupport.get(clazz);
+<FONT ID="LN">965 </FONT><A NAME="965"></A>      <FONT ID="If">if</FONT> (supportedMethods == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">966 </FONT><A NAME="966"></A>        knownMethodSupport.put(clazz, supportedMethods = <FONT ID="New">new</FONT> MethodSupport(clazz));
+<FONT ID="LN">967 </FONT><A NAME="967"></A>      }
+<FONT ID="LN">968 </FONT><A NAME="968"></A>    }
+<FONT ID="LN">969 </FONT><A NAME="969"></A>    <FONT ID="Return">return</FONT> supportedMethods;
+<FONT ID="LN">970 </FONT><A NAME="970"></A>  }
+<FONT ID="LN">971 </FONT><A NAME="971"></A>  
+<FONT ID="LN">972 </FONT><A NAME="972"></A>  <FONT ID="FormalComment">/** The Similarity implementation used by default. 
+<FONT ID="LN">973 </FONT><A NAME="973"></A>   *  TODO: move back to top when old API is removed! 
+<FONT ID="LN">974 </FONT><A NAME="974"></A>   **/</FONT>
+<FONT ID="LN">975 </FONT><A NAME="975"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/search/Similarity.java.html">Similarity</A> defaultImpl = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/DefaultSimilarity.java.html">DefaultSimilarity</A>();
+<FONT ID="LN">976 </FONT><A NAME="976"></A>
+<FONT ID="LN">977 </FONT><A NAME="977"></A>}
+<FONT ID="LN">978 </FONT><A NAME="978"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Similarity.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

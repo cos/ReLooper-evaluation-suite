@@ -1,0 +1,1569 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.DocumentsWriter (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">DocumentsWriter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.io.PrintStream;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.text.NumberFormat;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> java.util.Collection;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.util.HashMap;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.util.Map;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.util.HashSet;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.util.Map.Entry;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/analysis/Analyzer.java.html">org.apache.lucene.analysis.Analyzer</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/Document.java.html">org.apache.lucene.document.Document</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/IndexSearcher.java.html">org.apache.lucene.search.IndexSearcher</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/Query.java.html">org.apache.lucene.search.Query</A>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/Scorer.java.html">org.apache.lucene.search.Scorer</A>;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/Similarity.java.html">org.apache.lucene.search.Similarity</A>;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/Weight.java.html">org.apache.lucene.search.Weight</A>;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/AlreadyClosedException.java.html">org.apache.lucene.store.AlreadyClosedException</A>;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">org.apache.lucene.store.Directory</A>;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/ArrayUtil.java.html">org.apache.lucene.util.ArrayUtil</A>;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/Constants.java.html">org.apache.lucene.util.Constants</A>;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * This class accepts multiple added documents and directly
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * writes a single segment file.  It does this more
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * efficiently than creating a single segment per document
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * (with DocumentWriter) and doing standard merges on those
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * segments.
+<FONT ID="LN">50  </FONT><A NAME="50"></A> *
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * Each added document is passed to the {@link DocConsumer},
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * which in turn processes the document and interacts with
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * other consumers in the indexing chain.  Certain
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * consumers, like {@link StoredFieldsWriter} and {@link
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * TermVectorsTermsWriter}, digest a document and
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * immediately write bytes to the "doc store" files (ie,
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * they do not consume RAM per document, except while they
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * are processing the document).
+<FONT ID="LN">59  </FONT><A NAME="59"></A> *
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * Other consumers, eg {@link FreqProxTermsWriter} and
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * {@link NormsWriter}, buffer bytes in RAM and flush only
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * when a new segment is produced.
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * Once we have used our allowed RAM buffer, or the number
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * of added docs is large enough (in the case we are
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * flushing by doc count instead of RAM usage), we create a
+<FONT ID="LN">67  </FONT><A NAME="67"></A> * real segment and flush it to the Directory.
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *
+<FONT ID="LN">69  </FONT><A NAME="69"></A> * Threads:
+<FONT ID="LN">70  </FONT><A NAME="70"></A> *
+<FONT ID="LN">71  </FONT><A NAME="71"></A> * Multiple threads are allowed into addDocument at once.
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * There is an initial synchronized call to getThreadState
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * which allocates a ThreadState for this thread.  The same
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * thread will get the same ThreadState over time (thread
+<FONT ID="LN">75  </FONT><A NAME="75"></A> * affinity) so that if there are consistent patterns (for
+<FONT ID="LN">76  </FONT><A NAME="76"></A> * example each thread is indexing a different content
+<FONT ID="LN">77  </FONT><A NAME="77"></A> * source) then we make better use of RAM.  Then
+<FONT ID="LN">78  </FONT><A NAME="78"></A> * processDocument is called on that ThreadState without
+<FONT ID="LN">79  </FONT><A NAME="79"></A> * synchronization (most of the "heavy lifting" is in this
+<FONT ID="LN">80  </FONT><A NAME="80"></A> * call).  Finally the synchronized "finishDocument" is
+<FONT ID="LN">81  </FONT><A NAME="81"></A> * called to flush changes to the directory.
+<FONT ID="LN">82  </FONT><A NAME="82"></A> *
+<FONT ID="LN">83  </FONT><A NAME="83"></A> * When flush is called by IndexWriter, or, we flush
+<FONT ID="LN">84  </FONT><A NAME="84"></A> * internally when autoCommit=false, we forcefully idle all
+<FONT ID="LN">85  </FONT><A NAME="85"></A> * threads and flush only once they are all idle.  This
+<FONT ID="LN">86  </FONT><A NAME="86"></A> * means you can call flush with a given thread even while
+<FONT ID="LN">87  </FONT><A NAME="87"></A> * other threads are actively adding/deleting documents.
+<FONT ID="LN">88  </FONT><A NAME="88"></A> *
+<FONT ID="LN">89  </FONT><A NAME="89"></A> *
+<FONT ID="LN">90  </FONT><A NAME="90"></A> * Exceptions:
+<FONT ID="LN">91  </FONT><A NAME="91"></A> *
+<FONT ID="LN">92  </FONT><A NAME="92"></A> * Because this class directly updates in-memory posting
+<FONT ID="LN">93  </FONT><A NAME="93"></A> * lists, and flushes stored fields and term vectors
+<FONT ID="LN">94  </FONT><A NAME="94"></A> * directly to files in the directory, there are certain
+<FONT ID="LN">95  </FONT><A NAME="95"></A> * limited times when an exception can corrupt this state.
+<FONT ID="LN">96  </FONT><A NAME="96"></A> * For example, a disk full while flushing stored fields
+<FONT ID="LN">97  </FONT><A NAME="97"></A> * leaves this file in a corrupt state.  Or, an OOM
+<FONT ID="LN">98  </FONT><A NAME="98"></A> * exception while appending to the in-memory posting lists
+<FONT ID="LN">99  </FONT><A NAME="99"></A> * can corrupt that posting list.  We call such exceptions
+<FONT ID="LN">100 </FONT><A NAME="100"></A> * "aborting exceptions".  In these cases we must call
+<FONT ID="LN">101 </FONT><A NAME="101"></A> * abort() to discard all docs added since the last flush.
+<FONT ID="LN">102 </FONT><A NAME="102"></A> *
+<FONT ID="LN">103 </FONT><A NAME="103"></A> * All other exceptions ("non-aborting exceptions") can
+<FONT ID="LN">104 </FONT><A NAME="104"></A> * still partially update the index structures.  These
+<FONT ID="LN">105 </FONT><A NAME="105"></A> * updates are consistent, but, they represent only a part
+<FONT ID="LN">106 </FONT><A NAME="106"></A> * of the document seen up until the exception was hit.
+<FONT ID="LN">107 </FONT><A NAME="107"></A> * When this happens, we immediately mark the document as
+<FONT ID="LN">108 </FONT><A NAME="108"></A> * deleted so that the document is always atomically ("all
+<FONT ID="LN">109 </FONT><A NAME="109"></A> * or none") added to the index.
+<FONT ID="LN">110 </FONT><A NAME="110"></A> */</FONT>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A><FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> DocumentsWriter {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <A HREF="../../../../org/apache/lucene/index/IndexWriter.java.html">IndexWriter</A> writer;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>  <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> directory;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  String segment;                         <FONT ID="SingleLineComment">// Current segment we are working on
+<FONT ID="LN">118 </FONT><A NAME="118"></A></FONT>  <FONT ID="Private">private</FONT> String docStoreSegment;         <FONT ID="SingleLineComment">// Current doc-store segment we are writing
+<FONT ID="LN">119 </FONT><A NAME="119"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> docStoreOffset;                     <FONT ID="SingleLineComment">// Current starting doc-store offset of current segment
+<FONT ID="LN">120 </FONT><A NAME="120"></A></FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> nextDocID;                          <FONT ID="SingleLineComment">// Next docID to be added
+<FONT ID="LN">122 </FONT><A NAME="122"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> numDocsInRAM;                       <FONT ID="SingleLineComment">// # docs buffered in RAM
+<FONT ID="LN">123 </FONT><A NAME="123"></A></FONT>  <FONT ID="Int">int</FONT> numDocsInStore;                     <FONT ID="SingleLineComment">// # docs written to doc stores
+<FONT ID="LN">124 </FONT><A NAME="124"></A></FONT>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  <FONT ID="SingleLineComment">// Max # ThreadState instances; if there are more threads
+<FONT ID="LN">126 </FONT><A NAME="126"></A></FONT>  <FONT ID="SingleLineComment">// than this they share ThreadStates
+<FONT ID="LN">127 </FONT><A NAME="127"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> MAX_THREAD_STATE = <FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A>[] threadStates = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A>[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> HashMap threadBindings = <FONT ID="New">new</FONT> HashMap();
+<FONT ID="LN">130 </FONT><A NAME="130"></A>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> pauseThreads;               <FONT ID="SingleLineComment">// Non-zero when we need all threads to
+<FONT ID="LN">132 </FONT><A NAME="132"></A></FONT>                                          <FONT ID="SingleLineComment">// pause (eg to flush)
+<FONT ID="LN">133 </FONT><A NAME="133"></A></FONT>  <FONT ID="Boolean">boolean</FONT> flushPending;                   <FONT ID="SingleLineComment">// True when a thread has decided to flush
+<FONT ID="LN">134 </FONT><A NAME="134"></A></FONT>  <FONT ID="Boolean">boolean</FONT> bufferIsFull;                   <FONT ID="SingleLineComment">// True when it's time to write segment
+<FONT ID="LN">135 </FONT><A NAME="135"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> aborting;               <FONT ID="SingleLineComment">// True if an abort is pending
+<FONT ID="LN">136 </FONT><A NAME="136"></A></FONT>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/DocFieldProcessor.java.html">DocFieldProcessor</A> docFieldProcessor;
+<FONT ID="LN">138 </FONT><A NAME="138"></A>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  PrintStream infoStream;
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="Int">int</FONT> maxFieldLength = IndexWriter.DEFAULT_MAX_FIELD_LENGTH;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  <A HREF="../../../../org/apache/lucene/search/Similarity.java.html">Similarity</A> similarity;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  List newFiles;
+<FONT ID="LN">144 </FONT><A NAME="144"></A>
+<FONT ID="LN">145 </FONT><A NAME="145"></A>  <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> DocState {
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    <A HREF="../../../../org/apache/lucene/index/DocumentsWriter.java.html">DocumentsWriter</A> docWriter;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    <A HREF="../../../../org/apache/lucene/analysis/Analyzer.java.html">Analyzer</A> analyzer;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    <FONT ID="Int">int</FONT> maxFieldLength;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    PrintStream infoStream;
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    <A HREF="../../../../org/apache/lucene/search/Similarity.java.html">Similarity</A> similarity;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    <FONT ID="Int">int</FONT> docID;
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    <A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    String maxTermPrefix;
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    <FONT ID="SingleLineComment">// deprecated
+<FONT ID="LN">156 </FONT><A NAME="156"></A></FONT>    <FONT ID="Boolean">boolean</FONT> allowMinus1Position;
+<FONT ID="LN">157 </FONT><A NAME="157"></A>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="SingleLineComment">// Only called by asserts
+<FONT ID="LN">159 </FONT><A NAME="159"></A></FONT>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> testPoint(String name) {
+<FONT ID="LN">160 </FONT><A NAME="160"></A>      <FONT ID="Return">return</FONT> docWriter.writer.testPoint(name);
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    }
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  }
+<FONT ID="LN">163 </FONT><A NAME="163"></A>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="FormalComment">/** Consumer returns this on each doc.  This holds any
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   *  state that must be flushed synchronized "in docID
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   *  order".  We gather these and flush them in order. */</FONT>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="Abstract">abstract</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> DocWriter {
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    DocWriter next;
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    <FONT ID="Int">int</FONT> docID;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> finish() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> abort();
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    <FONT ID="Abstract">abstract</FONT> <FONT ID="Long">long</FONT> sizeInBytes();
+<FONT ID="LN">173 </FONT><A NAME="173"></A>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    <FONT ID="Void">void</FONT> setNext(DocWriter next) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>      <FONT ID="This">this</FONT>.next = next;
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    }
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  }
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   * The IndexingChain must define the {@link #getChain(DocumentsWriter)} method
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * which returns the DocConsumer that the DocumentsWriter calls to process the
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * documents. 
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   */</FONT>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  <FONT ID="Abstract">abstract</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> IndexingChain {
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/index/DocConsumer.java.html">DocConsumer</A> getChain(<A HREF="../../../../org/apache/lucene/index/DocumentsWriter.java.html">DocumentsWriter</A> documentsWriter);
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> IndexingChain DefaultIndexingChain = <FONT ID="New">new</FONT> IndexingChain() {
+<FONT ID="LN">189 </FONT><A NAME="189"></A>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <A HREF="../../../../org/apache/lucene/index/DocConsumer.java.html">DocConsumer</A> getChain(<A HREF="../../../../org/apache/lucene/index/DocumentsWriter.java.html">DocumentsWriter</A> documentsWriter) {
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      <FONT ID="MultiLineComment">/*
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      This is the current indexing chain:
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      DocConsumer / DocConsumerPerThread
+<FONT ID="LN">195 </FONT><A NAME="195"></A>        --&gt; code: DocFieldProcessor / DocFieldProcessorPerThread
+<FONT ID="LN">196 </FONT><A NAME="196"></A>          --&gt; DocFieldConsumer / DocFieldConsumerPerThread / DocFieldConsumerPerField
+<FONT ID="LN">197 </FONT><A NAME="197"></A>            --&gt; code: DocFieldConsumers / DocFieldConsumersPerThread / DocFieldConsumersPerField
+<FONT ID="LN">198 </FONT><A NAME="198"></A>              --&gt; code: DocInverter / DocInverterPerThread / DocInverterPerField
+<FONT ID="LN">199 </FONT><A NAME="199"></A>                --&gt; InvertedDocConsumer / InvertedDocConsumerPerThread / InvertedDocConsumerPerField
+<FONT ID="LN">200 </FONT><A NAME="200"></A>                  --&gt; code: TermsHash / TermsHashPerThread / TermsHashPerField
+<FONT ID="LN">201 </FONT><A NAME="201"></A>                    --&gt; TermsHashConsumer / TermsHashConsumerPerThread / TermsHashConsumerPerField
+<FONT ID="LN">202 </FONT><A NAME="202"></A>                      --&gt; code: FreqProxTermsWriter / FreqProxTermsWriterPerThread / FreqProxTermsWriterPerField
+<FONT ID="LN">203 </FONT><A NAME="203"></A>                      --&gt; code: TermVectorsTermsWriter / TermVectorsTermsWriterPerThread / TermVectorsTermsWriterPerField
+<FONT ID="LN">204 </FONT><A NAME="204"></A>                --&gt; InvertedDocEndConsumer / InvertedDocConsumerPerThread / InvertedDocConsumerPerField
+<FONT ID="LN">205 </FONT><A NAME="205"></A>                  --&gt; code: NormsWriter / NormsWriterPerThread / NormsWriterPerField
+<FONT ID="LN">206 </FONT><A NAME="206"></A>              --&gt; code: StoredFieldsWriter / StoredFieldsWriterPerThread / StoredFieldsWriterPerField
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    */</FONT>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    <FONT ID="SingleLineComment">// Build up indexing chain:
+<FONT ID="LN">210 </FONT><A NAME="210"></A></FONT>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/TermsHashConsumer.java.html">TermsHashConsumer</A> termVectorsWriter = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/TermVectorsTermsWriter.java.html">TermVectorsTermsWriter</A>(documentsWriter);
+<FONT ID="LN">212 </FONT><A NAME="212"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/TermsHashConsumer.java.html">TermsHashConsumer</A> freqProxWriter = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/FreqProxTermsWriter.java.html">FreqProxTermsWriter</A>();
+<FONT ID="LN">213 </FONT><A NAME="213"></A>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/InvertedDocConsumer.java.html">InvertedDocConsumer</A>  termsHash = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/TermsHash.java.html">TermsHash</A>(documentsWriter, <FONT ID="True">true</FONT>, freqProxWriter,
+<FONT ID="LN">215 </FONT><A NAME="215"></A>                                                           <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/TermsHash.java.html">TermsHash</A>(documentsWriter, <FONT ID="False">false</FONT>, termVectorsWriter, <FONT ID="Null">null</FONT>));
+<FONT ID="LN">216 </FONT><A NAME="216"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/NormsWriter.java.html">NormsWriter</A> normsWriter = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/NormsWriter.java.html">NormsWriter</A>();
+<FONT ID="LN">217 </FONT><A NAME="217"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/DocInverter.java.html">DocInverter</A> docInverter = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/DocInverter.java.html">DocInverter</A>(termsHash, normsWriter);
+<FONT ID="LN">218 </FONT><A NAME="218"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/DocFieldProcessor.java.html">DocFieldProcessor</A>(documentsWriter, docInverter);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    }
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  };
+<FONT ID="LN">221 </FONT><A NAME="221"></A>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/DocConsumer.java.html">DocConsumer</A> consumer;
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="SingleLineComment">// Deletes done after the last flush; these are discarded
+<FONT ID="LN">225 </FONT><A NAME="225"></A></FONT>  <FONT ID="SingleLineComment">// on abort
+<FONT ID="LN">226 </FONT><A NAME="226"></A></FONT>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes</A> deletesInRAM = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes</A>(<FONT ID="False">false</FONT>);
+<FONT ID="LN">227 </FONT><A NAME="227"></A>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>  <FONT ID="SingleLineComment">// Deletes done before the last flush; these are still
+<FONT ID="LN">229 </FONT><A NAME="229"></A></FONT>  <FONT ID="SingleLineComment">// kept on abort
+<FONT ID="LN">230 </FONT><A NAME="230"></A></FONT>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes</A> deletesFlushed = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes</A>(<FONT ID="True">true</FONT>);
+<FONT ID="LN">231 </FONT><A NAME="231"></A>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="SingleLineComment">// The max number of delete terms that can be buffered before
+<FONT ID="LN">233 </FONT><A NAME="233"></A></FONT>  <FONT ID="SingleLineComment">// they must be flushed to disk.
+<FONT ID="LN">234 </FONT><A NAME="234"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> maxBufferedDeleteTerms = IndexWriter.DEFAULT_MAX_BUFFERED_DELETE_TERMS;
+<FONT ID="LN">235 </FONT><A NAME="235"></A>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>  <FONT ID="SingleLineComment">// How much RAM we can use before flushing.  This is 0 if
+<FONT ID="LN">237 </FONT><A NAME="237"></A></FONT>  <FONT ID="SingleLineComment">// we are flushing by doc count instead.
+<FONT ID="LN">238 </FONT><A NAME="238"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> ramBufferSize = (<FONT ID="Long">long</FONT>) (IndexWriter.DEFAULT_RAM_BUFFER_SIZE_MB*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="IntegerLiteral">1024</FONT>);
+<FONT ID="LN">239 </FONT><A NAME="239"></A>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> waitQueuePauseBytes = (<FONT ID="Long">long</FONT>) (ramBufferSize*<FONT ID="FloatPointLiteral">0.1</FONT>);
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> waitQueueResumeBytes = (<FONT ID="Long">long</FONT>) (ramBufferSize*<FONT ID="FloatPointLiteral">0.05</FONT>);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>
+<FONT ID="LN">242 </FONT><A NAME="242"></A>  <FONT ID="SingleLineComment">// If we've allocated 5% over our RAM budget, we then
+<FONT ID="LN">243 </FONT><A NAME="243"></A></FONT>  <FONT ID="SingleLineComment">// free down to 95%
+<FONT ID="LN">244 </FONT><A NAME="244"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> freeTrigger = (<FONT ID="Long">long</FONT>) (IndexWriter.DEFAULT_RAM_BUFFER_SIZE_MB*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="FloatPointLiteral">1.05</FONT>);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> freeLevel = (<FONT ID="Long">long</FONT>) (IndexWriter.DEFAULT_RAM_BUFFER_SIZE_MB*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="FloatPointLiteral">0.95</FONT>);
+<FONT ID="LN">246 </FONT><A NAME="246"></A>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  <FONT ID="SingleLineComment">// Flush @ this number of docs.  If ramBufferSize is
+<FONT ID="LN">248 </FONT><A NAME="248"></A></FONT>  <FONT ID="SingleLineComment">// non-zero we will flush by RAM usage instead.
+<FONT ID="LN">249 </FONT><A NAME="249"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> maxBufferedDocs = IndexWriter.DEFAULT_MAX_BUFFERED_DOCS;
+<FONT ID="LN">250 </FONT><A NAME="250"></A>
+<FONT ID="LN">251 </FONT><A NAME="251"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> flushedDocCount;                      <FONT ID="SingleLineComment">// How many docs already flushed to index
+<FONT ID="LN">252 </FONT><A NAME="252"></A></FONT>
+<FONT ID="LN">253 </FONT><A NAME="253"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> updateFlushedDocCount(<FONT ID="Int">int</FONT> n) {
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    flushedDocCount += n;
+<FONT ID="LN">255 </FONT><A NAME="255"></A>  }
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Int">int</FONT> getFlushedDocCount() {
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    <FONT ID="Return">return</FONT> flushedDocCount;
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  }
+<FONT ID="LN">259 </FONT><A NAME="259"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setFlushedDocCount(<FONT ID="Int">int</FONT> n) {
+<FONT ID="LN">260 </FONT><A NAME="260"></A>    flushedDocCount = n;
+<FONT ID="LN">261 </FONT><A NAME="261"></A>  }
+<FONT ID="LN">262 </FONT><A NAME="262"></A>
+<FONT ID="LN">263 </FONT><A NAME="263"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> closed;
+<FONT ID="LN">264 </FONT><A NAME="264"></A>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>  DocumentsWriter(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> directory, <A HREF="../../../../org/apache/lucene/index/IndexWriter.java.html">IndexWriter</A> writer, IndexingChain indexingChain) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    <FONT ID="This">this</FONT>.directory = directory;
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    <FONT ID="This">this</FONT>.writer = writer;
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    <FONT ID="This">this</FONT>.similarity = writer.getSimilarity();
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    flushedDocCount = writer.maxDoc();
+<FONT ID="LN">270 </FONT><A NAME="270"></A>
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    consumer = indexingChain.getChain(<FONT ID="This">this</FONT>);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    <FONT ID="If">if</FONT> (consumer <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/index/DocFieldProcessor.java.html">DocFieldProcessor</A>) {
+<FONT ID="LN">273 </FONT><A NAME="273"></A>      docFieldProcessor = (<A HREF="../../../../org/apache/lucene/index/DocFieldProcessor.java.html">DocFieldProcessor</A>) consumer;
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    }
+<FONT ID="LN">275 </FONT><A NAME="275"></A>  }
+<FONT ID="LN">276 </FONT><A NAME="276"></A>
+<FONT ID="LN">277 </FONT><A NAME="277"></A>  <FONT ID="FormalComment">/** Returns true if any of the fields in the current
+<FONT ID="LN">278 </FONT><A NAME="278"></A>   *  buffered docs have omitTermFreqAndPositions==false */</FONT>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>  <FONT ID="Boolean">boolean</FONT> hasProx() {
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    <FONT ID="Return">return</FONT> (docFieldProcessor != <FONT ID="Null">null</FONT>) ? docFieldProcessor.fieldInfos.hasProx()
+<FONT ID="LN">281 </FONT><A NAME="281"></A>                                       : <FONT ID="True">true</FONT>;
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  }
+<FONT ID="LN">283 </FONT><A NAME="283"></A>
+<FONT ID="LN">284 </FONT><A NAME="284"></A>  <FONT ID="FormalComment">/** If non-null, various details of indexing are printed
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   *  here. */</FONT>
+<FONT ID="LN">286 </FONT><A NAME="286"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setInfoStream(PrintStream infoStream) {
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    <FONT ID="This">this</FONT>.infoStream = infoStream;
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">289 </FONT><A NAME="289"></A>      threadStates[i].docState.infoStream = infoStream;
+<FONT ID="LN">290 </FONT><A NAME="290"></A>  }
+<FONT ID="LN">291 </FONT><A NAME="291"></A>
+<FONT ID="LN">292 </FONT><A NAME="292"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setMaxFieldLength(<FONT ID="Int">int</FONT> maxFieldLength) {
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    <FONT ID="This">this</FONT>.maxFieldLength = maxFieldLength;
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">295 </FONT><A NAME="295"></A>      threadStates[i].docState.maxFieldLength = maxFieldLength;
+<FONT ID="LN">296 </FONT><A NAME="296"></A>  }
+<FONT ID="LN">297 </FONT><A NAME="297"></A>
+<FONT ID="LN">298 </FONT><A NAME="298"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setSimilarity(<A HREF="../../../../org/apache/lucene/search/Similarity.java.html">Similarity</A> similarity) {
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    <FONT ID="This">this</FONT>.similarity = similarity;
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">301 </FONT><A NAME="301"></A>      threadStates[i].docState.similarity = similarity;
+<FONT ID="LN">302 </FONT><A NAME="302"></A>  }
+<FONT ID="LN">303 </FONT><A NAME="303"></A>
+<FONT ID="LN">304 </FONT><A NAME="304"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setAllowMinus1Position() {
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">306 </FONT><A NAME="306"></A>      threadStates[i].docState.allowMinus1Position = <FONT ID="True">true</FONT>;
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  }
+<FONT ID="LN">308 </FONT><A NAME="308"></A>
+<FONT ID="LN">309 </FONT><A NAME="309"></A>  <FONT ID="FormalComment">/** Set how much RAM we can use before flushing. */</FONT>
+<FONT ID="LN">310 </FONT><A NAME="310"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setRAMBufferSizeMB(<FONT ID="Double">double</FONT> mb) {
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    <FONT ID="If">if</FONT> (mb == IndexWriter.DISABLE_AUTO_FLUSH) {
+<FONT ID="LN">312 </FONT><A NAME="312"></A>      ramBufferSize = IndexWriter.DISABLE_AUTO_FLUSH;
+<FONT ID="LN">313 </FONT><A NAME="313"></A>      waitQueuePauseBytes = <FONT ID="IntegerLiteral">4</FONT>*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="IntegerLiteral">1024</FONT>;
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      waitQueueResumeBytes = <FONT ID="IntegerLiteral">2</FONT>*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="IntegerLiteral">1024</FONT>;
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>      ramBufferSize = (<FONT ID="Long">long</FONT>) (mb*<FONT ID="IntegerLiteral">1024</FONT>*<FONT ID="IntegerLiteral">1024</FONT>);
+<FONT ID="LN">317 </FONT><A NAME="317"></A>      waitQueuePauseBytes = (<FONT ID="Long">long</FONT>) (ramBufferSize*<FONT ID="FloatPointLiteral">0.1</FONT>);
+<FONT ID="LN">318 </FONT><A NAME="318"></A>      waitQueueResumeBytes = (<FONT ID="Long">long</FONT>) (ramBufferSize*<FONT ID="FloatPointLiteral">0.05</FONT>);
+<FONT ID="LN">319 </FONT><A NAME="319"></A>      freeTrigger = (<FONT ID="Long">long</FONT>) (<FONT ID="FloatPointLiteral">1.05</FONT> * ramBufferSize);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      freeLevel = (<FONT ID="Long">long</FONT>) (<FONT ID="FloatPointLiteral">0.95</FONT> * ramBufferSize);
+<FONT ID="LN">321 </FONT><A NAME="321"></A>    }
+<FONT ID="LN">322 </FONT><A NAME="322"></A>  }
+<FONT ID="LN">323 </FONT><A NAME="323"></A>
+<FONT ID="LN">324 </FONT><A NAME="324"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Double">double</FONT> getRAMBufferSizeMB() {
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    <FONT ID="If">if</FONT> (ramBufferSize == IndexWriter.DISABLE_AUTO_FLUSH) {
+<FONT ID="LN">326 </FONT><A NAME="326"></A>      <FONT ID="Return">return</FONT> ramBufferSize;
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">328 </FONT><A NAME="328"></A>      <FONT ID="Return">return</FONT> ramBufferSize/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>;
+<FONT ID="LN">329 </FONT><A NAME="329"></A>    }
+<FONT ID="LN">330 </FONT><A NAME="330"></A>  }
+<FONT ID="LN">331 </FONT><A NAME="331"></A>
+<FONT ID="LN">332 </FONT><A NAME="332"></A>  <FONT ID="FormalComment">/** Set max buffered docs, which means we will flush by
+<FONT ID="LN">333 </FONT><A NAME="333"></A>   *  doc count instead of by RAM usage. */</FONT>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>  <FONT ID="Void">void</FONT> setMaxBufferedDocs(<FONT ID="Int">int</FONT> count) {
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    maxBufferedDocs = count;
+<FONT ID="LN">336 </FONT><A NAME="336"></A>  }
+<FONT ID="LN">337 </FONT><A NAME="337"></A>
+<FONT ID="LN">338 </FONT><A NAME="338"></A>  <FONT ID="Int">int</FONT> getMaxBufferedDocs() {
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    <FONT ID="Return">return</FONT> maxBufferedDocs;
+<FONT ID="LN">340 </FONT><A NAME="340"></A>  }
+<FONT ID="LN">341 </FONT><A NAME="341"></A>
+<FONT ID="LN">342 </FONT><A NAME="342"></A>  <FONT ID="FormalComment">/** Get current segment name we are writing. */</FONT>
+<FONT ID="LN">343 </FONT><A NAME="343"></A>  String getSegment() {
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    <FONT ID="Return">return</FONT> segment;
+<FONT ID="LN">345 </FONT><A NAME="345"></A>  }
+<FONT ID="LN">346 </FONT><A NAME="346"></A>
+<FONT ID="LN">347 </FONT><A NAME="347"></A>  <FONT ID="FormalComment">/** Returns how many docs are currently buffered in RAM. */</FONT>
+<FONT ID="LN">348 </FONT><A NAME="348"></A>  <FONT ID="Int">int</FONT> getNumDocsInRAM() {
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    <FONT ID="Return">return</FONT> numDocsInRAM;
+<FONT ID="LN">350 </FONT><A NAME="350"></A>  }
+<FONT ID="LN">351 </FONT><A NAME="351"></A>
+<FONT ID="LN">352 </FONT><A NAME="352"></A>  <FONT ID="FormalComment">/** Returns the current doc store segment we are writing
+<FONT ID="LN">353 </FONT><A NAME="353"></A>   *  to.  This will be the same as segment when autoCommit
+<FONT ID="LN">354 </FONT><A NAME="354"></A>   *  * is true. */</FONT>
+<FONT ID="LN">355 </FONT><A NAME="355"></A>  <FONT ID="Synchronized">synchronized</FONT> String getDocStoreSegment() {
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    <FONT ID="Return">return</FONT> docStoreSegment;
+<FONT ID="LN">357 </FONT><A NAME="357"></A>  }
+<FONT ID="LN">358 </FONT><A NAME="358"></A>
+<FONT ID="LN">359 </FONT><A NAME="359"></A>  <FONT ID="FormalComment">/** Returns the doc offset into the shared doc store for
+<FONT ID="LN">360 </FONT><A NAME="360"></A>   *  the current buffered docs. */</FONT>
+<FONT ID="LN">361 </FONT><A NAME="361"></A>  <FONT ID="Int">int</FONT> getDocStoreOffset() {
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    <FONT ID="Return">return</FONT> docStoreOffset;
+<FONT ID="LN">363 </FONT><A NAME="363"></A>  }
+<FONT ID="LN">364 </FONT><A NAME="364"></A>
+<FONT ID="LN">365 </FONT><A NAME="365"></A>  <FONT ID="FormalComment">/** Closes the current open doc stores an returns the doc
+<FONT ID="LN">366 </FONT><A NAME="366"></A>   *  store segment name.  This returns null if there are *
+<FONT ID="LN">367 </FONT><A NAME="367"></A>   *  no buffered documents. */</FONT>
+<FONT ID="LN">368 </FONT><A NAME="368"></A>  <FONT ID="Synchronized">synchronized</FONT> String closeDocStore() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    assert allThreadsIdle();
+<FONT ID="LN">371 </FONT><A NAME="371"></A>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">373 </FONT><A NAME="373"></A>      message(<FONT ID="StringLiteral">"closeDocStore: "</FONT> + openFiles.size() + <FONT ID="StringLiteral">" files to flush to segment "</FONT> + docStoreSegment + <FONT ID="StringLiteral">" numDocs="</FONT> + numDocsInStore);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>    
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    <FONT ID="Boolean">boolean</FONT> success = <FONT ID="False">false</FONT>;
+<FONT ID="LN">376 </FONT><A NAME="376"></A>
+<FONT ID="LN">377 </FONT><A NAME="377"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">378 </FONT><A NAME="378"></A>      initFlushState(<FONT ID="True">true</FONT>);
+<FONT ID="LN">379 </FONT><A NAME="379"></A>      closedFiles.clear();
+<FONT ID="LN">380 </FONT><A NAME="380"></A>
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      consumer.closeDocStore(flushState);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>      assert <FONT ID="IntegerLiteral">0</FONT> == openFiles.size();
+<FONT ID="LN">383 </FONT><A NAME="383"></A>
+<FONT ID="LN">384 </FONT><A NAME="384"></A>      String s = docStoreSegment;
+<FONT ID="LN">385 </FONT><A NAME="385"></A>      docStoreSegment = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">386 </FONT><A NAME="386"></A>      docStoreOffset = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">387 </FONT><A NAME="387"></A>      numDocsInStore = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">388 </FONT><A NAME="388"></A>      success = <FONT ID="True">true</FONT>;
+<FONT ID="LN">389 </FONT><A NAME="389"></A>      <FONT ID="Return">return</FONT> s;
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      <FONT ID="If">if</FONT> (!success) {
+<FONT ID="LN">392 </FONT><A NAME="392"></A>        abort();
+<FONT ID="LN">393 </FONT><A NAME="393"></A>      }
+<FONT ID="LN">394 </FONT><A NAME="394"></A>    }
+<FONT ID="LN">395 </FONT><A NAME="395"></A>  }
+<FONT ID="LN">396 </FONT><A NAME="396"></A>
+<FONT ID="LN">397 </FONT><A NAME="397"></A>  <FONT ID="Private">private</FONT> Collection abortedFiles;               <FONT ID="SingleLineComment">// List of files that were written before last abort()
+<FONT ID="LN">398 </FONT><A NAME="398"></A></FONT>
+<FONT ID="LN">399 </FONT><A NAME="399"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentWriteState.java.html">SegmentWriteState</A> flushState;
+<FONT ID="LN">400 </FONT><A NAME="400"></A>
+<FONT ID="LN">401 </FONT><A NAME="401"></A>  Collection abortedFiles() {
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    <FONT ID="Return">return</FONT> abortedFiles;
+<FONT ID="LN">403 </FONT><A NAME="403"></A>  }
+<FONT ID="LN">404 </FONT><A NAME="404"></A>
+<FONT ID="LN">405 </FONT><A NAME="405"></A>  <FONT ID="Void">void</FONT> message(String message) {
+<FONT ID="LN">406 </FONT><A NAME="406"></A>    <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">407 </FONT><A NAME="407"></A>      writer.message(<FONT ID="StringLiteral">"DW: "</FONT> + message);
+<FONT ID="LN">408 </FONT><A NAME="408"></A>  }
+<FONT ID="LN">409 </FONT><A NAME="409"></A>
+<FONT ID="LN">410 </FONT><A NAME="410"></A>  <FONT ID="Final">final</FONT> List openFiles = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">411 </FONT><A NAME="411"></A>  <FONT ID="Final">final</FONT> List closedFiles = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">412 </FONT><A NAME="412"></A>
+<FONT ID="LN">413 </FONT><A NAME="413"></A>  <FONT ID="MultiLineComment">/* Returns Collection of files in use by this instance,
+<FONT ID="LN">414 </FONT><A NAME="414"></A>   * including any flushed segments. */</FONT>
+<FONT ID="LN">415 </FONT><A NAME="415"></A>  <FONT ID="Synchronized">synchronized</FONT> List openFiles() {
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    <FONT ID="Return">return</FONT> (List) ((ArrayList) openFiles).clone();
+<FONT ID="LN">417 </FONT><A NAME="417"></A>  }
+<FONT ID="LN">418 </FONT><A NAME="418"></A>
+<FONT ID="LN">419 </FONT><A NAME="419"></A>  <FONT ID="Synchronized">synchronized</FONT> List closedFiles() {
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    <FONT ID="Return">return</FONT> (List) ((ArrayList) closedFiles).clone();
+<FONT ID="LN">421 </FONT><A NAME="421"></A>  }
+<FONT ID="LN">422 </FONT><A NAME="422"></A>
+<FONT ID="LN">423 </FONT><A NAME="423"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> addOpenFile(String name) {
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    assert !openFiles.contains(name);
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    openFiles.add(name);
+<FONT ID="LN">426 </FONT><A NAME="426"></A>  }
+<FONT ID="LN">427 </FONT><A NAME="427"></A>
+<FONT ID="LN">428 </FONT><A NAME="428"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> removeOpenFile(String name) {
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    assert openFiles.contains(name);
+<FONT ID="LN">430 </FONT><A NAME="430"></A>    openFiles.remove(name);
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    closedFiles.add(name);
+<FONT ID="LN">432 </FONT><A NAME="432"></A>  }
+<FONT ID="LN">433 </FONT><A NAME="433"></A>
+<FONT ID="LN">434 </FONT><A NAME="434"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setAborting() {
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    aborting = <FONT ID="True">true</FONT>;
+<FONT ID="LN">436 </FONT><A NAME="436"></A>  }
+<FONT ID="LN">437 </FONT><A NAME="437"></A>
+<FONT ID="LN">438 </FONT><A NAME="438"></A>  <FONT ID="FormalComment">/** Called if we hit an exception at a bad time (when
+<FONT ID="LN">439 </FONT><A NAME="439"></A>   *  updating the index files) and must discard all
+<FONT ID="LN">440 </FONT><A NAME="440"></A>   *  currently buffered docs.  This resets our state,
+<FONT ID="LN">441 </FONT><A NAME="441"></A>   *  discarding any docs added since last flush. */</FONT>
+<FONT ID="LN">442 </FONT><A NAME="442"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> abort() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">443 </FONT><A NAME="443"></A>
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">445 </FONT><A NAME="445"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">446 </FONT><A NAME="446"></A>        message(<FONT ID="StringLiteral">"docWriter: now abort"</FONT>);
+<FONT ID="LN">447 </FONT><A NAME="447"></A>
+<FONT ID="LN">448 </FONT><A NAME="448"></A>      <FONT ID="SingleLineComment">// Forcefully remove waiting ThreadStates from line
+<FONT ID="LN">449 </FONT><A NAME="449"></A></FONT>      waitQueue.abort();
+<FONT ID="LN">450 </FONT><A NAME="450"></A>
+<FONT ID="LN">451 </FONT><A NAME="451"></A>      <FONT ID="SingleLineComment">// Wait for all other threads to finish with
+<FONT ID="LN">452 </FONT><A NAME="452"></A></FONT>      <FONT ID="SingleLineComment">// DocumentsWriter:
+<FONT ID="LN">453 </FONT><A NAME="453"></A></FONT>      pauseAllThreads();
+<FONT ID="LN">454 </FONT><A NAME="454"></A>
+<FONT ID="LN">455 </FONT><A NAME="455"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">456 </FONT><A NAME="456"></A>
+<FONT ID="LN">457 </FONT><A NAME="457"></A>        assert <FONT ID="IntegerLiteral">0</FONT> == waitQueue.numWaiting;
+<FONT ID="LN">458 </FONT><A NAME="458"></A>
+<FONT ID="LN">459 </FONT><A NAME="459"></A>        waitQueue.waitingBytes = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">460 </FONT><A NAME="460"></A>
+<FONT ID="LN">461 </FONT><A NAME="461"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">462 </FONT><A NAME="462"></A>          abortedFiles = openFiles();
+<FONT ID="LN">463 </FONT><A NAME="463"></A>        } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">464 </FONT><A NAME="464"></A>          abortedFiles = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">465 </FONT><A NAME="465"></A>        }
+<FONT ID="LN">466 </FONT><A NAME="466"></A>
+<FONT ID="LN">467 </FONT><A NAME="467"></A>        deletesInRAM.clear();
+<FONT ID="LN">468 </FONT><A NAME="468"></A>
+<FONT ID="LN">469 </FONT><A NAME="469"></A>        openFiles.clear();
+<FONT ID="LN">470 </FONT><A NAME="470"></A>
+<FONT ID="LN">471 </FONT><A NAME="471"></A>        <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">472 </FONT><A NAME="472"></A>          <FONT ID="Try">try</FONT> {
+<FONT ID="LN">473 </FONT><A NAME="473"></A>            threadStates[i].consumer.abort();
+<FONT ID="LN">474 </FONT><A NAME="474"></A>          } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">475 </FONT><A NAME="475"></A>          }
+<FONT ID="LN">476 </FONT><A NAME="476"></A>
+<FONT ID="LN">477 </FONT><A NAME="477"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">478 </FONT><A NAME="478"></A>          consumer.abort();
+<FONT ID="LN">479 </FONT><A NAME="479"></A>        } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">480 </FONT><A NAME="480"></A>        }
+<FONT ID="LN">481 </FONT><A NAME="481"></A>
+<FONT ID="LN">482 </FONT><A NAME="482"></A>        docStoreSegment = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">483 </FONT><A NAME="483"></A>        numDocsInStore = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">484 </FONT><A NAME="484"></A>        docStoreOffset = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">485 </FONT><A NAME="485"></A>
+<FONT ID="LN">486 </FONT><A NAME="486"></A>        <FONT ID="SingleLineComment">// Reset all postings data
+<FONT ID="LN">487 </FONT><A NAME="487"></A></FONT>        doAfterFlush();
+<FONT ID="LN">488 </FONT><A NAME="488"></A>
+<FONT ID="LN">489 </FONT><A NAME="489"></A>      } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">490 </FONT><A NAME="490"></A>        resumeAllThreads();
+<FONT ID="LN">491 </FONT><A NAME="491"></A>      }
+<FONT ID="LN">492 </FONT><A NAME="492"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">493 </FONT><A NAME="493"></A>      aborting = <FONT ID="False">false</FONT>;
+<FONT ID="LN">494 </FONT><A NAME="494"></A>      notifyAll();
+<FONT ID="LN">495 </FONT><A NAME="495"></A>    }
+<FONT ID="LN">496 </FONT><A NAME="496"></A>  }
+<FONT ID="LN">497 </FONT><A NAME="497"></A>
+<FONT ID="LN">498 </FONT><A NAME="498"></A>  <FONT ID="FormalComment">/** Reset after a flush */</FONT>
+<FONT ID="LN">499 </FONT><A NAME="499"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> doAfterFlush() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    <FONT ID="SingleLineComment">// All ThreadStates should be idle when we are called
+<FONT ID="LN">501 </FONT><A NAME="501"></A></FONT>    assert allThreadsIdle();
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    threadBindings.clear();
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    waitQueue.reset();
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    segment = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    numDocsInRAM = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    nextDocID = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    bufferIsFull = <FONT ID="False">false</FONT>;
+<FONT ID="LN">508 </FONT><A NAME="508"></A>    flushPending = <FONT ID="False">false</FONT>;
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">510 </FONT><A NAME="510"></A>      threadStates[i].doAfterFlush();
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    numBytesUsed = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">512 </FONT><A NAME="512"></A>  }
+<FONT ID="LN">513 </FONT><A NAME="513"></A>
+<FONT ID="LN">514 </FONT><A NAME="514"></A>  <FONT ID="SingleLineComment">// Returns true if an abort is in progress
+<FONT ID="LN">515 </FONT><A NAME="515"></A></FONT>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> pauseAllThreads() {
+<FONT ID="LN">516 </FONT><A NAME="516"></A>    pauseThreads++;
+<FONT ID="LN">517 </FONT><A NAME="517"></A>    <FONT ID="While">while</FONT>(!allThreadsIdle()) {
+<FONT ID="LN">518 </FONT><A NAME="518"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">519 </FONT><A NAME="519"></A>        wait();
+<FONT ID="LN">520 </FONT><A NAME="520"></A>      } <FONT ID="Catch">catch</FONT> (InterruptedException ie) {
+<FONT ID="LN">521 </FONT><A NAME="521"></A>        <FONT ID="SingleLineComment">// In 3.0 we will change this to throw
+<FONT ID="LN">522 </FONT><A NAME="522"></A></FONT>        <FONT ID="SingleLineComment">// InterruptedException instead
+<FONT ID="LN">523 </FONT><A NAME="523"></A></FONT>        Thread.currentThread().interrupt();
+<FONT ID="LN">524 </FONT><A NAME="524"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(ie);
+<FONT ID="LN">525 </FONT><A NAME="525"></A>      }
+<FONT ID="LN">526 </FONT><A NAME="526"></A>    }
+<FONT ID="LN">527 </FONT><A NAME="527"></A>
+<FONT ID="LN">528 </FONT><A NAME="528"></A>    <FONT ID="Return">return</FONT> aborting;
+<FONT ID="LN">529 </FONT><A NAME="529"></A>  }
+<FONT ID="LN">530 </FONT><A NAME="530"></A>
+<FONT ID="LN">531 </FONT><A NAME="531"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> resumeAllThreads() {
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    pauseThreads--;
+<FONT ID="LN">533 </FONT><A NAME="533"></A>    assert pauseThreads &gt;= <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">0</FONT> == pauseThreads)
+<FONT ID="LN">535 </FONT><A NAME="535"></A>      notifyAll();
+<FONT ID="LN">536 </FONT><A NAME="536"></A>  }
+<FONT ID="LN">537 </FONT><A NAME="537"></A>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>  <FONT ID="Private">private</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> allThreadsIdle() {
+<FONT ID="LN">539 </FONT><A NAME="539"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">540 </FONT><A NAME="540"></A>      <FONT ID="If">if</FONT> (!threadStates[i].isIdle)
+<FONT ID="LN">541 </FONT><A NAME="541"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">542 </FONT><A NAME="542"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">543 </FONT><A NAME="543"></A>  }
+<FONT ID="LN">544 </FONT><A NAME="544"></A>
+<FONT ID="LN">545 </FONT><A NAME="545"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> anyChanges() {
+<FONT ID="LN">546 </FONT><A NAME="546"></A>    <FONT ID="Return">return</FONT> numDocsInRAM != <FONT ID="IntegerLiteral">0</FONT> ||
+<FONT ID="LN">547 </FONT><A NAME="547"></A>      deletesInRAM.numTerms != <FONT ID="IntegerLiteral">0</FONT> ||
+<FONT ID="LN">548 </FONT><A NAME="548"></A>      deletesInRAM.docIDs.size() != <FONT ID="IntegerLiteral">0</FONT> ||
+<FONT ID="LN">549 </FONT><A NAME="549"></A>      deletesInRAM.queries.size() != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">550 </FONT><A NAME="550"></A>  }
+<FONT ID="LN">551 </FONT><A NAME="551"></A>
+<FONT ID="LN">552 </FONT><A NAME="552"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> initFlushState(<FONT ID="Boolean">boolean</FONT> onlyDocStore) {
+<FONT ID="LN">553 </FONT><A NAME="553"></A>    initSegmentName(onlyDocStore);
+<FONT ID="LN">554 </FONT><A NAME="554"></A>    flushState = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentWriteState.java.html">SegmentWriteState</A>(<FONT ID="This">this</FONT>, directory, segment, docStoreSegment, numDocsInRAM, numDocsInStore, writer.getTermIndexInterval());
+<FONT ID="LN">555 </FONT><A NAME="555"></A>  }
+<FONT ID="LN">556 </FONT><A NAME="556"></A>
+<FONT ID="LN">557 </FONT><A NAME="557"></A>  <FONT ID="FormalComment">/** Flush all pending docs to a new segment */</FONT>
+<FONT ID="LN">558 </FONT><A NAME="558"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Int">int</FONT> flush(<FONT ID="Boolean">boolean</FONT> closeDocStore) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">559 </FONT><A NAME="559"></A>
+<FONT ID="LN">560 </FONT><A NAME="560"></A>    assert allThreadsIdle();
+<FONT ID="LN">561 </FONT><A NAME="561"></A>
+<FONT ID="LN">562 </FONT><A NAME="562"></A>    assert numDocsInRAM &gt; <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">563 </FONT><A NAME="563"></A>
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    assert nextDocID == numDocsInRAM;
+<FONT ID="LN">565 </FONT><A NAME="565"></A>    assert waitQueue.numWaiting == <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    assert waitQueue.waitingBytes == <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">567 </FONT><A NAME="567"></A>
+<FONT ID="LN">568 </FONT><A NAME="568"></A>    initFlushState(<FONT ID="False">false</FONT>);
+<FONT ID="LN">569 </FONT><A NAME="569"></A>
+<FONT ID="LN">570 </FONT><A NAME="570"></A>    docStoreOffset = numDocsInStore;
+<FONT ID="LN">571 </FONT><A NAME="571"></A>
+<FONT ID="LN">572 </FONT><A NAME="572"></A>    <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">573 </FONT><A NAME="573"></A>      message(<FONT ID="StringLiteral">"flush postings as segment "</FONT> + flushState.segmentName + <FONT ID="StringLiteral">" numDocs="</FONT> + numDocsInRAM);
+<FONT ID="LN">574 </FONT><A NAME="574"></A>    
+<FONT ID="LN">575 </FONT><A NAME="575"></A>    <FONT ID="Boolean">boolean</FONT> success = <FONT ID="False">false</FONT>;
+<FONT ID="LN">576 </FONT><A NAME="576"></A>
+<FONT ID="LN">577 </FONT><A NAME="577"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">578 </FONT><A NAME="578"></A>
+<FONT ID="LN">579 </FONT><A NAME="579"></A>      <FONT ID="If">if</FONT> (closeDocStore) {
+<FONT ID="LN">580 </FONT><A NAME="580"></A>        assert flushState.docStoreSegmentName != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">581 </FONT><A NAME="581"></A>        assert flushState.docStoreSegmentName.equals(flushState.segmentName);
+<FONT ID="LN">582 </FONT><A NAME="582"></A>        closeDocStore();
+<FONT ID="LN">583 </FONT><A NAME="583"></A>        flushState.numDocsInStore = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">584 </FONT><A NAME="584"></A>      }
+<FONT ID="LN">585 </FONT><A NAME="585"></A>
+<FONT ID="LN">586 </FONT><A NAME="586"></A>      Collection threads = <FONT ID="New">new</FONT> HashSet();
+<FONT ID="LN">587 </FONT><A NAME="587"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++)
+<FONT ID="LN">588 </FONT><A NAME="588"></A>        threads.add(threadStates[i].consumer);
+<FONT ID="LN">589 </FONT><A NAME="589"></A>      consumer.flush(threads, flushState);
+<FONT ID="LN">590 </FONT><A NAME="590"></A>
+<FONT ID="LN">591 </FONT><A NAME="591"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">592 </FONT><A NAME="592"></A>        <A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> si = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A>(flushState.segmentName, flushState.numDocs, directory);
+<FONT ID="LN">593 </FONT><A NAME="593"></A>        <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> newSegmentSize = si.sizeInBytes();
+<FONT ID="LN">594 </FONT><A NAME="594"></A>        String message = <FONT ID="StringLiteral">"  oldRAMSize="</FONT> + numBytesUsed +
+<FONT ID="LN">595 </FONT><A NAME="595"></A>          <FONT ID="StringLiteral">" newFlushedSize="</FONT> + newSegmentSize +
+<FONT ID="LN">596 </FONT><A NAME="596"></A>          <FONT ID="StringLiteral">" docs/MB="</FONT> + nf.format(numDocsInRAM/(newSegmentSize/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>)) +
+<FONT ID="LN">597 </FONT><A NAME="597"></A>          <FONT ID="StringLiteral">" new/old="</FONT> + nf.format(<FONT ID="FloatPointLiteral">100.0</FONT>*newSegmentSize/numBytesUsed) + <FONT ID="StringLiteral">"%"</FONT>;
+<FONT ID="LN">598 </FONT><A NAME="598"></A>        message(message);
+<FONT ID="LN">599 </FONT><A NAME="599"></A>      }
+<FONT ID="LN">600 </FONT><A NAME="600"></A>
+<FONT ID="LN">601 </FONT><A NAME="601"></A>      flushedDocCount += flushState.numDocs;
+<FONT ID="LN">602 </FONT><A NAME="602"></A>
+<FONT ID="LN">603 </FONT><A NAME="603"></A>      doAfterFlush();
+<FONT ID="LN">604 </FONT><A NAME="604"></A>
+<FONT ID="LN">605 </FONT><A NAME="605"></A>      success = <FONT ID="True">true</FONT>;
+<FONT ID="LN">606 </FONT><A NAME="606"></A>
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">608 </FONT><A NAME="608"></A>      <FONT ID="If">if</FONT> (!success) {
+<FONT ID="LN">609 </FONT><A NAME="609"></A>        abort();
+<FONT ID="LN">610 </FONT><A NAME="610"></A>      }
+<FONT ID="LN">611 </FONT><A NAME="611"></A>    }
+<FONT ID="LN">612 </FONT><A NAME="612"></A>
+<FONT ID="LN">613 </FONT><A NAME="613"></A>    assert waitQueue.waitingBytes == <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">614 </FONT><A NAME="614"></A>
+<FONT ID="LN">615 </FONT><A NAME="615"></A>    <FONT ID="Return">return</FONT> flushState.numDocs;
+<FONT ID="LN">616 </FONT><A NAME="616"></A>  }
+<FONT ID="LN">617 </FONT><A NAME="617"></A>
+<FONT ID="LN">618 </FONT><A NAME="618"></A>  <FONT ID="FormalComment">/** Build compound file for the segment we just flushed */</FONT>
+<FONT ID="LN">619 </FONT><A NAME="619"></A>  <FONT ID="Void">void</FONT> createCompoundFile(String segment) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">620 </FONT><A NAME="620"></A>    
+<FONT ID="LN">621 </FONT><A NAME="621"></A>    <A HREF="../../../../org/apache/lucene/index/CompoundFileWriter.java.html">CompoundFileWriter</A> cfsWriter = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/CompoundFileWriter.java.html">CompoundFileWriter</A>(directory, segment + <FONT ID="StringLiteral">"."</FONT> + IndexFileNames.COMPOUND_FILE_EXTENSION);
+<FONT ID="LN">622 </FONT><A NAME="622"></A>    Iterator it = flushState.flushedFiles.iterator();
+<FONT ID="LN">623 </FONT><A NAME="623"></A>    <FONT ID="While">while</FONT>(it.hasNext())
+<FONT ID="LN">624 </FONT><A NAME="624"></A>      cfsWriter.addFile((String) it.next());
+<FONT ID="LN">625 </FONT><A NAME="625"></A>      
+<FONT ID="LN">626 </FONT><A NAME="626"></A>    <FONT ID="SingleLineComment">// Perform the merge
+<FONT ID="LN">627 </FONT><A NAME="627"></A></FONT>    cfsWriter.close();
+<FONT ID="LN">628 </FONT><A NAME="628"></A>  }
+<FONT ID="LN">629 </FONT><A NAME="629"></A>
+<FONT ID="LN">630 </FONT><A NAME="630"></A>  <FONT ID="FormalComment">/** Set flushPending if it is not already set and returns
+<FONT ID="LN">631 </FONT><A NAME="631"></A>   *  whether it was set. This is used by IndexWriter to
+<FONT ID="LN">632 </FONT><A NAME="632"></A>   *  trigger a single flush even when multiple threads are
+<FONT ID="LN">633 </FONT><A NAME="633"></A>   *  trying to do so. */</FONT>
+<FONT ID="LN">634 </FONT><A NAME="634"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> setFlushPending() {
+<FONT ID="LN">635 </FONT><A NAME="635"></A>    <FONT ID="If">if</FONT> (flushPending)
+<FONT ID="LN">636 </FONT><A NAME="636"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">637 </FONT><A NAME="637"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">638 </FONT><A NAME="638"></A>      flushPending = <FONT ID="True">true</FONT>;
+<FONT ID="LN">639 </FONT><A NAME="639"></A>      <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">640 </FONT><A NAME="640"></A>    }
+<FONT ID="LN">641 </FONT><A NAME="641"></A>  }
+<FONT ID="LN">642 </FONT><A NAME="642"></A>
+<FONT ID="LN">643 </FONT><A NAME="643"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> clearFlushPending() {
+<FONT ID="LN">644 </FONT><A NAME="644"></A>    flushPending = <FONT ID="False">false</FONT>;
+<FONT ID="LN">645 </FONT><A NAME="645"></A>  }
+<FONT ID="LN">646 </FONT><A NAME="646"></A>
+<FONT ID="LN">647 </FONT><A NAME="647"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> pushDeletes() {
+<FONT ID="LN">648 </FONT><A NAME="648"></A>    deletesFlushed.update(deletesInRAM);
+<FONT ID="LN">649 </FONT><A NAME="649"></A>  }
+<FONT ID="LN">650 </FONT><A NAME="650"></A>
+<FONT ID="LN">651 </FONT><A NAME="651"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> close() {
+<FONT ID="LN">652 </FONT><A NAME="652"></A>    closed = <FONT ID="True">true</FONT>;
+<FONT ID="LN">653 </FONT><A NAME="653"></A>    notifyAll();
+<FONT ID="LN">654 </FONT><A NAME="654"></A>  }
+<FONT ID="LN">655 </FONT><A NAME="655"></A>
+<FONT ID="LN">656 </FONT><A NAME="656"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> initSegmentName(<FONT ID="Boolean">boolean</FONT> onlyDocStore) {
+<FONT ID="LN">657 </FONT><A NAME="657"></A>    <FONT ID="If">if</FONT> (segment == <FONT ID="Null">null</FONT> &amp;&amp; (!onlyDocStore || docStoreSegment == <FONT ID="Null">null</FONT>)) {
+<FONT ID="LN">658 </FONT><A NAME="658"></A>      segment = writer.newSegmentName();
+<FONT ID="LN">659 </FONT><A NAME="659"></A>      assert numDocsInRAM == <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">660 </FONT><A NAME="660"></A>    }
+<FONT ID="LN">661 </FONT><A NAME="661"></A>    <FONT ID="If">if</FONT> (docStoreSegment == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">662 </FONT><A NAME="662"></A>      docStoreSegment = segment;
+<FONT ID="LN">663 </FONT><A NAME="663"></A>      assert numDocsInStore == <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">664 </FONT><A NAME="664"></A>    }
+<FONT ID="LN">665 </FONT><A NAME="665"></A>  }
+<FONT ID="LN">666 </FONT><A NAME="666"></A>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>  <FONT ID="FormalComment">/** Returns a free (idle) ThreadState that may be used for
+<FONT ID="LN">668 </FONT><A NAME="668"></A>   * indexing this one document.  This call also pauses if a
+<FONT ID="LN">669 </FONT><A NAME="669"></A>   * flush is pending.  If delTerm is non-null then we
+<FONT ID="LN">670 </FONT><A NAME="670"></A>   * buffer this deleted term after the thread state has
+<FONT ID="LN">671 </FONT><A NAME="671"></A>   * been acquired. */</FONT>
+<FONT ID="LN">672 </FONT><A NAME="672"></A>  <FONT ID="Synchronized">synchronized</FONT> <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A> getThreadState(<A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc, <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> delTerm) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">673 </FONT><A NAME="673"></A>
+<FONT ID="LN">674 </FONT><A NAME="674"></A>    <FONT ID="SingleLineComment">// First, find a thread state.  If this thread already
+<FONT ID="LN">675 </FONT><A NAME="675"></A></FONT>    <FONT ID="SingleLineComment">// has affinity to a specific ThreadState, use that one
+<FONT ID="LN">676 </FONT><A NAME="676"></A></FONT>    <FONT ID="SingleLineComment">// again.
+<FONT ID="LN">677 </FONT><A NAME="677"></A></FONT>    <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A> state = (<A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A>) threadBindings.get(Thread.currentThread());
+<FONT ID="LN">678 </FONT><A NAME="678"></A>    <FONT ID="If">if</FONT> (state == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">679 </FONT><A NAME="679"></A>
+<FONT ID="LN">680 </FONT><A NAME="680"></A>      <FONT ID="SingleLineComment">// First time this thread has called us since last
+<FONT ID="LN">681 </FONT><A NAME="681"></A></FONT>      <FONT ID="SingleLineComment">// flush.  Find the least loaded thread state:
+<FONT ID="LN">682 </FONT><A NAME="682"></A></FONT>      <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A> minThreadState = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">683 </FONT><A NAME="683"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;threadStates.length;i++) {
+<FONT ID="LN">684 </FONT><A NAME="684"></A>        <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A> ts = threadStates[i];
+<FONT ID="LN">685 </FONT><A NAME="685"></A>        <FONT ID="If">if</FONT> (minThreadState == <FONT ID="Null">null</FONT> || ts.numThreads &lt; minThreadState.numThreads)
+<FONT ID="LN">686 </FONT><A NAME="686"></A>          minThreadState = ts;
+<FONT ID="LN">687 </FONT><A NAME="687"></A>      }
+<FONT ID="LN">688 </FONT><A NAME="688"></A>      <FONT ID="If">if</FONT> (minThreadState != <FONT ID="Null">null</FONT> &amp;&amp; (minThreadState.numThreads == <FONT ID="IntegerLiteral">0</FONT> || threadStates.length &gt;= MAX_THREAD_STATE)) {
+<FONT ID="LN">689 </FONT><A NAME="689"></A>        state = minThreadState;
+<FONT ID="LN">690 </FONT><A NAME="690"></A>        state.numThreads++;
+<FONT ID="LN">691 </FONT><A NAME="691"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">692 </FONT><A NAME="692"></A>        <FONT ID="SingleLineComment">// Just create a new "private" thread state
+<FONT ID="LN">693 </FONT><A NAME="693"></A></FONT>        <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A>[] newArray = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A>[<FONT ID="IntegerLiteral">1</FONT>+threadStates.length];
+<FONT ID="LN">694 </FONT><A NAME="694"></A>        <FONT ID="If">if</FONT> (threadStates.length &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">695 </FONT><A NAME="695"></A>          System.arraycopy(threadStates, <FONT ID="IntegerLiteral">0</FONT>, newArray, <FONT ID="IntegerLiteral">0</FONT>, threadStates.length);
+<FONT ID="LN">696 </FONT><A NAME="696"></A>        state = newArray[threadStates.length] = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A>(<FONT ID="This">this</FONT>);
+<FONT ID="LN">697 </FONT><A NAME="697"></A>        threadStates = newArray;
+<FONT ID="LN">698 </FONT><A NAME="698"></A>      }
+<FONT ID="LN">699 </FONT><A NAME="699"></A>      threadBindings.put(Thread.currentThread(), state);
+<FONT ID="LN">700 </FONT><A NAME="700"></A>    }
+<FONT ID="LN">701 </FONT><A NAME="701"></A>
+<FONT ID="LN">702 </FONT><A NAME="702"></A>    <FONT ID="SingleLineComment">// Next, wait until my thread state is idle (in case
+<FONT ID="LN">703 </FONT><A NAME="703"></A></FONT>    <FONT ID="SingleLineComment">// it's shared with other threads) and for threads to
+<FONT ID="LN">704 </FONT><A NAME="704"></A></FONT>    <FONT ID="SingleLineComment">// not be paused nor a flush pending:
+<FONT ID="LN">705 </FONT><A NAME="705"></A></FONT>    waitReady(state);
+<FONT ID="LN">706 </FONT><A NAME="706"></A>
+<FONT ID="LN">707 </FONT><A NAME="707"></A>    <FONT ID="SingleLineComment">// Allocate segment name if this is the first doc since
+<FONT ID="LN">708 </FONT><A NAME="708"></A></FONT>    <FONT ID="SingleLineComment">// last flush:
+<FONT ID="LN">709 </FONT><A NAME="709"></A></FONT>    initSegmentName(<FONT ID="False">false</FONT>);
+<FONT ID="LN">710 </FONT><A NAME="710"></A>
+<FONT ID="LN">711 </FONT><A NAME="711"></A>    state.isIdle = <FONT ID="False">false</FONT>;
+<FONT ID="LN">712 </FONT><A NAME="712"></A>
+<FONT ID="LN">713 </FONT><A NAME="713"></A>    <FONT ID="Boolean">boolean</FONT> success = <FONT ID="False">false</FONT>;
+<FONT ID="LN">714 </FONT><A NAME="714"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">715 </FONT><A NAME="715"></A>      state.docState.docID = nextDocID;
+<FONT ID="LN">716 </FONT><A NAME="716"></A>
+<FONT ID="LN">717 </FONT><A NAME="717"></A>      assert writer.testPoint(<FONT ID="StringLiteral">"DocumentsWriter.ThreadState.init start"</FONT>);
+<FONT ID="LN">718 </FONT><A NAME="718"></A>
+<FONT ID="LN">719 </FONT><A NAME="719"></A>      <FONT ID="If">if</FONT> (delTerm != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">720 </FONT><A NAME="720"></A>        addDeleteTerm(delTerm, state.docState.docID);
+<FONT ID="LN">721 </FONT><A NAME="721"></A>        state.doFlushAfter = timeToFlushDeletes();
+<FONT ID="LN">722 </FONT><A NAME="722"></A>      }
+<FONT ID="LN">723 </FONT><A NAME="723"></A>
+<FONT ID="LN">724 </FONT><A NAME="724"></A>      assert writer.testPoint(<FONT ID="StringLiteral">"DocumentsWriter.ThreadState.init after delTerm"</FONT>);
+<FONT ID="LN">725 </FONT><A NAME="725"></A>
+<FONT ID="LN">726 </FONT><A NAME="726"></A>      nextDocID++;
+<FONT ID="LN">727 </FONT><A NAME="727"></A>      numDocsInRAM++;
+<FONT ID="LN">728 </FONT><A NAME="728"></A>
+<FONT ID="LN">729 </FONT><A NAME="729"></A>      <FONT ID="SingleLineComment">// We must at this point commit to flushing to ensure we
+<FONT ID="LN">730 </FONT><A NAME="730"></A></FONT>      <FONT ID="SingleLineComment">// always get N docs when we flush by doc count, even if
+<FONT ID="LN">731 </FONT><A NAME="731"></A></FONT>      <FONT ID="SingleLineComment">// &gt; 1 thread is adding documents:
+<FONT ID="LN">732 </FONT><A NAME="732"></A></FONT>      <FONT ID="If">if</FONT> (!flushPending &amp;&amp;
+<FONT ID="LN">733 </FONT><A NAME="733"></A>          maxBufferedDocs != IndexWriter.DISABLE_AUTO_FLUSH
+<FONT ID="LN">734 </FONT><A NAME="734"></A>          &amp;&amp; numDocsInRAM &gt;= maxBufferedDocs) {
+<FONT ID="LN">735 </FONT><A NAME="735"></A>        flushPending = <FONT ID="True">true</FONT>;
+<FONT ID="LN">736 </FONT><A NAME="736"></A>        state.doFlushAfter = <FONT ID="True">true</FONT>;
+<FONT ID="LN">737 </FONT><A NAME="737"></A>      }
+<FONT ID="LN">738 </FONT><A NAME="738"></A>
+<FONT ID="LN">739 </FONT><A NAME="739"></A>      success = <FONT ID="True">true</FONT>;
+<FONT ID="LN">740 </FONT><A NAME="740"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">741 </FONT><A NAME="741"></A>      <FONT ID="If">if</FONT> (!success) {
+<FONT ID="LN">742 </FONT><A NAME="742"></A>        <FONT ID="SingleLineComment">// Forcefully idle this ThreadState:
+<FONT ID="LN">743 </FONT><A NAME="743"></A></FONT>        state.isIdle = <FONT ID="True">true</FONT>;
+<FONT ID="LN">744 </FONT><A NAME="744"></A>        notifyAll();
+<FONT ID="LN">745 </FONT><A NAME="745"></A>        <FONT ID="If">if</FONT> (state.doFlushAfter) {
+<FONT ID="LN">746 </FONT><A NAME="746"></A>          state.doFlushAfter = <FONT ID="False">false</FONT>;
+<FONT ID="LN">747 </FONT><A NAME="747"></A>          flushPending = <FONT ID="False">false</FONT>;
+<FONT ID="LN">748 </FONT><A NAME="748"></A>        }
+<FONT ID="LN">749 </FONT><A NAME="749"></A>      }
+<FONT ID="LN">750 </FONT><A NAME="750"></A>    }
+<FONT ID="LN">751 </FONT><A NAME="751"></A>
+<FONT ID="LN">752 </FONT><A NAME="752"></A>    <FONT ID="Return">return</FONT> state;
+<FONT ID="LN">753 </FONT><A NAME="753"></A>  }
+<FONT ID="LN">754 </FONT><A NAME="754"></A>
+<FONT ID="LN">755 </FONT><A NAME="755"></A>  <FONT ID="FormalComment">/** Returns true if the caller (IndexWriter) should now
+<FONT ID="LN">756 </FONT><A NAME="756"></A>   * flush. */</FONT>
+<FONT ID="LN">757 </FONT><A NAME="757"></A>  <FONT ID="Boolean">boolean</FONT> addDocument(<A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc, <A HREF="../../../../org/apache/lucene/analysis/Analyzer.java.html">Analyzer</A> analyzer)
+<FONT ID="LN">758 </FONT><A NAME="758"></A>    <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">759 </FONT><A NAME="759"></A>    <FONT ID="Return">return</FONT> updateDocument(doc, analyzer, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">760 </FONT><A NAME="760"></A>  }
+<FONT ID="LN">761 </FONT><A NAME="761"></A>
+<FONT ID="LN">762 </FONT><A NAME="762"></A>  <FONT ID="Boolean">boolean</FONT> updateDocument(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> t, <A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc, <A HREF="../../../../org/apache/lucene/analysis/Analyzer.java.html">Analyzer</A> analyzer)
+<FONT ID="LN">763 </FONT><A NAME="763"></A>    <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">764 </FONT><A NAME="764"></A>    <FONT ID="Return">return</FONT> updateDocument(doc, analyzer, t);
+<FONT ID="LN">765 </FONT><A NAME="765"></A>  }
+<FONT ID="LN">766 </FONT><A NAME="766"></A>
+<FONT ID="LN">767 </FONT><A NAME="767"></A>  <FONT ID="Boolean">boolean</FONT> updateDocument(<A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc, <A HREF="../../../../org/apache/lucene/analysis/Analyzer.java.html">Analyzer</A> analyzer, <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> delTerm)
+<FONT ID="LN">768 </FONT><A NAME="768"></A>    <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">769 </FONT><A NAME="769"></A>
+<FONT ID="LN">770 </FONT><A NAME="770"></A>    <FONT ID="SingleLineComment">// This call is synchronized but fast
+<FONT ID="LN">771 </FONT><A NAME="771"></A></FONT>    <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A> state = getThreadState(doc, delTerm);
+<FONT ID="LN">772 </FONT><A NAME="772"></A>
+<FONT ID="LN">773 </FONT><A NAME="773"></A>    <FONT ID="Final">final</FONT> DocState docState = state.docState;
+<FONT ID="LN">774 </FONT><A NAME="774"></A>    docState.doc = doc;
+<FONT ID="LN">775 </FONT><A NAME="775"></A>    docState.analyzer = analyzer;
+<FONT ID="LN">776 </FONT><A NAME="776"></A>
+<FONT ID="LN">777 </FONT><A NAME="777"></A>    <FONT ID="Boolean">boolean</FONT> success = <FONT ID="False">false</FONT>;
+<FONT ID="LN">778 </FONT><A NAME="778"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">779 </FONT><A NAME="779"></A>      <FONT ID="SingleLineComment">// This call is not synchronized and does all the
+<FONT ID="LN">780 </FONT><A NAME="780"></A></FONT>      <FONT ID="SingleLineComment">// work
+<FONT ID="LN">781 </FONT><A NAME="781"></A></FONT>      <FONT ID="Final">final</FONT> DocWriter perDoc = state.consumer.processDocument();
+<FONT ID="LN">782 </FONT><A NAME="782"></A>        
+<FONT ID="LN">783 </FONT><A NAME="783"></A>      <FONT ID="SingleLineComment">// This call is synchronized but fast
+<FONT ID="LN">784 </FONT><A NAME="784"></A></FONT>      finishDocument(state, perDoc);
+<FONT ID="LN">785 </FONT><A NAME="785"></A>      success = <FONT ID="True">true</FONT>;
+<FONT ID="LN">786 </FONT><A NAME="786"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">787 </FONT><A NAME="787"></A>      <FONT ID="If">if</FONT> (!success) {
+<FONT ID="LN">788 </FONT><A NAME="788"></A>        <FONT ID="Synchronized">synchronized</FONT>(<FONT ID="This">this</FONT>) {
+<FONT ID="LN">789 </FONT><A NAME="789"></A>
+<FONT ID="LN">790 </FONT><A NAME="790"></A>          <FONT ID="If">if</FONT> (aborting) {
+<FONT ID="LN">791 </FONT><A NAME="791"></A>            state.isIdle = <FONT ID="True">true</FONT>;
+<FONT ID="LN">792 </FONT><A NAME="792"></A>            notifyAll();
+<FONT ID="LN">793 </FONT><A NAME="793"></A>            abort();
+<FONT ID="LN">794 </FONT><A NAME="794"></A>          } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">795 </FONT><A NAME="795"></A>            skipDocWriter.docID = docState.docID;
+<FONT ID="LN">796 </FONT><A NAME="796"></A>            <FONT ID="Boolean">boolean</FONT> success2 = <FONT ID="False">false</FONT>;
+<FONT ID="LN">797 </FONT><A NAME="797"></A>            <FONT ID="Try">try</FONT> {
+<FONT ID="LN">798 </FONT><A NAME="798"></A>              waitQueue.add(skipDocWriter);
+<FONT ID="LN">799 </FONT><A NAME="799"></A>              success2 = <FONT ID="True">true</FONT>;
+<FONT ID="LN">800 </FONT><A NAME="800"></A>            } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">801 </FONT><A NAME="801"></A>              <FONT ID="If">if</FONT> (!success2) {
+<FONT ID="LN">802 </FONT><A NAME="802"></A>                state.isIdle = <FONT ID="True">true</FONT>;
+<FONT ID="LN">803 </FONT><A NAME="803"></A>                notifyAll();
+<FONT ID="LN">804 </FONT><A NAME="804"></A>                abort();
+<FONT ID="LN">805 </FONT><A NAME="805"></A>                <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">806 </FONT><A NAME="806"></A>              }
+<FONT ID="LN">807 </FONT><A NAME="807"></A>            }
+<FONT ID="LN">808 </FONT><A NAME="808"></A>
+<FONT ID="LN">809 </FONT><A NAME="809"></A>            state.isIdle = <FONT ID="True">true</FONT>;
+<FONT ID="LN">810 </FONT><A NAME="810"></A>            notifyAll();
+<FONT ID="LN">811 </FONT><A NAME="811"></A>
+<FONT ID="LN">812 </FONT><A NAME="812"></A>            <FONT ID="SingleLineComment">// If this thread state had decided to flush, we
+<FONT ID="LN">813 </FONT><A NAME="813"></A></FONT>            <FONT ID="SingleLineComment">// must clear it so another thread can flush
+<FONT ID="LN">814 </FONT><A NAME="814"></A></FONT>            <FONT ID="If">if</FONT> (state.doFlushAfter) {
+<FONT ID="LN">815 </FONT><A NAME="815"></A>              state.doFlushAfter = <FONT ID="False">false</FONT>;
+<FONT ID="LN">816 </FONT><A NAME="816"></A>              flushPending = <FONT ID="False">false</FONT>;
+<FONT ID="LN">817 </FONT><A NAME="817"></A>              notifyAll();
+<FONT ID="LN">818 </FONT><A NAME="818"></A>            }
+<FONT ID="LN">819 </FONT><A NAME="819"></A>
+<FONT ID="LN">820 </FONT><A NAME="820"></A>            <FONT ID="SingleLineComment">// Immediately mark this document as deleted
+<FONT ID="LN">821 </FONT><A NAME="821"></A></FONT>            <FONT ID="SingleLineComment">// since likely it was partially added.  This
+<FONT ID="LN">822 </FONT><A NAME="822"></A></FONT>            <FONT ID="SingleLineComment">// keeps indexing as "all or none" (atomic) when
+<FONT ID="LN">823 </FONT><A NAME="823"></A></FONT>            <FONT ID="SingleLineComment">// adding a document:
+<FONT ID="LN">824 </FONT><A NAME="824"></A></FONT>            addDeleteDocID(state.docState.docID);
+<FONT ID="LN">825 </FONT><A NAME="825"></A>          }
+<FONT ID="LN">826 </FONT><A NAME="826"></A>        }
+<FONT ID="LN">827 </FONT><A NAME="827"></A>      }
+<FONT ID="LN">828 </FONT><A NAME="828"></A>    }
+<FONT ID="LN">829 </FONT><A NAME="829"></A>
+<FONT ID="LN">830 </FONT><A NAME="830"></A>    <FONT ID="Return">return</FONT> state.doFlushAfter || timeToFlushDeletes();
+<FONT ID="LN">831 </FONT><A NAME="831"></A>  }
+<FONT ID="LN">832 </FONT><A NAME="832"></A>
+<FONT ID="LN">833 </FONT><A NAME="833"></A>  <FONT ID="SingleLineComment">// for testing
+<FONT ID="LN">834 </FONT><A NAME="834"></A></FONT>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Int">int</FONT> getNumBufferedDeleteTerms() {
+<FONT ID="LN">835 </FONT><A NAME="835"></A>    <FONT ID="Return">return</FONT> deletesInRAM.numTerms;
+<FONT ID="LN">836 </FONT><A NAME="836"></A>  }
+<FONT ID="LN">837 </FONT><A NAME="837"></A>
+<FONT ID="LN">838 </FONT><A NAME="838"></A>  <FONT ID="SingleLineComment">// for testing
+<FONT ID="LN">839 </FONT><A NAME="839"></A></FONT>  <FONT ID="Synchronized">synchronized</FONT> Map getBufferedDeleteTerms() {
+<FONT ID="LN">840 </FONT><A NAME="840"></A>    <FONT ID="Return">return</FONT> deletesInRAM.terms;
+<FONT ID="LN">841 </FONT><A NAME="841"></A>  }
+<FONT ID="LN">842 </FONT><A NAME="842"></A>
+<FONT ID="LN">843 </FONT><A NAME="843"></A>  <FONT ID="FormalComment">/** Called whenever a merge has completed and the merged segments had deletions */</FONT>
+<FONT ID="LN">844 </FONT><A NAME="844"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> remapDeletes(<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> infos, <FONT ID="Int">int</FONT>[][] docMaps, <FONT ID="Int">int</FONT>[] delCounts, <A HREF="../../../../org/apache/lucene/index/MergePolicy.java.html">MergePolicy.OneMerge</A> merge, <FONT ID="Int">int</FONT> mergeDocCount) {
+<FONT ID="LN">845 </FONT><A NAME="845"></A>    <FONT ID="If">if</FONT> (docMaps == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">846 </FONT><A NAME="846"></A>      <FONT ID="SingleLineComment">// The merged segments had no deletes so docIDs did not change and we have nothing to do
+<FONT ID="LN">847 </FONT><A NAME="847"></A></FONT>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">848 </FONT><A NAME="848"></A>    <A HREF="../../../../org/apache/lucene/index/MergeDocIDRemapper.java.html">MergeDocIDRemapper</A> mapper = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/MergeDocIDRemapper.java.html">MergeDocIDRemapper</A>(infos, docMaps, delCounts, merge, mergeDocCount);
+<FONT ID="LN">849 </FONT><A NAME="849"></A>    deletesInRAM.remap(mapper, infos, docMaps, delCounts, merge, mergeDocCount);
+<FONT ID="LN">850 </FONT><A NAME="850"></A>    deletesFlushed.remap(mapper, infos, docMaps, delCounts, merge, mergeDocCount);
+<FONT ID="LN">851 </FONT><A NAME="851"></A>    flushedDocCount -= mapper.docShift;
+<FONT ID="LN">852 </FONT><A NAME="852"></A>  }
+<FONT ID="LN">853 </FONT><A NAME="853"></A>
+<FONT ID="LN">854 </FONT><A NAME="854"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> waitReady(<A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A> state) {
+<FONT ID="LN">855 </FONT><A NAME="855"></A>
+<FONT ID="LN">856 </FONT><A NAME="856"></A>    <FONT ID="While">while</FONT> (!closed &amp;&amp; ((state != <FONT ID="Null">null</FONT> &amp;&amp; !state.isIdle) || pauseThreads != <FONT ID="IntegerLiteral">0</FONT> || flushPending || aborting)) {
+<FONT ID="LN">857 </FONT><A NAME="857"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">858 </FONT><A NAME="858"></A>        wait();
+<FONT ID="LN">859 </FONT><A NAME="859"></A>      } <FONT ID="Catch">catch</FONT> (InterruptedException ie) {
+<FONT ID="LN">860 </FONT><A NAME="860"></A>        <FONT ID="SingleLineComment">// In 3.0 we will change this to throw
+<FONT ID="LN">861 </FONT><A NAME="861"></A></FONT>        <FONT ID="SingleLineComment">// InterruptedException instead
+<FONT ID="LN">862 </FONT><A NAME="862"></A></FONT>        Thread.currentThread().interrupt();
+<FONT ID="LN">863 </FONT><A NAME="863"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(ie);
+<FONT ID="LN">864 </FONT><A NAME="864"></A>      }
+<FONT ID="LN">865 </FONT><A NAME="865"></A>    }
+<FONT ID="LN">866 </FONT><A NAME="866"></A>
+<FONT ID="LN">867 </FONT><A NAME="867"></A>    <FONT ID="If">if</FONT> (closed)
+<FONT ID="LN">868 </FONT><A NAME="868"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/AlreadyClosedException.java.html">AlreadyClosedException</A>(<FONT ID="StringLiteral">"this IndexWriter is closed"</FONT>);
+<FONT ID="LN">869 </FONT><A NAME="869"></A>  }
+<FONT ID="LN">870 </FONT><A NAME="870"></A>
+<FONT ID="LN">871 </FONT><A NAME="871"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> bufferDeleteTerms(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A>[] terms) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">872 </FONT><A NAME="872"></A>    waitReady(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">873 </FONT><A NAME="873"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; terms.length; i++)
+<FONT ID="LN">874 </FONT><A NAME="874"></A>      addDeleteTerm(terms[i], numDocsInRAM);
+<FONT ID="LN">875 </FONT><A NAME="875"></A>    <FONT ID="Return">return</FONT> timeToFlushDeletes();
+<FONT ID="LN">876 </FONT><A NAME="876"></A>  }
+<FONT ID="LN">877 </FONT><A NAME="877"></A>
+<FONT ID="LN">878 </FONT><A NAME="878"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> bufferDeleteTerm(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">879 </FONT><A NAME="879"></A>    waitReady(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">880 </FONT><A NAME="880"></A>    addDeleteTerm(term, numDocsInRAM);
+<FONT ID="LN">881 </FONT><A NAME="881"></A>    <FONT ID="Return">return</FONT> timeToFlushDeletes();
+<FONT ID="LN">882 </FONT><A NAME="882"></A>  }
+<FONT ID="LN">883 </FONT><A NAME="883"></A>
+<FONT ID="LN">884 </FONT><A NAME="884"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> bufferDeleteQueries(<A HREF="../../../../org/apache/lucene/search/Query.java.html">Query</A>[] queries) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">885 </FONT><A NAME="885"></A>    waitReady(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">886 </FONT><A NAME="886"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; queries.length; i++)
+<FONT ID="LN">887 </FONT><A NAME="887"></A>      addDeleteQuery(queries[i], numDocsInRAM);
+<FONT ID="LN">888 </FONT><A NAME="888"></A>    <FONT ID="Return">return</FONT> timeToFlushDeletes();
+<FONT ID="LN">889 </FONT><A NAME="889"></A>  }
+<FONT ID="LN">890 </FONT><A NAME="890"></A>
+<FONT ID="LN">891 </FONT><A NAME="891"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> bufferDeleteQuery(<A HREF="../../../../org/apache/lucene/search/Query.java.html">Query</A> query) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">892 </FONT><A NAME="892"></A>    waitReady(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">893 </FONT><A NAME="893"></A>    addDeleteQuery(query, numDocsInRAM);
+<FONT ID="LN">894 </FONT><A NAME="894"></A>    <FONT ID="Return">return</FONT> timeToFlushDeletes();
+<FONT ID="LN">895 </FONT><A NAME="895"></A>  }
+<FONT ID="LN">896 </FONT><A NAME="896"></A>
+<FONT ID="LN">897 </FONT><A NAME="897"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> deletesFull() {
+<FONT ID="LN">898 </FONT><A NAME="898"></A>    <FONT ID="Return">return</FONT> (ramBufferSize != IndexWriter.DISABLE_AUTO_FLUSH &amp;&amp;
+<FONT ID="LN">899 </FONT><A NAME="899"></A>            (deletesInRAM.bytesUsed + deletesFlushed.bytesUsed + numBytesUsed) &gt;= ramBufferSize) ||
+<FONT ID="LN">900 </FONT><A NAME="900"></A>      (maxBufferedDeleteTerms != IndexWriter.DISABLE_AUTO_FLUSH &amp;&amp;
+<FONT ID="LN">901 </FONT><A NAME="901"></A>       ((deletesInRAM.size() + deletesFlushed.size()) &gt;= maxBufferedDeleteTerms));
+<FONT ID="LN">902 </FONT><A NAME="902"></A>  }
+<FONT ID="LN">903 </FONT><A NAME="903"></A>
+<FONT ID="LN">904 </FONT><A NAME="904"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> doApplyDeletes() {
+<FONT ID="LN">905 </FONT><A NAME="905"></A>    <FONT ID="SingleLineComment">// Very similar to deletesFull(), except we don't count
+<FONT ID="LN">906 </FONT><A NAME="906"></A></FONT>    <FONT ID="SingleLineComment">// numBytesAlloc, because we are checking whether
+<FONT ID="LN">907 </FONT><A NAME="907"></A></FONT>    <FONT ID="SingleLineComment">// deletes (alone) are consuming too many resources now
+<FONT ID="LN">908 </FONT><A NAME="908"></A></FONT>    <FONT ID="SingleLineComment">// and thus should be applied.  We apply deletes if RAM
+<FONT ID="LN">909 </FONT><A NAME="909"></A></FONT>    <FONT ID="SingleLineComment">// usage is &gt; 1/2 of our allowed RAM buffer, to prevent
+<FONT ID="LN">910 </FONT><A NAME="910"></A></FONT>    <FONT ID="SingleLineComment">// too-frequent flushing of a long tail of tiny segments
+<FONT ID="LN">911 </FONT><A NAME="911"></A></FONT>    <FONT ID="SingleLineComment">// when merges (which always apply deletes) are
+<FONT ID="LN">912 </FONT><A NAME="912"></A></FONT>    <FONT ID="SingleLineComment">// infrequent.
+<FONT ID="LN">913 </FONT><A NAME="913"></A></FONT>    <FONT ID="Return">return</FONT> (ramBufferSize != IndexWriter.DISABLE_AUTO_FLUSH &amp;&amp;
+<FONT ID="LN">914 </FONT><A NAME="914"></A>            (deletesInRAM.bytesUsed + deletesFlushed.bytesUsed) &gt;= ramBufferSize/<FONT ID="IntegerLiteral">2</FONT>) ||
+<FONT ID="LN">915 </FONT><A NAME="915"></A>      (maxBufferedDeleteTerms != IndexWriter.DISABLE_AUTO_FLUSH &amp;&amp;
+<FONT ID="LN">916 </FONT><A NAME="916"></A>       ((deletesInRAM.size() + deletesFlushed.size()) &gt;= maxBufferedDeleteTerms));
+<FONT ID="LN">917 </FONT><A NAME="917"></A>  }
+<FONT ID="LN">918 </FONT><A NAME="918"></A>
+<FONT ID="LN">919 </FONT><A NAME="919"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> timeToFlushDeletes() {
+<FONT ID="LN">920 </FONT><A NAME="920"></A>    <FONT ID="Return">return</FONT> (bufferIsFull || deletesFull()) &amp;&amp; setFlushPending();
+<FONT ID="LN">921 </FONT><A NAME="921"></A>  }
+<FONT ID="LN">922 </FONT><A NAME="922"></A>
+<FONT ID="LN">923 </FONT><A NAME="923"></A>  <FONT ID="Void">void</FONT> setMaxBufferedDeleteTerms(<FONT ID="Int">int</FONT> maxBufferedDeleteTerms) {
+<FONT ID="LN">924 </FONT><A NAME="924"></A>    <FONT ID="This">this</FONT>.maxBufferedDeleteTerms = maxBufferedDeleteTerms;
+<FONT ID="LN">925 </FONT><A NAME="925"></A>  }
+<FONT ID="LN">926 </FONT><A NAME="926"></A>
+<FONT ID="LN">927 </FONT><A NAME="927"></A>  <FONT ID="Int">int</FONT> getMaxBufferedDeleteTerms() {
+<FONT ID="LN">928 </FONT><A NAME="928"></A>    <FONT ID="Return">return</FONT> maxBufferedDeleteTerms;
+<FONT ID="LN">929 </FONT><A NAME="929"></A>  }
+<FONT ID="LN">930 </FONT><A NAME="930"></A>
+<FONT ID="LN">931 </FONT><A NAME="931"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> hasDeletes() {
+<FONT ID="LN">932 </FONT><A NAME="932"></A>    <FONT ID="Return">return</FONT> deletesFlushed.any();
+<FONT ID="LN">933 </FONT><A NAME="933"></A>  }
+<FONT ID="LN">934 </FONT><A NAME="934"></A>
+<FONT ID="LN">935 </FONT><A NAME="935"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> applyDeletes(<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> infos) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">936 </FONT><A NAME="936"></A>
+<FONT ID="LN">937 </FONT><A NAME="937"></A>    <FONT ID="If">if</FONT> (!hasDeletes())
+<FONT ID="LN">938 </FONT><A NAME="938"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">939 </FONT><A NAME="939"></A>
+<FONT ID="LN">940 </FONT><A NAME="940"></A>    <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">941 </FONT><A NAME="941"></A>      message(<FONT ID="StringLiteral">"apply "</FONT> + deletesFlushed.numTerms + <FONT ID="StringLiteral">" buffered deleted terms and "</FONT> +
+<FONT ID="LN">942 </FONT><A NAME="942"></A>              deletesFlushed.docIDs.size() + <FONT ID="StringLiteral">" deleted docIDs and "</FONT> +
+<FONT ID="LN">943 </FONT><A NAME="943"></A>              deletesFlushed.queries.size() + <FONT ID="StringLiteral">" deleted queries on "</FONT> +
+<FONT ID="LN">944 </FONT><A NAME="944"></A>              + infos.size() + <FONT ID="StringLiteral">" segments."</FONT>);
+<FONT ID="LN">945 </FONT><A NAME="945"></A>
+<FONT ID="LN">946 </FONT><A NAME="946"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> infosEnd = infos.size();
+<FONT ID="LN">947 </FONT><A NAME="947"></A>
+<FONT ID="LN">948 </FONT><A NAME="948"></A>    <FONT ID="Int">int</FONT> docStart = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">949 </FONT><A NAME="949"></A>    <FONT ID="Boolean">boolean</FONT> any = <FONT ID="False">false</FONT>;
+<FONT ID="LN">950 </FONT><A NAME="950"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; infosEnd; i++) {
+<FONT ID="LN">951 </FONT><A NAME="951"></A>
+<FONT ID="LN">952 </FONT><A NAME="952"></A>      <FONT ID="SingleLineComment">// Make sure we never attempt to apply deletes to
+<FONT ID="LN">953 </FONT><A NAME="953"></A></FONT>      <FONT ID="SingleLineComment">// segment in external dir
+<FONT ID="LN">954 </FONT><A NAME="954"></A></FONT>      assert infos.info(i).dir == directory;
+<FONT ID="LN">955 </FONT><A NAME="955"></A>
+<FONT ID="LN">956 </FONT><A NAME="956"></A>      <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A> reader = writer.readerPool.get(infos.info(i), <FONT ID="False">false</FONT>);
+<FONT ID="LN">957 </FONT><A NAME="957"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">958 </FONT><A NAME="958"></A>        any |= applyDeletes(reader, docStart);
+<FONT ID="LN">959 </FONT><A NAME="959"></A>        docStart += reader.maxDoc();
+<FONT ID="LN">960 </FONT><A NAME="960"></A>      } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">961 </FONT><A NAME="961"></A>        writer.readerPool.release(reader);
+<FONT ID="LN">962 </FONT><A NAME="962"></A>      }
+<FONT ID="LN">963 </FONT><A NAME="963"></A>    }
+<FONT ID="LN">964 </FONT><A NAME="964"></A>
+<FONT ID="LN">965 </FONT><A NAME="965"></A>    deletesFlushed.clear();
+<FONT ID="LN">966 </FONT><A NAME="966"></A>
+<FONT ID="LN">967 </FONT><A NAME="967"></A>    <FONT ID="Return">return</FONT> any;
+<FONT ID="LN">968 </FONT><A NAME="968"></A>  }
+<FONT ID="LN">969 </FONT><A NAME="969"></A>
+<FONT ID="LN">970 </FONT><A NAME="970"></A>  <FONT ID="SingleLineComment">// used only by assert
+<FONT ID="LN">971 </FONT><A NAME="971"></A></FONT>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> lastDeleteTerm;
+<FONT ID="LN">972 </FONT><A NAME="972"></A>
+<FONT ID="LN">973 </FONT><A NAME="973"></A>  <FONT ID="SingleLineComment">// used only by assert
+<FONT ID="LN">974 </FONT><A NAME="974"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> checkDeleteTerm(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term) {
+<FONT ID="LN">975 </FONT><A NAME="975"></A>    <FONT ID="If">if</FONT> (term != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">976 </FONT><A NAME="976"></A>      assert lastDeleteTerm == <FONT ID="Null">null</FONT> || term.compareTo(lastDeleteTerm) &gt; <FONT ID="IntegerLiteral">0</FONT>: <FONT ID="StringLiteral">"lastTerm="</FONT> + lastDeleteTerm + <FONT ID="StringLiteral">" vs term="</FONT> + term;
+<FONT ID="LN">977 </FONT><A NAME="977"></A>    }
+<FONT ID="LN">978 </FONT><A NAME="978"></A>    lastDeleteTerm = term;
+<FONT ID="LN">979 </FONT><A NAME="979"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">980 </FONT><A NAME="980"></A>  }
+<FONT ID="LN">981 </FONT><A NAME="981"></A>
+<FONT ID="LN">982 </FONT><A NAME="982"></A>  <FONT ID="SingleLineComment">// Apply buffered delete terms, queries and docIDs to the
+<FONT ID="LN">983 </FONT><A NAME="983"></A></FONT>  <FONT ID="SingleLineComment">// provided reader
+<FONT ID="LN">984 </FONT><A NAME="984"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> applyDeletes(<A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> reader, <FONT ID="Int">int</FONT> docIDStart)
+<FONT ID="LN">985 </FONT><A NAME="985"></A>    <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">986 </FONT><A NAME="986"></A>
+<FONT ID="LN">987 </FONT><A NAME="987"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> docEnd = docIDStart + reader.maxDoc();
+<FONT ID="LN">988 </FONT><A NAME="988"></A>    <FONT ID="Boolean">boolean</FONT> any = <FONT ID="False">false</FONT>;
+<FONT ID="LN">989 </FONT><A NAME="989"></A>
+<FONT ID="LN">990 </FONT><A NAME="990"></A>    assert checkDeleteTerm(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">991 </FONT><A NAME="991"></A>
+<FONT ID="LN">992 </FONT><A NAME="992"></A>    <FONT ID="SingleLineComment">// Delete by term
+<FONT ID="LN">993 </FONT><A NAME="993"></A></FONT>    Iterator iter = deletesFlushed.terms.entrySet().iterator();
+<FONT ID="LN">994 </FONT><A NAME="994"></A>    <A HREF="../../../../org/apache/lucene/index/TermDocs.java.html">TermDocs</A> docs = reader.termDocs();
+<FONT ID="LN">995 </FONT><A NAME="995"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">996 </FONT><A NAME="996"></A>      <FONT ID="While">while</FONT> (iter.hasNext()) {
+<FONT ID="LN">997 </FONT><A NAME="997"></A>        Entry entry = (Entry) iter.next();
+<FONT ID="LN">998 </FONT><A NAME="998"></A>        <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term = (<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A>) entry.getKey();
+<FONT ID="LN">999 </FONT><A NAME="999"></A>        <FONT ID="SingleLineComment">// LUCENE-2086: we should be iterating a TreeMap,
+<FONT ID="LN">1000</FONT><A NAME="1000"></A></FONT>        <FONT ID="SingleLineComment">// here, so terms better be in order:
+<FONT ID="LN">1001</FONT><A NAME="1001"></A></FONT>        assert checkDeleteTerm(term);
+<FONT ID="LN">1002</FONT><A NAME="1002"></A>        docs.seek(term);
+<FONT ID="LN">1003</FONT><A NAME="1003"></A>        <FONT ID="Int">int</FONT> limit = ((<A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes.Num</A>) entry.getValue()).getNum();
+<FONT ID="LN">1004</FONT><A NAME="1004"></A>        <FONT ID="While">while</FONT> (docs.next()) {
+<FONT ID="LN">1005</FONT><A NAME="1005"></A>          <FONT ID="Int">int</FONT> docID = docs.doc();
+<FONT ID="LN">1006</FONT><A NAME="1006"></A>          <FONT ID="If">if</FONT> (docIDStart+docID &gt;= limit)
+<FONT ID="LN">1007</FONT><A NAME="1007"></A>            <FONT ID="Break">break</FONT>;
+<FONT ID="LN">1008</FONT><A NAME="1008"></A>          reader.deleteDocument(docID);
+<FONT ID="LN">1009</FONT><A NAME="1009"></A>          any = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1010</FONT><A NAME="1010"></A>        }
+<FONT ID="LN">1011</FONT><A NAME="1011"></A>      }
+<FONT ID="LN">1012</FONT><A NAME="1012"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">1013</FONT><A NAME="1013"></A>      docs.close();
+<FONT ID="LN">1014</FONT><A NAME="1014"></A>    }
+<FONT ID="LN">1015</FONT><A NAME="1015"></A>
+<FONT ID="LN">1016</FONT><A NAME="1016"></A>    <FONT ID="SingleLineComment">// Delete by docID
+<FONT ID="LN">1017</FONT><A NAME="1017"></A></FONT>    iter = deletesFlushed.docIDs.iterator();
+<FONT ID="LN">1018</FONT><A NAME="1018"></A>    <FONT ID="While">while</FONT>(iter.hasNext()) {
+<FONT ID="LN">1019</FONT><A NAME="1019"></A>      <FONT ID="Int">int</FONT> docID = ((Integer) iter.next()).intValue();
+<FONT ID="LN">1020</FONT><A NAME="1020"></A>      <FONT ID="If">if</FONT> (docID &gt;= docIDStart &amp;&amp; docID &lt; docEnd) {
+<FONT ID="LN">1021</FONT><A NAME="1021"></A>        reader.deleteDocument(docID-docIDStart);
+<FONT ID="LN">1022</FONT><A NAME="1022"></A>        any = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1023</FONT><A NAME="1023"></A>      }
+<FONT ID="LN">1024</FONT><A NAME="1024"></A>    }
+<FONT ID="LN">1025</FONT><A NAME="1025"></A>
+<FONT ID="LN">1026</FONT><A NAME="1026"></A>    <FONT ID="SingleLineComment">// Delete by query
+<FONT ID="LN">1027</FONT><A NAME="1027"></A></FONT>    <A HREF="../../../../org/apache/lucene/search/IndexSearcher.java.html">IndexSearcher</A> searcher = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/IndexSearcher.java.html">IndexSearcher</A>(reader);
+<FONT ID="LN">1028</FONT><A NAME="1028"></A>    iter = deletesFlushed.queries.entrySet().iterator();
+<FONT ID="LN">1029</FONT><A NAME="1029"></A>    <FONT ID="While">while</FONT>(iter.hasNext()) {
+<FONT ID="LN">1030</FONT><A NAME="1030"></A>      Entry entry = (Entry) iter.next();
+<FONT ID="LN">1031</FONT><A NAME="1031"></A>      <A HREF="../../../../org/apache/lucene/search/Query.java.html">Query</A> query = (<A HREF="../../../../org/apache/lucene/search/Query.java.html">Query</A>) entry.getKey();
+<FONT ID="LN">1032</FONT><A NAME="1032"></A>      <FONT ID="Int">int</FONT> limit = ((Integer) entry.getValue()).intValue();
+<FONT ID="LN">1033</FONT><A NAME="1033"></A>      <A HREF="../../../../org/apache/lucene/search/Weight.java.html">Weight</A> weight = query.weight(searcher);
+<FONT ID="LN">1034</FONT><A NAME="1034"></A>      <A HREF="../../../../org/apache/lucene/search/Scorer.java.html">Scorer</A> scorer = weight.scorer(reader, <FONT ID="True">true</FONT>, <FONT ID="False">false</FONT>);
+<FONT ID="LN">1035</FONT><A NAME="1035"></A>      <FONT ID="If">if</FONT> (scorer != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1036</FONT><A NAME="1036"></A>        <FONT ID="While">while</FONT>(<FONT ID="True">true</FONT>)  {
+<FONT ID="LN">1037</FONT><A NAME="1037"></A>          <FONT ID="Int">int</FONT> doc = scorer.nextDoc();
+<FONT ID="LN">1038</FONT><A NAME="1038"></A>          <FONT ID="If">if</FONT> (((<FONT ID="Long">long</FONT>) docIDStart) + doc &gt;= limit)
+<FONT ID="LN">1039</FONT><A NAME="1039"></A>            <FONT ID="Break">break</FONT>;
+<FONT ID="LN">1040</FONT><A NAME="1040"></A>          reader.deleteDocument(doc);
+<FONT ID="LN">1041</FONT><A NAME="1041"></A>          any = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1042</FONT><A NAME="1042"></A>        }
+<FONT ID="LN">1043</FONT><A NAME="1043"></A>      }
+<FONT ID="LN">1044</FONT><A NAME="1044"></A>    }
+<FONT ID="LN">1045</FONT><A NAME="1045"></A>    searcher.close();
+<FONT ID="LN">1046</FONT><A NAME="1046"></A>    <FONT ID="Return">return</FONT> any;
+<FONT ID="LN">1047</FONT><A NAME="1047"></A>  }
+<FONT ID="LN">1048</FONT><A NAME="1048"></A>
+<FONT ID="LN">1049</FONT><A NAME="1049"></A>  <FONT ID="SingleLineComment">// Buffer a term in bufferedDeleteTerms, which records the
+<FONT ID="LN">1050</FONT><A NAME="1050"></A></FONT>  <FONT ID="SingleLineComment">// current number of documents buffered in ram so that the
+<FONT ID="LN">1051</FONT><A NAME="1051"></A></FONT>  <FONT ID="SingleLineComment">// delete term will be applied to those documents as well
+<FONT ID="LN">1052</FONT><A NAME="1052"></A></FONT>  <FONT ID="SingleLineComment">// as the disk segments.
+<FONT ID="LN">1053</FONT><A NAME="1053"></A></FONT>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> addDeleteTerm(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term, <FONT ID="Int">int</FONT> docCount) {
+<FONT ID="LN">1054</FONT><A NAME="1054"></A>    <A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes.Num</A> num = (<A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes.Num</A>) deletesInRAM.terms.get(term);
+<FONT ID="LN">1055</FONT><A NAME="1055"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> docIDUpto = flushedDocCount + docCount;
+<FONT ID="LN">1056</FONT><A NAME="1056"></A>    <FONT ID="If">if</FONT> (num == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1057</FONT><A NAME="1057"></A>      deletesInRAM.terms.put(term, <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/BufferedDeletes.java.html">BufferedDeletes.Num</A>(docIDUpto));
+<FONT ID="LN">1058</FONT><A NAME="1058"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">1059</FONT><A NAME="1059"></A>      num.setNum(docIDUpto);
+<FONT ID="LN">1060</FONT><A NAME="1060"></A>    deletesInRAM.numTerms++;
+<FONT ID="LN">1061</FONT><A NAME="1061"></A>
+<FONT ID="LN">1062</FONT><A NAME="1062"></A>    deletesInRAM.addBytesUsed(BYTES_PER_DEL_TERM + term.text.length()*CHAR_NUM_BYTE);
+<FONT ID="LN">1063</FONT><A NAME="1063"></A>  }
+<FONT ID="LN">1064</FONT><A NAME="1064"></A>
+<FONT ID="LN">1065</FONT><A NAME="1065"></A>  <FONT ID="SingleLineComment">// Buffer a specific docID for deletion.  Currently only
+<FONT ID="LN">1066</FONT><A NAME="1066"></A></FONT>  <FONT ID="SingleLineComment">// used when we hit a exception when adding a document
+<FONT ID="LN">1067</FONT><A NAME="1067"></A></FONT>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> addDeleteDocID(<FONT ID="Int">int</FONT> docID) {
+<FONT ID="LN">1068</FONT><A NAME="1068"></A>    deletesInRAM.docIDs.add(<FONT ID="New">new</FONT> Integer(flushedDocCount+docID));
+<FONT ID="LN">1069</FONT><A NAME="1069"></A>    deletesInRAM.addBytesUsed(BYTES_PER_DEL_DOCID);
+<FONT ID="LN">1070</FONT><A NAME="1070"></A>  }
+<FONT ID="LN">1071</FONT><A NAME="1071"></A>
+<FONT ID="LN">1072</FONT><A NAME="1072"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> addDeleteQuery(<A HREF="../../../../org/apache/lucene/search/Query.java.html">Query</A> query, <FONT ID="Int">int</FONT> docID) {
+<FONT ID="LN">1073</FONT><A NAME="1073"></A>    deletesInRAM.queries.put(query, <FONT ID="New">new</FONT> Integer(flushedDocCount + docID));
+<FONT ID="LN">1074</FONT><A NAME="1074"></A>    deletesInRAM.addBytesUsed(BYTES_PER_DEL_QUERY);
+<FONT ID="LN">1075</FONT><A NAME="1075"></A>  }
+<FONT ID="LN">1076</FONT><A NAME="1076"></A>
+<FONT ID="LN">1077</FONT><A NAME="1077"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> doBalanceRAM() {
+<FONT ID="LN">1078</FONT><A NAME="1078"></A>    <FONT ID="Return">return</FONT> ramBufferSize != IndexWriter.DISABLE_AUTO_FLUSH &amp;&amp; !bufferIsFull &amp;&amp; (numBytesUsed+deletesInRAM.bytesUsed+deletesFlushed.bytesUsed &gt;= ramBufferSize || numBytesAlloc &gt;= freeTrigger);
+<FONT ID="LN">1079</FONT><A NAME="1079"></A>  }
+<FONT ID="LN">1080</FONT><A NAME="1080"></A>
+<FONT ID="LN">1081</FONT><A NAME="1081"></A>  <FONT ID="FormalComment">/** Does the synchronized work to finish/flush the
+<FONT ID="LN">1082</FONT><A NAME="1082"></A>   *  inverted document. */</FONT>
+<FONT ID="LN">1083</FONT><A NAME="1083"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> finishDocument(<A HREF="../../../../org/apache/lucene/index/DocumentsWriterThreadState.java.html">DocumentsWriterThreadState</A> perThread, DocWriter docWriter) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1084</FONT><A NAME="1084"></A>
+<FONT ID="LN">1085</FONT><A NAME="1085"></A>    <FONT ID="If">if</FONT> (doBalanceRAM())
+<FONT ID="LN">1086</FONT><A NAME="1086"></A>      <FONT ID="SingleLineComment">// Must call this w/o holding synchronized(this) else
+<FONT ID="LN">1087</FONT><A NAME="1087"></A></FONT>      <FONT ID="SingleLineComment">// we'll hit deadlock:
+<FONT ID="LN">1088</FONT><A NAME="1088"></A></FONT>      balanceRAM();
+<FONT ID="LN">1089</FONT><A NAME="1089"></A>
+<FONT ID="LN">1090</FONT><A NAME="1090"></A>    <FONT ID="Synchronized">synchronized</FONT>(<FONT ID="This">this</FONT>) {
+<FONT ID="LN">1091</FONT><A NAME="1091"></A>
+<FONT ID="LN">1092</FONT><A NAME="1092"></A>      assert docWriter == <FONT ID="Null">null</FONT> || docWriter.docID == perThread.docState.docID;
+<FONT ID="LN">1093</FONT><A NAME="1093"></A>
+<FONT ID="LN">1094</FONT><A NAME="1094"></A>      <FONT ID="If">if</FONT> (aborting) {
+<FONT ID="LN">1095</FONT><A NAME="1095"></A>
+<FONT ID="LN">1096</FONT><A NAME="1096"></A>        <FONT ID="SingleLineComment">// We are currently aborting, and another thread is
+<FONT ID="LN">1097</FONT><A NAME="1097"></A></FONT>        <FONT ID="SingleLineComment">// waiting for me to become idle.  We just forcefully
+<FONT ID="LN">1098</FONT><A NAME="1098"></A></FONT>        <FONT ID="SingleLineComment">// idle this threadState; it will be fully reset by
+<FONT ID="LN">1099</FONT><A NAME="1099"></A></FONT>        <FONT ID="SingleLineComment">// abort()
+<FONT ID="LN">1100</FONT><A NAME="1100"></A></FONT>        <FONT ID="If">if</FONT> (docWriter != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1101</FONT><A NAME="1101"></A>          <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1102</FONT><A NAME="1102"></A>            docWriter.abort();
+<FONT ID="LN">1103</FONT><A NAME="1103"></A>          } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">1104</FONT><A NAME="1104"></A>          }
+<FONT ID="LN">1105</FONT><A NAME="1105"></A>
+<FONT ID="LN">1106</FONT><A NAME="1106"></A>        perThread.isIdle = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1107</FONT><A NAME="1107"></A>        notifyAll();
+<FONT ID="LN">1108</FONT><A NAME="1108"></A>        <FONT ID="Return">return</FONT>;
+<FONT ID="LN">1109</FONT><A NAME="1109"></A>      }
+<FONT ID="LN">1110</FONT><A NAME="1110"></A>
+<FONT ID="LN">1111</FONT><A NAME="1111"></A>      <FONT ID="Final">final</FONT> <FONT ID="Boolean">boolean</FONT> doPause;
+<FONT ID="LN">1112</FONT><A NAME="1112"></A>
+<FONT ID="LN">1113</FONT><A NAME="1113"></A>      <FONT ID="If">if</FONT> (docWriter != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1114</FONT><A NAME="1114"></A>        doPause = waitQueue.add(docWriter);
+<FONT ID="LN">1115</FONT><A NAME="1115"></A>      <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1116</FONT><A NAME="1116"></A>        skipDocWriter.docID = perThread.docState.docID;
+<FONT ID="LN">1117</FONT><A NAME="1117"></A>        doPause = waitQueue.add(skipDocWriter);
+<FONT ID="LN">1118</FONT><A NAME="1118"></A>      }
+<FONT ID="LN">1119</FONT><A NAME="1119"></A>
+<FONT ID="LN">1120</FONT><A NAME="1120"></A>      <FONT ID="If">if</FONT> (doPause)
+<FONT ID="LN">1121</FONT><A NAME="1121"></A>        waitForWaitQueue();
+<FONT ID="LN">1122</FONT><A NAME="1122"></A>
+<FONT ID="LN">1123</FONT><A NAME="1123"></A>      <FONT ID="If">if</FONT> (bufferIsFull &amp;&amp; !flushPending) {
+<FONT ID="LN">1124</FONT><A NAME="1124"></A>        flushPending = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1125</FONT><A NAME="1125"></A>        perThread.doFlushAfter = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1126</FONT><A NAME="1126"></A>      }
+<FONT ID="LN">1127</FONT><A NAME="1127"></A>
+<FONT ID="LN">1128</FONT><A NAME="1128"></A>      perThread.isIdle = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1129</FONT><A NAME="1129"></A>      notifyAll();
+<FONT ID="LN">1130</FONT><A NAME="1130"></A>    }
+<FONT ID="LN">1131</FONT><A NAME="1131"></A>  }
+<FONT ID="LN">1132</FONT><A NAME="1132"></A>
+<FONT ID="LN">1133</FONT><A NAME="1133"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> waitForWaitQueue() {
+<FONT ID="LN">1134</FONT><A NAME="1134"></A>    <FONT ID="Do">do</FONT> {
+<FONT ID="LN">1135</FONT><A NAME="1135"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1136</FONT><A NAME="1136"></A>        wait();
+<FONT ID="LN">1137</FONT><A NAME="1137"></A>      } <FONT ID="Catch">catch</FONT> (InterruptedException ie) {
+<FONT ID="LN">1138</FONT><A NAME="1138"></A>        <FONT ID="SingleLineComment">// In 3.0 we will change this to throw
+<FONT ID="LN">1139</FONT><A NAME="1139"></A></FONT>        <FONT ID="SingleLineComment">// InterruptedException instead
+<FONT ID="LN">1140</FONT><A NAME="1140"></A></FONT>        Thread.currentThread().interrupt();
+<FONT ID="LN">1141</FONT><A NAME="1141"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(ie);
+<FONT ID="LN">1142</FONT><A NAME="1142"></A>      }
+<FONT ID="LN">1143</FONT><A NAME="1143"></A>    } <FONT ID="While">while</FONT> (!waitQueue.doResume());
+<FONT ID="LN">1144</FONT><A NAME="1144"></A>  }
+<FONT ID="LN">1145</FONT><A NAME="1145"></A>
+<FONT ID="LN">1146</FONT><A NAME="1146"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> SkipDocWriter <FONT ID="Extends">extends</FONT> DocWriter {
+<FONT ID="LN">1147</FONT><A NAME="1147"></A>    <FONT ID="Void">void</FONT> finish() {
+<FONT ID="LN">1148</FONT><A NAME="1148"></A>    }
+<FONT ID="LN">1149</FONT><A NAME="1149"></A>    <FONT ID="Void">void</FONT> abort() {
+<FONT ID="LN">1150</FONT><A NAME="1150"></A>    }
+<FONT ID="LN">1151</FONT><A NAME="1151"></A>    <FONT ID="Long">long</FONT> sizeInBytes() {
+<FONT ID="LN">1152</FONT><A NAME="1152"></A>      <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1153</FONT><A NAME="1153"></A>    }
+<FONT ID="LN">1154</FONT><A NAME="1154"></A>  }
+<FONT ID="LN">1155</FONT><A NAME="1155"></A>  <FONT ID="Final">final</FONT> SkipDocWriter skipDocWriter = <FONT ID="New">new</FONT> SkipDocWriter();
+<FONT ID="LN">1156</FONT><A NAME="1156"></A>
+<FONT ID="LN">1157</FONT><A NAME="1157"></A>  <FONT ID="Long">long</FONT> getRAMUsed() {
+<FONT ID="LN">1158</FONT><A NAME="1158"></A>    <FONT ID="Return">return</FONT> numBytesUsed + deletesInRAM.bytesUsed + deletesFlushed.bytesUsed;
+<FONT ID="LN">1159</FONT><A NAME="1159"></A>  }
+<FONT ID="LN">1160</FONT><A NAME="1160"></A>
+<FONT ID="LN">1161</FONT><A NAME="1161"></A>  <FONT ID="Long">long</FONT> numBytesAlloc;
+<FONT ID="LN">1162</FONT><A NAME="1162"></A>  <FONT ID="Long">long</FONT> numBytesUsed;
+<FONT ID="LN">1163</FONT><A NAME="1163"></A>
+<FONT ID="LN">1164</FONT><A NAME="1164"></A>  NumberFormat nf = NumberFormat.getInstance();
+<FONT ID="LN">1165</FONT><A NAME="1165"></A>
+<FONT ID="LN">1166</FONT><A NAME="1166"></A>  <FONT ID="SingleLineComment">// Coarse estimates used to measure RAM usage of buffered deletes
+<FONT ID="LN">1167</FONT><A NAME="1167"></A></FONT>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> OBJECT_HEADER_BYTES = <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">1168</FONT><A NAME="1168"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> POINTER_NUM_BYTE = Constants.JRE_IS_64BIT ? <FONT ID="IntegerLiteral">8</FONT> : <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">1169</FONT><A NAME="1169"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> INT_NUM_BYTE = <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">1170</FONT><A NAME="1170"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> CHAR_NUM_BYTE = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">1171</FONT><A NAME="1171"></A>
+<FONT ID="LN">1172</FONT><A NAME="1172"></A>  <FONT ID="MultiLineComment">/* Rough logic: HashMap has an array[Entry] w/ varying
+<FONT ID="LN">1173</FONT><A NAME="1173"></A>     load factor (say 2 * POINTER).  Entry is object w/ Term
+<FONT ID="LN">1174</FONT><A NAME="1174"></A>     key, BufferedDeletes.Num val, int hash, Entry next
+<FONT ID="LN">1175</FONT><A NAME="1175"></A>     (OBJ_HEADER + 3*POINTER + INT).  Term is object w/
+<FONT ID="LN">1176</FONT><A NAME="1176"></A>     String field and String text (OBJ_HEADER + 2*POINTER).
+<FONT ID="LN">1177</FONT><A NAME="1177"></A>     We don't count Term's field since it's interned.
+<FONT ID="LN">1178</FONT><A NAME="1178"></A>     Term's text is String (OBJ_HEADER + 4*INT + POINTER +
+<FONT ID="LN">1179</FONT><A NAME="1179"></A>     OBJ_HEADER + string.length*CHAR).  BufferedDeletes.num is
+<FONT ID="LN">1180</FONT><A NAME="1180"></A>     OBJ_HEADER + INT. */</FONT>
+<FONT ID="LN">1181</FONT><A NAME="1181"></A> 
+<FONT ID="LN">1182</FONT><A NAME="1182"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> BYTES_PER_DEL_TERM = <FONT ID="IntegerLiteral">8</FONT>*POINTER_NUM_BYTE + <FONT ID="IntegerLiteral">5</FONT>*OBJECT_HEADER_BYTES + <FONT ID="IntegerLiteral">6</FONT>*INT_NUM_BYTE;
+<FONT ID="LN">1183</FONT><A NAME="1183"></A>
+<FONT ID="LN">1184</FONT><A NAME="1184"></A>  <FONT ID="MultiLineComment">/* Rough logic: del docIDs are List&lt;Integer&gt;.  Say list
+<FONT ID="LN">1185</FONT><A NAME="1185"></A>     allocates ~2X size (2*POINTER).  Integer is OBJ_HEADER
+<FONT ID="LN">1186</FONT><A NAME="1186"></A>     + int */</FONT>
+<FONT ID="LN">1187</FONT><A NAME="1187"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> BYTES_PER_DEL_DOCID = <FONT ID="IntegerLiteral">2</FONT>*POINTER_NUM_BYTE + OBJECT_HEADER_BYTES + INT_NUM_BYTE;
+<FONT ID="LN">1188</FONT><A NAME="1188"></A>
+<FONT ID="LN">1189</FONT><A NAME="1189"></A>  <FONT ID="MultiLineComment">/* Rough logic: HashMap has an array[Entry] w/ varying
+<FONT ID="LN">1190</FONT><A NAME="1190"></A>     load factor (say 2 * POINTER).  Entry is object w/
+<FONT ID="LN">1191</FONT><A NAME="1191"></A>     Query key, Integer val, int hash, Entry next
+<FONT ID="LN">1192</FONT><A NAME="1192"></A>     (OBJ_HEADER + 3*POINTER + INT).  Query we often
+<FONT ID="LN">1193</FONT><A NAME="1193"></A>     undercount (say 24 bytes).  Integer is OBJ_HEADER + INT. */</FONT>
+<FONT ID="LN">1194</FONT><A NAME="1194"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> BYTES_PER_DEL_QUERY = <FONT ID="IntegerLiteral">5</FONT>*POINTER_NUM_BYTE + <FONT ID="IntegerLiteral">2</FONT>*OBJECT_HEADER_BYTES + <FONT ID="IntegerLiteral">2</FONT>*INT_NUM_BYTE + <FONT ID="IntegerLiteral">24</FONT>;
+<FONT ID="LN">1195</FONT><A NAME="1195"></A>
+<FONT ID="LN">1196</FONT><A NAME="1196"></A>  <FONT ID="MultiLineComment">/* Initial chunks size of the shared byte[] blocks used to
+<FONT ID="LN">1197</FONT><A NAME="1197"></A>     store postings data */</FONT>
+<FONT ID="LN">1198</FONT><A NAME="1198"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> BYTE_BLOCK_SHIFT = <FONT ID="IntegerLiteral">15</FONT>;
+<FONT ID="LN">1199</FONT><A NAME="1199"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> BYTE_BLOCK_SIZE = <FONT ID="IntegerLiteral">1</FONT> &lt;&lt; BYTE_BLOCK_SHIFT;
+<FONT ID="LN">1200</FONT><A NAME="1200"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> BYTE_BLOCK_MASK = BYTE_BLOCK_SIZE - <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">1201</FONT><A NAME="1201"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> BYTE_BLOCK_NOT_MASK = ~BYTE_BLOCK_MASK;
+<FONT ID="LN">1202</FONT><A NAME="1202"></A>
+<FONT ID="LN">1203</FONT><A NAME="1203"></A>  <FONT ID="Private">private</FONT> <FONT ID="Class">class</FONT> ByteBlockAllocator <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/index/ByteBlockPool.java.html">ByteBlockPool.Allocator</A> {
+<FONT ID="LN">1204</FONT><A NAME="1204"></A>
+<FONT ID="LN">1205</FONT><A NAME="1205"></A>    ArrayList freeByteBlocks = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">1206</FONT><A NAME="1206"></A>    
+<FONT ID="LN">1207</FONT><A NAME="1207"></A>    <FONT ID="MultiLineComment">/* Allocate another byte[] from the shared pool */</FONT>
+<FONT ID="LN">1208</FONT><A NAME="1208"></A>    <FONT ID="Byte">byte</FONT>[] getByteBlock(<FONT ID="Boolean">boolean</FONT> trackAllocations) {
+<FONT ID="LN">1209</FONT><A NAME="1209"></A>      <FONT ID="Synchronized">synchronized</FONT>(DocumentsWriter.<FONT ID="This">this</FONT>) {
+<FONT ID="LN">1210</FONT><A NAME="1210"></A>        <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> size = freeByteBlocks.size();
+<FONT ID="LN">1211</FONT><A NAME="1211"></A>        <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT>[] b;
+<FONT ID="LN">1212</FONT><A NAME="1212"></A>        <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">0</FONT> == size) {
+<FONT ID="LN">1213</FONT><A NAME="1213"></A>          <FONT ID="SingleLineComment">// Always record a block allocated, even if
+<FONT ID="LN">1214</FONT><A NAME="1214"></A></FONT>          <FONT ID="SingleLineComment">// trackAllocations is false.  This is necessary
+<FONT ID="LN">1215</FONT><A NAME="1215"></A></FONT>          <FONT ID="SingleLineComment">// because this block will be shared between
+<FONT ID="LN">1216</FONT><A NAME="1216"></A></FONT>          <FONT ID="SingleLineComment">// things that don't track allocations (term
+<FONT ID="LN">1217</FONT><A NAME="1217"></A></FONT>          <FONT ID="SingleLineComment">// vectors) and things that do (freq/prox
+<FONT ID="LN">1218</FONT><A NAME="1218"></A></FONT>          <FONT ID="SingleLineComment">// postings).
+<FONT ID="LN">1219</FONT><A NAME="1219"></A></FONT>          numBytesAlloc += BYTE_BLOCK_SIZE;
+<FONT ID="LN">1220</FONT><A NAME="1220"></A>          b = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[BYTE_BLOCK_SIZE];
+<FONT ID="LN">1221</FONT><A NAME="1221"></A>        } <FONT ID="Else">else</FONT>
+<FONT ID="LN">1222</FONT><A NAME="1222"></A>          b = (<FONT ID="Byte">byte</FONT>[]) freeByteBlocks.remove(size-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1223</FONT><A NAME="1223"></A>        <FONT ID="If">if</FONT> (trackAllocations)
+<FONT ID="LN">1224</FONT><A NAME="1224"></A>          numBytesUsed += BYTE_BLOCK_SIZE;
+<FONT ID="LN">1225</FONT><A NAME="1225"></A>        assert numBytesUsed &lt;= numBytesAlloc;
+<FONT ID="LN">1226</FONT><A NAME="1226"></A>        <FONT ID="Return">return</FONT> b;
+<FONT ID="LN">1227</FONT><A NAME="1227"></A>      }
+<FONT ID="LN">1228</FONT><A NAME="1228"></A>    }
+<FONT ID="LN">1229</FONT><A NAME="1229"></A>
+<FONT ID="LN">1230</FONT><A NAME="1230"></A>    <FONT ID="MultiLineComment">/* Return byte[]'s to the pool */</FONT>
+<FONT ID="LN">1231</FONT><A NAME="1231"></A>    <FONT ID="Void">void</FONT> recycleByteBlocks(<FONT ID="Byte">byte</FONT>[][] blocks, <FONT ID="Int">int</FONT> start, <FONT ID="Int">int</FONT> end) {
+<FONT ID="LN">1232</FONT><A NAME="1232"></A>      <FONT ID="Synchronized">synchronized</FONT>(DocumentsWriter.<FONT ID="This">this</FONT>) {
+<FONT ID="LN">1233</FONT><A NAME="1233"></A>        <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=start;i&lt;end;i++)
+<FONT ID="LN">1234</FONT><A NAME="1234"></A>          freeByteBlocks.add(blocks[i]);
+<FONT ID="LN">1235</FONT><A NAME="1235"></A>      }
+<FONT ID="LN">1236</FONT><A NAME="1236"></A>    }
+<FONT ID="LN">1237</FONT><A NAME="1237"></A>  }
+<FONT ID="LN">1238</FONT><A NAME="1238"></A>
+<FONT ID="LN">1239</FONT><A NAME="1239"></A>  <FONT ID="MultiLineComment">/* Initial chunks size of the shared int[] blocks used to
+<FONT ID="LN">1240</FONT><A NAME="1240"></A>     store postings data */</FONT>
+<FONT ID="LN">1241</FONT><A NAME="1241"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> INT_BLOCK_SHIFT = <FONT ID="IntegerLiteral">13</FONT>;
+<FONT ID="LN">1242</FONT><A NAME="1242"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> INT_BLOCK_SIZE = <FONT ID="IntegerLiteral">1</FONT> &lt;&lt; INT_BLOCK_SHIFT;
+<FONT ID="LN">1243</FONT><A NAME="1243"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> INT_BLOCK_MASK = INT_BLOCK_SIZE - <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">1244</FONT><A NAME="1244"></A>
+<FONT ID="LN">1245</FONT><A NAME="1245"></A>  <FONT ID="Private">private</FONT> ArrayList freeIntBlocks = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">1246</FONT><A NAME="1246"></A>
+<FONT ID="LN">1247</FONT><A NAME="1247"></A>  <FONT ID="MultiLineComment">/* Allocate another int[] from the shared pool */</FONT>
+<FONT ID="LN">1248</FONT><A NAME="1248"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Int">int</FONT>[] getIntBlock(<FONT ID="Boolean">boolean</FONT> trackAllocations) {
+<FONT ID="LN">1249</FONT><A NAME="1249"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> size = freeIntBlocks.size();
+<FONT ID="LN">1250</FONT><A NAME="1250"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT>[] b;
+<FONT ID="LN">1251</FONT><A NAME="1251"></A>    <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">0</FONT> == size) {
+<FONT ID="LN">1252</FONT><A NAME="1252"></A>      <FONT ID="SingleLineComment">// Always record a block allocated, even if
+<FONT ID="LN">1253</FONT><A NAME="1253"></A></FONT>      <FONT ID="SingleLineComment">// trackAllocations is false.  This is necessary
+<FONT ID="LN">1254</FONT><A NAME="1254"></A></FONT>      <FONT ID="SingleLineComment">// because this block will be shared between
+<FONT ID="LN">1255</FONT><A NAME="1255"></A></FONT>      <FONT ID="SingleLineComment">// things that don't track allocations (term
+<FONT ID="LN">1256</FONT><A NAME="1256"></A></FONT>      <FONT ID="SingleLineComment">// vectors) and things that do (freq/prox
+<FONT ID="LN">1257</FONT><A NAME="1257"></A></FONT>      <FONT ID="SingleLineComment">// postings).
+<FONT ID="LN">1258</FONT><A NAME="1258"></A></FONT>      numBytesAlloc += INT_BLOCK_SIZE*INT_NUM_BYTE;
+<FONT ID="LN">1259</FONT><A NAME="1259"></A>      b = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[INT_BLOCK_SIZE];
+<FONT ID="LN">1260</FONT><A NAME="1260"></A>    } <FONT ID="Else">else</FONT>
+<FONT ID="LN">1261</FONT><A NAME="1261"></A>      b = (<FONT ID="Int">int</FONT>[]) freeIntBlocks.remove(size-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1262</FONT><A NAME="1262"></A>    <FONT ID="If">if</FONT> (trackAllocations)
+<FONT ID="LN">1263</FONT><A NAME="1263"></A>      numBytesUsed += INT_BLOCK_SIZE*INT_NUM_BYTE;
+<FONT ID="LN">1264</FONT><A NAME="1264"></A>    assert numBytesUsed &lt;= numBytesAlloc;
+<FONT ID="LN">1265</FONT><A NAME="1265"></A>    <FONT ID="Return">return</FONT> b;
+<FONT ID="LN">1266</FONT><A NAME="1266"></A>  }
+<FONT ID="LN">1267</FONT><A NAME="1267"></A>
+<FONT ID="LN">1268</FONT><A NAME="1268"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> bytesAllocated(<FONT ID="Long">long</FONT> numBytes) {
+<FONT ID="LN">1269</FONT><A NAME="1269"></A>    numBytesAlloc += numBytes;
+<FONT ID="LN">1270</FONT><A NAME="1270"></A>    assert numBytesUsed &lt;= numBytesAlloc;
+<FONT ID="LN">1271</FONT><A NAME="1271"></A>  }
+<FONT ID="LN">1272</FONT><A NAME="1272"></A>
+<FONT ID="LN">1273</FONT><A NAME="1273"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> bytesUsed(<FONT ID="Long">long</FONT> numBytes) {
+<FONT ID="LN">1274</FONT><A NAME="1274"></A>    numBytesUsed += numBytes;
+<FONT ID="LN">1275</FONT><A NAME="1275"></A>    assert numBytesUsed &lt;= numBytesAlloc;
+<FONT ID="LN">1276</FONT><A NAME="1276"></A>  }
+<FONT ID="LN">1277</FONT><A NAME="1277"></A>
+<FONT ID="LN">1278</FONT><A NAME="1278"></A>  <FONT ID="MultiLineComment">/* Return int[]s to the pool */</FONT>
+<FONT ID="LN">1279</FONT><A NAME="1279"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> recycleIntBlocks(<FONT ID="Int">int</FONT>[][] blocks, <FONT ID="Int">int</FONT> start, <FONT ID="Int">int</FONT> end) {
+<FONT ID="LN">1280</FONT><A NAME="1280"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=start;i&lt;end;i++)
+<FONT ID="LN">1281</FONT><A NAME="1281"></A>      freeIntBlocks.add(blocks[i]);
+<FONT ID="LN">1282</FONT><A NAME="1282"></A>  }
+<FONT ID="LN">1283</FONT><A NAME="1283"></A>
+<FONT ID="LN">1284</FONT><A NAME="1284"></A>  ByteBlockAllocator byteBlockAllocator = <FONT ID="New">new</FONT> ByteBlockAllocator();
+<FONT ID="LN">1285</FONT><A NAME="1285"></A>
+<FONT ID="LN">1286</FONT><A NAME="1286"></A>  <FONT ID="MultiLineComment">/* Initial chunk size of the shared char[] blocks used to
+<FONT ID="LN">1287</FONT><A NAME="1287"></A>     store term text */</FONT>
+<FONT ID="LN">1288</FONT><A NAME="1288"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> CHAR_BLOCK_SHIFT = <FONT ID="IntegerLiteral">14</FONT>;
+<FONT ID="LN">1289</FONT><A NAME="1289"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> CHAR_BLOCK_SIZE = <FONT ID="IntegerLiteral">1</FONT> &lt;&lt; CHAR_BLOCK_SHIFT;
+<FONT ID="LN">1290</FONT><A NAME="1290"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> CHAR_BLOCK_MASK = CHAR_BLOCK_SIZE - <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">1291</FONT><A NAME="1291"></A>
+<FONT ID="LN">1292</FONT><A NAME="1292"></A>  <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> MAX_TERM_LENGTH = CHAR_BLOCK_SIZE-<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">1293</FONT><A NAME="1293"></A>
+<FONT ID="LN">1294</FONT><A NAME="1294"></A>  <FONT ID="Private">private</FONT> ArrayList freeCharBlocks = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">1295</FONT><A NAME="1295"></A>
+<FONT ID="LN">1296</FONT><A NAME="1296"></A>  <FONT ID="MultiLineComment">/* Allocate another char[] from the shared pool */</FONT>
+<FONT ID="LN">1297</FONT><A NAME="1297"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Char">char</FONT>[] getCharBlock() {
+<FONT ID="LN">1298</FONT><A NAME="1298"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> size = freeCharBlocks.size();
+<FONT ID="LN">1299</FONT><A NAME="1299"></A>    <FONT ID="Final">final</FONT> <FONT ID="Char">char</FONT>[] c;
+<FONT ID="LN">1300</FONT><A NAME="1300"></A>    <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">0</FONT> == size) {
+<FONT ID="LN">1301</FONT><A NAME="1301"></A>      numBytesAlloc += CHAR_BLOCK_SIZE * CHAR_NUM_BYTE;
+<FONT ID="LN">1302</FONT><A NAME="1302"></A>      c = <FONT ID="New">new</FONT> <FONT ID="Char">char</FONT>[CHAR_BLOCK_SIZE];
+<FONT ID="LN">1303</FONT><A NAME="1303"></A>    } <FONT ID="Else">else</FONT>
+<FONT ID="LN">1304</FONT><A NAME="1304"></A>      c = (<FONT ID="Char">char</FONT>[]) freeCharBlocks.remove(size-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1305</FONT><A NAME="1305"></A>    <FONT ID="SingleLineComment">// We always track allocations of char blocks, for now,
+<FONT ID="LN">1306</FONT><A NAME="1306"></A></FONT>    <FONT ID="SingleLineComment">// because nothing that skips allocation tracking
+<FONT ID="LN">1307</FONT><A NAME="1307"></A></FONT>    <FONT ID="SingleLineComment">// (currently only term vectors) uses its own char
+<FONT ID="LN">1308</FONT><A NAME="1308"></A></FONT>    <FONT ID="SingleLineComment">// blocks.
+<FONT ID="LN">1309</FONT><A NAME="1309"></A></FONT>    numBytesUsed += CHAR_BLOCK_SIZE * CHAR_NUM_BYTE;
+<FONT ID="LN">1310</FONT><A NAME="1310"></A>    assert numBytesUsed &lt;= numBytesAlloc;
+<FONT ID="LN">1311</FONT><A NAME="1311"></A>    <FONT ID="Return">return</FONT> c;
+<FONT ID="LN">1312</FONT><A NAME="1312"></A>  }
+<FONT ID="LN">1313</FONT><A NAME="1313"></A>
+<FONT ID="LN">1314</FONT><A NAME="1314"></A>  <FONT ID="MultiLineComment">/* Return char[]s to the pool */</FONT>
+<FONT ID="LN">1315</FONT><A NAME="1315"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> recycleCharBlocks(<FONT ID="Char">char</FONT>[][] blocks, <FONT ID="Int">int</FONT> numBlocks) {
+<FONT ID="LN">1316</FONT><A NAME="1316"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;numBlocks;i++)
+<FONT ID="LN">1317</FONT><A NAME="1317"></A>      freeCharBlocks.add(blocks[i]);
+<FONT ID="LN">1318</FONT><A NAME="1318"></A>  }
+<FONT ID="LN">1319</FONT><A NAME="1319"></A>
+<FONT ID="LN">1320</FONT><A NAME="1320"></A>  String toMB(<FONT ID="Long">long</FONT> v) {
+<FONT ID="LN">1321</FONT><A NAME="1321"></A>    <FONT ID="Return">return</FONT> nf.format(v/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>);
+<FONT ID="LN">1322</FONT><A NAME="1322"></A>  }
+<FONT ID="LN">1323</FONT><A NAME="1323"></A>
+<FONT ID="LN">1324</FONT><A NAME="1324"></A>  <FONT ID="MultiLineComment">/* We have three pools of RAM: Postings, byte blocks
+<FONT ID="LN">1325</FONT><A NAME="1325"></A>   * (holds freq/prox posting data) and char blocks (holds
+<FONT ID="LN">1326</FONT><A NAME="1326"></A>   * characters in the term).  Different docs require
+<FONT ID="LN">1327</FONT><A NAME="1327"></A>   * varying amount of storage from these three classes.
+<FONT ID="LN">1328</FONT><A NAME="1328"></A>   * For example, docs with many unique single-occurrence
+<FONT ID="LN">1329</FONT><A NAME="1329"></A>   * short terms will use up the Postings RAM and hardly any
+<FONT ID="LN">1330</FONT><A NAME="1330"></A>   * of the other two.  Whereas docs with very large terms
+<FONT ID="LN">1331</FONT><A NAME="1331"></A>   * will use alot of char blocks RAM and relatively less of
+<FONT ID="LN">1332</FONT><A NAME="1332"></A>   * the other two.  This method just frees allocations from
+<FONT ID="LN">1333</FONT><A NAME="1333"></A>   * the pools once we are over-budget, which balances the
+<FONT ID="LN">1334</FONT><A NAME="1334"></A>   * pools to match the current docs. */</FONT>
+<FONT ID="LN">1335</FONT><A NAME="1335"></A>  <FONT ID="Void">void</FONT> balanceRAM() {
+<FONT ID="LN">1336</FONT><A NAME="1336"></A>
+<FONT ID="LN">1337</FONT><A NAME="1337"></A>    <FONT ID="SingleLineComment">// We flush when we've used our target usage
+<FONT ID="LN">1338</FONT><A NAME="1338"></A></FONT>    <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> flushTrigger = ramBufferSize;
+<FONT ID="LN">1339</FONT><A NAME="1339"></A>
+<FONT ID="LN">1340</FONT><A NAME="1340"></A>    <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> deletesRAMUsed = deletesInRAM.bytesUsed+deletesFlushed.bytesUsed;
+<FONT ID="LN">1341</FONT><A NAME="1341"></A>
+<FONT ID="LN">1342</FONT><A NAME="1342"></A>    <FONT ID="If">if</FONT> (numBytesAlloc+deletesRAMUsed &gt; freeTrigger) {
+<FONT ID="LN">1343</FONT><A NAME="1343"></A>
+<FONT ID="LN">1344</FONT><A NAME="1344"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1345</FONT><A NAME="1345"></A>        message(<FONT ID="StringLiteral">"  RAM: now balance allocations: usedMB="</FONT> + toMB(numBytesUsed) +
+<FONT ID="LN">1346</FONT><A NAME="1346"></A>                <FONT ID="StringLiteral">" vs trigger="</FONT> + toMB(flushTrigger) +
+<FONT ID="LN">1347</FONT><A NAME="1347"></A>                <FONT ID="StringLiteral">" allocMB="</FONT> + toMB(numBytesAlloc) +
+<FONT ID="LN">1348</FONT><A NAME="1348"></A>                <FONT ID="StringLiteral">" deletesMB="</FONT> + toMB(deletesRAMUsed) +
+<FONT ID="LN">1349</FONT><A NAME="1349"></A>                <FONT ID="StringLiteral">" vs trigger="</FONT> + toMB(freeTrigger) +
+<FONT ID="LN">1350</FONT><A NAME="1350"></A>                <FONT ID="StringLiteral">" byteBlockFree="</FONT> + toMB(byteBlockAllocator.freeByteBlocks.size()*BYTE_BLOCK_SIZE) +
+<FONT ID="LN">1351</FONT><A NAME="1351"></A>                <FONT ID="StringLiteral">" charBlockFree="</FONT> + toMB(freeCharBlocks.size()*CHAR_BLOCK_SIZE*CHAR_NUM_BYTE));
+<FONT ID="LN">1352</FONT><A NAME="1352"></A>
+<FONT ID="LN">1353</FONT><A NAME="1353"></A>      <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> startBytesAlloc = numBytesAlloc + deletesRAMUsed;
+<FONT ID="LN">1354</FONT><A NAME="1354"></A>
+<FONT ID="LN">1355</FONT><A NAME="1355"></A>      <FONT ID="Int">int</FONT> iter = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1356</FONT><A NAME="1356"></A>
+<FONT ID="LN">1357</FONT><A NAME="1357"></A>      <FONT ID="SingleLineComment">// We free equally from each pool in 32 KB
+<FONT ID="LN">1358</FONT><A NAME="1358"></A></FONT>      <FONT ID="SingleLineComment">// chunks until we are below our threshold
+<FONT ID="LN">1359</FONT><A NAME="1359"></A></FONT>      <FONT ID="SingleLineComment">// (freeLevel)
+<FONT ID="LN">1360</FONT><A NAME="1360"></A></FONT>
+<FONT ID="LN">1361</FONT><A NAME="1361"></A>      <FONT ID="Boolean">boolean</FONT> any = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1362</FONT><A NAME="1362"></A>
+<FONT ID="LN">1363</FONT><A NAME="1363"></A>      <FONT ID="While">while</FONT>(numBytesAlloc+deletesRAMUsed &gt; freeLevel) {
+<FONT ID="LN">1364</FONT><A NAME="1364"></A>      
+<FONT ID="LN">1365</FONT><A NAME="1365"></A>        <FONT ID="Synchronized">synchronized</FONT>(<FONT ID="This">this</FONT>) {
+<FONT ID="LN">1366</FONT><A NAME="1366"></A>          <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">0</FONT> == byteBlockAllocator.freeByteBlocks.size() &amp;&amp; <FONT ID="IntegerLiteral">0</FONT> == freeCharBlocks.size() &amp;&amp; <FONT ID="IntegerLiteral">0</FONT> == freeIntBlocks.size() &amp;&amp; !any) {
+<FONT ID="LN">1367</FONT><A NAME="1367"></A>            <FONT ID="SingleLineComment">// Nothing else to free -- must flush now.
+<FONT ID="LN">1368</FONT><A NAME="1368"></A></FONT>            bufferIsFull = numBytesUsed+deletesRAMUsed &gt; flushTrigger;
+<FONT ID="LN">1369</FONT><A NAME="1369"></A>            <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1370</FONT><A NAME="1370"></A>              <FONT ID="If">if</FONT> (numBytesUsed &gt; flushTrigger)
+<FONT ID="LN">1371</FONT><A NAME="1371"></A>                message(<FONT ID="StringLiteral">"    nothing to free; now set bufferIsFull"</FONT>);
+<FONT ID="LN">1372</FONT><A NAME="1372"></A>              <FONT ID="Else">else</FONT>
+<FONT ID="LN">1373</FONT><A NAME="1373"></A>                message(<FONT ID="StringLiteral">"    nothing to free"</FONT>);
+<FONT ID="LN">1374</FONT><A NAME="1374"></A>            }
+<FONT ID="LN">1375</FONT><A NAME="1375"></A>            assert numBytesUsed &lt;= numBytesAlloc;
+<FONT ID="LN">1376</FONT><A NAME="1376"></A>            <FONT ID="Break">break</FONT>;
+<FONT ID="LN">1377</FONT><A NAME="1377"></A>          }
+<FONT ID="LN">1378</FONT><A NAME="1378"></A>
+<FONT ID="LN">1379</FONT><A NAME="1379"></A>          <FONT ID="If">if</FONT> ((<FONT ID="IntegerLiteral">0</FONT> == iter % <FONT ID="IntegerLiteral">4</FONT>) &amp;&amp; byteBlockAllocator.freeByteBlocks.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1380</FONT><A NAME="1380"></A>            byteBlockAllocator.freeByteBlocks.remove(byteBlockAllocator.freeByteBlocks.size()-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1381</FONT><A NAME="1381"></A>            numBytesAlloc -= BYTE_BLOCK_SIZE;
+<FONT ID="LN">1382</FONT><A NAME="1382"></A>          }
+<FONT ID="LN">1383</FONT><A NAME="1383"></A>
+<FONT ID="LN">1384</FONT><A NAME="1384"></A>          <FONT ID="If">if</FONT> ((<FONT ID="IntegerLiteral">1</FONT> == iter % <FONT ID="IntegerLiteral">4</FONT>) &amp;&amp; freeCharBlocks.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1385</FONT><A NAME="1385"></A>            freeCharBlocks.remove(freeCharBlocks.size()-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1386</FONT><A NAME="1386"></A>            numBytesAlloc -= CHAR_BLOCK_SIZE * CHAR_NUM_BYTE;
+<FONT ID="LN">1387</FONT><A NAME="1387"></A>          }
+<FONT ID="LN">1388</FONT><A NAME="1388"></A>
+<FONT ID="LN">1389</FONT><A NAME="1389"></A>          <FONT ID="If">if</FONT> ((<FONT ID="IntegerLiteral">2</FONT> == iter % <FONT ID="IntegerLiteral">4</FONT>) &amp;&amp; freeIntBlocks.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1390</FONT><A NAME="1390"></A>            freeIntBlocks.remove(freeIntBlocks.size()-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1391</FONT><A NAME="1391"></A>            numBytesAlloc -= INT_BLOCK_SIZE * INT_NUM_BYTE;
+<FONT ID="LN">1392</FONT><A NAME="1392"></A>          }
+<FONT ID="LN">1393</FONT><A NAME="1393"></A>        }
+<FONT ID="LN">1394</FONT><A NAME="1394"></A>
+<FONT ID="LN">1395</FONT><A NAME="1395"></A>        <FONT ID="If">if</FONT> ((<FONT ID="IntegerLiteral">3</FONT> == iter % <FONT ID="IntegerLiteral">4</FONT>) &amp;&amp; any)
+<FONT ID="LN">1396</FONT><A NAME="1396"></A>          <FONT ID="SingleLineComment">// Ask consumer to free any recycled state
+<FONT ID="LN">1397</FONT><A NAME="1397"></A></FONT>          any = consumer.freeRAM();
+<FONT ID="LN">1398</FONT><A NAME="1398"></A>
+<FONT ID="LN">1399</FONT><A NAME="1399"></A>        iter++;
+<FONT ID="LN">1400</FONT><A NAME="1400"></A>      }
+<FONT ID="LN">1401</FONT><A NAME="1401"></A>
+<FONT ID="LN">1402</FONT><A NAME="1402"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1403</FONT><A NAME="1403"></A>        message(<FONT ID="StringLiteral">"    after free: freedMB="</FONT> + nf.format((startBytesAlloc-numBytesAlloc-deletesRAMUsed)/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>) + <FONT ID="StringLiteral">" usedMB="</FONT> + nf.format((numBytesUsed+deletesRAMUsed)/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>) + <FONT ID="StringLiteral">" allocMB="</FONT> + nf.format(numBytesAlloc/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>));
+<FONT ID="LN">1404</FONT><A NAME="1404"></A>      
+<FONT ID="LN">1405</FONT><A NAME="1405"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1406</FONT><A NAME="1406"></A>      <FONT ID="SingleLineComment">// If we have not crossed the 100% mark, but have
+<FONT ID="LN">1407</FONT><A NAME="1407"></A></FONT>      <FONT ID="SingleLineComment">// crossed the 95% mark of RAM we are actually
+<FONT ID="LN">1408</FONT><A NAME="1408"></A></FONT>      <FONT ID="SingleLineComment">// using, go ahead and flush.  This prevents
+<FONT ID="LN">1409</FONT><A NAME="1409"></A></FONT>      <FONT ID="SingleLineComment">// over-allocating and then freeing, with every
+<FONT ID="LN">1410</FONT><A NAME="1410"></A></FONT>      <FONT ID="SingleLineComment">// flush.
+<FONT ID="LN">1411</FONT><A NAME="1411"></A></FONT>      <FONT ID="Synchronized">synchronized</FONT>(<FONT ID="This">this</FONT>) {
+<FONT ID="LN">1412</FONT><A NAME="1412"></A>
+<FONT ID="LN">1413</FONT><A NAME="1413"></A>        <FONT ID="If">if</FONT> (numBytesUsed+deletesRAMUsed &gt; flushTrigger) {
+<FONT ID="LN">1414</FONT><A NAME="1414"></A>          <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1415</FONT><A NAME="1415"></A>            message(<FONT ID="StringLiteral">"  RAM: now flush @ usedMB="</FONT> + nf.format(numBytesUsed/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>) +
+<FONT ID="LN">1416</FONT><A NAME="1416"></A>                    <FONT ID="StringLiteral">" allocMB="</FONT> + nf.format(numBytesAlloc/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>) +
+<FONT ID="LN">1417</FONT><A NAME="1417"></A>                    <FONT ID="StringLiteral">" deletesMB="</FONT> + nf.format(deletesRAMUsed/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>) +
+<FONT ID="LN">1418</FONT><A NAME="1418"></A>                    <FONT ID="StringLiteral">" triggerMB="</FONT> + nf.format(flushTrigger/<FONT ID="FloatPointLiteral">1024.</FONT>/<FONT ID="FloatPointLiteral">1024.</FONT>));
+<FONT ID="LN">1419</FONT><A NAME="1419"></A>
+<FONT ID="LN">1420</FONT><A NAME="1420"></A>          bufferIsFull = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1421</FONT><A NAME="1421"></A>        }
+<FONT ID="LN">1422</FONT><A NAME="1422"></A>      }
+<FONT ID="LN">1423</FONT><A NAME="1423"></A>    }
+<FONT ID="LN">1424</FONT><A NAME="1424"></A>  }
+<FONT ID="LN">1425</FONT><A NAME="1425"></A>
+<FONT ID="LN">1426</FONT><A NAME="1426"></A>  <FONT ID="Final">final</FONT> WaitQueue waitQueue = <FONT ID="New">new</FONT> WaitQueue();
+<FONT ID="LN">1427</FONT><A NAME="1427"></A>
+<FONT ID="LN">1428</FONT><A NAME="1428"></A>  <FONT ID="Private">private</FONT> <FONT ID="Class">class</FONT> WaitQueue {
+<FONT ID="LN">1429</FONT><A NAME="1429"></A>    DocWriter[] waiting;
+<FONT ID="LN">1430</FONT><A NAME="1430"></A>    <FONT ID="Int">int</FONT> nextWriteDocID;
+<FONT ID="LN">1431</FONT><A NAME="1431"></A>    <FONT ID="Int">int</FONT> nextWriteLoc;
+<FONT ID="LN">1432</FONT><A NAME="1432"></A>    <FONT ID="Int">int</FONT> numWaiting;
+<FONT ID="LN">1433</FONT><A NAME="1433"></A>    <FONT ID="Long">long</FONT> waitingBytes;
+<FONT ID="LN">1434</FONT><A NAME="1434"></A>
+<FONT ID="LN">1435</FONT><A NAME="1435"></A>    <FONT ID="Public">public</FONT> WaitQueue() {
+<FONT ID="LN">1436</FONT><A NAME="1436"></A>      waiting = <FONT ID="New">new</FONT> DocWriter[<FONT ID="IntegerLiteral">10</FONT>];
+<FONT ID="LN">1437</FONT><A NAME="1437"></A>    }
+<FONT ID="LN">1438</FONT><A NAME="1438"></A>
+<FONT ID="LN">1439</FONT><A NAME="1439"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> reset() {
+<FONT ID="LN">1440</FONT><A NAME="1440"></A>      <FONT ID="SingleLineComment">// NOTE: nextWriteLoc doesn't need to be reset
+<FONT ID="LN">1441</FONT><A NAME="1441"></A></FONT>      assert numWaiting == <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1442</FONT><A NAME="1442"></A>      assert waitingBytes == <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1443</FONT><A NAME="1443"></A>      nextWriteDocID = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1444</FONT><A NAME="1444"></A>    }
+<FONT ID="LN">1445</FONT><A NAME="1445"></A>
+<FONT ID="LN">1446</FONT><A NAME="1446"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> doResume() {
+<FONT ID="LN">1447</FONT><A NAME="1447"></A>      <FONT ID="Return">return</FONT> waitingBytes &lt;= waitQueueResumeBytes;
+<FONT ID="LN">1448</FONT><A NAME="1448"></A>    }
+<FONT ID="LN">1449</FONT><A NAME="1449"></A>
+<FONT ID="LN">1450</FONT><A NAME="1450"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> doPause() {
+<FONT ID="LN">1451</FONT><A NAME="1451"></A>      <FONT ID="Return">return</FONT> waitingBytes &gt; waitQueuePauseBytes;
+<FONT ID="LN">1452</FONT><A NAME="1452"></A>    }
+<FONT ID="LN">1453</FONT><A NAME="1453"></A>
+<FONT ID="LN">1454</FONT><A NAME="1454"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> abort() {
+<FONT ID="LN">1455</FONT><A NAME="1455"></A>      <FONT ID="Int">int</FONT> count = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1456</FONT><A NAME="1456"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;waiting.length;i++) {
+<FONT ID="LN">1457</FONT><A NAME="1457"></A>        <FONT ID="Final">final</FONT> DocWriter doc = waiting[i];
+<FONT ID="LN">1458</FONT><A NAME="1458"></A>        <FONT ID="If">if</FONT> (doc != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1459</FONT><A NAME="1459"></A>          doc.abort();
+<FONT ID="LN">1460</FONT><A NAME="1460"></A>          waiting[i] = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1461</FONT><A NAME="1461"></A>          count++;
+<FONT ID="LN">1462</FONT><A NAME="1462"></A>        }
+<FONT ID="LN">1463</FONT><A NAME="1463"></A>      }
+<FONT ID="LN">1464</FONT><A NAME="1464"></A>      waitingBytes = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1465</FONT><A NAME="1465"></A>      assert count == numWaiting;
+<FONT ID="LN">1466</FONT><A NAME="1466"></A>      numWaiting = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1467</FONT><A NAME="1467"></A>    }
+<FONT ID="LN">1468</FONT><A NAME="1468"></A>
+<FONT ID="LN">1469</FONT><A NAME="1469"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> writeDocument(DocWriter doc) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1470</FONT><A NAME="1470"></A>      assert doc == skipDocWriter || nextWriteDocID == doc.docID;
+<FONT ID="LN">1471</FONT><A NAME="1471"></A>      <FONT ID="Boolean">boolean</FONT> success = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1472</FONT><A NAME="1472"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1473</FONT><A NAME="1473"></A>        doc.finish();
+<FONT ID="LN">1474</FONT><A NAME="1474"></A>        nextWriteDocID++;
+<FONT ID="LN">1475</FONT><A NAME="1475"></A>        numDocsInStore++;
+<FONT ID="LN">1476</FONT><A NAME="1476"></A>        nextWriteLoc++;
+<FONT ID="LN">1477</FONT><A NAME="1477"></A>        assert nextWriteLoc &lt;= waiting.length;
+<FONT ID="LN">1478</FONT><A NAME="1478"></A>        <FONT ID="If">if</FONT> (nextWriteLoc == waiting.length)
+<FONT ID="LN">1479</FONT><A NAME="1479"></A>          nextWriteLoc = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1480</FONT><A NAME="1480"></A>        success = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1481</FONT><A NAME="1481"></A>      } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">1482</FONT><A NAME="1482"></A>        <FONT ID="If">if</FONT> (!success)
+<FONT ID="LN">1483</FONT><A NAME="1483"></A>          setAborting();
+<FONT ID="LN">1484</FONT><A NAME="1484"></A>      }
+<FONT ID="LN">1485</FONT><A NAME="1485"></A>    }
+<FONT ID="LN">1486</FONT><A NAME="1486"></A>
+<FONT ID="LN">1487</FONT><A NAME="1487"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> add(DocWriter doc) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1488</FONT><A NAME="1488"></A>
+<FONT ID="LN">1489</FONT><A NAME="1489"></A>      assert doc.docID &gt;= nextWriteDocID;
+<FONT ID="LN">1490</FONT><A NAME="1490"></A>
+<FONT ID="LN">1491</FONT><A NAME="1491"></A>      <FONT ID="If">if</FONT> (doc.docID == nextWriteDocID) {
+<FONT ID="LN">1492</FONT><A NAME="1492"></A>        writeDocument(doc);
+<FONT ID="LN">1493</FONT><A NAME="1493"></A>        <FONT ID="While">while</FONT>(<FONT ID="True">true</FONT>) {
+<FONT ID="LN">1494</FONT><A NAME="1494"></A>          doc = waiting[nextWriteLoc];
+<FONT ID="LN">1495</FONT><A NAME="1495"></A>          <FONT ID="If">if</FONT> (doc != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1496</FONT><A NAME="1496"></A>            numWaiting--;
+<FONT ID="LN">1497</FONT><A NAME="1497"></A>            waiting[nextWriteLoc] = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1498</FONT><A NAME="1498"></A>            waitingBytes -= doc.sizeInBytes();
+<FONT ID="LN">1499</FONT><A NAME="1499"></A>            writeDocument(doc);
+<FONT ID="LN">1500</FONT><A NAME="1500"></A>          } <FONT ID="Else">else</FONT>
+<FONT ID="LN">1501</FONT><A NAME="1501"></A>            <FONT ID="Break">break</FONT>;
+<FONT ID="LN">1502</FONT><A NAME="1502"></A>        }
+<FONT ID="LN">1503</FONT><A NAME="1503"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1504</FONT><A NAME="1504"></A>
+<FONT ID="LN">1505</FONT><A NAME="1505"></A>        <FONT ID="SingleLineComment">// I finished before documents that were added
+<FONT ID="LN">1506</FONT><A NAME="1506"></A></FONT>        <FONT ID="SingleLineComment">// before me.  This can easily happen when I am a
+<FONT ID="LN">1507</FONT><A NAME="1507"></A></FONT>        <FONT ID="SingleLineComment">// small doc and the docs before me were large, or,
+<FONT ID="LN">1508</FONT><A NAME="1508"></A></FONT>        <FONT ID="SingleLineComment">// just due to luck in the thread scheduling.  Just
+<FONT ID="LN">1509</FONT><A NAME="1509"></A></FONT>        <FONT ID="SingleLineComment">// add myself to the queue and when that large doc
+<FONT ID="LN">1510</FONT><A NAME="1510"></A></FONT>        <FONT ID="SingleLineComment">// finishes, it will flush me:
+<FONT ID="LN">1511</FONT><A NAME="1511"></A></FONT>        <FONT ID="Int">int</FONT> gap = doc.docID - nextWriteDocID;
+<FONT ID="LN">1512</FONT><A NAME="1512"></A>        <FONT ID="If">if</FONT> (gap &gt;= waiting.length) {
+<FONT ID="LN">1513</FONT><A NAME="1513"></A>          <FONT ID="SingleLineComment">// Grow queue
+<FONT ID="LN">1514</FONT><A NAME="1514"></A></FONT>          DocWriter[] newArray = <FONT ID="New">new</FONT> DocWriter[ArrayUtil.getNextSize(gap)];
+<FONT ID="LN">1515</FONT><A NAME="1515"></A>          assert nextWriteLoc &gt;= <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1516</FONT><A NAME="1516"></A>          System.arraycopy(waiting, nextWriteLoc, newArray, <FONT ID="IntegerLiteral">0</FONT>, waiting.length-nextWriteLoc);
+<FONT ID="LN">1517</FONT><A NAME="1517"></A>          System.arraycopy(waiting, <FONT ID="IntegerLiteral">0</FONT>, newArray, waiting.length-nextWriteLoc, nextWriteLoc);
+<FONT ID="LN">1518</FONT><A NAME="1518"></A>          nextWriteLoc = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1519</FONT><A NAME="1519"></A>          waiting = newArray;
+<FONT ID="LN">1520</FONT><A NAME="1520"></A>          gap = doc.docID - nextWriteDocID;
+<FONT ID="LN">1521</FONT><A NAME="1521"></A>        }
+<FONT ID="LN">1522</FONT><A NAME="1522"></A>
+<FONT ID="LN">1523</FONT><A NAME="1523"></A>        <FONT ID="Int">int</FONT> loc = nextWriteLoc + gap;
+<FONT ID="LN">1524</FONT><A NAME="1524"></A>        <FONT ID="If">if</FONT> (loc &gt;= waiting.length)
+<FONT ID="LN">1525</FONT><A NAME="1525"></A>          loc -= waiting.length;
+<FONT ID="LN">1526</FONT><A NAME="1526"></A>
+<FONT ID="LN">1527</FONT><A NAME="1527"></A>        <FONT ID="SingleLineComment">// We should only wrap one time
+<FONT ID="LN">1528</FONT><A NAME="1528"></A></FONT>        assert loc &lt; waiting.length;
+<FONT ID="LN">1529</FONT><A NAME="1529"></A>
+<FONT ID="LN">1530</FONT><A NAME="1530"></A>        <FONT ID="SingleLineComment">// Nobody should be in my spot!
+<FONT ID="LN">1531</FONT><A NAME="1531"></A></FONT>        assert waiting[loc] == <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1532</FONT><A NAME="1532"></A>        waiting[loc] = doc;
+<FONT ID="LN">1533</FONT><A NAME="1533"></A>        numWaiting++;
+<FONT ID="LN">1534</FONT><A NAME="1534"></A>        waitingBytes += doc.sizeInBytes();
+<FONT ID="LN">1535</FONT><A NAME="1535"></A>      }
+<FONT ID="LN">1536</FONT><A NAME="1536"></A>      
+<FONT ID="LN">1537</FONT><A NAME="1537"></A>      <FONT ID="Return">return</FONT> doPause();
+<FONT ID="LN">1538</FONT><A NAME="1538"></A>    }
+<FONT ID="LN">1539</FONT><A NAME="1539"></A>  }
+<FONT ID="LN">1540</FONT><A NAME="1540"></A>}
+<FONT ID="LN">1541</FONT><A NAME="1541"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">DocumentsWriter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

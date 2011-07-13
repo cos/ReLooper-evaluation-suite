@@ -1,0 +1,237 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.coherence.DocumentPairParser (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">DocumentPairParser.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.coherence;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.util.Random;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/parse/Parser.java.html">LBJ2.parse.Parser</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">LBJ2.nlp.coref.Document</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * This parser can return pairs of documents constructed in several different
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * ways.  There are two major modes of operation.
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  *
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * &lt;ol&gt;
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  *   &lt;li&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  *     Given a single &lt;code&gt;Parser&lt;/code&gt; that returns {@link Document}s,
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  *     this parser will return objects representing pairs of documents, the
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  *     first of which contains sentences in their natural order, and the
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  *     second of which contains a shuffling of the first document.  The
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  *     shuffling can be either a permutation of the sentence order or a
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  *     permutation of the mentions' entity ID assignments.
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  *   &lt;li&gt;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  *     Given two &lt;code&gt;Parser&lt;/code&gt;s that return {@link Document}s, this
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  *     parser will assume the two return the same documents in the same
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  *     order and form pairs accordingly.  The documents returned by the
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  *     second parser will be considered "shuffled".
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  * &lt;/ol&gt;
+<FONT ID="LN">26  </FONT><A NAME="26"></A> **/</FONT>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> DocumentPairParser <FONT ID="Implements">implements</FONT> <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>{
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    * Creates a seed for random number generation from a document.
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    *
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    * @param d  A document from which to generate a seed.
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    * @return A seed for random number generation.
+<FONT ID="LN">34  </FONT><A NAME="34"></A>   **/</FONT>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> generateSeed(<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> d)
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="Return">return</FONT> d.getName().hashCode();
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  }
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="FormalComment">/** The current document from which document pairs are extracted. */</FONT>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> doc;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="FormalComment">/** The maximum number of document pairs to extract from each document. */</FONT>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> max;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    * The number of document pairs generated from the current document so far.
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   **/</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> index;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="FormalComment">/** A parser that provides {@link Document}s. */</FONT>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> parser;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    * This random number generator is reseeded for each new document according
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    * to the document's name, so that the shuffled document in the pair is
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    * always shuffled in the same way, so long as the document's name is never
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    * changed.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   **/</FONT>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="Private">private</FONT> Random randomizer;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    * The shuffling strategy (described in more detail in the constructors'
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    * documentation).
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   **/</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> shuffleIds;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="FormalComment">/** The mode of operation; either 1 or 2 as described above. */</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> mode;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="FormalComment">/** A second parser for the second mode of operation described above. */</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> shuffledParser;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    * Controls whether or not the documents in the pair are positioned
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    * randomly.
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   **/</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> shufflePairOrder;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    * Initializing constructor.  Pairs will be generated by pairing a
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    * naturally parsed document with the same document after shuffling its
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    * sentences.
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    *
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    * @param p  A parser that provides {@link Document}s.
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    * @param m  The maximum number of document pairs to extract from each
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    *           document.
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   **/</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  <FONT ID="Public">public</FONT> DocumentPairParser(<A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> p, <FONT ID="Int">int</FONT> m) { <FONT ID="This">this</FONT>(p, m, <FONT ID="False">false</FONT>); }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    * Initializing constructor.
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    *
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    * @param p  A parser that provides {@link Document}s.
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    * @param m  The maximum number of document pairs to extract from each
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    *           document.
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    * @param s  The shuffling strategy.  If &lt;code&gt;true&lt;/code&gt;, pairs will be
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    *           generated by pairing a naturally parsed document with the same
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    *           document after randomly reassigning the entity IDs to the
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    *           mentions.  Otherwise, sentence order is shuffled.
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   **/</FONT>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  <FONT ID="Public">public</FONT> DocumentPairParser(<A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> p, <FONT ID="Int">int</FONT> m, <FONT ID="Boolean">boolean</FONT> s)
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  {
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    <FONT ID="This">this</FONT>(p, m, s, <FONT ID="True">true</FONT>);
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  }
+<FONT ID="LN">100 </FONT><A NAME="100"></A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    * Initializing constructor.
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    *
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    * @param p  A parser that provides {@link Document}s.
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    * @param m  The maximum number of document pairs to extract from each
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    *           document.
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    * @param s  The shuffling strategy.  If &lt;code&gt;true&lt;/code&gt;, pairs will be
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    *           generated by pairing a naturally parsed document with the same
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    *           document after randomly reassigning the entity IDs to the
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    *           mentions.  Otherwise, sentence order is shuffled.
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    * @param o  Whether or not to shuffle the document pair order.
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   **/</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Public">public</FONT> DocumentPairParser(<A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> p, <FONT ID="Int">int</FONT> m, <FONT ID="Boolean">boolean</FONT> s, <FONT ID="Boolean">boolean</FONT> o)
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  {
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    parser = p;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    doc = (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>) parser.next();
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="If">if</FONT> (doc != <FONT ID="Null">null</FONT>) randomizer = <FONT ID="New">new</FONT> Random(generateSeed(doc));
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    max = m;
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    shuffleIds = s;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    shufflePairOrder = o;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    mode = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  }
+<FONT ID="LN">123 </FONT><A NAME="123"></A>
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    * Initializing constructor.
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    *
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    * @param lp A parser returning documents which will be considered more
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    *           coherent than the corresponding documents returned by the
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    *           other parser.
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    * @param sp The other parser.
+<FONT ID="LN">131 </FONT><A NAME="131"></A>   **/</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  <FONT ID="Public">public</FONT> DocumentPairParser(<A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> lp, <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> sp) { <FONT ID="This">this</FONT>(lp, sp, <FONT ID="True">true</FONT>); }
+<FONT ID="LN">133 </FONT><A NAME="133"></A>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    * Initializing constructor.
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    *
+<FONT ID="LN">137 </FONT><A NAME="137"></A>    * @param lp A parser returning documents which will be considered more
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    *           coherent than the corresponding documents returned by the
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    *           other parser.
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    * @param sp The other parser.
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    * @param o  Whether or not to shuffle the document pair order.
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   **/</FONT>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="Public">public</FONT> DocumentPairParser(<A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> lp, <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> sp, <FONT ID="Boolean">boolean</FONT> o)
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    parser = lp;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    shuffledParser = sp;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    shufflePairOrder = o;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    mode = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  }
+<FONT ID="LN">150 </FONT><A NAME="150"></A>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="FormalComment">/** Retrieves the next pair of documents in a &lt;code&gt;Document[]&lt;/code&gt;. */</FONT>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  <FONT ID="Public">public</FONT> Object next()
+<FONT ID="LN">154 </FONT><A NAME="154"></A>  {
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    <FONT ID="If">if</FONT> (mode == <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    {
+<FONT ID="LN">157 </FONT><A NAME="157"></A>      <FONT ID="While">while</FONT> (doc != <FONT ID="Null">null</FONT>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>             &amp;&amp; (index &gt;= max
+<FONT ID="LN">159 </FONT><A NAME="159"></A>                 || index &gt;= doc.sentences() * (doc.sentences() - <FONT ID="IntegerLiteral">1</FONT>) / <FONT ID="IntegerLiteral">4</FONT>))
+<FONT ID="LN">160 </FONT><A NAME="160"></A>      {
+<FONT ID="LN">161 </FONT><A NAME="161"></A>        doc = (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>) parser.next();
+<FONT ID="LN">162 </FONT><A NAME="162"></A>        <FONT ID="SingleLineComment">//System.out.println(doc.getName());
+<FONT ID="LN">163 </FONT><A NAME="163"></A></FONT>        <FONT ID="If">if</FONT> (doc != <FONT ID="Null">null</FONT>) randomizer = <FONT ID="New">new</FONT> Random(generateSeed(doc));
+<FONT ID="LN">164 </FONT><A NAME="164"></A>        index = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">165 </FONT><A NAME="165"></A>      }
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>      <FONT ID="If">if</FONT> (doc == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">168 </FONT><A NAME="168"></A>      <FONT ID="SingleLineComment">//System.out.println(doc.getName() + ": " + index);
+<FONT ID="LN">169 </FONT><A NAME="169"></A></FONT>      ++index;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>      <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> shuffled = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">171 </FONT><A NAME="171"></A>      <FONT ID="If">if</FONT> (shuffleIds) shuffled = doc.shuffleEntityIds(randomizer);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      <FONT ID="Else">else</FONT> shuffled = doc.shuffleSentences(randomizer);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>      <FONT ID="If">if</FONT> (shufflePairOrder)
+<FONT ID="LN">175 </FONT><A NAME="175"></A>      {
+<FONT ID="LN">176 </FONT><A NAME="176"></A>        <FONT ID="If">if</FONT> (randomizer.nextBoolean())
+<FONT ID="LN">177 </FONT><A NAME="177"></A>          <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>[]{ doc, shuffled };
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      }
+<FONT ID="LN">179 </FONT><A NAME="179"></A>      <FONT ID="Else">else</FONT> randomizer.nextBoolean();
+<FONT ID="LN">180 </FONT><A NAME="180"></A>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>[]{ shuffled, doc };
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    }
+<FONT ID="LN">183 </FONT><A NAME="183"></A>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> moreCoherent = (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>) parser.next();
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    <FONT ID="If">if</FONT> (moreCoherent == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    moreCoherent.setMoreCoherent(<FONT ID="True">true</FONT>);
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> lessCoherent = (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>) shuffledParser.next();
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    lessCoherent.setMoreCoherent(<FONT ID="False">false</FONT>);
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    <FONT ID="If">if</FONT> (shufflePairOrder
+<FONT ID="LN">190 </FONT><A NAME="190"></A>        &amp;&amp; <FONT ID="New">new</FONT> Random(moreCoherent.getName().hashCode()).nextBoolean())
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>[]{ moreCoherent, lessCoherent };
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>[]{ lessCoherent, moreCoherent };
+<FONT ID="LN">193 </FONT><A NAME="193"></A>  }
+<FONT ID="LN">194 </FONT><A NAME="194"></A>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> reset()
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  {
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    parser.reset();
+<FONT ID="LN">199 </FONT><A NAME="199"></A>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    <FONT ID="If">if</FONT> (mode == <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    {
+<FONT ID="LN">202 </FONT><A NAME="202"></A>      doc = (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>) parser.next();
+<FONT ID="LN">203 </FONT><A NAME="203"></A>      <FONT ID="If">if</FONT> (doc != <FONT ID="Null">null</FONT>) randomizer = <FONT ID="New">new</FONT> Random(generateSeed(doc));
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    }
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    <FONT ID="Else">else</FONT> shuffledParser.reset();
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>}
+<FONT ID="LN">208 </FONT><A NAME="208"></A>
+<FONT ID="LN">209 </FONT><A NAME="209"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">DocumentPairParser.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

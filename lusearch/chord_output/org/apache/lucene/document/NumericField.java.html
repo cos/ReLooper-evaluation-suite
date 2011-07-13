@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.document.NumericField (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">NumericField.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.document;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.Reader;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/analysis/TokenStream.java.html">org.apache.lucene.analysis.TokenStream</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/analysis/NumericTokenStream.java.html">org.apache.lucene.analysis.NumericTokenStream</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/NumericUtils.java.html">org.apache.lucene.util.NumericUtils</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/NumericRangeQuery.java.html">org.apache.lucene.search.NumericRangeQuery</A>; <FONT ID="SingleLineComment">// javadocs
+<FONT ID="LN">26  </FONT><A NAME="26"></A></FONT><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/NumericRangeFilter.java.html">org.apache.lucene.search.NumericRangeFilter</A>; <FONT ID="SingleLineComment">// javadocs
+<FONT ID="LN">27  </FONT><A NAME="27"></A></FONT><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/SortField.java.html">org.apache.lucene.search.SortField</A>; <FONT ID="SingleLineComment">// javadocs
+<FONT ID="LN">28  </FONT><A NAME="28"></A></FONT><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">org.apache.lucene.search.FieldCache</A>; <FONT ID="SingleLineComment">// javadocs
+<FONT ID="LN">29  </FONT><A NAME="29"></A></FONT>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * &lt;p&gt;This class provides a {@link Field} that enables indexing
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * of numeric values for efficient range filtering and
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * sorting.  Here's an example usage, adding an int value:
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * &lt;pre&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A> *  document.add(new NumericField(name).setIntValue(value));
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * &lt;/pre&gt;
+<FONT ID="LN">37  </FONT><A NAME="37"></A> *
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * For optimal performance, re-use the
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * &lt;code&gt;NumericField&lt;/code&gt; and {@link Document} instance for more than
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * one document:
+<FONT ID="LN">41  </FONT><A NAME="41"></A> *
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * &lt;pre&gt;
+<FONT ID="LN">43  </FONT><A NAME="43"></A> *  NumericField field = new NumericField(name);
+<FONT ID="LN">44  </FONT><A NAME="44"></A> *  Document document = new Document();
+<FONT ID="LN">45  </FONT><A NAME="45"></A> *  document.add(field);
+<FONT ID="LN">46  </FONT><A NAME="46"></A> *
+<FONT ID="LN">47  </FONT><A NAME="47"></A> *  for(all documents) {
+<FONT ID="LN">48  </FONT><A NAME="48"></A> *    ...
+<FONT ID="LN">49  </FONT><A NAME="49"></A> *    field.setIntValue(value)
+<FONT ID="LN">50  </FONT><A NAME="50"></A> *    writer.addDocument(document);
+<FONT ID="LN">51  </FONT><A NAME="51"></A> *    ...
+<FONT ID="LN">52  </FONT><A NAME="52"></A> *  }
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * &lt;/pre&gt;
+<FONT ID="LN">54  </FONT><A NAME="54"></A> *
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * &lt;p&gt;The java native types &lt;code&gt;int&lt;/code&gt;, &lt;code&gt;long&lt;/code&gt;,
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * &lt;code&gt;float&lt;/code&gt; and &lt;code&gt;double&lt;/code&gt; are
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * directly supported.  However, any value that can be
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * converted into these native types can also be indexed.
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * For example, date/time values represented by a
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * {@link java.util.Date} can be translated into a long
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * value using the {@link java.util.Date#getTime} method.  If you
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * don't need millisecond precision, you can quantize the
+<FONT ID="LN">63  </FONT><A NAME="63"></A> * value, either by dividing the result of
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * {@link java.util.Date#getTime} or using the separate getters
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * (for year, month, etc.) to construct an &lt;code&gt;int&lt;/code&gt; or
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * &lt;code&gt;long&lt;/code&gt; value.&lt;/p&gt;
+<FONT ID="LN">67  </FONT><A NAME="67"></A> *
+<FONT ID="LN">68  </FONT><A NAME="68"></A> * &lt;p&gt;To perform range querying or filtering against a
+<FONT ID="LN">69  </FONT><A NAME="69"></A> * &lt;code&gt;NumericField&lt;/code&gt;, use {@link NumericRangeQuery} or {@link
+<FONT ID="LN">70  </FONT><A NAME="70"></A> * NumericRangeFilter}.  To sort according to a
+<FONT ID="LN">71  </FONT><A NAME="71"></A> * &lt;code&gt;NumericField&lt;/code&gt;, use the normal numeric sort types, eg
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * {@link SortField#INT} (note that {@link SortField#AUTO}
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * will not work with these fields).  &lt;code&gt;NumericField&lt;/code&gt; values
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * can also be loaded directly from {@link FieldCache}.&lt;/p&gt;
+<FONT ID="LN">75  </FONT><A NAME="75"></A> *
+<FONT ID="LN">76  </FONT><A NAME="76"></A> * &lt;p&gt;By default, a &lt;code&gt;NumericField&lt;/code&gt;'s value is not stored but
+<FONT ID="LN">77  </FONT><A NAME="77"></A> * is indexed for range filtering and sorting.  You can use
+<FONT ID="LN">78  </FONT><A NAME="78"></A> * the {@link #NumericField(String,Field.Store,boolean)}
+<FONT ID="LN">79  </FONT><A NAME="79"></A> * constructor if you need to change these defaults.&lt;/p&gt;
+<FONT ID="LN">80  </FONT><A NAME="80"></A> *
+<FONT ID="LN">81  </FONT><A NAME="81"></A> * &lt;p&gt;You may add the same field name as a &lt;code&gt;NumericField&lt;/code&gt; to
+<FONT ID="LN">82  </FONT><A NAME="82"></A> * the same document more than once.  Range querying and
+<FONT ID="LN">83  </FONT><A NAME="83"></A> * filtering will be the logical OR of all values; so a range query
+<FONT ID="LN">84  </FONT><A NAME="84"></A> * will hit all documents that have at least one value in
+<FONT ID="LN">85  </FONT><A NAME="85"></A> * the range. However sort behavior is not defined.  If you need to sort,
+<FONT ID="LN">86  </FONT><A NAME="86"></A> * you should separately index a single-valued &lt;code&gt;NumericField&lt;/code&gt;.&lt;/p&gt;
+<FONT ID="LN">87  </FONT><A NAME="87"></A> *
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * &lt;p&gt;A &lt;code&gt;NumericField&lt;/code&gt; will consume somewhat more disk space
+<FONT ID="LN">89  </FONT><A NAME="89"></A> * in the index than an ordinary single-valued field.
+<FONT ID="LN">90  </FONT><A NAME="90"></A> * However, for a typical index that includes substantial
+<FONT ID="LN">91  </FONT><A NAME="91"></A> * textual content per document, this increase will likely
+<FONT ID="LN">92  </FONT><A NAME="92"></A> * be in the noise. &lt;/p&gt;
+<FONT ID="LN">93  </FONT><A NAME="93"></A> *
+<FONT ID="LN">94  </FONT><A NAME="94"></A> * &lt;p&gt;Within Lucene, each numeric value is indexed as a
+<FONT ID="LN">95  </FONT><A NAME="95"></A> * &lt;em&gt;trie&lt;/em&gt; structure, where each term is logically
+<FONT ID="LN">96  </FONT><A NAME="96"></A> * assigned to larger and larger pre-defined brackets (which
+<FONT ID="LN">97  </FONT><A NAME="97"></A> * are simply lower-precision representations of the value).
+<FONT ID="LN">98  </FONT><A NAME="98"></A> * The step size between each successive bracket is called the
+<FONT ID="LN">99  </FONT><A NAME="99"></A> * &lt;code&gt;precisionStep&lt;/code&gt;, measured in bits.  Smaller
+<FONT ID="LN">100 </FONT><A NAME="100"></A> * &lt;code&gt;precisionStep&lt;/code&gt; values result in larger number
+<FONT ID="LN">101 </FONT><A NAME="101"></A> * of brackets, which consumes more disk space in the index
+<FONT ID="LN">102 </FONT><A NAME="102"></A> * but may result in faster range search performance.  The
+<FONT ID="LN">103 </FONT><A NAME="103"></A> * default value, 4, was selected for a reasonable tradeoff
+<FONT ID="LN">104 </FONT><A NAME="104"></A> * of disk space consumption versus performance.  You can
+<FONT ID="LN">105 </FONT><A NAME="105"></A> * use the expert constructor {@link
+<FONT ID="LN">106 </FONT><A NAME="106"></A> * #NumericField(String,int,Field.Store,boolean)} if you'd
+<FONT ID="LN">107 </FONT><A NAME="107"></A> * like to change the value.  Note that you must also
+<FONT ID="LN">108 </FONT><A NAME="108"></A> * specify a congruent value when creating {@link
+<FONT ID="LN">109 </FONT><A NAME="109"></A> * NumericRangeQuery} or {@link NumericRangeFilter}.
+<FONT ID="LN">110 </FONT><A NAME="110"></A> * For low cardinality fields larger precision steps are good.
+<FONT ID="LN">111 </FONT><A NAME="111"></A> * If the cardinality is &amp;lt; 100, it is fair
+<FONT ID="LN">112 </FONT><A NAME="112"></A> * to use {@link Integer#MAX_VALUE}, which produces one
+<FONT ID="LN">113 </FONT><A NAME="113"></A> * term per value.
+<FONT ID="LN">114 </FONT><A NAME="114"></A> *
+<FONT ID="LN">115 </FONT><A NAME="115"></A> * &lt;p&gt;For more information on the internals of numeric trie
+<FONT ID="LN">116 </FONT><A NAME="116"></A> * indexing, including the &lt;a
+<FONT ID="LN">117 </FONT><A NAME="117"></A> * href="../search/NumericRangeQuery.html#precisionStepDesc"&gt;&lt;code&gt;precisionStep&lt;/code&gt;&lt;/a&gt;
+<FONT ID="LN">118 </FONT><A NAME="118"></A> * configuration, see {@link NumericRangeQuery}. The format of
+<FONT ID="LN">119 </FONT><A NAME="119"></A> * indexed values is described in {@link NumericUtils}.
+<FONT ID="LN">120 </FONT><A NAME="120"></A> *
+<FONT ID="LN">121 </FONT><A NAME="121"></A> * &lt;p&gt;If you only need to sort by numeric value, and never
+<FONT ID="LN">122 </FONT><A NAME="122"></A> * run range querying/filtering, you can index using a
+<FONT ID="LN">123 </FONT><A NAME="123"></A> * &lt;code&gt;precisionStep&lt;/code&gt; of {@link Integer#MAX_VALUE}.
+<FONT ID="LN">124 </FONT><A NAME="124"></A> * This will minimize disk space consumed. &lt;/p&gt;
+<FONT ID="LN">125 </FONT><A NAME="125"></A> *
+<FONT ID="LN">126 </FONT><A NAME="126"></A> * &lt;p&gt;More advanced users can instead use {@link
+<FONT ID="LN">127 </FONT><A NAME="127"></A> * NumericTokenStream} directly, when indexing numbers. This
+<FONT ID="LN">128 </FONT><A NAME="128"></A> * class is a wrapper around this token stream type for
+<FONT ID="LN">129 </FONT><A NAME="129"></A> * easier, more intuitive usage.&lt;/p&gt;
+<FONT ID="LN">130 </FONT><A NAME="130"></A> *
+<FONT ID="LN">131 </FONT><A NAME="131"></A> * &lt;p&gt;&lt;b&gt;NOTE:&lt;/b&gt; This class is only used during
+<FONT ID="LN">132 </FONT><A NAME="132"></A> * indexing. When retrieving the stored field value from a
+<FONT ID="LN">133 </FONT><A NAME="133"></A> * {@link Document} instance after search, you will get a
+<FONT ID="LN">134 </FONT><A NAME="134"></A> * conventional {@link Fieldable} instance where the numeric
+<FONT ID="LN">135 </FONT><A NAME="135"></A> * values are returned as {@link String}s (according to
+<FONT ID="LN">136 </FONT><A NAME="136"></A> * &lt;code&gt;toString(value)&lt;/code&gt; of the used data type).
+<FONT ID="LN">137 </FONT><A NAME="137"></A> *
+<FONT ID="LN">138 </FONT><A NAME="138"></A> * &lt;p&gt;&lt;font color="red"&gt;&lt;b&gt;NOTE:&lt;/b&gt; This API is
+<FONT ID="LN">139 </FONT><A NAME="139"></A> * experimental and might change in incompatible ways in the
+<FONT ID="LN">140 </FONT><A NAME="140"></A> * next release.&lt;/font&gt;
+<FONT ID="LN">141 </FONT><A NAME="141"></A> *
+<FONT ID="LN">142 </FONT><A NAME="142"></A> * @since 2.9
+<FONT ID="LN">143 </FONT><A NAME="143"></A> */</FONT>
+<FONT ID="LN">144 </FONT><A NAME="144"></A><FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> NumericField <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/document/AbstractField.java.html">AbstractField</A> {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/analysis/NumericTokenStream.java.html">NumericTokenStream</A> tokenStream;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">149 </FONT><A NAME="149"></A>   * Creates a field for numeric values using the default &lt;code&gt;precisionStep&lt;/code&gt;
+<FONT ID="LN">150 </FONT><A NAME="150"></A>   * {@link NumericUtils#PRECISION_STEP_DEFAULT} (4). The instance is not yet initialized with
+<FONT ID="LN">151 </FONT><A NAME="151"></A>   * a numeric value, before indexing a document containing this field,
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * set a value using the various set&lt;em&gt;???&lt;/em&gt;Value() methods.
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * This constructor creates an indexed, but not stored field.
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * @param name the field name
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   */</FONT>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  <FONT ID="Public">public</FONT> NumericField(String name) {
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    <FONT ID="This">this</FONT>(name, NumericUtils.PRECISION_STEP_DEFAULT, Field.Store.NO, <FONT ID="True">true</FONT>);
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  }
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   * Creates a field for numeric values using the default &lt;code&gt;precisionStep&lt;/code&gt;
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   * {@link NumericUtils#PRECISION_STEP_DEFAULT} (4). The instance is not yet initialized with
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * a numeric value, before indexing a document containing this field,
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   * set a value using the various set&lt;em&gt;???&lt;/em&gt;Value() methods.
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * @param name the field name
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * @param store if the field should be stored in plain text form
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   *  (according to &lt;code&gt;toString(value)&lt;/code&gt; of the used data type)
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * @param index if the field should be indexed using {@link NumericTokenStream}
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   */</FONT>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  <FONT ID="Public">public</FONT> NumericField(String name, <A HREF="../../../../org/apache/lucene/document/Field.java.html">Field.Store</A> store, <FONT ID="Boolean">boolean</FONT> index) {
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="This">this</FONT>(name, NumericUtils.PRECISION_STEP_DEFAULT, store, index);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>  }
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">175 </FONT><A NAME="175"></A>   * Creates a field for numeric values with the specified
+<FONT ID="LN">176 </FONT><A NAME="176"></A>   * &lt;code&gt;precisionStep&lt;/code&gt;. The instance is not yet initialized with
+<FONT ID="LN">177 </FONT><A NAME="177"></A>   * a numeric value, before indexing a document containing this field,
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   * set a value using the various set&lt;em&gt;???&lt;/em&gt;Value() methods.
+<FONT ID="LN">179 </FONT><A NAME="179"></A>   * This constructor creates an indexed, but not stored field.
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   * @param name the field name
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * @param precisionStep the used &lt;a href="../search/NumericRangeQuery.html#precisionStepDesc"&gt;precision step&lt;/a&gt;
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   */</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="Public">public</FONT> NumericField(String name, <FONT ID="Int">int</FONT> precisionStep) {
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    <FONT ID="This">this</FONT>(name, precisionStep, Field.Store.NO, <FONT ID="True">true</FONT>);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  }
+<FONT ID="LN">186 </FONT><A NAME="186"></A>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   * Creates a field for numeric values with the specified
+<FONT ID="LN">189 </FONT><A NAME="189"></A>   * &lt;code&gt;precisionStep&lt;/code&gt;. The instance is not yet initialized with
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   * a numeric value, before indexing a document containing this field,
+<FONT ID="LN">191 </FONT><A NAME="191"></A>   * set a value using the various set&lt;em&gt;???&lt;/em&gt;Value() methods.
+<FONT ID="LN">192 </FONT><A NAME="192"></A>   * @param name the field name
+<FONT ID="LN">193 </FONT><A NAME="193"></A>   * @param precisionStep the used &lt;a href="../search/NumericRangeQuery.html#precisionStepDesc"&gt;precision step&lt;/a&gt;
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   * @param store if the field should be stored in plain text form
+<FONT ID="LN">195 </FONT><A NAME="195"></A>   *  (according to &lt;code&gt;toString(value)&lt;/code&gt; of the used data type)
+<FONT ID="LN">196 </FONT><A NAME="196"></A>   * @param index if the field should be indexed using {@link NumericTokenStream}
+<FONT ID="LN">197 </FONT><A NAME="197"></A>   */</FONT>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  <FONT ID="Public">public</FONT> NumericField(String name, <FONT ID="Int">int</FONT> precisionStep, <A HREF="../../../../org/apache/lucene/document/Field.java.html">Field.Store</A> store, <FONT ID="Boolean">boolean</FONT> index) {
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    <FONT ID="Super">super</FONT>(name, store, index ? Field.Index.ANALYZED_NO_NORMS : Field.Index.NO, Field.TermVector.NO);
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    setOmitTermFreqAndPositions(<FONT ID="True">true</FONT>);
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    tokenStream = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/analysis/NumericTokenStream.java.html">NumericTokenStream</A>(precisionStep);
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  }
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  <FONT ID="FormalComment">/** Returns a {@link NumericTokenStream} for indexing the numeric value. */</FONT>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/analysis/TokenStream.java.html">TokenStream</A> tokenStreamValue()   {
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    <FONT ID="Return">return</FONT> isIndexed() ? tokenStream : <FONT ID="Null">null</FONT>;
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  }
+<FONT ID="LN">208 </FONT><A NAME="208"></A>  
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="FormalComment">/** Returns always &lt;code&gt;null&lt;/code&gt; for numeric fields */</FONT>
+<FONT ID="LN">210 </FONT><A NAME="210"></A>  <FONT ID="Public">public</FONT> <FONT ID="Byte">byte</FONT>[] binaryValue() {
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">212 </FONT><A NAME="212"></A>  }
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  
+<FONT ID="LN">214 </FONT><A NAME="214"></A>  <FONT ID="FormalComment">/** Returns always &lt;code&gt;null&lt;/code&gt; for numeric fields */</FONT>
+<FONT ID="LN">215 </FONT><A NAME="215"></A>  <FONT ID="Public">public</FONT> <FONT ID="Byte">byte</FONT>[] getBinaryValue(<FONT ID="Byte">byte</FONT>[] result){
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  }
+<FONT ID="LN">218 </FONT><A NAME="218"></A>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>  <FONT ID="FormalComment">/** Returns always &lt;code&gt;null&lt;/code&gt; for numeric fields */</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="Public">public</FONT> Reader readerValue() {
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>    
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="FormalComment">/** Returns the numeric value as a string (how it is stored, when {@link Field.Store#YES} is chosen). */</FONT>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  <FONT ID="Public">public</FONT> String stringValue()   {
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    <FONT ID="Return">return</FONT> (fieldsData == <FONT ID="Null">null</FONT>) ? <FONT ID="Null">null</FONT> : fieldsData.toString();
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  }
+<FONT ID="LN">228 </FONT><A NAME="228"></A>  
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="FormalComment">/** Returns the current numeric value as a subclass of {@link Number}, &lt;code&gt;null&lt;/code&gt; if not yet initialized. */</FONT>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>  <FONT ID="Public">public</FONT> Number getNumericValue() {
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    <FONT ID="Return">return</FONT> (Number) fieldsData;
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  }
+<FONT ID="LN">233 </FONT><A NAME="233"></A>  
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">235 </FONT><A NAME="235"></A>   * Initializes the field with the supplied &lt;code&gt;long&lt;/code&gt; value.
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   * @param value the numeric value
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * @return this instance, because of this you can use it the following way:
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * &lt;code&gt;document.add(new NumericField(name, precisionStep).setLongValue(value))&lt;/code&gt;
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   */</FONT>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/document/NumericField.java.html">NumericField</A> setLongValue(<FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> value) {
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    tokenStream.setLongValue(value);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    fieldsData = <FONT ID="New">new</FONT> Long(value);
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  }
+<FONT ID="LN">245 </FONT><A NAME="245"></A>  
+<FONT ID="LN">246 </FONT><A NAME="246"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">247 </FONT><A NAME="247"></A>   * Initializes the field with the supplied &lt;code&gt;int&lt;/code&gt; value.
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   * @param value the numeric value
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   * @return this instance, because of this you can use it the following way:
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * &lt;code&gt;document.add(new NumericField(name, precisionStep).setIntValue(value))&lt;/code&gt;
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   */</FONT>
+<FONT ID="LN">252 </FONT><A NAME="252"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/document/NumericField.java.html">NumericField</A> setIntValue(<FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> value) {
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    tokenStream.setIntValue(value);
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    fieldsData = <FONT ID="New">new</FONT> Integer(value);
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  }
+<FONT ID="LN">257 </FONT><A NAME="257"></A>  
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">259 </FONT><A NAME="259"></A>   * Initializes the field with the supplied &lt;code&gt;double&lt;/code&gt; value.
+<FONT ID="LN">260 </FONT><A NAME="260"></A>   * @param value the numeric value
+<FONT ID="LN">261 </FONT><A NAME="261"></A>   * @return this instance, because of this you can use it the following way:
+<FONT ID="LN">262 </FONT><A NAME="262"></A>   * &lt;code&gt;document.add(new NumericField(name, precisionStep).setDoubleValue(value))&lt;/code&gt;
+<FONT ID="LN">263 </FONT><A NAME="263"></A>   */</FONT>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/document/NumericField.java.html">NumericField</A> setDoubleValue(<FONT ID="Final">final</FONT> <FONT ID="Double">double</FONT> value) {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    tokenStream.setDoubleValue(value);
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    fieldsData = <FONT ID="New">new</FONT> Double(value);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  }
+<FONT ID="LN">269 </FONT><A NAME="269"></A>  
+<FONT ID="LN">270 </FONT><A NAME="270"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   * Initializes the field with the supplied &lt;code&gt;float&lt;/code&gt; value.
+<FONT ID="LN">272 </FONT><A NAME="272"></A>   * @param value the numeric value
+<FONT ID="LN">273 </FONT><A NAME="273"></A>   * @return this instance, because of this you can use it the following way:
+<FONT ID="LN">274 </FONT><A NAME="274"></A>   * &lt;code&gt;document.add(new NumericField(name, precisionStep).setFloatValue(value))&lt;/code&gt;
+<FONT ID="LN">275 </FONT><A NAME="275"></A>   */</FONT>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/document/NumericField.java.html">NumericField</A> setFloatValue(<FONT ID="Final">final</FONT> <FONT ID="Float">float</FONT> value) {
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    tokenStream.setFloatValue(value);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    fieldsData = <FONT ID="New">new</FONT> Float(value);
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">280 </FONT><A NAME="280"></A>  }
+<FONT ID="LN">281 </FONT><A NAME="281"></A>
+<FONT ID="LN">282 </FONT><A NAME="282"></A>}
+<FONT ID="LN">283 </FONT><A NAME="283"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">NumericField.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

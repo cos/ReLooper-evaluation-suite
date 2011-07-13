@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.TermFreqVector (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TermFreqVector.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="FormalComment">/** Provides access to stored term vector of 
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *  a document field.  The vector consists of the name of the field, an array of the terms that occur in the field of the
+<FONT ID="LN">22  </FONT><A NAME="22"></A> * {@link org.apache.lucene.document.Document} and a parallel array of frequencies.  Thus, getTermFrequencies()[5] corresponds with the
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * frequency of getTerms()[5], assuming there are at least 5 terms in the Document.
+<FONT ID="LN">24  </FONT><A NAME="24"></A> */</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Public">public</FONT> <FONT ID="Interface">interface</FONT> TermFreqVector {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">27  </FONT><A NAME="27"></A>   * The {@link org.apache.lucene.document.Fieldable} name. 
+<FONT ID="LN">28  </FONT><A NAME="28"></A>   * @return The name of the field this vector is associated with.
+<FONT ID="LN">29  </FONT><A NAME="29"></A>   * 
+<FONT ID="LN">30  </FONT><A NAME="30"></A>   */</FONT> 
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  <FONT ID="Public">public</FONT> String getField();
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">34  </FONT><A NAME="34"></A>   * @return The number of terms in the term vector.
+<FONT ID="LN">35  </FONT><A NAME="35"></A>   */</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> size();
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">39  </FONT><A NAME="39"></A>   * @return An Array of term texts in ascending order.
+<FONT ID="LN">40  </FONT><A NAME="40"></A>   */</FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="Public">public</FONT> String[] getTerms();
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  <FONT ID="FormalComment">/** Array of term frequencies. Locations of the array correspond one to one
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   *  to the terms in the array obtained from &lt;code&gt;getTerms&lt;/code&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>   *  method. Each location in the array contains the number of times this
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   *  term occurs in the document or the document field.
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT>[] getTermFrequencies();
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  <FONT ID="FormalComment">/** Return an index in the term numbers array returned from
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   *  &lt;code&gt;getTerms&lt;/code&gt; at which the term with the specified
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   *  &lt;code&gt;term&lt;/code&gt; appears. If this term does not appear in the array,
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   *  return -1.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   */</FONT>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> indexOf(String term);
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="FormalComment">/** Just like &lt;code&gt;indexOf(int)&lt;/code&gt; but searches for a number of terms
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   *  at the same time. Returns an array that has the same size as the number
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   *  of terms searched for, each slot containing the result of searching for
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   *  that term number.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   *
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   *  @param terms array containing terms to look for
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   *  @param start index in the array where the list of terms starts
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   *  @param len the number of terms in the list
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT>[] indexesOf(String[] terms, <FONT ID="Int">int</FONT> start, <FONT ID="Int">int</FONT> len);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>}
+<FONT ID="LN">72  </FONT><A NAME="72"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TermFreqVector.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

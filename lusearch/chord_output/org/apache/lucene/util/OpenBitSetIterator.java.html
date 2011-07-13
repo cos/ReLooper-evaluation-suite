@@ -1,0 +1,236 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.util.OpenBitSetIterator (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">OpenBitSetIterator.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">2   </FONT><A NAME="2"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">3   </FONT><A NAME="3"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * limitations under the License.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> */</FONT>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Package">package</FONT> org.apache.lucene.util;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/DocIdSetIterator.java.html">org.apache.lucene.search.DocIdSetIterator</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="FormalComment">/** An iterator to iterate over set bits in an OpenBitSet.
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * This is faster than nextSetBit() for iterating over the complete set of bits,
+<FONT ID="LN">24  </FONT><A NAME="24"></A> * especially when the density of the bits set is high.
+<FONT ID="LN">25  </FONT><A NAME="25"></A> *
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * @version $Id$
+<FONT ID="LN">27  </FONT><A NAME="27"></A> */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> OpenBitSetIterator <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/search/DocIdSetIterator.java.html">DocIdSetIterator</A> {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  <FONT ID="SingleLineComment">// The General Idea: instead of having an array per byte that has
+<FONT ID="LN">31  </FONT><A NAME="31"></A></FONT>  <FONT ID="SingleLineComment">// the offsets of the next set bit, that array could be
+<FONT ID="LN">32  </FONT><A NAME="32"></A></FONT>  <FONT ID="SingleLineComment">// packed inside a 32 bit integer (8 4 bit numbers).  That
+<FONT ID="LN">33  </FONT><A NAME="33"></A></FONT>  <FONT ID="SingleLineComment">// should be faster than accessing an array for each index, and
+<FONT ID="LN">34  </FONT><A NAME="34"></A></FONT>  <FONT ID="SingleLineComment">// the total array size is kept smaller (256*sizeof(int))=1K
+<FONT ID="LN">35  </FONT><A NAME="35"></A></FONT>  <FONT ID="Protected">protected</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT>[] bitlist={
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="IntegerLiteral">0x0</FONT>, <FONT ID="IntegerLiteral">0x1</FONT>, <FONT ID="IntegerLiteral">0x2</FONT>, <FONT ID="IntegerLiteral">0x21</FONT>, <FONT ID="IntegerLiteral">0x3</FONT>, <FONT ID="IntegerLiteral">0x31</FONT>, <FONT ID="IntegerLiteral">0x32</FONT>, <FONT ID="IntegerLiteral">0x321</FONT>, <FONT ID="IntegerLiteral">0x4</FONT>, <FONT ID="IntegerLiteral">0x41</FONT>, <FONT ID="IntegerLiteral">0x42</FONT>, <FONT ID="IntegerLiteral">0x421</FONT>, <FONT ID="IntegerLiteral">0x43</FONT>, 
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="IntegerLiteral">0x431</FONT>, <FONT ID="IntegerLiteral">0x432</FONT>, <FONT ID="IntegerLiteral">0x4321</FONT>, <FONT ID="IntegerLiteral">0x5</FONT>, <FONT ID="IntegerLiteral">0x51</FONT>, <FONT ID="IntegerLiteral">0x52</FONT>, <FONT ID="IntegerLiteral">0x521</FONT>, <FONT ID="IntegerLiteral">0x53</FONT>, <FONT ID="IntegerLiteral">0x531</FONT>, <FONT ID="IntegerLiteral">0x532</FONT>, <FONT ID="IntegerLiteral">0x5321</FONT>, 
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    <FONT ID="IntegerLiteral">0x54</FONT>, <FONT ID="IntegerLiteral">0x541</FONT>, <FONT ID="IntegerLiteral">0x542</FONT>, <FONT ID="IntegerLiteral">0x5421</FONT>, <FONT ID="IntegerLiteral">0x543</FONT>, <FONT ID="IntegerLiteral">0x5431</FONT>, <FONT ID="IntegerLiteral">0x5432</FONT>, <FONT ID="IntegerLiteral">0x54321</FONT>, <FONT ID="IntegerLiteral">0x6</FONT>, <FONT ID="IntegerLiteral">0x61</FONT>, <FONT ID="IntegerLiteral">0x62</FONT>, 
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    <FONT ID="IntegerLiteral">0x621</FONT>, <FONT ID="IntegerLiteral">0x63</FONT>, <FONT ID="IntegerLiteral">0x631</FONT>, <FONT ID="IntegerLiteral">0x632</FONT>, <FONT ID="IntegerLiteral">0x6321</FONT>, <FONT ID="IntegerLiteral">0x64</FONT>, <FONT ID="IntegerLiteral">0x641</FONT>, <FONT ID="IntegerLiteral">0x642</FONT>, <FONT ID="IntegerLiteral">0x6421</FONT>, <FONT ID="IntegerLiteral">0x643</FONT>, 
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="IntegerLiteral">0x6431</FONT>, <FONT ID="IntegerLiteral">0x6432</FONT>, <FONT ID="IntegerLiteral">0x64321</FONT>, <FONT ID="IntegerLiteral">0x65</FONT>, <FONT ID="IntegerLiteral">0x651</FONT>, <FONT ID="IntegerLiteral">0x652</FONT>, <FONT ID="IntegerLiteral">0x6521</FONT>, <FONT ID="IntegerLiteral">0x653</FONT>, <FONT ID="IntegerLiteral">0x6531</FONT>, <FONT ID="IntegerLiteral">0x6532</FONT>, 
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    <FONT ID="IntegerLiteral">0x65321</FONT>, <FONT ID="IntegerLiteral">0x654</FONT>, <FONT ID="IntegerLiteral">0x6541</FONT>, <FONT ID="IntegerLiteral">0x6542</FONT>, <FONT ID="IntegerLiteral">0x65421</FONT>, <FONT ID="IntegerLiteral">0x6543</FONT>, <FONT ID="IntegerLiteral">0x65431</FONT>, <FONT ID="IntegerLiteral">0x65432</FONT>, <FONT ID="IntegerLiteral">0x654321</FONT>, 
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="IntegerLiteral">0x7</FONT>, <FONT ID="IntegerLiteral">0x71</FONT>, <FONT ID="IntegerLiteral">0x72</FONT>, <FONT ID="IntegerLiteral">0x721</FONT>, <FONT ID="IntegerLiteral">0x73</FONT>, <FONT ID="IntegerLiteral">0x731</FONT>, <FONT ID="IntegerLiteral">0x732</FONT>, <FONT ID="IntegerLiteral">0x7321</FONT>, <FONT ID="IntegerLiteral">0x74</FONT>, <FONT ID="IntegerLiteral">0x741</FONT>, <FONT ID="IntegerLiteral">0x742</FONT>,
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    <FONT ID="IntegerLiteral">0x7421</FONT>, <FONT ID="IntegerLiteral">0x743</FONT>, <FONT ID="IntegerLiteral">0x7431</FONT>, <FONT ID="IntegerLiteral">0x7432</FONT>, <FONT ID="IntegerLiteral">0x74321</FONT>, <FONT ID="IntegerLiteral">0x75</FONT>, <FONT ID="IntegerLiteral">0x751</FONT>, <FONT ID="IntegerLiteral">0x752</FONT>, <FONT ID="IntegerLiteral">0x7521</FONT>, <FONT ID="IntegerLiteral">0x753</FONT>, 
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="IntegerLiteral">0x7531</FONT>, <FONT ID="IntegerLiteral">0x7532</FONT>, <FONT ID="IntegerLiteral">0x75321</FONT>, <FONT ID="IntegerLiteral">0x754</FONT>, <FONT ID="IntegerLiteral">0x7541</FONT>, <FONT ID="IntegerLiteral">0x7542</FONT>, <FONT ID="IntegerLiteral">0x75421</FONT>, <FONT ID="IntegerLiteral">0x7543</FONT>, <FONT ID="IntegerLiteral">0x75431</FONT>, 
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="IntegerLiteral">0x75432</FONT>, <FONT ID="IntegerLiteral">0x754321</FONT>, <FONT ID="IntegerLiteral">0x76</FONT>, <FONT ID="IntegerLiteral">0x761</FONT>, <FONT ID="IntegerLiteral">0x762</FONT>, <FONT ID="IntegerLiteral">0x7621</FONT>, <FONT ID="IntegerLiteral">0x763</FONT>, <FONT ID="IntegerLiteral">0x7631</FONT>, <FONT ID="IntegerLiteral">0x7632</FONT>, 
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="IntegerLiteral">0x76321</FONT>, <FONT ID="IntegerLiteral">0x764</FONT>, <FONT ID="IntegerLiteral">0x7641</FONT>, <FONT ID="IntegerLiteral">0x7642</FONT>, <FONT ID="IntegerLiteral">0x76421</FONT>, <FONT ID="IntegerLiteral">0x7643</FONT>, <FONT ID="IntegerLiteral">0x76431</FONT>, <FONT ID="IntegerLiteral">0x76432</FONT>, <FONT ID="IntegerLiteral">0x764321</FONT>, 
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    <FONT ID="IntegerLiteral">0x765</FONT>, <FONT ID="IntegerLiteral">0x7651</FONT>, <FONT ID="IntegerLiteral">0x7652</FONT>, <FONT ID="IntegerLiteral">0x76521</FONT>, <FONT ID="IntegerLiteral">0x7653</FONT>, <FONT ID="IntegerLiteral">0x76531</FONT>, <FONT ID="IntegerLiteral">0x76532</FONT>, <FONT ID="IntegerLiteral">0x765321</FONT>, <FONT ID="IntegerLiteral">0x7654</FONT>, 
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="IntegerLiteral">0x76541</FONT>, <FONT ID="IntegerLiteral">0x76542</FONT>, <FONT ID="IntegerLiteral">0x765421</FONT>, <FONT ID="IntegerLiteral">0x76543</FONT>, <FONT ID="IntegerLiteral">0x765431</FONT>, <FONT ID="IntegerLiteral">0x765432</FONT>, <FONT ID="IntegerLiteral">0x7654321</FONT>, <FONT ID="IntegerLiteral">0x8</FONT>, 
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="IntegerLiteral">0x81</FONT>, <FONT ID="IntegerLiteral">0x82</FONT>, <FONT ID="IntegerLiteral">0x821</FONT>, <FONT ID="IntegerLiteral">0x83</FONT>, <FONT ID="IntegerLiteral">0x831</FONT>, <FONT ID="IntegerLiteral">0x832</FONT>, <FONT ID="IntegerLiteral">0x8321</FONT>, <FONT ID="IntegerLiteral">0x84</FONT>, <FONT ID="IntegerLiteral">0x841</FONT>, <FONT ID="IntegerLiteral">0x842</FONT>, <FONT ID="IntegerLiteral">0x8421</FONT>, 
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="IntegerLiteral">0x843</FONT>, <FONT ID="IntegerLiteral">0x8431</FONT>, <FONT ID="IntegerLiteral">0x8432</FONT>, <FONT ID="IntegerLiteral">0x84321</FONT>, <FONT ID="IntegerLiteral">0x85</FONT>, <FONT ID="IntegerLiteral">0x851</FONT>, <FONT ID="IntegerLiteral">0x852</FONT>, <FONT ID="IntegerLiteral">0x8521</FONT>, <FONT ID="IntegerLiteral">0x853</FONT>, <FONT ID="IntegerLiteral">0x8531</FONT>, 
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="IntegerLiteral">0x8532</FONT>, <FONT ID="IntegerLiteral">0x85321</FONT>, <FONT ID="IntegerLiteral">0x854</FONT>, <FONT ID="IntegerLiteral">0x8541</FONT>, <FONT ID="IntegerLiteral">0x8542</FONT>, <FONT ID="IntegerLiteral">0x85421</FONT>, <FONT ID="IntegerLiteral">0x8543</FONT>, <FONT ID="IntegerLiteral">0x85431</FONT>, <FONT ID="IntegerLiteral">0x85432</FONT>, 
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="IntegerLiteral">0x854321</FONT>, <FONT ID="IntegerLiteral">0x86</FONT>, <FONT ID="IntegerLiteral">0x861</FONT>, <FONT ID="IntegerLiteral">0x862</FONT>, <FONT ID="IntegerLiteral">0x8621</FONT>, <FONT ID="IntegerLiteral">0x863</FONT>, <FONT ID="IntegerLiteral">0x8631</FONT>, <FONT ID="IntegerLiteral">0x8632</FONT>, <FONT ID="IntegerLiteral">0x86321</FONT>, <FONT ID="IntegerLiteral">0x864</FONT>, 
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="IntegerLiteral">0x8641</FONT>, <FONT ID="IntegerLiteral">0x8642</FONT>, <FONT ID="IntegerLiteral">0x86421</FONT>, <FONT ID="IntegerLiteral">0x8643</FONT>, <FONT ID="IntegerLiteral">0x86431</FONT>, <FONT ID="IntegerLiteral">0x86432</FONT>, <FONT ID="IntegerLiteral">0x864321</FONT>, <FONT ID="IntegerLiteral">0x865</FONT>, <FONT ID="IntegerLiteral">0x8651</FONT>, 
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="IntegerLiteral">0x8652</FONT>, <FONT ID="IntegerLiteral">0x86521</FONT>, <FONT ID="IntegerLiteral">0x8653</FONT>, <FONT ID="IntegerLiteral">0x86531</FONT>, <FONT ID="IntegerLiteral">0x86532</FONT>, <FONT ID="IntegerLiteral">0x865321</FONT>, <FONT ID="IntegerLiteral">0x8654</FONT>, <FONT ID="IntegerLiteral">0x86541</FONT>, 
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="IntegerLiteral">0x86542</FONT>, <FONT ID="IntegerLiteral">0x865421</FONT>, <FONT ID="IntegerLiteral">0x86543</FONT>, <FONT ID="IntegerLiteral">0x865431</FONT>, <FONT ID="IntegerLiteral">0x865432</FONT>, <FONT ID="IntegerLiteral">0x8654321</FONT>, <FONT ID="IntegerLiteral">0x87</FONT>, <FONT ID="IntegerLiteral">0x871</FONT>, 
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="IntegerLiteral">0x872</FONT>, <FONT ID="IntegerLiteral">0x8721</FONT>, <FONT ID="IntegerLiteral">0x873</FONT>, <FONT ID="IntegerLiteral">0x8731</FONT>, <FONT ID="IntegerLiteral">0x8732</FONT>, <FONT ID="IntegerLiteral">0x87321</FONT>, <FONT ID="IntegerLiteral">0x874</FONT>, <FONT ID="IntegerLiteral">0x8741</FONT>, <FONT ID="IntegerLiteral">0x8742</FONT>, 
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="IntegerLiteral">0x87421</FONT>, <FONT ID="IntegerLiteral">0x8743</FONT>, <FONT ID="IntegerLiteral">0x87431</FONT>, <FONT ID="IntegerLiteral">0x87432</FONT>, <FONT ID="IntegerLiteral">0x874321</FONT>, <FONT ID="IntegerLiteral">0x875</FONT>, <FONT ID="IntegerLiteral">0x8751</FONT>, <FONT ID="IntegerLiteral">0x8752</FONT>, <FONT ID="IntegerLiteral">0x87521</FONT>, 
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="IntegerLiteral">0x8753</FONT>, <FONT ID="IntegerLiteral">0x87531</FONT>, <FONT ID="IntegerLiteral">0x87532</FONT>, <FONT ID="IntegerLiteral">0x875321</FONT>, <FONT ID="IntegerLiteral">0x8754</FONT>, <FONT ID="IntegerLiteral">0x87541</FONT>, <FONT ID="IntegerLiteral">0x87542</FONT>, <FONT ID="IntegerLiteral">0x875421</FONT>, 
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="IntegerLiteral">0x87543</FONT>, <FONT ID="IntegerLiteral">0x875431</FONT>, <FONT ID="IntegerLiteral">0x875432</FONT>, <FONT ID="IntegerLiteral">0x8754321</FONT>, <FONT ID="IntegerLiteral">0x876</FONT>, <FONT ID="IntegerLiteral">0x8761</FONT>, <FONT ID="IntegerLiteral">0x8762</FONT>, <FONT ID="IntegerLiteral">0x87621</FONT>, 
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    <FONT ID="IntegerLiteral">0x8763</FONT>, <FONT ID="IntegerLiteral">0x87631</FONT>, <FONT ID="IntegerLiteral">0x87632</FONT>, <FONT ID="IntegerLiteral">0x876321</FONT>, <FONT ID="IntegerLiteral">0x8764</FONT>, <FONT ID="IntegerLiteral">0x87641</FONT>, <FONT ID="IntegerLiteral">0x87642</FONT>, <FONT ID="IntegerLiteral">0x876421</FONT>, 
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="IntegerLiteral">0x87643</FONT>, <FONT ID="IntegerLiteral">0x876431</FONT>, <FONT ID="IntegerLiteral">0x876432</FONT>, <FONT ID="IntegerLiteral">0x8764321</FONT>, <FONT ID="IntegerLiteral">0x8765</FONT>, <FONT ID="IntegerLiteral">0x87651</FONT>, <FONT ID="IntegerLiteral">0x87652</FONT>, <FONT ID="IntegerLiteral">0x876521</FONT>, 
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    <FONT ID="IntegerLiteral">0x87653</FONT>, <FONT ID="IntegerLiteral">0x876531</FONT>, <FONT ID="IntegerLiteral">0x876532</FONT>, <FONT ID="IntegerLiteral">0x8765321</FONT>, <FONT ID="IntegerLiteral">0x87654</FONT>, <FONT ID="IntegerLiteral">0x876541</FONT>, <FONT ID="IntegerLiteral">0x876542</FONT>, 
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    <FONT ID="IntegerLiteral">0x8765421</FONT>, <FONT ID="IntegerLiteral">0x876543</FONT>, <FONT ID="IntegerLiteral">0x8765431</FONT>, <FONT ID="IntegerLiteral">0x8765432</FONT>, <FONT ID="IntegerLiteral">0x87654321</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  };
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="FormalComment">/***** the python code that generated bitlist
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  def bits2int(val):
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  arr=0
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  for shift in range(8,0,-1):
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    if val &amp; 0x80:
+<FONT ID="LN">70  </FONT><A NAME="70"></A>      arr = (arr &lt;&lt; 4) | shift
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    val = val &lt;&lt; 1
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  return arr
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  def int_table():
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    tbl = [ hex(bits2int(val)).strip('L') for val in range(256) ]
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    return ','.join(tbl)
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  ******/</FONT>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="SingleLineComment">// hmmm, what about an iterator that finds zeros though,
+<FONT ID="LN">80  </FONT><A NAME="80"></A></FONT>  <FONT ID="SingleLineComment">// or a reverse iterator... should they be separate classes
+<FONT ID="LN">81  </FONT><A NAME="81"></A></FONT>  <FONT ID="SingleLineComment">// for efficiency, or have a common root interface?  (or
+<FONT ID="LN">82  </FONT><A NAME="82"></A></FONT>  <FONT ID="SingleLineComment">// maybe both?  could ask for a SetBitsIterator, etc...
+<FONT ID="LN">83  </FONT><A NAME="83"></A></FONT>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT>[] arr;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> words;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> i=-<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> word;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> wordShift;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> indexArray;
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> curDocId = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  <FONT ID="Public">public</FONT> OpenBitSetIterator(<A HREF="../../../../org/apache/lucene/util/OpenBitSet.java.html">OpenBitSet</A> obs) {
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="This">this</FONT>(obs.getBits(), obs.getNumWords());
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  }
+<FONT ID="LN">95  </FONT><A NAME="95"></A>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  <FONT ID="Public">public</FONT> OpenBitSetIterator(<FONT ID="Long">long</FONT>[] bits, <FONT ID="Int">int</FONT> numWords) {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    arr = bits;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    words = numWords;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  }
+<FONT ID="LN">100 </FONT><A NAME="100"></A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  <FONT ID="SingleLineComment">// 64 bit shifts
+<FONT ID="LN">102 </FONT><A NAME="102"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> shift() {
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="If">if</FONT> ((<FONT ID="Int">int</FONT>)word ==<FONT ID="IntegerLiteral">0</FONT>) {wordShift +=<FONT ID="IntegerLiteral">32</FONT>; word = word &gt;&gt;&gt;<FONT ID="IntegerLiteral">32</FONT>; }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="If">if</FONT> ((word &amp; <FONT ID="IntegerLiteral">0x0000FFFF</FONT>) == <FONT ID="IntegerLiteral">0</FONT>) { wordShift +=<FONT ID="IntegerLiteral">16</FONT>; word &gt;&gt;&gt;=<FONT ID="IntegerLiteral">16</FONT>; }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    <FONT ID="If">if</FONT> ((word &amp; <FONT ID="IntegerLiteral">0x000000FF</FONT>) == <FONT ID="IntegerLiteral">0</FONT>) { wordShift +=<FONT ID="IntegerLiteral">8</FONT>; word &gt;&gt;&gt;=<FONT ID="IntegerLiteral">8</FONT>; }
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    indexArray = bitlist[(<FONT ID="Int">int</FONT>)word &amp; <FONT ID="IntegerLiteral">0xff</FONT>];
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="FormalComment">/***** alternate shift implementations
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  // 32 bit shifts, but a long shift needed at the end
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  private void shift2() {
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    int y = (int)word;
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    if (y==0) {wordShift +=32; y = (int)(word &gt;&gt;&gt;32); }
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    if ((y &amp; 0x0000FFFF) == 0) { wordShift +=16; y&gt;&gt;&gt;=16; }
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    if ((y &amp; 0x000000FF) == 0) { wordShift +=8; y&gt;&gt;&gt;=8; }
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    indexArray = bitlist[y &amp; 0xff];
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    word &gt;&gt;&gt;= (wordShift +1);
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  }
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>  private void shift3() {
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    int lower = (int)word;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    int lowByte = lower &amp; 0xff;
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    if (lowByte != 0) {
+<FONT ID="LN">124 </FONT><A NAME="124"></A>      indexArray=bitlist[lowByte];
+<FONT ID="LN">125 </FONT><A NAME="125"></A>      return;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    }
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    shift();
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  }
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  ******/</FONT>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  <FONT ID="FormalComment">/** @deprecated use {@link #nextDoc()} instead. */</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> next() {
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    <FONT ID="Return">return</FONT> nextDoc() != NO_MORE_DOCS;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  }
+<FONT ID="LN">135 </FONT><A NAME="135"></A>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nextDoc() {
+<FONT ID="LN">137 </FONT><A NAME="137"></A>    <FONT ID="If">if</FONT> (indexArray == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>      <FONT ID="If">if</FONT> (word != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>        word &gt;&gt;&gt;= <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">140 </FONT><A NAME="140"></A>        wordShift += <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>      }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>      <FONT ID="While">while</FONT> (word == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">144 </FONT><A NAME="144"></A>        <FONT ID="If">if</FONT> (++i &gt;= words) {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>          <FONT ID="Return">return</FONT> curDocId = NO_MORE_DOCS;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>        }
+<FONT ID="LN">147 </FONT><A NAME="147"></A>        word = arr[i];
+<FONT ID="LN">148 </FONT><A NAME="148"></A>        wordShift = -<FONT ID="IntegerLiteral">1</FONT>; <FONT ID="SingleLineComment">// loop invariant code motion should move this
+<FONT ID="LN">149 </FONT><A NAME="149"></A></FONT>      }
+<FONT ID="LN">150 </FONT><A NAME="150"></A>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>      <FONT ID="SingleLineComment">// after the first time, should I go with a linear search, or
+<FONT ID="LN">152 </FONT><A NAME="152"></A></FONT>      <FONT ID="SingleLineComment">// stick with the binary search in shift?
+<FONT ID="LN">153 </FONT><A NAME="153"></A></FONT>      shift();
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    }
+<FONT ID="LN">155 </FONT><A NAME="155"></A>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    <FONT ID="Int">int</FONT> bitIndex = (indexArray &amp; <FONT ID="IntegerLiteral">0x0f</FONT>) + wordShift;
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    indexArray &gt;&gt;&gt;= <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="SingleLineComment">// should i&lt;&lt;6 be cached as a separate variable?
+<FONT ID="LN">159 </FONT><A NAME="159"></A></FONT>    <FONT ID="SingleLineComment">// it would only save one cycle in the best circumstances.
+<FONT ID="LN">160 </FONT><A NAME="160"></A></FONT>    <FONT ID="Return">return</FONT> curDocId = (i&lt;&lt;<FONT ID="IntegerLiteral">6</FONT>) + bitIndex;
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  }
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  
+<FONT ID="LN">163 </FONT><A NAME="163"></A>  <FONT ID="FormalComment">/** @deprecated use {@link #advance(int)} instead. */</FONT>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> skipTo(<FONT ID="Int">int</FONT> target) {
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    <FONT ID="Return">return</FONT> advance(target) != NO_MORE_DOCS;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>  }
+<FONT ID="LN">167 </FONT><A NAME="167"></A>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> advance(<FONT ID="Int">int</FONT> target) {
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    indexArray = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    i = target &gt;&gt; <FONT ID="IntegerLiteral">6</FONT>;
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="If">if</FONT> (i &gt;= words) {
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      word = <FONT ID="IntegerLiteral">0</FONT>; <FONT ID="SingleLineComment">// setup so next() will also return -1
+<FONT ID="LN">173 </FONT><A NAME="173"></A></FONT>      <FONT ID="Return">return</FONT> curDocId = NO_MORE_DOCS;
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    }
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    wordShift = target &amp; <FONT ID="IntegerLiteral">0x3f</FONT>;
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    word = arr[i] &gt;&gt;&gt; wordShift;
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="If">if</FONT> (word != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      wordShift--; <FONT ID="SingleLineComment">// compensate for 1 based arrIndex
+<FONT ID="LN">179 </FONT><A NAME="179"></A></FONT>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">180 </FONT><A NAME="180"></A>      <FONT ID="While">while</FONT> (word == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">181 </FONT><A NAME="181"></A>        <FONT ID="If">if</FONT> (++i &gt;= words) {
+<FONT ID="LN">182 </FONT><A NAME="182"></A>          <FONT ID="Return">return</FONT> curDocId = NO_MORE_DOCS;
+<FONT ID="LN">183 </FONT><A NAME="183"></A>        }
+<FONT ID="LN">184 </FONT><A NAME="184"></A>        word = arr[i];
+<FONT ID="LN">185 </FONT><A NAME="185"></A>      }
+<FONT ID="LN">186 </FONT><A NAME="186"></A>      wordShift = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    }
+<FONT ID="LN">188 </FONT><A NAME="188"></A>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    shift();
+<FONT ID="LN">190 </FONT><A NAME="190"></A>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="Int">int</FONT> bitIndex = (indexArray &amp; <FONT ID="IntegerLiteral">0x0f</FONT>) + wordShift;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    indexArray &gt;&gt;&gt;= <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    <FONT ID="SingleLineComment">// should i&lt;&lt;6 be cached as a separate variable?
+<FONT ID="LN">194 </FONT><A NAME="194"></A></FONT>    <FONT ID="SingleLineComment">// it would only save one cycle in the best circumstances.
+<FONT ID="LN">195 </FONT><A NAME="195"></A></FONT>    <FONT ID="Return">return</FONT> curDocId = (i&lt;&lt;<FONT ID="IntegerLiteral">6</FONT>) + bitIndex;
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  }
+<FONT ID="LN">197 </FONT><A NAME="197"></A>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  <FONT ID="FormalComment">/** @deprecated use {@link #docID()} instead. */</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> doc() {
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    <FONT ID="Return">return</FONT> curDocId;
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  }
+<FONT ID="LN">202 </FONT><A NAME="202"></A>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> docID() {
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    <FONT ID="Return">return</FONT> curDocId;
+<FONT ID="LN">205 </FONT><A NAME="205"></A>  }
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  
+<FONT ID="LN">207 </FONT><A NAME="207"></A>}
+<FONT ID="LN">208 </FONT><A NAME="208"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">OpenBitSetIterator.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

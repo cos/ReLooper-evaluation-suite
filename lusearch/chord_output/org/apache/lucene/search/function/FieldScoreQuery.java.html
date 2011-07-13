@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.search.function.FieldScoreQuery (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldScoreQuery.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.search.function;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">21  </FONT><A NAME="21"></A> * A query that scores each document as the value of the numeric input field.
+<FONT ID="LN">22  </FONT><A NAME="22"></A> * &lt;p&gt; 
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * The query matches all documents, and scores each document according to the numeric 
+<FONT ID="LN">24  </FONT><A NAME="24"></A> * value of that field. 
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * &lt;p&gt;
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * It is assumed, and expected, that:
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * &lt;ul&gt;
+<FONT ID="LN">28  </FONT><A NAME="28"></A> *  &lt;li&gt;The field used here is indexed, and has exactly 
+<FONT ID="LN">29  </FONT><A NAME="29"></A> *      one token in every scored document.&lt;/li&gt; 
+<FONT ID="LN">30  </FONT><A NAME="30"></A> *  &lt;li&gt;Best if this field is un_tokenized.&lt;/li&gt;
+<FONT ID="LN">31  </FONT><A NAME="31"></A> *  &lt;li&gt;That token is parseable to the selected type.&lt;/li&gt;
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * &lt;/ul&gt;
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * &lt;p&gt;  
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * Combining this query in a FunctionQuery allows much freedom in affecting document scores.
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * Note, that with this freedom comes responsibility: it is more than likely that the
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * default Lucene scoring is superior in quality to scoring modified as explained here.
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * However, in some cases, and certainly for research experiments, this capability may turn useful.
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * &lt;p&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * When constructing this query, select the appropriate type. That type should match the data stored in the
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * field. So in fact the "right" type should be selected before indexing. Type selection
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * has effect on the RAM usage: 
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * &lt;ul&gt;
+<FONT ID="LN">43  </FONT><A NAME="43"></A> *   &lt;li&gt;{@link Type#BYTE} consumes 1 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A> *   &lt;li&gt;{@link Type#SHORT} consumes 2 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">45  </FONT><A NAME="45"></A> *   &lt;li&gt;{@link Type#INT} consumes 4 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A> *   &lt;li&gt;{@link Type#FLOAT} consumes 8 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * &lt;/ul&gt;
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * &lt;p&gt;
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * &lt;b&gt;Caching:&lt;/b&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * Values for the numeric field are loaded once and cached in memory for further use with the same IndexReader. 
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * To take advantage of this, it is extremely important to reuse index-readers or index-searchers, 
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * otherwise, for instance if for each query a new index reader is opened, large penalties would be 
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * paid for loading the field values into memory over and over again!
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * 
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * &lt;p&gt;&lt;font color="#FF0000"&gt;
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * WARNING: The status of the &lt;b&gt;search.function&lt;/b&gt; package is experimental. 
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * The APIs introduced here might change in the future and will not be 
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * supported anymore in such a case.&lt;/font&gt;
+<FONT ID="LN">59  </FONT><A NAME="59"></A> */</FONT>
+<FONT ID="LN">60  </FONT><A NAME="60"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> FieldScoreQuery <FONT ID="Extends">extends</FONT> <A HREF="../../../../../org/apache/lucene/search/function/ValueSourceQuery.java.html">ValueSourceQuery</A> {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * Type of score field, indicating how field values are interpreted/parsed.  
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   * &lt;p&gt;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   * The type selected at search search time should match the data stored in the field. 
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   * Different types have different RAM requirements: 
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   * &lt;ul&gt;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   *   &lt;li&gt;{@link #BYTE} consumes 1 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>   *   &lt;li&gt;{@link #SHORT} consumes 2 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   *   &lt;li&gt;{@link #INT} consumes 4 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>   *   &lt;li&gt;{@link #FLOAT} consumes 8 * maxDocs bytes.&lt;/li&gt;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   * &lt;/ul&gt;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   */</FONT>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Type {
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="FormalComment">/** field values are interpreted as numeric byte values. */</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> Type BYTE = <FONT ID="New">new</FONT> Type(<FONT ID="StringLiteral">"byte"</FONT>); 
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    <FONT ID="FormalComment">/** field values are interpreted as numeric short values. */</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> Type SHORT = <FONT ID="New">new</FONT> Type(<FONT ID="StringLiteral">"short"</FONT>); 
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <FONT ID="FormalComment">/** field values are interpreted as numeric int values. */</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> Type INT = <FONT ID="New">new</FONT> Type(<FONT ID="StringLiteral">"int"</FONT>); 
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    <FONT ID="FormalComment">/** field values are interpreted as numeric float values. */</FONT>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> Type FLOAT = <FONT ID="New">new</FONT> Type(<FONT ID="StringLiteral">"float"</FONT>); 
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="Private">private</FONT> String typeName;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Private">private</FONT> Type (String name) {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>      <FONT ID="This">this</FONT>.typeName = name;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <FONT ID="MultiLineComment">/*(non-Javadoc) @see java.lang.Object#toString() */</FONT>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>      <FONT ID="Return">return</FONT> getClass().getName()+<FONT ID="StringLiteral">"::"</FONT>+typeName;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    }
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  }
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   * Create a FieldScoreQuery - a query that scores each document as the value of the numeric input field.
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   * &lt;p&gt;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>   * The &lt;code&gt;type&lt;/code&gt; param tells how to parse the field string values into a numeric score value.
+<FONT ID="LN">102 </FONT><A NAME="102"></A>   * @param field the numeric field to be used.
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * @param type the type of the field: either
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * {@link Type#BYTE}, {@link Type#SHORT}, {@link Type#INT}, or {@link Type#FLOAT}. 
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="Public">public</FONT> FieldScoreQuery(String field, Type type) {
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    <FONT ID="Super">super</FONT>(getValueSource(field,type));
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  <FONT ID="SingleLineComment">// create the appropriate (cached) field value source.  
+<FONT ID="LN">111 </FONT><A NAME="111"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/apache/lucene/search/function/ValueSource.java.html">ValueSource</A> getValueSource(String field, Type type) {
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    <FONT ID="If">if</FONT> (type == Type.BYTE) {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../../org/apache/lucene/search/function/ByteFieldSource.java.html">ByteFieldSource</A>(field);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    }
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="If">if</FONT> (type == Type.SHORT) {
+<FONT ID="LN">116 </FONT><A NAME="116"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../../org/apache/lucene/search/function/ShortFieldSource.java.html">ShortFieldSource</A>(field);
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    }
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="If">if</FONT> (type == Type.INT) {
+<FONT ID="LN">119 </FONT><A NAME="119"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../../org/apache/lucene/search/function/IntFieldSource.java.html">IntFieldSource</A>(field);
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="If">if</FONT> (type == Type.FLOAT) {
+<FONT ID="LN">122 </FONT><A NAME="122"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../../org/apache/lucene/search/function/FloatFieldSource.java.html">FloatFieldSource</A>(field);
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    }
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(type+<FONT ID="StringLiteral">" is not a known Field Score Query Type!"</FONT>);
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  }
+<FONT ID="LN">126 </FONT><A NAME="126"></A>
+<FONT ID="LN">127 </FONT><A NAME="127"></A>}
+<FONT ID="LN">128 </FONT><A NAME="128"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldScoreQuery.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

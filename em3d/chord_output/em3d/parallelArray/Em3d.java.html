@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>em3d.parallelArray.Em3d (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Em3d.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> em3d.parallelArray;
+<FONT ID="LN">2   </FONT><A NAME="2"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">3   </FONT><A NAME="3"></A> * Java implementation of the &lt;tt&gt;em3d&lt;/tt&gt; Olden benchmark.  This Olden
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * benchmark models the propagation of electromagnetic waves through
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * objects in 3 dimensions. It is a simple computation on an irregular
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * bipartite graph containing nodes representing electric and magnetic
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * field values.
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * &lt;p/&gt;
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * &lt;p&gt;&lt;cite&gt;
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * D. Culler, A. Dusseau, S. Goldstein, A. Krishnamurthy, S. Lumetta, T. von
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * Eicken and K. Yelick. "Parallel Programming in Split-C".  Supercomputing
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * 1993, pages 262-273.
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * &lt;/cite&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A> */</FONT>
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Em3d {
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> nodect = <FONT ID="IntegerLiteral">50</FONT>;
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> conn = <FONT ID="IntegerLiteral">10</FONT>;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> numiter = <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">22  </FONT><A NAME="22"></A>   * The main roitine that creates the irregular, linked data structure
+<FONT ID="LN">23  </FONT><A NAME="23"></A>   * that represents the electric and magnetic fields and propagates the
+<FONT ID="LN">24  </FONT><A NAME="24"></A>   * waves through the graph.
+<FONT ID="LN">25  </FONT><A NAME="25"></A>   *
+<FONT ID="LN">26  </FONT><A NAME="26"></A>   * @param args the command line arguments
+<FONT ID="LN">27  </FONT><A NAME="27"></A>   */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args) {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    <A HREF="../../em3d/parallelArray/BiGraph.java.html">BiGraph</A> graph = BiGraph.create(nodect, conn);
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numiter; i++) {
+<FONT ID="LN">32  </FONT><A NAME="32"></A>      graph.compute();
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    }
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    graph.printGraph();
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  }
+<FONT ID="LN">37  </FONT><A NAME="37"></A>}
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">40  </FONT><A NAME="40"></A>nodect = 50;
+<FONT ID="LN">41  </FONT><A NAME="41"></A>conn = 10;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>numiter = 3;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>=&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>E: value -1238.30599380207, from_count 13
+<FONT ID="LN">45  </FONT><A NAME="45"></A>E: value -1867.325592512137, from_count 12
+<FONT ID="LN">46  </FONT><A NAME="46"></A>E: value -1959.6048376435954, from_count 1
+<FONT ID="LN">47  </FONT><A NAME="47"></A>E: value -790.5456933978994, from_count 7
+<FONT ID="LN">48  </FONT><A NAME="48"></A>E: value -2447.5465635918076, from_count 1
+<FONT ID="LN">49  </FONT><A NAME="49"></A>E: value -1513.916472114712, from_count 9
+<FONT ID="LN">50  </FONT><A NAME="50"></A>E: value -2179.457205258014, from_count 16
+<FONT ID="LN">51  </FONT><A NAME="51"></A>E: value -1883.7574788273462, from_count 1
+<FONT ID="LN">52  </FONT><A NAME="52"></A>E: value -950.5464568853084, from_count 9
+<FONT ID="LN">53  </FONT><A NAME="53"></A>E: value -1234.7173606045844, from_count 6
+<FONT ID="LN">54  </FONT><A NAME="54"></A>E: value -965.0468167354121, from_count 7
+<FONT ID="LN">55  </FONT><A NAME="55"></A>E: value -1229.498022372893, from_count 8
+<FONT ID="LN">56  </FONT><A NAME="56"></A>E: value -1698.4827682415778, from_count 1
+<FONT ID="LN">57  </FONT><A NAME="57"></A>E: value -1474.407578257317, from_count 11
+<FONT ID="LN">58  </FONT><A NAME="58"></A>E: value -2302.3908804021953, from_count 1
+<FONT ID="LN">59  </FONT><A NAME="59"></A>E: value -762.719337869357, from_count 6
+<FONT ID="LN">60  </FONT><A NAME="60"></A>E: value -1074.4840950654734, from_count 8
+<FONT ID="LN">61  </FONT><A NAME="61"></A>E: value -465.6999635301128, from_count 4
+<FONT ID="LN">62  </FONT><A NAME="62"></A>E: value -886.7534122602808, from_count 8
+<FONT ID="LN">63  </FONT><A NAME="63"></A>E: value -976.5558902349014, from_count 9
+<FONT ID="LN">64  </FONT><A NAME="64"></A>E: value -549.8595872386879, from_count 6
+<FONT ID="LN">65  </FONT><A NAME="65"></A>E: value -1386.5533936356157, from_count 1
+<FONT ID="LN">66  </FONT><A NAME="66"></A>E: value -2247.8927204459887, from_count 1
+<FONT ID="LN">67  </FONT><A NAME="67"></A>E: value -1028.1514978801579, from_count 8
+<FONT ID="LN">68  </FONT><A NAME="68"></A>E: value -1063.9272093635177, from_count 1
+<FONT ID="LN">69  </FONT><A NAME="69"></A>E: value -1225.3403774327394, from_count 6
+<FONT ID="LN">70  </FONT><A NAME="70"></A>E: value -2286.7874066405243, from_count 1
+<FONT ID="LN">71  </FONT><A NAME="71"></A>E: value -558.4036299866302, from_count 5
+<FONT ID="LN">72  </FONT><A NAME="72"></A>E: value -1207.8984048015866, from_count 7
+<FONT ID="LN">73  </FONT><A NAME="73"></A>E: value -1677.9639201812618, from_count 9
+<FONT ID="LN">74  </FONT><A NAME="74"></A>E: value -1726.782211860124, from_count 11
+<FONT ID="LN">75  </FONT><A NAME="75"></A>E: value -1176.6169365957526, from_count 8
+<FONT ID="LN">76  </FONT><A NAME="76"></A>E: value -1396.8896292403967, from_count 9
+<FONT ID="LN">77  </FONT><A NAME="77"></A>E: value -1120.6872673799612, from_count 7
+<FONT ID="LN">78  </FONT><A NAME="78"></A>E: value -1060.2210083896575, from_count 7
+<FONT ID="LN">79  </FONT><A NAME="79"></A>E: value -1994.4340118191344, from_count 1
+<FONT ID="LN">80  </FONT><A NAME="80"></A>E: value -2031.3983198427902, from_count 1
+<FONT ID="LN">81  </FONT><A NAME="81"></A>E: value -2349.599841576875, from_count 12
+<FONT ID="LN">82  </FONT><A NAME="82"></A>E: value -982.2169214710752, from_count 8
+<FONT ID="LN">83  </FONT><A NAME="83"></A>E: value -893.4281746828298, from_count 7
+<FONT ID="LN">84  </FONT><A NAME="84"></A>E: value -994.6176875040289, from_count 7
+<FONT ID="LN">85  </FONT><A NAME="85"></A>E: value -1827.769252359721, from_count 10
+<FONT ID="LN">86  </FONT><A NAME="86"></A>E: value -1580.8820093331472, from_count 1
+<FONT ID="LN">87  </FONT><A NAME="87"></A>E: value -1001.1145996826128, from_count 9
+<FONT ID="LN">88  </FONT><A NAME="88"></A>E: value -1060.6247480922966, from_count 1
+<FONT ID="LN">89  </FONT><A NAME="89"></A>E: value -735.8279907002916, from_count 8
+<FONT ID="LN">90  </FONT><A NAME="90"></A>E: value -523.6055287452907, from_count 6
+<FONT ID="LN">91  </FONT><A NAME="91"></A>E: value -740.8262981777118, from_count 6
+<FONT ID="LN">92  </FONT><A NAME="92"></A>E: value -1793.160036366079, from_count 11
+<FONT ID="LN">93  </FONT><A NAME="93"></A>E: value -1368.4048651193157, from_count 1
+<FONT ID="LN">94  </FONT><A NAME="94"></A>H: value 8275.902758666745, from_count 10
+<FONT ID="LN">95  </FONT><A NAME="95"></A>H: value 8245.764340797861, from_count 11
+<FONT ID="LN">96  </FONT><A NAME="96"></A>H: value 8246.186818154845, from_count 9
+<FONT ID="LN">97  </FONT><A NAME="97"></A>H: value 6273.976592918233, from_count 11
+<FONT ID="LN">98  </FONT><A NAME="98"></A>H: value 4993.615386455687, from_count 11
+<FONT ID="LN">99  </FONT><A NAME="99"></A>H: value 10428.952582517244, from_count 16
+<FONT ID="LN">100 </FONT><A NAME="100"></A>H: value 7795.553731779442, from_count 10
+<FONT ID="LN">101 </FONT><A NAME="101"></A>H: value 4480.706641848758, from_count 8
+<FONT ID="LN">102 </FONT><A NAME="102"></A>H: value 10695.307413379496, from_count 14
+<FONT ID="LN">103 </FONT><A NAME="103"></A>H: value 5469.126379469843, from_count 9
+<FONT ID="LN">104 </FONT><A NAME="104"></A>H: value 6774.902997044515, from_count 12
+<FONT ID="LN">105 </FONT><A NAME="105"></A>H: value 6329.130471019401, from_count 10
+<FONT ID="LN">106 </FONT><A NAME="106"></A>H: value 9106.193938063527, from_count 15
+<FONT ID="LN">107 </FONT><A NAME="107"></A>H: value 7974.60322517995, from_count 14
+<FONT ID="LN">108 </FONT><A NAME="108"></A>H: value 5733.046057665605, from_count 11
+<FONT ID="LN">109 </FONT><A NAME="109"></A>H: value 12143.27323830995, from_count 13
+<FONT ID="LN">110 </FONT><A NAME="110"></A>H: value 7478.101783645134, from_count 11
+<FONT ID="LN">111 </FONT><A NAME="111"></A>H: value 13281.750762012338, from_count 13
+<FONT ID="LN">112 </FONT><A NAME="112"></A>H: value 5810.860214392973, from_count 10
+<FONT ID="LN">113 </FONT><A NAME="113"></A>H: value 5430.836170500265, from_count 8
+<FONT ID="LN">114 </FONT><A NAME="114"></A>H: value 4554.983480416468, from_count 7
+<FONT ID="LN">115 </FONT><A NAME="115"></A>H: value 8060.170158646655, from_count 9
+<FONT ID="LN">116 </FONT><A NAME="116"></A>H: value 1873.9620477218857, from_count 3
+<FONT ID="LN">117 </FONT><A NAME="117"></A>H: value 11989.251905410878, from_count 17
+<FONT ID="LN">118 </FONT><A NAME="118"></A>H: value 7941.406845055164, from_count 11
+<FONT ID="LN">119 </FONT><A NAME="119"></A>H: value 4792.0543631951705, from_count 8
+<FONT ID="LN">120 </FONT><A NAME="120"></A>H: value 7163.132756419202, from_count 11
+<FONT ID="LN">121 </FONT><A NAME="121"></A>H: value 6146.758567217945, from_count 8
+<FONT ID="LN">122 </FONT><A NAME="122"></A>H: value 8718.131750611117, from_count 10
+<FONT ID="LN">123 </FONT><A NAME="123"></A>H: value 8011.871678915925, from_count 12
+<FONT ID="LN">124 </FONT><A NAME="124"></A>H: value 9695.966390714639, from_count 14
+<FONT ID="LN">125 </FONT><A NAME="125"></A>H: value 4322.809229908746, from_count 8
+<FONT ID="LN">126 </FONT><A NAME="126"></A>H: value 5718.648758506927, from_count 8
+<FONT ID="LN">127 </FONT><A NAME="127"></A>H: value 3935.13824841943, from_count 6
+<FONT ID="LN">128 </FONT><A NAME="128"></A>H: value 15097.681897493763, from_count 19
+<FONT ID="LN">129 </FONT><A NAME="129"></A>H: value 2433.494028539707, from_count 4
+<FONT ID="LN">130 </FONT><A NAME="130"></A>H: value 7768.132018659497, from_count 9
+<FONT ID="LN">131 </FONT><A NAME="131"></A>H: value 6760.675783592273, from_count 12
+<FONT ID="LN">132 </FONT><A NAME="132"></A>H: value 3720.9660739195238, from_count 9
+<FONT ID="LN">133 </FONT><A NAME="133"></A>H: value 5929.285582420098, from_count 6
+<FONT ID="LN">134 </FONT><A NAME="134"></A>H: value 5224.310189280059, from_count 6
+<FONT ID="LN">135 </FONT><A NAME="135"></A>H: value 10223.703925150865, from_count 14
+<FONT ID="LN">136 </FONT><A NAME="136"></A>H: value 8543.975359077254, from_count 9
+<FONT ID="LN">137 </FONT><A NAME="137"></A>H: value 9756.818298444334, from_count 13
+<FONT ID="LN">138 </FONT><A NAME="138"></A>H: value 2642.549532269605, from_count 5
+<FONT ID="LN">139 </FONT><A NAME="139"></A>H: value 5723.148800807919, from_count 10
+<FONT ID="LN">140 </FONT><A NAME="140"></A>H: value 5947.266947344019, from_count 12
+<FONT ID="LN">141 </FONT><A NAME="141"></A>H: value 2363.849789965696, from_count 4
+<FONT ID="LN">142 </FONT><A NAME="142"></A>H: value 4145.363020774802, from_count 6
+<FONT ID="LN">143 </FONT><A NAME="143"></A>H: value 1789.3580672922135, from_count 4
+<FONT ID="LN">144 </FONT><A NAME="144"></A>*/</FONT>
+<FONT ID="LN">145 </FONT><A NAME="145"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Em3d.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

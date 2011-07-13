@@ -1,0 +1,584 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.search.SortField (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">SortField.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.search;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.util.Locale;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/NumericField.java.html">org.apache.lucene.document.NumericField</A>; <FONT ID="SingleLineComment">// javadocs
+<FONT ID="LN">25  </FONT><A NAME="25"></A></FONT><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">org.apache.lucene.index.IndexReader</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/Term.java.html">org.apache.lucene.index.Term</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/TermEnum.java.html">org.apache.lucene.index.TermEnum</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/StringHelper.java.html">org.apache.lucene.util.StringHelper</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * Stores information about how to sort documents by terms in an individual
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * field.  Fields must be indexed in order to sort by them.
+<FONT ID="LN">33  </FONT><A NAME="33"></A> *
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * &lt;p&gt;Created: Feb 11, 2004 1:25:29 PM
+<FONT ID="LN">35  </FONT><A NAME="35"></A> *
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * @since   lucene 1.4
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * @version $Id: SortField.java 833298 2009-11-06 04:32:24Z uschindler $
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * @see Sort
+<FONT ID="LN">39  </FONT><A NAME="39"></A> */</FONT>
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> SortField
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Implements">implements</FONT> Serializable {
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="FormalComment">/** Sort by document score (relevancy).  Sort values are Float and higher
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   * values are at the front. */</FONT>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> SCORE = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="FormalComment">/** Sort by document number (index order).  Sort values are Integer and lower
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   * values are at the front. */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> DOC = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="FormalComment">/** Guess type of sort based on field contents.  A regular expression is used
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * to look at the first term indexed for the field and determine if it
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   * represents an integer number, a floating point number, or just arbitrary
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   * string characters.
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   * @deprecated Please specify the exact type, instead.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   *  Especially, guessing does &lt;b&gt;not&lt;/b&gt; work with the new
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   *  {@link NumericField} type.
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   */</FONT>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> AUTO = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  <FONT ID="FormalComment">/** Sort using term values as Strings.  Sort values are String and lower
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * values are at the front. */</FONT>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> STRING = <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="FormalComment">/** Sort using term values as encoded Integers.  Sort values are Integer and
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   * lower values are at the front. */</FONT>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> INT = <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="FormalComment">/** Sort using term values as encoded Floats.  Sort values are Float and
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   * lower values are at the front. */</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> FLOAT = <FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  <FONT ID="FormalComment">/** Sort using term values as encoded Longs.  Sort values are Long and
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   * lower values are at the front. */</FONT>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> LONG = <FONT ID="IntegerLiteral">6</FONT>;
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="FormalComment">/** Sort using term values as encoded Doubles.  Sort values are Double and
+<FONT ID="LN">78  </FONT><A NAME="78"></A>   * lower values are at the front. */</FONT>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> DOUBLE = <FONT ID="IntegerLiteral">7</FONT>;
+<FONT ID="LN">80  </FONT><A NAME="80"></A>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  <FONT ID="FormalComment">/** Sort using term values as encoded Shorts.  Sort values are Short and
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   * lower values are at the front. */</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> SHORT = <FONT ID="IntegerLiteral">8</FONT>;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="FormalComment">/** Sort using a custom Comparator.  Sort values are any Comparable and
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   * sorting is done according to natural order. */</FONT>
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> CUSTOM = <FONT ID="IntegerLiteral">9</FONT>;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  <FONT ID="FormalComment">/** Sort using term values as encoded Bytes.  Sort values are Byte and
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   * lower values are at the front. */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> BYTE = <FONT ID="IntegerLiteral">10</FONT>;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/** Sort using term values as Strings, but comparing by
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * value (using String.compareTo) for all comparisons.
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * This is typically slower than {@link #STRING}, which
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * uses ordinals to do the sorting. */</FONT>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> STRING_VAL = <FONT ID="IntegerLiteral">11</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="SingleLineComment">// IMPLEMENTATION NOTE: the FieldCache.STRING_INDEX is in the same "namespace"
+<FONT ID="LN">100 </FONT><A NAME="100"></A></FONT>  <FONT ID="SingleLineComment">// as the above static int values.  Any new values must not have the same value
+<FONT ID="LN">101 </FONT><A NAME="101"></A></FONT>  <FONT ID="SingleLineComment">// as FieldCache.STRING_INDEX.
+<FONT ID="LN">102 </FONT><A NAME="102"></A></FONT>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>  <FONT ID="FormalComment">/** Represents sorting by document score (relevancy). */</FONT>
+<FONT ID="LN">104 </FONT><A NAME="104"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/search/SortField.java.html">SortField</A> FIELD_SCORE = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/SortField.java.html">SortField</A> (<FONT ID="Null">null</FONT>, SCORE);
+<FONT ID="LN">105 </FONT><A NAME="105"></A>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="FormalComment">/** Represents sorting by document number (index order). */</FONT>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/search/SortField.java.html">SortField</A> FIELD_DOC = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/SortField.java.html">SortField</A> (<FONT ID="Null">null</FONT>, DOC);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="Private">private</FONT> String field;
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> type = AUTO;  <FONT ID="SingleLineComment">// defaults to determining type dynamically
+<FONT ID="LN">111 </FONT><A NAME="111"></A></FONT>  <FONT ID="Private">private</FONT> Locale locale;    <FONT ID="SingleLineComment">// defaults to "natural order" (no Locale)
+<FONT ID="LN">112 </FONT><A NAME="112"></A></FONT>  <FONT ID="Boolean">boolean</FONT> reverse = <FONT ID="False">false</FONT>;  <FONT ID="SingleLineComment">// defaults to natural order
+<FONT ID="LN">113 </FONT><A NAME="113"></A></FONT>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/search/SortComparatorSource.java.html">SortComparatorSource</A> factory;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.Parser</A> parser;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="SingleLineComment">// Used for CUSTOM sort
+<FONT ID="LN">117 </FONT><A NAME="117"></A></FONT>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparatorSource.java.html">FieldComparatorSource</A> comparatorSource;
+<FONT ID="LN">118 </FONT><A NAME="118"></A>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> useLegacy = <FONT ID="False">false</FONT>; <FONT ID="SingleLineComment">// remove in Lucene 3.0
+<FONT ID="LN">120 </FONT><A NAME="120"></A></FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="FormalComment">/** Creates a sort by terms in the given field where the type of term value
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   * is determined dynamically ({@link #AUTO AUTO}).
+<FONT ID="LN">123 </FONT><A NAME="123"></A>   * @param field Name of field to sort by, cannot be
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   * &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * @deprecated Please specify the exact type instead.
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   */</FONT>
+<FONT ID="LN">127 </FONT><A NAME="127"></A>  <FONT ID="Public">public</FONT> SortField (String field) {
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    initFieldType(field, AUTO);
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  }
+<FONT ID="LN">130 </FONT><A NAME="130"></A>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  <FONT ID="FormalComment">/** Creates a sort, possibly in reverse, by terms in the given field where
+<FONT ID="LN">132 </FONT><A NAME="132"></A>   * the type of term value is determined dynamically ({@link #AUTO AUTO}).
+<FONT ID="LN">133 </FONT><A NAME="133"></A>   * @param field Name of field to sort by, cannot be &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">134 </FONT><A NAME="134"></A>   * @param reverse True if natural order should be reversed.
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * @deprecated Please specify the exact type instead.
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   */</FONT>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="Public">public</FONT> SortField (String field, <FONT ID="Boolean">boolean</FONT> reverse) {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    initFieldType(field, AUTO);
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    <FONT ID="This">this</FONT>.reverse = reverse;
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  }
+<FONT ID="LN">141 </FONT><A NAME="141"></A>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  <FONT ID="FormalComment">/** Creates a sort by terms in the given field with the type of term
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * values explicitly given.
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * @param field  Name of field to sort by.  Can be &lt;code&gt;null&lt;/code&gt; if
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   *               &lt;code&gt;type&lt;/code&gt; is SCORE or DOC.
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   * @param type   Type of values in the terms.
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   */</FONT>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  <FONT ID="Public">public</FONT> SortField (String field, <FONT ID="Int">int</FONT> type) {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    initFieldType(field, type);
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  }
+<FONT ID="LN">151 </FONT><A NAME="151"></A>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="FormalComment">/** Creates a sort, possibly in reverse, by terms in the given field with the
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * type of term values explicitly given.
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * @param field  Name of field to sort by.  Can be &lt;code&gt;null&lt;/code&gt; if
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   *               &lt;code&gt;type&lt;/code&gt; is SCORE or DOC.
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * @param type   Type of values in the terms.
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * @param reverse True if natural order should be reversed.
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   */</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="Public">public</FONT> SortField (String field, <FONT ID="Int">int</FONT> type, <FONT ID="Boolean">boolean</FONT> reverse) {
+<FONT ID="LN">160 </FONT><A NAME="160"></A>    initFieldType(field, type);
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    <FONT ID="This">this</FONT>.reverse = reverse;
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  }
+<FONT ID="LN">163 </FONT><A NAME="163"></A>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="FormalComment">/** Creates a sort by terms in the given field, parsed
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * to numeric values using a custom {@link FieldCache.Parser}.
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * @param field  Name of field to sort by.  Must not be null.
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * @param parser Instance of a {@link FieldCache.Parser},
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   *  which must subclass one of the existing numeric
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   *  parsers from {@link FieldCache}. Sort type is inferred
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   *  by testing which numeric parser the parser subclasses.
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   * @throws IllegalArgumentException if the parser fails to
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   *  subclass an existing numeric parser, or field is null
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   */</FONT>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="Public">public</FONT> SortField (String field, <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.Parser</A> parser) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    <FONT ID="This">this</FONT>(field, parser, <FONT ID="False">false</FONT>);
+<FONT ID="LN">176 </FONT><A NAME="176"></A>  }
+<FONT ID="LN">177 </FONT><A NAME="177"></A>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  <FONT ID="FormalComment">/** Creates a sort, possibly in reverse, by terms in the given field, parsed
+<FONT ID="LN">179 </FONT><A NAME="179"></A>   * to numeric values using a custom {@link FieldCache.Parser}.
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   * @param field  Name of field to sort by.  Must not be null.
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * @param parser Instance of a {@link FieldCache.Parser},
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   *  which must subclass one of the existing numeric
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   *  parsers from {@link FieldCache}. Sort type is inferred
+<FONT ID="LN">184 </FONT><A NAME="184"></A>   *  by testing which numeric parser the parser subclasses.
+<FONT ID="LN">185 </FONT><A NAME="185"></A>   * @param reverse True if natural order should be reversed.
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   * @throws IllegalArgumentException if the parser fails to
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   *  subclass an existing numeric parser, or field is null
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   */</FONT>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="Public">public</FONT> SortField (String field, <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.Parser</A> parser, <FONT ID="Boolean">boolean</FONT> reverse) {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="If">if</FONT> (parser <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.IntParser</A>) initFieldType(field, INT);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (parser <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.FloatParser</A>) initFieldType(field, FLOAT);
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (parser <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.ShortParser</A>) initFieldType(field, SHORT);
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (parser <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.ByteParser</A>) initFieldType(field, BYTE);
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (parser <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.LongParser</A>) initFieldType(field, LONG);
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (parser <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.DoubleParser</A>) initFieldType(field, DOUBLE);
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"Parser instance does not subclass existing numeric parser from FieldCache (got "</FONT> + parser + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">198 </FONT><A NAME="198"></A>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    <FONT ID="This">this</FONT>.reverse = reverse;
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    <FONT ID="This">this</FONT>.parser = parser;
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  }
+<FONT ID="LN">202 </FONT><A NAME="202"></A>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>  <FONT ID="FormalComment">/** Creates a sort by terms in the given field sorted
+<FONT ID="LN">204 </FONT><A NAME="204"></A>   * according to the given locale.
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   * @param field  Name of field to sort by, cannot be &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   * @param locale Locale of values in the field.
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   */</FONT>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>  <FONT ID="Public">public</FONT> SortField (String field, Locale locale) {
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    initFieldType(field, STRING);
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    <FONT ID="This">this</FONT>.locale = locale;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  }
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  <FONT ID="FormalComment">/** Creates a sort, possibly in reverse, by terms in the given field sorted
+<FONT ID="LN">214 </FONT><A NAME="214"></A>   * according to the given locale.
+<FONT ID="LN">215 </FONT><A NAME="215"></A>   * @param field  Name of field to sort by, cannot be &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   * @param locale Locale of values in the field.
+<FONT ID="LN">217 </FONT><A NAME="217"></A>   */</FONT>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  <FONT ID="Public">public</FONT> SortField (String field, Locale locale, <FONT ID="Boolean">boolean</FONT> reverse) {
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    initFieldType(field, STRING);
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    <FONT ID="This">this</FONT>.locale = locale;
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="This">this</FONT>.reverse = reverse;
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="FormalComment">/** Creates a sort with a custom comparison function.
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   * @param field Name of field to sort by; cannot be &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   * @param comparator Returns a comparator for sorting hits.
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * @deprecated use SortField (String field, FieldComparatorSource comparator)
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   */</FONT>
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="Public">public</FONT> SortField (String field, <A HREF="../../../../org/apache/lucene/search/SortComparatorSource.java.html">SortComparatorSource</A> comparator) {
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    initFieldType(field, CUSTOM);
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    setUseLegacySearch(<FONT ID="True">true</FONT>);
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    <FONT ID="This">this</FONT>.factory = comparator;
+<FONT ID="LN">233 </FONT><A NAME="233"></A>  }
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  
+<FONT ID="LN">235 </FONT><A NAME="235"></A>  <FONT ID="FormalComment">/** Creates a sort with a custom comparison function.
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   * @param field Name of field to sort by; cannot be &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * @param comparator Returns a comparator for sorting hits.
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   */</FONT>
+<FONT ID="LN">239 </FONT><A NAME="239"></A>  <FONT ID="Public">public</FONT> SortField (String field, <A HREF="../../../../org/apache/lucene/search/FieldComparatorSource.java.html">FieldComparatorSource</A> comparator) {
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    initFieldType(field, CUSTOM);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="This">this</FONT>.comparatorSource = comparator;
+<FONT ID="LN">242 </FONT><A NAME="242"></A>  }
+<FONT ID="LN">243 </FONT><A NAME="243"></A>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  <FONT ID="FormalComment">/** Creates a sort, possibly in reverse, with a custom comparison function.
+<FONT ID="LN">245 </FONT><A NAME="245"></A>   * @param field Name of field to sort by; cannot be &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">246 </FONT><A NAME="246"></A>   * @param comparator Returns a comparator for sorting hits.
+<FONT ID="LN">247 </FONT><A NAME="247"></A>   * @param reverse True if natural order should be reversed.
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   * @deprecated use SortField (String field, FieldComparatorSource comparator, boolean reverse)
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   */</FONT>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>  <FONT ID="Public">public</FONT> SortField (String field, <A HREF="../../../../org/apache/lucene/search/SortComparatorSource.java.html">SortComparatorSource</A> comparator, <FONT ID="Boolean">boolean</FONT> reverse) {
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    initFieldType(field, CUSTOM);
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    setUseLegacySearch(<FONT ID="True">true</FONT>);
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    <FONT ID="This">this</FONT>.reverse = reverse;
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    <FONT ID="This">this</FONT>.factory = comparator;
+<FONT ID="LN">255 </FONT><A NAME="255"></A>  }
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  
+<FONT ID="LN">257 </FONT><A NAME="257"></A>  <FONT ID="FormalComment">/** Creates a sort, possibly in reverse, with a custom comparison function.
+<FONT ID="LN">258 </FONT><A NAME="258"></A>   * @param field Name of field to sort by; cannot be &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">259 </FONT><A NAME="259"></A>   * @param comparator Returns a comparator for sorting hits.
+<FONT ID="LN">260 </FONT><A NAME="260"></A>   * @param reverse True if natural order should be reversed.
+<FONT ID="LN">261 </FONT><A NAME="261"></A>   */</FONT>
+<FONT ID="LN">262 </FONT><A NAME="262"></A>  <FONT ID="Public">public</FONT> SortField (String field, <A HREF="../../../../org/apache/lucene/search/FieldComparatorSource.java.html">FieldComparatorSource</A> comparator, <FONT ID="Boolean">boolean</FONT> reverse) {
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    initFieldType(field, CUSTOM);
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    <FONT ID="This">this</FONT>.reverse = reverse;
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    <FONT ID="This">this</FONT>.comparatorSource = comparator;
+<FONT ID="LN">266 </FONT><A NAME="266"></A>  }
+<FONT ID="LN">267 </FONT><A NAME="267"></A>
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  <FONT ID="SingleLineComment">// Sets field &amp; type, and ensures field is not NULL unless
+<FONT ID="LN">269 </FONT><A NAME="269"></A></FONT>  <FONT ID="SingleLineComment">// type is SCORE or DOC
+<FONT ID="LN">270 </FONT><A NAME="270"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> initFieldType(String field, <FONT ID="Int">int</FONT> type) {
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    <FONT ID="This">this</FONT>.type = type;
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    <FONT ID="If">if</FONT> (field == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">273 </FONT><A NAME="273"></A>      <FONT ID="If">if</FONT> (type != SCORE &amp;&amp; type != DOC)
+<FONT ID="LN">274 </FONT><A NAME="274"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"field can only be null when type is SCORE or DOC"</FONT>);
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>      <FONT ID="This">this</FONT>.field = StringHelper.intern(field);
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    }
+<FONT ID="LN">278 </FONT><A NAME="278"></A>  }
+<FONT ID="LN">279 </FONT><A NAME="279"></A>
+<FONT ID="LN">280 </FONT><A NAME="280"></A>  <FONT ID="FormalComment">/** Returns the name of the field.  Could return &lt;code&gt;null&lt;/code&gt;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>   * if the sort is by SCORE or DOC.
+<FONT ID="LN">282 </FONT><A NAME="282"></A>   * @return Name of field, possibly &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">283 </FONT><A NAME="283"></A>   */</FONT>
+<FONT ID="LN">284 </FONT><A NAME="284"></A>  <FONT ID="Public">public</FONT> String getField() {
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    <FONT ID="Return">return</FONT> field;
+<FONT ID="LN">286 </FONT><A NAME="286"></A>  }
+<FONT ID="LN">287 </FONT><A NAME="287"></A>
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  <FONT ID="FormalComment">/** Returns the type of contents in the field.
+<FONT ID="LN">289 </FONT><A NAME="289"></A>   * @return One of the constants SCORE, DOC, AUTO, STRING, INT or FLOAT.
+<FONT ID="LN">290 </FONT><A NAME="290"></A>   */</FONT>
+<FONT ID="LN">291 </FONT><A NAME="291"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getType() {
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    <FONT ID="Return">return</FONT> type;
+<FONT ID="LN">293 </FONT><A NAME="293"></A>  }
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>  <FONT ID="FormalComment">/** Returns the Locale by which term values are interpreted.
+<FONT ID="LN">296 </FONT><A NAME="296"></A>   * May return &lt;code&gt;null&lt;/code&gt; if no Locale was specified.
+<FONT ID="LN">297 </FONT><A NAME="297"></A>   * @return Locale, or &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">298 </FONT><A NAME="298"></A>   */</FONT>
+<FONT ID="LN">299 </FONT><A NAME="299"></A>  <FONT ID="Public">public</FONT> Locale getLocale() {
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    <FONT ID="Return">return</FONT> locale;
+<FONT ID="LN">301 </FONT><A NAME="301"></A>  }
+<FONT ID="LN">302 </FONT><A NAME="302"></A>
+<FONT ID="LN">303 </FONT><A NAME="303"></A>  <FONT ID="FormalComment">/** Returns the instance of a {@link FieldCache} parser that fits to the given sort type.
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   * May return &lt;code&gt;null&lt;/code&gt; if no parser was specified. Sorting is using the default parser then.
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   * @return An instance of a {@link FieldCache} parser, or &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   */</FONT>
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.Parser</A> getParser() {
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="Return">return</FONT> parser;
+<FONT ID="LN">309 </FONT><A NAME="309"></A>  }
+<FONT ID="LN">310 </FONT><A NAME="310"></A>
+<FONT ID="LN">311 </FONT><A NAME="311"></A>  <FONT ID="FormalComment">/** Returns whether the sort should be reversed.
+<FONT ID="LN">312 </FONT><A NAME="312"></A>   * @return  True if natural order should be reversed.
+<FONT ID="LN">313 </FONT><A NAME="313"></A>   */</FONT>
+<FONT ID="LN">314 </FONT><A NAME="314"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getReverse() {
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    <FONT ID="Return">return</FONT> reverse;
+<FONT ID="LN">316 </FONT><A NAME="316"></A>  }
+<FONT ID="LN">317 </FONT><A NAME="317"></A>
+<FONT ID="LN">318 </FONT><A NAME="318"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">319 </FONT><A NAME="319"></A>   * @deprecated use {@link #getComparatorSource()}
+<FONT ID="LN">320 </FONT><A NAME="320"></A>   */</FONT>
+<FONT ID="LN">321 </FONT><A NAME="321"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/search/SortComparatorSource.java.html">SortComparatorSource</A> getFactory() {
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    <FONT ID="Return">return</FONT> factory;
+<FONT ID="LN">323 </FONT><A NAME="323"></A>  }
+<FONT ID="LN">324 </FONT><A NAME="324"></A>  
+<FONT ID="LN">325 </FONT><A NAME="325"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparatorSource.java.html">FieldComparatorSource</A> getComparatorSource() {
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    <FONT ID="Return">return</FONT> comparatorSource;
+<FONT ID="LN">327 </FONT><A NAME="327"></A>  }
+<FONT ID="LN">328 </FONT><A NAME="328"></A>  
+<FONT ID="LN">329 </FONT><A NAME="329"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">330 </FONT><A NAME="330"></A>   * Use legacy IndexSearch implementation: search with a DirectoryReader rather
+<FONT ID="LN">331 </FONT><A NAME="331"></A>   * than passing a single hit collector to multiple SegmentReaders.
+<FONT ID="LN">332 </FONT><A NAME="332"></A>   * 
+<FONT ID="LN">333 </FONT><A NAME="333"></A>   * @param legacy true for legacy behavior
+<FONT ID="LN">334 </FONT><A NAME="334"></A>   * @deprecated will be removed in Lucene 3.0.
+<FONT ID="LN">335 </FONT><A NAME="335"></A>   */</FONT>
+<FONT ID="LN">336 </FONT><A NAME="336"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setUseLegacySearch(<FONT ID="Boolean">boolean</FONT> legacy) {
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    <FONT ID="This">this</FONT>.useLegacy = legacy;
+<FONT ID="LN">338 </FONT><A NAME="338"></A>  }
+<FONT ID="LN">339 </FONT><A NAME="339"></A>  
+<FONT ID="LN">340 </FONT><A NAME="340"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">341 </FONT><A NAME="341"></A>   * @return if true, IndexSearch will use legacy sorting search implementation.
+<FONT ID="LN">342 </FONT><A NAME="342"></A>   * eg. multiple Priority Queues.
+<FONT ID="LN">343 </FONT><A NAME="343"></A>   * @deprecated will be removed in Lucene 3.0.
+<FONT ID="LN">344 </FONT><A NAME="344"></A>   */</FONT>
+<FONT ID="LN">345 </FONT><A NAME="345"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getUseLegacySearch() {
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.useLegacy;
+<FONT ID="LN">347 </FONT><A NAME="347"></A>  }
+<FONT ID="LN">348 </FONT><A NAME="348"></A>
+<FONT ID="LN">349 </FONT><A NAME="349"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    StringBuffer buffer = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    <FONT ID="Switch">switch</FONT> (type) {
+<FONT ID="LN">352 </FONT><A NAME="352"></A>      <FONT ID="Case">case</FONT> SCORE:
+<FONT ID="LN">353 </FONT><A NAME="353"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;score&gt;"</FONT>);
+<FONT ID="LN">354 </FONT><A NAME="354"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">355 </FONT><A NAME="355"></A>
+<FONT ID="LN">356 </FONT><A NAME="356"></A>      <FONT ID="Case">case</FONT> DOC:
+<FONT ID="LN">357 </FONT><A NAME="357"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;doc&gt;"</FONT>);
+<FONT ID="LN">358 </FONT><A NAME="358"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">359 </FONT><A NAME="359"></A>
+<FONT ID="LN">360 </FONT><A NAME="360"></A>      <FONT ID="Case">case</FONT> AUTO:
+<FONT ID="LN">361 </FONT><A NAME="361"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;auto: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">362 </FONT><A NAME="362"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">363 </FONT><A NAME="363"></A>
+<FONT ID="LN">364 </FONT><A NAME="364"></A>      <FONT ID="Case">case</FONT> STRING:
+<FONT ID="LN">365 </FONT><A NAME="365"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;string: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">366 </FONT><A NAME="366"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">367 </FONT><A NAME="367"></A>
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      <FONT ID="Case">case</FONT> STRING_VAL:
+<FONT ID="LN">369 </FONT><A NAME="369"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;string_val: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">370 </FONT><A NAME="370"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">371 </FONT><A NAME="371"></A>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>      <FONT ID="Case">case</FONT> BYTE:
+<FONT ID="LN">373 </FONT><A NAME="373"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;byte: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">375 </FONT><A NAME="375"></A>
+<FONT ID="LN">376 </FONT><A NAME="376"></A>      <FONT ID="Case">case</FONT> SHORT:
+<FONT ID="LN">377 </FONT><A NAME="377"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;short: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">378 </FONT><A NAME="378"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">379 </FONT><A NAME="379"></A>
+<FONT ID="LN">380 </FONT><A NAME="380"></A>      <FONT ID="Case">case</FONT> INT:
+<FONT ID="LN">381 </FONT><A NAME="381"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;int: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">383 </FONT><A NAME="383"></A>
+<FONT ID="LN">384 </FONT><A NAME="384"></A>      <FONT ID="Case">case</FONT> LONG:
+<FONT ID="LN">385 </FONT><A NAME="385"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;long: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">386 </FONT><A NAME="386"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">387 </FONT><A NAME="387"></A>
+<FONT ID="LN">388 </FONT><A NAME="388"></A>      <FONT ID="Case">case</FONT> FLOAT:
+<FONT ID="LN">389 </FONT><A NAME="389"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;float: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">390 </FONT><A NAME="390"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">391 </FONT><A NAME="391"></A>
+<FONT ID="LN">392 </FONT><A NAME="392"></A>      <FONT ID="Case">case</FONT> DOUBLE:
+<FONT ID="LN">393 </FONT><A NAME="393"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;double: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">394 </FONT><A NAME="394"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">395 </FONT><A NAME="395"></A>
+<FONT ID="LN">396 </FONT><A NAME="396"></A>      <FONT ID="Case">case</FONT> CUSTOM:
+<FONT ID="LN">397 </FONT><A NAME="397"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;custom:\""</FONT>).append(field).append(<FONT ID="StringLiteral">"\": "</FONT>).append(factory).append(<FONT ID="CharacerLiteral">'&gt;'</FONT>);
+<FONT ID="LN">398 </FONT><A NAME="398"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">399 </FONT><A NAME="399"></A>
+<FONT ID="LN">400 </FONT><A NAME="400"></A>      <FONT ID="Default">default</FONT>:
+<FONT ID="LN">401 </FONT><A NAME="401"></A>        buffer.append(<FONT ID="StringLiteral">"&lt;???: \""</FONT>).append(field).append(<FONT ID="StringLiteral">"\"&gt;"</FONT>);
+<FONT ID="LN">402 </FONT><A NAME="402"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    }
+<FONT ID="LN">404 </FONT><A NAME="404"></A>
+<FONT ID="LN">405 </FONT><A NAME="405"></A>    <FONT ID="If">if</FONT> (locale != <FONT ID="Null">null</FONT>) buffer.append(<FONT ID="CharacerLiteral">'('</FONT>).append(locale).append(<FONT ID="CharacerLiteral">')'</FONT>);
+<FONT ID="LN">406 </FONT><A NAME="406"></A>    <FONT ID="If">if</FONT> (parser != <FONT ID="Null">null</FONT>) buffer.append(<FONT ID="CharacerLiteral">'('</FONT>).append(parser).append(<FONT ID="CharacerLiteral">')'</FONT>);
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    <FONT ID="If">if</FONT> (reverse) buffer.append(<FONT ID="CharacerLiteral">'!'</FONT>);
+<FONT ID="LN">408 </FONT><A NAME="408"></A>
+<FONT ID="LN">409 </FONT><A NAME="409"></A>    <FONT ID="Return">return</FONT> buffer.toString();
+<FONT ID="LN">410 </FONT><A NAME="410"></A>  }
+<FONT ID="LN">411 </FONT><A NAME="411"></A>
+<FONT ID="LN">412 </FONT><A NAME="412"></A>  <FONT ID="FormalComment">/** Returns true if &lt;code&gt;o&lt;/code&gt; is equal to this.  If a
+<FONT ID="LN">413 </FONT><A NAME="413"></A>   *  {@link SortComparatorSource} (deprecated) or {@link
+<FONT ID="LN">414 </FONT><A NAME="414"></A>   *  FieldCache.Parser} was provided, it must properly
+<FONT ID="LN">415 </FONT><A NAME="415"></A>   *  implement equals (unless a singleton is always used). */</FONT>
+<FONT ID="LN">416 </FONT><A NAME="416"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object o) {
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT> == o) <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    <FONT ID="If">if</FONT> (!(o <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/SortField.java.html">SortField</A>)) <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/search/SortField.java.html">SortField</A> other = (<A HREF="../../../../org/apache/lucene/search/SortField.java.html">SortField</A>)o;
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    <FONT ID="Return">return</FONT> (
+<FONT ID="LN">421 </FONT><A NAME="421"></A>      other.field == <FONT ID="This">this</FONT>.field <FONT ID="SingleLineComment">// field is always interned
+<FONT ID="LN">422 </FONT><A NAME="422"></A></FONT>      &amp;&amp; other.type == <FONT ID="This">this</FONT>.type
+<FONT ID="LN">423 </FONT><A NAME="423"></A>      &amp;&amp; other.reverse == <FONT ID="This">this</FONT>.reverse
+<FONT ID="LN">424 </FONT><A NAME="424"></A>      &amp;&amp; (other.locale == <FONT ID="Null">null</FONT> ? <FONT ID="This">this</FONT>.locale == <FONT ID="Null">null</FONT> : other.locale.equals(<FONT ID="This">this</FONT>.locale))
+<FONT ID="LN">425 </FONT><A NAME="425"></A>      &amp;&amp; (other.factory == <FONT ID="Null">null</FONT> ? <FONT ID="This">this</FONT>.factory == <FONT ID="Null">null</FONT> : other.factory.equals(<FONT ID="This">this</FONT>.factory))
+<FONT ID="LN">426 </FONT><A NAME="426"></A>      &amp;&amp; (other.comparatorSource == <FONT ID="Null">null</FONT> ? <FONT ID="This">this</FONT>.comparatorSource == <FONT ID="Null">null</FONT> : other.comparatorSource.equals(<FONT ID="This">this</FONT>.comparatorSource))
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      &amp;&amp; (other.parser == <FONT ID="Null">null</FONT> ? <FONT ID="This">this</FONT>.parser == <FONT ID="Null">null</FONT> : other.parser.equals(<FONT ID="This">this</FONT>.parser))
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    );
+<FONT ID="LN">429 </FONT><A NAME="429"></A>  }
+<FONT ID="LN">430 </FONT><A NAME="430"></A>
+<FONT ID="LN">431 </FONT><A NAME="431"></A>  <FONT ID="FormalComment">/** Returns true if &lt;code&gt;o&lt;/code&gt; is equal to this.  If a
+<FONT ID="LN">432 </FONT><A NAME="432"></A>   *  {@link SortComparatorSource} (deprecated) or {@link
+<FONT ID="LN">433 </FONT><A NAME="433"></A>   *  FieldCache.Parser} was provided, it must properly
+<FONT ID="LN">434 </FONT><A NAME="434"></A>   *  implement hashCode (unless a singleton is always
+<FONT ID="LN">435 </FONT><A NAME="435"></A>   *  used). */</FONT>
+<FONT ID="LN">436 </FONT><A NAME="436"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> hashCode() {
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    <FONT ID="Int">int</FONT> hash=type^<FONT ID="IntegerLiteral">0x346565dd</FONT> + Boolean.valueOf(reverse).hashCode()^<FONT ID="IntegerLiteral">0xaf5998bb</FONT>;
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    <FONT ID="If">if</FONT> (field != <FONT ID="Null">null</FONT>) hash += field.hashCode()^<FONT ID="IntegerLiteral">0xff5685dd</FONT>;
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    <FONT ID="If">if</FONT> (locale != <FONT ID="Null">null</FONT>) hash += locale.hashCode()^<FONT ID="IntegerLiteral">0x08150815</FONT>;
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    <FONT ID="If">if</FONT> (factory != <FONT ID="Null">null</FONT>) hash += factory.hashCode()^<FONT ID="IntegerLiteral">0x34987555</FONT>;
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="If">if</FONT> (comparatorSource != <FONT ID="Null">null</FONT>) hash += comparatorSource.hashCode();
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    <FONT ID="If">if</FONT> (parser != <FONT ID="Null">null</FONT>) hash += parser.hashCode()^<FONT ID="IntegerLiteral">0x3aaf56ff</FONT>;
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    <FONT ID="Return">return</FONT> hash;
+<FONT ID="LN">444 </FONT><A NAME="444"></A>  }
+<FONT ID="LN">445 </FONT><A NAME="445"></A>
+<FONT ID="LN">446 </FONT><A NAME="446"></A>  <FONT ID="SingleLineComment">// field must be interned after reading from stream
+<FONT ID="LN">447 </FONT><A NAME="447"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> readObject(java.io.ObjectInputStream in) <FONT ID="Throws">throws</FONT> java.io.IOException, ClassNotFoundException {
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    in.defaultReadObject();
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    <FONT ID="If">if</FONT> (field != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">450 </FONT><A NAME="450"></A>      field = StringHelper.intern(field);
+<FONT ID="LN">451 </FONT><A NAME="451"></A>  }
+<FONT ID="LN">452 </FONT><A NAME="452"></A>
+<FONT ID="LN">453 </FONT><A NAME="453"></A>  <FONT ID="FormalComment">/** Returns the {@link FieldComparator} to use for
+<FONT ID="LN">454 </FONT><A NAME="454"></A>   * sorting.
+<FONT ID="LN">455 </FONT><A NAME="455"></A>   *
+<FONT ID="LN">456 </FONT><A NAME="456"></A>   * &lt;b&gt;NOTE:&lt;/b&gt; This API is experimental and might change in
+<FONT ID="LN">457 </FONT><A NAME="457"></A>   * incompatible ways in the next release.
+<FONT ID="LN">458 </FONT><A NAME="458"></A>   *
+<FONT ID="LN">459 </FONT><A NAME="459"></A>   * @param numHits number of top hits the queue will store
+<FONT ID="LN">460 </FONT><A NAME="460"></A>   * @param sortPos position of this SortField within {@link
+<FONT ID="LN">461 </FONT><A NAME="461"></A>   *   Sort}.  The comparator is primary if sortPos==0,
+<FONT ID="LN">462 </FONT><A NAME="462"></A>   *   secondary if sortPos==1, etc.  Some comparators can
+<FONT ID="LN">463 </FONT><A NAME="463"></A>   *   optimize themselves when they are the primary sort.
+<FONT ID="LN">464 </FONT><A NAME="464"></A>   * @return {@link FieldComparator} to use when sorting
+<FONT ID="LN">465 </FONT><A NAME="465"></A>   */</FONT>
+<FONT ID="LN">466 </FONT><A NAME="466"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator</A> getComparator(<FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> numHits, <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> sortPos) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">467 </FONT><A NAME="467"></A>
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    <FONT ID="If">if</FONT> (locale != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">469 </FONT><A NAME="469"></A>      <FONT ID="SingleLineComment">// TODO: it'd be nice to allow FieldCache.getStringIndex
+<FONT ID="LN">470 </FONT><A NAME="470"></A></FONT>      <FONT ID="SingleLineComment">// to optionally accept a Locale so sorting could then use
+<FONT ID="LN">471 </FONT><A NAME="471"></A></FONT>      <FONT ID="SingleLineComment">// the faster StringComparator impls
+<FONT ID="LN">472 </FONT><A NAME="472"></A></FONT>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.StringComparatorLocale</A>(numHits, field, locale);
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    }
+<FONT ID="LN">474 </FONT><A NAME="474"></A>
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    <FONT ID="Switch">switch</FONT> (type) {
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    <FONT ID="Case">case</FONT> SortField.SCORE:
+<FONT ID="LN">477 </FONT><A NAME="477"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.RelevanceComparator</A>(numHits);
+<FONT ID="LN">478 </FONT><A NAME="478"></A>
+<FONT ID="LN">479 </FONT><A NAME="479"></A>    <FONT ID="Case">case</FONT> SortField.DOC:
+<FONT ID="LN">480 </FONT><A NAME="480"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.DocComparator</A>(numHits);
+<FONT ID="LN">481 </FONT><A NAME="481"></A>
+<FONT ID="LN">482 </FONT><A NAME="482"></A>    <FONT ID="Case">case</FONT> SortField.INT:
+<FONT ID="LN">483 </FONT><A NAME="483"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.IntComparator</A>(numHits, field, parser);
+<FONT ID="LN">484 </FONT><A NAME="484"></A>
+<FONT ID="LN">485 </FONT><A NAME="485"></A>    <FONT ID="Case">case</FONT> SortField.FLOAT:
+<FONT ID="LN">486 </FONT><A NAME="486"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.FloatComparator</A>(numHits, field, parser);
+<FONT ID="LN">487 </FONT><A NAME="487"></A>
+<FONT ID="LN">488 </FONT><A NAME="488"></A>    <FONT ID="Case">case</FONT> SortField.LONG:
+<FONT ID="LN">489 </FONT><A NAME="489"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.LongComparator</A>(numHits, field, parser);
+<FONT ID="LN">490 </FONT><A NAME="490"></A>
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    <FONT ID="Case">case</FONT> SortField.DOUBLE:
+<FONT ID="LN">492 </FONT><A NAME="492"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.DoubleComparator</A>(numHits, field, parser);
+<FONT ID="LN">493 </FONT><A NAME="493"></A>
+<FONT ID="LN">494 </FONT><A NAME="494"></A>    <FONT ID="Case">case</FONT> SortField.BYTE:
+<FONT ID="LN">495 </FONT><A NAME="495"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.ByteComparator</A>(numHits, field, parser);
+<FONT ID="LN">496 </FONT><A NAME="496"></A>
+<FONT ID="LN">497 </FONT><A NAME="497"></A>    <FONT ID="Case">case</FONT> SortField.SHORT:
+<FONT ID="LN">498 </FONT><A NAME="498"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.ShortComparator</A>(numHits, field, parser);
+<FONT ID="LN">499 </FONT><A NAME="499"></A>
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    <FONT ID="Case">case</FONT> SortField.CUSTOM:
+<FONT ID="LN">501 </FONT><A NAME="501"></A>      assert factory == <FONT ID="Null">null</FONT> &amp;&amp; comparatorSource != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">502 </FONT><A NAME="502"></A>      <FONT ID="Return">return</FONT> comparatorSource.newComparator(field, numHits, sortPos, reverse);
+<FONT ID="LN">503 </FONT><A NAME="503"></A>
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    <FONT ID="Case">case</FONT> SortField.STRING:
+<FONT ID="LN">505 </FONT><A NAME="505"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.StringOrdValComparator</A>(numHits, field, sortPos, reverse);
+<FONT ID="LN">506 </FONT><A NAME="506"></A>
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    <FONT ID="Case">case</FONT> SortField.STRING_VAL:
+<FONT ID="LN">508 </FONT><A NAME="508"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/search/FieldComparator.java.html">FieldComparator.StringValComparator</A>(numHits, field);
+<FONT ID="LN">509 </FONT><A NAME="509"></A>        
+<FONT ID="LN">510 </FONT><A NAME="510"></A>    <FONT ID="Default">default</FONT>:
+<FONT ID="LN">511 </FONT><A NAME="511"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalStateException(<FONT ID="StringLiteral">"Illegal sort type: "</FONT> + type);
+<FONT ID="LN">512 </FONT><A NAME="512"></A>    }
+<FONT ID="LN">513 </FONT><A NAME="513"></A>  }
+<FONT ID="LN">514 </FONT><A NAME="514"></A>  
+<FONT ID="LN">515 </FONT><A NAME="515"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">516 </FONT><A NAME="516"></A>   * Attempts to detect the given field type for an IndexReader.
+<FONT ID="LN">517 </FONT><A NAME="517"></A>   * @deprecated
+<FONT ID="LN">518 </FONT><A NAME="518"></A>   */</FONT>
+<FONT ID="LN">519 </FONT><A NAME="519"></A>  <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> detectFieldType(<A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> reader, String fieldKey) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">520 </FONT><A NAME="520"></A>    String field = StringHelper.intern(fieldKey);
+<FONT ID="LN">521 </FONT><A NAME="521"></A>    <A HREF="../../../../org/apache/lucene/index/TermEnum.java.html">TermEnum</A> enumerator = reader.terms(<FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A>(field));
+<FONT ID="LN">522 </FONT><A NAME="522"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">523 </FONT><A NAME="523"></A>      <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term = enumerator.term();
+<FONT ID="LN">524 </FONT><A NAME="524"></A>      <FONT ID="If">if</FONT> (term == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">525 </FONT><A NAME="525"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"no terms in field "</FONT> + field + <FONT ID="StringLiteral">" - cannot determine sort type"</FONT>);
+<FONT ID="LN">526 </FONT><A NAME="526"></A>      }
+<FONT ID="LN">527 </FONT><A NAME="527"></A>      <FONT ID="Int">int</FONT> ret = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">528 </FONT><A NAME="528"></A>      <FONT ID="If">if</FONT> (term.field() == field) {
+<FONT ID="LN">529 </FONT><A NAME="529"></A>        String termtext = term.text().trim();
+<FONT ID="LN">530 </FONT><A NAME="530"></A>
+<FONT ID="LN">531 </FONT><A NAME="531"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">532 </FONT><A NAME="532"></A>          Integer.parseInt (termtext);
+<FONT ID="LN">533 </FONT><A NAME="533"></A>          ret = SortField.INT;
+<FONT ID="LN">534 </FONT><A NAME="534"></A>        } <FONT ID="Catch">catch</FONT> (NumberFormatException nfe1) {
+<FONT ID="LN">535 </FONT><A NAME="535"></A>          <FONT ID="Try">try</FONT> {
+<FONT ID="LN">536 </FONT><A NAME="536"></A>            Long.parseLong(termtext);
+<FONT ID="LN">537 </FONT><A NAME="537"></A>            ret = SortField.LONG;
+<FONT ID="LN">538 </FONT><A NAME="538"></A>          } <FONT ID="Catch">catch</FONT> (NumberFormatException nfe2) {
+<FONT ID="LN">539 </FONT><A NAME="539"></A>            <FONT ID="Try">try</FONT> {
+<FONT ID="LN">540 </FONT><A NAME="540"></A>              Float.parseFloat (termtext);
+<FONT ID="LN">541 </FONT><A NAME="541"></A>              ret = SortField.FLOAT;
+<FONT ID="LN">542 </FONT><A NAME="542"></A>            } <FONT ID="Catch">catch</FONT> (NumberFormatException nfe3) {
+<FONT ID="LN">543 </FONT><A NAME="543"></A>              ret = SortField.STRING;
+<FONT ID="LN">544 </FONT><A NAME="544"></A>            }
+<FONT ID="LN">545 </FONT><A NAME="545"></A>          }
+<FONT ID="LN">546 </FONT><A NAME="546"></A>        }         
+<FONT ID="LN">547 </FONT><A NAME="547"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">548 </FONT><A NAME="548"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"field \""</FONT> + field + <FONT ID="StringLiteral">"\" does not appear to be indexed"</FONT>);
+<FONT ID="LN">549 </FONT><A NAME="549"></A>      }
+<FONT ID="LN">550 </FONT><A NAME="550"></A>      <FONT ID="Return">return</FONT> ret;
+<FONT ID="LN">551 </FONT><A NAME="551"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">552 </FONT><A NAME="552"></A>      enumerator.close();
+<FONT ID="LN">553 </FONT><A NAME="553"></A>    }
+<FONT ID="LN">554 </FONT><A NAME="554"></A>  }
+<FONT ID="LN">555 </FONT><A NAME="555"></A>}
+<FONT ID="LN">556 </FONT><A NAME="556"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">SortField.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,141 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.seg.SegmentTagPlain (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">SegmentTagPlain.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.seg;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/classify/Classifier.java.html">LBJ2.classify.Classifier</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> LBJ2.nlp.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/util/ClassUtils.java.html">LBJ2.util.ClassUtils</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * Use this command line program to produce textual segment annotations
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * on an input text using a learned {@link LBJ2.nlp.Word} classifier.
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  *
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * &lt;h4&gt;Usage&lt;/h4&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * &lt;blockquote&gt;&lt;code&gt;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  *   java LBJ2.nlp.seg.SegmentTagPlain &amp;lt;word classifier&amp;gt;
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  *                                     &amp;lt;input file&amp;gt;
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  *                                     [&amp;lt;parser&amp;gt;]
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  * &lt;/code&gt;&lt;/blockquote&gt;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  *
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  * &lt;h4&gt;Input&lt;/h4&gt;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  * The first command line parameter specifies the fully qualified class name
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  * (e.g. &lt;code&gt;myPackage.myClass&lt;/code&gt;) of a {@link LBJ2.nlp.Word}
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  * classifier whose predictions either are equal to &lt;code&gt;"O"&lt;/code&gt; or begin
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  * with &lt;code&gt;"B-"&lt;/code&gt; or &lt;code&gt;"I-"&lt;/code&gt;.  The second command line
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  * parameter specifies the relative path to a file containing the plain text
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  * to be tagged.
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  *
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  * &lt;p&gt; The optional third command line parameter specifies the name of a
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  * parser which creates an alternative representation of the user's choice
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  * for the plain text words in the input.  When this parameter is omitted,
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  * {@link PlainToTokenParser} is applied to {@link LBJ2.nlp.WordSplitter}
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  * applied to {@link LBJ2.nlp.SentenceSplitter} which ends up returning
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  * {@link LBJ2.nlp.Word} objects one at a time.  If the parameter is given,
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  * the specified parser is used in place of {@link PlainToTokenParser}.  It
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  * must be the case that this parser returns objects of a class derived from
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  * class {@link LBJ2.nlp.Word}.
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  *
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  * &lt;h4&gt;Output&lt;/h4&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  * The same text with segment annotations predicted by the specified
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  * classifier is produced on &lt;code&gt;STDOUT&lt;/code&gt;.  Annotated segments will
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  * be surrounded by square brackets.  The type of the segment (as indicated
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  * by the &lt;code&gt;"B-"&lt;/code&gt; and &lt;code&gt;"I-"&lt;/code&gt; labels after removing those
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  * prefixes) appears attached to the opening square bracket.
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  *
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  * @author Nick Rizzolo
+<FONT ID="LN">46  </FONT><A NAME="46"></A> **/</FONT>
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> SegmentTagPlain
+<FONT ID="LN">48  </FONT><A NAME="48"></A>{
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args)
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  {
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    String taggerName = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    String inputFile = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    String parserName = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">54  </FONT><A NAME="54"></A>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="Try">try</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>      taggerName = args[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">58  </FONT><A NAME="58"></A>      inputFile = args[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>      <FONT ID="If">if</FONT> (args.length &gt; <FONT ID="IntegerLiteral">2</FONT>)
+<FONT ID="LN">61  </FONT><A NAME="61"></A>      {
+<FONT ID="LN">62  </FONT><A NAME="62"></A>        parserName = args[<FONT ID="IntegerLiteral">2</FONT>];
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        <FONT ID="If">if</FONT> (args.length &gt; <FONT ID="IntegerLiteral">3</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">64  </FONT><A NAME="64"></A>      }
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    }
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>      System.err.println(
+<FONT ID="LN">69  </FONT><A NAME="69"></A>          <FONT ID="StringLiteral">"usage: java LBJ2.nlp.seg.SegmentTagPlain &lt;word classifier&gt; "</FONT>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>          + <FONT ID="StringLiteral">"&lt;input file&gt; \\\n"</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>          + <FONT ID="StringLiteral">"                                         [&lt;parser&gt;]"</FONT>);
+<FONT ID="LN">72  </FONT><A NAME="72"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    }
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <A HREF="../../../LBJ2/classify/Classifier.java.html">Classifier</A> tagger = ClassUtils.getClassifier(taggerName);
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    Parser parser = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">77  </FONT><A NAME="77"></A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    <FONT ID="If">if</FONT> (parserName == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">79  </FONT><A NAME="79"></A>      parser =
+<FONT ID="LN">80  </FONT><A NAME="80"></A>        <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/seg/PlainToTokenParser.java.html">PlainToTokenParser</A>(
+<FONT ID="LN">81  </FONT><A NAME="81"></A>            <FONT ID="New">new</FONT> WordSplitter(<FONT ID="New">new</FONT> SentenceSplitter(inputFile)));
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>      parser =
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        ClassUtils.getParser(parserName, <FONT ID="New">new</FONT> Class[]{ Parser.<FONT ID="Class">class</FONT> },
+<FONT ID="LN">85  </FONT><A NAME="85"></A>            <FONT ID="New">new</FONT> Parser[]
+<FONT ID="LN">86  </FONT><A NAME="86"></A>            {
+<FONT ID="LN">87  </FONT><A NAME="87"></A>              <FONT ID="New">new</FONT> WordSplitter(<FONT ID="New">new</FONT> SentenceSplitter(inputFile))
+<FONT ID="LN">88  </FONT><A NAME="88"></A>            });
+<FONT ID="LN">89  </FONT><A NAME="89"></A>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    String previous = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <FONT ID="For">for</FONT> (Word w = (Word) parser.next(); w != <FONT ID="Null">null</FONT>; w = (Word) parser.next())
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>      String prediction = tagger.discreteValue(w);
+<FONT ID="LN">95  </FONT><A NAME="95"></A>      <FONT ID="If">if</FONT> (prediction.startsWith(<FONT ID="StringLiteral">"B-"</FONT>)
+<FONT ID="LN">96  </FONT><A NAME="96"></A>          || prediction.startsWith(<FONT ID="StringLiteral">"I-"</FONT>)
+<FONT ID="LN">97  </FONT><A NAME="97"></A>             &amp;&amp; !previous.endsWith(prediction.substring(<FONT ID="IntegerLiteral">2</FONT>)))
+<FONT ID="LN">98  </FONT><A NAME="98"></A>        System.out.print(<FONT ID="StringLiteral">"["</FONT> + prediction.substring(<FONT ID="IntegerLiteral">2</FONT>) + <FONT ID="StringLiteral">" "</FONT>);
+<FONT ID="LN">99  </FONT><A NAME="99"></A>      System.out.print(w.form + <FONT ID="StringLiteral">" "</FONT>);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>      <FONT ID="If">if</FONT> (!prediction.equals(<FONT ID="StringLiteral">"O"</FONT>)
+<FONT ID="LN">101 </FONT><A NAME="101"></A>          &amp;&amp; (w.next == <FONT ID="Null">null</FONT>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>              || tagger.discreteValue(w.next).equals(<FONT ID="StringLiteral">"O"</FONT>)
+<FONT ID="LN">103 </FONT><A NAME="103"></A>              || tagger.discreteValue(w.next).startsWith(<FONT ID="StringLiteral">"B-"</FONT>)
+<FONT ID="LN">104 </FONT><A NAME="104"></A>              || !tagger.discreteValue(w.next)
+<FONT ID="LN">105 </FONT><A NAME="105"></A>                  .endsWith(prediction.substring(<FONT ID="IntegerLiteral">2</FONT>))))
+<FONT ID="LN">106 </FONT><A NAME="106"></A>        System.out.print(<FONT ID="StringLiteral">"] "</FONT>);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>      <FONT ID="If">if</FONT> (w.next == <FONT ID="Null">null</FONT>) System.out.println();
+<FONT ID="LN">108 </FONT><A NAME="108"></A>      previous = prediction;
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    }
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  }
+<FONT ID="LN">111 </FONT><A NAME="111"></A>}
+<FONT ID="LN">112 </FONT><A NAME="112"></A>
+<FONT ID="LN">113 </FONT><A NAME="113"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">SegmentTagPlain.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

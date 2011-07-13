@@ -95,7 +95,6 @@ toString:()Ljava/lang/String;@java.nio.charset.CodingErrorAction
 toString:()Ljava/lang/String;@java.nio.CharBuffer
 toString:()Ljava/lang/String;@java.nio.ByteBuffer
 toString:()Ljava/lang/String;@java.nio.ByteOrder
-toString:()Ljava/lang/String;@java.lang.reflect.Method
 toString:()Ljava/lang/String;@java.nio.charset.Charset
 toString:()Ljava/lang/String;@java.util.Calendar
 toString:()Ljava/lang/String;@sun.util.calendar.LocalGregorianCalendar$Date
@@ -107,6 +106,7 @@ toString:()Ljava/lang/String;@java.lang.Enum
 toString:()Ljava/lang/String;@java.io.ObjectStreamField
 toString:()Ljava/lang/String;@java.util.BitSet
 toString:()Ljava/lang/String;@java.io.File
+toString:()Ljava/lang/String;@java.lang.reflect.Method
 toString:()Ljava/lang/String;@java.util.Collections$UnmodifiableCollection
 toString:()Ljava/lang/String;@java.util.logging.Level
 toString:()Ljava/lang/String;@java.lang.Long
@@ -327,7 +327,6 @@ equals:(Ljava/lang/Object;)Z@java.util.SimpleTimeZone
 equals:(Ljava/lang/Object;)Z@sun.util.calendar.ZoneInfo
 equals:(Ljava/lang/Object;)Z@java.nio.CharBuffer
 equals:(Ljava/lang/Object;)Z@java.nio.ByteBuffer
-equals:(Ljava/lang/Object;)Z@java.lang.reflect.Method
 equals:(Ljava/lang/Object;)Z@java.nio.charset.Charset
 equals:(Ljava/lang/Object;)Z@java.util.GregorianCalendar
 equals:(Ljava/lang/Object;)Z@java.net.URL
@@ -339,6 +338,7 @@ equals:(Ljava/lang/Object;)Z@java.lang.Enum
 equals:(Ljava/lang/Object;)Z@java.util.Collections$SynchronizedList
 equals:(Ljava/lang/Object;)Z@java.util.BitSet
 equals:(Ljava/lang/Object;)Z@java.io.File
+equals:(Ljava/lang/Object;)Z@java.lang.reflect.Method
 equals:(Ljava/lang/Object;)Z@java.util.Collections$UnmodifiableList
 equals:(Ljava/lang/Object;)Z@java.util.logging.Level
 equals:(Ljava/lang/Object;)Z@java.lang.Long
@@ -489,7 +489,7 @@ isAlive:()Z@java.lang.Thread
 getMaxPriority:()I@java.lang.ThreadGroup
 setPriority0:(I)V@java.lang.Thread
 <init>:(Ljava/lang/ThreadGroup;Ljava/lang/String;)V@java.lang.Thread
-init:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;JZ)V@java.lang.Thread
+init:(Ljava/lang/ThreadGroup;Ljava/lang/Runnable;Ljava/lang/String;J)V@java.lang.Thread
 getThreadGroup:()Ljava/lang/ThreadGroup;@java.lang.SecurityManager
 isCCLOverridden:(Ljava/lang/Class;)Z@java.lang.Thread
 addUnstarted:()V@java.lang.ThreadGroup
@@ -832,7 +832,6 @@ hashCode:()I@java.util.SimpleTimeZone
 hashCode:()I@sun.util.calendar.ZoneInfo
 hashCode:()I@java.nio.CharBuffer
 hashCode:()I@java.nio.ByteBuffer
-hashCode:()I@java.lang.reflect.Method
 hashCode:()I@java.nio.charset.Charset
 hashCode:()I@java.util.GregorianCalendar
 hashCode:()I@java.util.zip.ZipEntry
@@ -845,6 +844,7 @@ hashCode:()I@java.lang.Enum
 hashCode:()I@java.util.Collections$SynchronizedList
 hashCode:()I@java.util.BitSet
 hashCode:()I@java.io.File
+hashCode:()I@java.lang.reflect.Method
 hashCode:()I@java.util.Collections$UnmodifiableList
 hashCode:()I@java.util.logging.Level
 hashCode:()I@java.lang.Long
@@ -1936,18 +1936,9 @@ close:()V@java.io.InputStream
 close:()V@java.io.ByteArrayInputStream
 close:()V@java.io.FilterInputStream
 close:()V@java.io.FileInputStream
-<clinit>:()V@java.io.FileDescriptor
-decrementAndGetUseCount:()I@java.io.FileDescriptor
 close:()V@java.nio.channels.spi.AbstractInterruptibleChannel
-isRunningFinalize:()Z@java.io.FileInputStream
 close0:()V@java.io.FileInputStream
 implCloseChannel:()V@java.nio.channels.spi.AbstractInterruptibleChannel
-decrementAndGet:()I@java.util.concurrent.atomic.AtomicInteger
-<init>:(I)V@java.io.FileDescriptor
-initIDs:()V@java.io.FileDescriptor
-<init>:()V@java.io.FileDescriptor$1
-<clinit>:()V@sun.misc.SharedSecrets
-setJavaIOFileDescriptorAccess:(Lsun/misc/JavaIOFileDescriptorAccess;)V@sun.misc.SharedSecrets
 read:([BII)I@java.io.FilterInputStream
 getAdditionalData:()[B@java.text.RuleBasedBreakIterator
 prepareCategoryFlags:([B)V@java.text.DictionaryBasedBreakIterator
@@ -2280,6 +2271,7 @@ initFields:(J)V@java.util.zip.ZipEntry
 initIDs:()V@java.util.zip.ZipFile
 <init>:(Ljava/lang/String;)V@sun.security.action.GetPropertyAction
 <init>:()V@java.util.jar.JavaUtilJarAccessImpl
+<clinit>:()V@sun.misc.SharedSecrets
 setJavaUtilJarAccess:(Lsun/misc/JavaUtilJarAccess;)V@sun.misc.SharedSecrets
 getHeaderFieldDate:(Ljava/lang/String;J)J@java.net.URLConnection
 getHeaderField:(Ljava/lang/String;)Ljava/lang/String;@java.net.URLConnection
@@ -2440,11 +2432,11 @@ clone:()Ljava/lang/Object;@java.text.MessageFormat
 clone:()Ljava/lang/Object;@java.text.ChoiceFormat
 clone:()Ljava/lang/Object;@java.text.SimpleDateFormat
 clone:()Ljava/lang/Object;@java.text.DateFormatSymbols
-isLinkLocalAddress:()Z@java.net.Inet6Address
 deriveNumericScope:(Ljava/net/NetworkInterface;)I@java.net.Inet6Address
 <clinit>:()V@java.net.NetworkInterface
 getInetAddresses:()Ljava/util/Enumeration;@java.net.NetworkInterface
 differentLocalAddressTypes:(Ljava/net/Inet6Address;)Z@java.net.Inet6Address
+isLinkLocalAddress:()Z@java.net.Inet6Address
 isSiteLocalAddress:()Z@java.net.Inet6Address
 <init>:(Ljava/net/NetworkInterface;)V@java.net.NetworkInterface$1checkedAddresses
 access$000:(Ljava/net/NetworkInterface;)[Ljava/net/InetAddress;@java.net.NetworkInterface
@@ -4418,7 +4410,6 @@ maxMemory:()J@java.lang.Runtime
 <init>:()V@java.lang.Runtime
 checkPropertiesAccess:()V@java.lang.SecurityManager
 initProperties:(Ljava/util/Properties;)Ljava/util/Properties;@java.lang.System
-adjustPropertiesForBackwardCompatibility:(Ljava/util/Properties;)V@java.lang.System
 implReset:()V@java.nio.charset.CharsetEncoder
 scale:(IF)I@java.lang.StringCoding
 <init>:(Ljava/nio/charset/Charset;Ljava/lang/String;)V@java.lang.StringCoding$StringEncoder
@@ -4478,11 +4469,14 @@ historicalName:()Ljava/lang/String;@sun.nio.cs.US_ASCII
 <init>:(Ljava/io/File;Z)V@java.io.FileOutputStream
 getPath:()Ljava/lang/String;@java.io.File
 checkWrite:(Ljava/lang/String;)V@java.lang.SecurityManager
+<clinit>:()V@java.io.FileDescriptor
 <init>:()V@java.io.FileDescriptor
-incrementAndGetUseCount:()I@java.io.FileDescriptor
 open:(Ljava/lang/String;)V@java.io.FileOutputStream
 openAppend:(Ljava/lang/String;)V@java.io.FileOutputStream
-incrementAndGet:()I@java.util.concurrent.atomic.AtomicInteger
+<init>:(I)V@java.io.FileDescriptor
+initIDs:()V@java.io.FileDescriptor
+<init>:()V@java.io.FileDescriptor$1
+setJavaIOFileDescriptorAccess:(Lsun/misc/JavaIOFileDescriptorAccess;)V@sun.misc.SharedSecrets
 resolve:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;@java.io.FileSystem
 getDefaultParent:()Ljava/lang/String;@java.io.FileSystem
 getLocalLowKernelJava:()Ljava/lang/String;@sun.jkernel.DownloadManager
@@ -4504,7 +4498,6 @@ downloadFile:(Ljava/lang/String;)Z@sun.jkernel.DownloadManager
 initializePath:(Ljava/lang/String;)[Ljava/lang/String;@java.lang.ClassLoader
 findLibrary:(Ljava/lang/String;)Ljava/lang/String;@java.lang.ClassLoader
 loadLibrary0:(Ljava/lang/Class;Ljava/io/File;)Z@java.lang.ClassLoader
-getName:()Ljava/lang/String;@java.io.File
 isAbsolute:()Z@java.io.File
 isAbsolute:(Ljava/io/File;)Z@java.io.FileSystem
 <init>:(Ljava/io/File;)V@java.lang.ClassLoader$3
@@ -5315,6 +5308,7 @@ regionEnd:()I@java.util.regex.Matcher
 getName:()Ljava/lang/String;@java.lang.Thread
 getName:()Ljava/lang/String;@java.lang.ThreadGroup
 valueOf:(J)Ljava/lang/String;@java.lang.String
+getTypeName:(Ljava/lang/Class;)Ljava/lang/String;@java.lang.reflect.Field
 cardinality:()I@java.util.BitSet
 nextSetBit:(I)I@java.util.BitSet
 nextClearBit:(I)I@java.util.BitSet
@@ -5324,7 +5318,6 @@ toExternalForm:()Ljava/lang/String;@java.net.URL
 toExternalForm:(Ljava/net/URL;)Ljava/lang/String;@java.net.URLStreamHandler
 getName:()Ljava/lang/String;@java.util.zip.ZipEntry
 appendValue:(Ljava/lang/StringBuilder;Ljava/lang/String;ZJ)V@java.util.Calendar
-getTypeName:(Ljava/lang/Class;)Ljava/lang/String;@java.lang.reflect.Field
 toString:(II)Ljava/lang/String;@java.nio.CharBuffer
 toString:(II)Ljava/lang/String;@java.nio.HeapCharBuffer
 sprintf0d:(Ljava/lang/StringBuilder;II)Ljava/lang/StringBuilder;@sun.util.calendar.CalendarUtils

@@ -1,0 +1,403 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.FieldInfos (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldInfos.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/Document.java.html">org.apache.lucene.document.Document</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/Fieldable.java.html">org.apache.lucene.document.Fieldable</A>;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">org.apache.lucene.store.Directory</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">org.apache.lucene.store.IndexInput</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">org.apache.lucene.store.IndexOutput</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/StringHelper.java.html">org.apache.lucene.util.StringHelper</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="FormalComment">/** Access to the Fieldable Info file that describes document fields and whether or
+<FONT ID="LN">31  </FONT><A NAME="31"></A> *  not they are indexed. Each segment has a separate Fieldable Info file. Objects
+<FONT ID="LN">32  </FONT><A NAME="32"></A> *  of this class are thread-safe for multiple readers, but only one thread can
+<FONT ID="LN">33  </FONT><A NAME="33"></A> *  be adding documents at a time, with no other reader or writer threads
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *  accessing this object.
+<FONT ID="LN">35  </FONT><A NAME="35"></A> */</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> FieldInfos {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  <FONT ID="SingleLineComment">// Used internally (ie not written to *.fnm files) for pre-2.9 files
+<FONT ID="LN">39  </FONT><A NAME="39"></A></FONT>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> FORMAT_PRE = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="SingleLineComment">// First used in 2.9; prior to 2.9 there was no format header
+<FONT ID="LN">42  </FONT><A NAME="42"></A></FONT>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> FORMAT_START = -<FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> CURRENT_FORMAT = FORMAT_START;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT> IS_INDEXED = <FONT ID="IntegerLiteral">0x1</FONT>;
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT> STORE_TERMVECTOR = <FONT ID="IntegerLiteral">0x2</FONT>;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT> STORE_POSITIONS_WITH_TERMVECTOR = <FONT ID="IntegerLiteral">0x4</FONT>;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT> STORE_OFFSET_WITH_TERMVECTOR = <FONT ID="IntegerLiteral">0x8</FONT>;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT> OMIT_NORMS = <FONT ID="IntegerLiteral">0x10</FONT>;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT> STORE_PAYLOADS = <FONT ID="IntegerLiteral">0x20</FONT>;
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT> OMIT_TERM_FREQ_AND_POSITIONS = <FONT ID="IntegerLiteral">0x40</FONT>;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> ArrayList byNumber = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> HashMap byName = <FONT ID="New">new</FONT> HashMap();
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> format;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  FieldInfos() { }
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * Construct a FieldInfos object using the directory and the name of the file
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * IndexInput
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * @param d The directory to open the IndexInput from
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   * @param name The name of the file to open the IndexInput from in the Directory
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   * @throws IOException
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   */</FONT>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  FieldInfos(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> d, String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> input = d.openInput(name);
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">70  </FONT><A NAME="70"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>        read(input, name);
+<FONT ID="LN">72  </FONT><A NAME="72"></A>      } <FONT ID="Catch">catch</FONT> (IOException ioe) {
+<FONT ID="LN">73  </FONT><A NAME="73"></A>        <FONT ID="If">if</FONT> (format == FORMAT_PRE) {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>          <FONT ID="SingleLineComment">// LUCENE-1623: FORMAT_PRE (before there was a
+<FONT ID="LN">75  </FONT><A NAME="75"></A></FONT>          <FONT ID="SingleLineComment">// format) may be 2.3.2 (pre-utf8) or 2.4.x (utf8)
+<FONT ID="LN">76  </FONT><A NAME="76"></A></FONT>          <FONT ID="SingleLineComment">// encoding; retry with input set to pre-utf8
+<FONT ID="LN">77  </FONT><A NAME="77"></A></FONT>          input.seek(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">78  </FONT><A NAME="78"></A>          input.setModifiedUTF8StringsMode();
+<FONT ID="LN">79  </FONT><A NAME="79"></A>          byNumber.clear();
+<FONT ID="LN">80  </FONT><A NAME="80"></A>          byName.clear();
+<FONT ID="LN">81  </FONT><A NAME="81"></A>          <FONT ID="Try">try</FONT> {
+<FONT ID="LN">82  </FONT><A NAME="82"></A>            read(input, name);
+<FONT ID="LN">83  </FONT><A NAME="83"></A>          } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>            <FONT ID="SingleLineComment">// Ignore any new exception &amp; throw original IOE
+<FONT ID="LN">85  </FONT><A NAME="85"></A></FONT>            <FONT ID="Throw">throw</FONT> ioe;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>          }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">88  </FONT><A NAME="88"></A>          <FONT ID="SingleLineComment">// The IOException cannot be caused by
+<FONT ID="LN">89  </FONT><A NAME="89"></A></FONT>          <FONT ID="SingleLineComment">// LUCENE-1623, so re-throw it
+<FONT ID="LN">90  </FONT><A NAME="90"></A></FONT>          <FONT ID="Throw">throw</FONT> ioe;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>        }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>      }
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>      input.close();
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    }
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  }
+<FONT ID="LN">97  </FONT><A NAME="97"></A>
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   * Returns a deep clone of this FieldInfos instance.
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   */</FONT>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> Object clone() {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <A HREF="../../../../org/apache/lucene/index/FieldInfos.java.html">FieldInfos</A> fis = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfos.java.html">FieldInfos</A>();
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> numField = byNumber.size();
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;numField;i++) {
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fi = (<A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A>) ((<A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A>) byNumber.get(i)).clone();
+<FONT ID="LN">106 </FONT><A NAME="106"></A>      fis.byNumber.add(fi);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>      fis.byName.put(fi.name, fi);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="Return">return</FONT> fis;
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  }
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="FormalComment">/** Adds field info for a Document. */</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(<A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc) {
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    List fields = doc.getFields();
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    Iterator fieldIterator = fields.iterator();
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="While">while</FONT> (fieldIterator.hasNext()) {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>      <A HREF="../../../../org/apache/lucene/document/Fieldable.java.html">Fieldable</A> field = (<A HREF="../../../../org/apache/lucene/document/Fieldable.java.html">Fieldable</A>) fieldIterator.next();
+<FONT ID="LN">118 </FONT><A NAME="118"></A>      add(field.name(), field.isIndexed(), field.isTermVectorStored(), field.isStorePositionWithTermVector(),
+<FONT ID="LN">119 </FONT><A NAME="119"></A>              field.isStoreOffsetWithTermVector(), field.getOmitNorms(), <FONT ID="False">false</FONT>, field.getOmitTf());
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="FormalComment">/** Returns true if any fields do not omitTermFreqAndPositions */</FONT>
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  <FONT ID="Boolean">boolean</FONT> hasProx() {
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> numFields = byNumber.size();
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;numFields;i++) {
+<FONT ID="LN">127 </FONT><A NAME="127"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fi = fieldInfo(i);
+<FONT ID="LN">128 </FONT><A NAME="128"></A>      <FONT ID="If">if</FONT> (fi.isIndexed &amp;&amp; !fi.omitTermFreqAndPositions) {
+<FONT ID="LN">129 </FONT><A NAME="129"></A>        <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">130 </FONT><A NAME="130"></A>      }
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  }
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * Add fields that are indexed. Whether they have termvectors has to be specified.
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * 
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   * @param names The names of the fields
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   * @param storeTermVectors Whether the fields store term vectors or not
+<FONT ID="LN">140 </FONT><A NAME="140"></A>   * @param storePositionWithTermVector true if positions should be stored.
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * @param storeOffsetWithTermVector true if offsets should be stored
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   */</FONT>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addIndexed(Collection names, <FONT ID="Boolean">boolean</FONT> storeTermVectors, <FONT ID="Boolean">boolean</FONT> storePositionWithTermVector, 
+<FONT ID="LN">144 </FONT><A NAME="144"></A>                         <FONT ID="Boolean">boolean</FONT> storeOffsetWithTermVector) {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    Iterator i = names.iterator();
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    <FONT ID="While">while</FONT> (i.hasNext()) {
+<FONT ID="LN">147 </FONT><A NAME="147"></A>      add((String)i.next(), <FONT ID="True">true</FONT>, storeTermVectors, storePositionWithTermVector, storeOffsetWithTermVector);
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    }
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  }
+<FONT ID="LN">150 </FONT><A NAME="150"></A>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * Assumes the fields are not storing term vectors.
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * 
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * @param names The names of the fields
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * @param isIndexed Whether the fields are indexed or not
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * 
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * @see #add(String, boolean)
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   */</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(Collection names, <FONT ID="Boolean">boolean</FONT> isIndexed) {
+<FONT ID="LN">160 </FONT><A NAME="160"></A>    Iterator i = names.iterator();
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    <FONT ID="While">while</FONT> (i.hasNext()) {
+<FONT ID="LN">162 </FONT><A NAME="162"></A>      add((String)i.next(), isIndexed);
+<FONT ID="LN">163 </FONT><A NAME="163"></A>    }
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  }
+<FONT ID="LN">165 </FONT><A NAME="165"></A>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * Calls 5 parameter add with false for all TermVector parameters.
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * 
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   * @param name The name of the Fieldable
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   * @param isIndexed true if the field is indexed
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   * @see #add(String, boolean, boolean, boolean, boolean)
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   */</FONT>
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(String name, <FONT ID="Boolean">boolean</FONT> isIndexed) {
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    add(name, isIndexed, <FONT ID="False">false</FONT>, <FONT ID="False">false</FONT>, <FONT ID="False">false</FONT>, <FONT ID="False">false</FONT>);
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   * Calls 5 parameter add with false for term vector positions and offsets.
+<FONT ID="LN">179 </FONT><A NAME="179"></A>   * 
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   * @param name The name of the field
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * @param isIndexed  true if the field is indexed
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * @param storeTermVector true if the term vector should be stored
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   */</FONT>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(String name, <FONT ID="Boolean">boolean</FONT> isIndexed, <FONT ID="Boolean">boolean</FONT> storeTermVector){
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    add(name, isIndexed, storeTermVector, <FONT ID="False">false</FONT>, <FONT ID="False">false</FONT>, <FONT ID="False">false</FONT>);
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  <FONT ID="FormalComment">/** If the field is not yet known, adds it. If it is known, checks to make
+<FONT ID="LN">189 </FONT><A NAME="189"></A>   *  sure that the isIndexed flag is the same as was given previously for this
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   *  field. If not - marks it as being indexed.  Same goes for the TermVector
+<FONT ID="LN">191 </FONT><A NAME="191"></A>   * parameters.
+<FONT ID="LN">192 </FONT><A NAME="192"></A>   * 
+<FONT ID="LN">193 </FONT><A NAME="193"></A>   * @param name The name of the field
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   * @param isIndexed true if the field is indexed
+<FONT ID="LN">195 </FONT><A NAME="195"></A>   * @param storeTermVector true if the term vector should be stored
+<FONT ID="LN">196 </FONT><A NAME="196"></A>   * @param storePositionWithTermVector true if the term vector with positions should be stored
+<FONT ID="LN">197 </FONT><A NAME="197"></A>   * @param storeOffsetWithTermVector true if the term vector with offsets should be stored
+<FONT ID="LN">198 </FONT><A NAME="198"></A>   */</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(String name, <FONT ID="Boolean">boolean</FONT> isIndexed, <FONT ID="Boolean">boolean</FONT> storeTermVector,
+<FONT ID="LN">200 </FONT><A NAME="200"></A>                  <FONT ID="Boolean">boolean</FONT> storePositionWithTermVector, <FONT ID="Boolean">boolean</FONT> storeOffsetWithTermVector) {
+<FONT ID="LN">201 </FONT><A NAME="201"></A>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    add(name, isIndexed, storeTermVector, storePositionWithTermVector, storeOffsetWithTermVector, <FONT ID="False">false</FONT>);
+<FONT ID="LN">203 </FONT><A NAME="203"></A>  }
+<FONT ID="LN">204 </FONT><A NAME="204"></A>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    <FONT ID="FormalComment">/** If the field is not yet known, adds it. If it is known, checks to make
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   *  sure that the isIndexed flag is the same as was given previously for this
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   *  field. If not - marks it as being indexed.  Same goes for the TermVector
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   * parameters.
+<FONT ID="LN">209 </FONT><A NAME="209"></A>   *
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   * @param name The name of the field
+<FONT ID="LN">211 </FONT><A NAME="211"></A>   * @param isIndexed true if the field is indexed
+<FONT ID="LN">212 </FONT><A NAME="212"></A>   * @param storeTermVector true if the term vector should be stored
+<FONT ID="LN">213 </FONT><A NAME="213"></A>   * @param storePositionWithTermVector true if the term vector with positions should be stored
+<FONT ID="LN">214 </FONT><A NAME="214"></A>   * @param storeOffsetWithTermVector true if the term vector with offsets should be stored
+<FONT ID="LN">215 </FONT><A NAME="215"></A>   * @param omitNorms true if the norms for the indexed field should be omitted
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   */</FONT>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(String name, <FONT ID="Boolean">boolean</FONT> isIndexed, <FONT ID="Boolean">boolean</FONT> storeTermVector,
+<FONT ID="LN">218 </FONT><A NAME="218"></A>                  <FONT ID="Boolean">boolean</FONT> storePositionWithTermVector, <FONT ID="Boolean">boolean</FONT> storeOffsetWithTermVector, <FONT ID="Boolean">boolean</FONT> omitNorms) {
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    add(name, isIndexed, storeTermVector, storePositionWithTermVector,
+<FONT ID="LN">220 </FONT><A NAME="220"></A>        storeOffsetWithTermVector, omitNorms, <FONT ID="False">false</FONT>, <FONT ID="False">false</FONT>);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>  }
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  
+<FONT ID="LN">223 </FONT><A NAME="223"></A>  <FONT ID="FormalComment">/** If the field is not yet known, adds it. If it is known, checks to make
+<FONT ID="LN">224 </FONT><A NAME="224"></A>   *  sure that the isIndexed flag is the same as was given previously for this
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   *  field. If not - marks it as being indexed.  Same goes for the TermVector
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   * parameters.
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   *
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * @param name The name of the field
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * @param isIndexed true if the field is indexed
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   * @param storeTermVector true if the term vector should be stored
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   * @param storePositionWithTermVector true if the term vector with positions should be stored
+<FONT ID="LN">232 </FONT><A NAME="232"></A>   * @param storeOffsetWithTermVector true if the term vector with offsets should be stored
+<FONT ID="LN">233 </FONT><A NAME="233"></A>   * @param omitNorms true if the norms for the indexed field should be omitted
+<FONT ID="LN">234 </FONT><A NAME="234"></A>   * @param storePayloads true if payloads should be stored for this field
+<FONT ID="LN">235 </FONT><A NAME="235"></A>   * @param omitTermFreqAndPositions true if term freqs should be omitted for this field
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   */</FONT>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>  <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> add(String name, <FONT ID="Boolean">boolean</FONT> isIndexed, <FONT ID="Boolean">boolean</FONT> storeTermVector,
+<FONT ID="LN">238 </FONT><A NAME="238"></A>                       <FONT ID="Boolean">boolean</FONT> storePositionWithTermVector, <FONT ID="Boolean">boolean</FONT> storeOffsetWithTermVector,
+<FONT ID="LN">239 </FONT><A NAME="239"></A>                       <FONT ID="Boolean">boolean</FONT> omitNorms, <FONT ID="Boolean">boolean</FONT> storePayloads, <FONT ID="Boolean">boolean</FONT> omitTermFreqAndPositions) {
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fi = fieldInfo(name);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="If">if</FONT> (fi == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">242 </FONT><A NAME="242"></A>      <FONT ID="Return">return</FONT> addInternal(name, isIndexed, storeTermVector, storePositionWithTermVector, storeOffsetWithTermVector, omitNorms, storePayloads, omitTermFreqAndPositions);
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">244 </FONT><A NAME="244"></A>      fi.update(isIndexed, storeTermVector, storePositionWithTermVector, storeOffsetWithTermVector, omitNorms, storePayloads, omitTermFreqAndPositions);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    }
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    <FONT ID="Return">return</FONT> fi;
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  }
+<FONT ID="LN">248 </FONT><A NAME="248"></A>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> addInternal(String name, <FONT ID="Boolean">boolean</FONT> isIndexed,
+<FONT ID="LN">250 </FONT><A NAME="250"></A>                                <FONT ID="Boolean">boolean</FONT> storeTermVector, <FONT ID="Boolean">boolean</FONT> storePositionWithTermVector, 
+<FONT ID="LN">251 </FONT><A NAME="251"></A>                                <FONT ID="Boolean">boolean</FONT> storeOffsetWithTermVector, <FONT ID="Boolean">boolean</FONT> omitNorms, <FONT ID="Boolean">boolean</FONT> storePayloads, <FONT ID="Boolean">boolean</FONT> omitTermFreqAndPositions) {
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    name = StringHelper.intern(name);
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fi = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A>(name, isIndexed, byNumber.size(), storeTermVector, storePositionWithTermVector,
+<FONT ID="LN">254 </FONT><A NAME="254"></A>                                 storeOffsetWithTermVector, omitNorms, storePayloads, omitTermFreqAndPositions);
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    byNumber.add(fi);
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    byName.put(name, fi);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    <FONT ID="Return">return</FONT> fi;
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  }
+<FONT ID="LN">259 </FONT><A NAME="259"></A>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> fieldNumber(String fieldName) {
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fi = fieldInfo(fieldName);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    <FONT ID="Return">return</FONT> (fi != <FONT ID="Null">null</FONT>) ? fi.number : -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">263 </FONT><A NAME="263"></A>  }
+<FONT ID="LN">264 </FONT><A NAME="264"></A>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fieldInfo(String fieldName) {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    <FONT ID="Return">return</FONT> (<A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A>) byName.get(fieldName);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>  }
+<FONT ID="LN">268 </FONT><A NAME="268"></A>
+<FONT ID="LN">269 </FONT><A NAME="269"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">270 </FONT><A NAME="270"></A>   * Return the fieldName identified by its number.
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   * 
+<FONT ID="LN">272 </FONT><A NAME="272"></A>   * @param fieldNumber
+<FONT ID="LN">273 </FONT><A NAME="273"></A>   * @return the fieldName or an empty string when the field
+<FONT ID="LN">274 </FONT><A NAME="274"></A>   * with the given number doesn't exist.
+<FONT ID="LN">275 </FONT><A NAME="275"></A>   */</FONT>  
+<FONT ID="LN">276 </FONT><A NAME="276"></A>  <FONT ID="Public">public</FONT> String fieldName(<FONT ID="Int">int</FONT> fieldNumber) {
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fi = fieldInfo(fieldNumber);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    <FONT ID="Return">return</FONT> (fi != <FONT ID="Null">null</FONT>) ? fi.name : <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">279 </FONT><A NAME="279"></A>  }
+<FONT ID="LN">280 </FONT><A NAME="280"></A>
+<FONT ID="LN">281 </FONT><A NAME="281"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">282 </FONT><A NAME="282"></A>   * Return the fieldinfo object referenced by the fieldNumber.
+<FONT ID="LN">283 </FONT><A NAME="283"></A>   * @param fieldNumber
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   * @return the FieldInfo object or null when the given fieldNumber
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   * doesn't exist.
+<FONT ID="LN">286 </FONT><A NAME="286"></A>   */</FONT>  
+<FONT ID="LN">287 </FONT><A NAME="287"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fieldInfo(<FONT ID="Int">int</FONT> fieldNumber) {
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    <FONT ID="Return">return</FONT> (fieldNumber &gt;= <FONT ID="IntegerLiteral">0</FONT>) ? (<A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A>) byNumber.get(fieldNumber) : <FONT ID="Null">null</FONT>;
+<FONT ID="LN">289 </FONT><A NAME="289"></A>  }
+<FONT ID="LN">290 </FONT><A NAME="290"></A>
+<FONT ID="LN">291 </FONT><A NAME="291"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> size() {
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    <FONT ID="Return">return</FONT> byNumber.size();
+<FONT ID="LN">293 </FONT><A NAME="293"></A>  }
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasVectors() {
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    <FONT ID="Boolean">boolean</FONT> hasVectors = <FONT ID="False">false</FONT>;
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; size(); i++) {
+<FONT ID="LN">298 </FONT><A NAME="298"></A>      <FONT ID="If">if</FONT> (fieldInfo(i).storeTermVector) {
+<FONT ID="LN">299 </FONT><A NAME="299"></A>        hasVectors = <FONT ID="True">true</FONT>;
+<FONT ID="LN">300 </FONT><A NAME="300"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">301 </FONT><A NAME="301"></A>      }
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    }
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    <FONT ID="Return">return</FONT> hasVectors;
+<FONT ID="LN">304 </FONT><A NAME="304"></A>  }
+<FONT ID="LN">305 </FONT><A NAME="305"></A>
+<FONT ID="LN">306 </FONT><A NAME="306"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> d, String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    <A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">IndexOutput</A> output = d.createOutput(name);
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">309 </FONT><A NAME="309"></A>      write(output);
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">311 </FONT><A NAME="311"></A>      output.close();
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    }
+<FONT ID="LN">313 </FONT><A NAME="313"></A>  }
+<FONT ID="LN">314 </FONT><A NAME="314"></A>
+<FONT ID="LN">315 </FONT><A NAME="315"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(<A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">IndexOutput</A> output) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    output.writeVInt(CURRENT_FORMAT);
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    output.writeVInt(size());
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; size(); i++) {
+<FONT ID="LN">319 </FONT><A NAME="319"></A>      <A HREF="../../../../org/apache/lucene/index/FieldInfo.java.html">FieldInfo</A> fi = fieldInfo(i);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      <FONT ID="Byte">byte</FONT> bits = <FONT ID="IntegerLiteral">0x0</FONT>;
+<FONT ID="LN">321 </FONT><A NAME="321"></A>      <FONT ID="If">if</FONT> (fi.isIndexed) bits |= IS_INDEXED;
+<FONT ID="LN">322 </FONT><A NAME="322"></A>      <FONT ID="If">if</FONT> (fi.storeTermVector) bits |= STORE_TERMVECTOR;
+<FONT ID="LN">323 </FONT><A NAME="323"></A>      <FONT ID="If">if</FONT> (fi.storePositionWithTermVector) bits |= STORE_POSITIONS_WITH_TERMVECTOR;
+<FONT ID="LN">324 </FONT><A NAME="324"></A>      <FONT ID="If">if</FONT> (fi.storeOffsetWithTermVector) bits |= STORE_OFFSET_WITH_TERMVECTOR;
+<FONT ID="LN">325 </FONT><A NAME="325"></A>      <FONT ID="If">if</FONT> (fi.omitNorms) bits |= OMIT_NORMS;
+<FONT ID="LN">326 </FONT><A NAME="326"></A>      <FONT ID="If">if</FONT> (fi.storePayloads) bits |= STORE_PAYLOADS;
+<FONT ID="LN">327 </FONT><A NAME="327"></A>      <FONT ID="If">if</FONT> (fi.omitTermFreqAndPositions) bits |= OMIT_TERM_FREQ_AND_POSITIONS;
+<FONT ID="LN">328 </FONT><A NAME="328"></A>      
+<FONT ID="LN">329 </FONT><A NAME="329"></A>      output.writeString(fi.name);
+<FONT ID="LN">330 </FONT><A NAME="330"></A>      output.writeByte(bits);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>    }
+<FONT ID="LN">332 </FONT><A NAME="332"></A>  }
+<FONT ID="LN">333 </FONT><A NAME="333"></A>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> read(<A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> input, String fileName) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    <FONT ID="Int">int</FONT> firstInt = input.readVInt();
+<FONT ID="LN">336 </FONT><A NAME="336"></A>
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    <FONT ID="If">if</FONT> (firstInt &lt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      <FONT ID="SingleLineComment">// This is a real format
+<FONT ID="LN">339 </FONT><A NAME="339"></A></FONT>      format = firstInt;
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">341 </FONT><A NAME="341"></A>      format = FORMAT_PRE;
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    }
+<FONT ID="LN">343 </FONT><A NAME="343"></A>
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    <FONT ID="If">if</FONT> (format != FORMAT_PRE &amp; format != FORMAT_START) {
+<FONT ID="LN">345 </FONT><A NAME="345"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>(<FONT ID="StringLiteral">"unrecognized format "</FONT> + format + <FONT ID="StringLiteral">" in file \""</FONT> + fileName + <FONT ID="StringLiteral">"\""</FONT>);
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    }
+<FONT ID="LN">347 </FONT><A NAME="347"></A>
+<FONT ID="LN">348 </FONT><A NAME="348"></A>    <FONT ID="Int">int</FONT> size;
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    <FONT ID="If">if</FONT> (format == FORMAT_PRE) {
+<FONT ID="LN">350 </FONT><A NAME="350"></A>      size = firstInt;
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">352 </FONT><A NAME="352"></A>      size = input.readVInt(); <FONT ID="SingleLineComment">//read in the size
+<FONT ID="LN">353 </FONT><A NAME="353"></A></FONT>    }
+<FONT ID="LN">354 </FONT><A NAME="354"></A>
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; size; i++) {
+<FONT ID="LN">356 </FONT><A NAME="356"></A>      String name = StringHelper.intern(input.readString());
+<FONT ID="LN">357 </FONT><A NAME="357"></A>      <FONT ID="Byte">byte</FONT> bits = input.readByte();
+<FONT ID="LN">358 </FONT><A NAME="358"></A>      <FONT ID="Boolean">boolean</FONT> isIndexed = (bits &amp; IS_INDEXED) != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">359 </FONT><A NAME="359"></A>      <FONT ID="Boolean">boolean</FONT> storeTermVector = (bits &amp; STORE_TERMVECTOR) != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">360 </FONT><A NAME="360"></A>      <FONT ID="Boolean">boolean</FONT> storePositionsWithTermVector = (bits &amp; STORE_POSITIONS_WITH_TERMVECTOR) != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">361 </FONT><A NAME="361"></A>      <FONT ID="Boolean">boolean</FONT> storeOffsetWithTermVector = (bits &amp; STORE_OFFSET_WITH_TERMVECTOR) != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">362 </FONT><A NAME="362"></A>      <FONT ID="Boolean">boolean</FONT> omitNorms = (bits &amp; OMIT_NORMS) != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">363 </FONT><A NAME="363"></A>      <FONT ID="Boolean">boolean</FONT> storePayloads = (bits &amp; STORE_PAYLOADS) != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">364 </FONT><A NAME="364"></A>      <FONT ID="Boolean">boolean</FONT> omitTermFreqAndPositions = (bits &amp; OMIT_TERM_FREQ_AND_POSITIONS) != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">365 </FONT><A NAME="365"></A>      
+<FONT ID="LN">366 </FONT><A NAME="366"></A>      addInternal(name, isIndexed, storeTermVector, storePositionsWithTermVector, storeOffsetWithTermVector, omitNorms, storePayloads, omitTermFreqAndPositions);
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    }
+<FONT ID="LN">368 </FONT><A NAME="368"></A>
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    <FONT ID="If">if</FONT> (input.getFilePointer() != input.length()) {
+<FONT ID="LN">370 </FONT><A NAME="370"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>(<FONT ID="StringLiteral">"did not read all bytes from file \""</FONT> + fileName + <FONT ID="StringLiteral">"\": read "</FONT> + input.getFilePointer() + <FONT ID="StringLiteral">" vs size "</FONT> + input.length());
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    }    
+<FONT ID="LN">372 </FONT><A NAME="372"></A>  }
+<FONT ID="LN">373 </FONT><A NAME="373"></A>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>}
+<FONT ID="LN">375 </FONT><A NAME="375"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldInfos.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

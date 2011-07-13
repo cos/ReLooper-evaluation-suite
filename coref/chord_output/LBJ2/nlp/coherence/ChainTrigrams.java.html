@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.coherence.ChainTrigrams (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ChainTrigrams.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Modifying this comment will cause the next execution of LBJ2 to overwrite this file.
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT><FONT ID="SingleLineComment">// F1B88000000000000000DA19D4B63C03C068FFA867818C788948DD6F17AE678036DBC6CE25A70314D4D0DA35C650656CEFBF427390D232C06C0F546BED752D327427BBB685C6D9F0F61D7B1DDE31E367D4FB7A0CBA53C1C9F860EEB08F487177086ABE307A21E1272655EAD6B4C9DCB45BE227A1F6CCDD99ABA15D5DCBA73D540CA992A3698A617C0D9CAC811F8FA4C86CAF12F8268ADE6D5A52D70BE5CC96A3BF4AA58CE09A083D391197814BE30343A00885706A6940F2B3476B777BBE90D84BA036C383412A49873083059D6AB0C2829E99E883550DB813A3056BC95391D622AF12FB8E7F509824228B411CDAE8D5849555CCDEBAAFFFD7901F5D8F91FB02F4B9AFB06FC0471720693FD081F73EA8AA200000
+<FONT ID="LN">3   </FONT><A NAME="3"></A></FONT>
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Package">package</FONT> LBJ2.nlp.coherence;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> LBJ2.infer.*;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> LBJ2.jni.*;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> LBJ2.learn.*;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> LBJ2.nlp.coref.*;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">13  </FONT><A NAME="13"></A>
+<FONT ID="LN">14  </FONT><A NAME="14"></A>
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ChainTrigrams <FONT ID="Extends">extends</FONT> Classifier
+<FONT ID="LN">16  </FONT><A NAME="16"></A>{
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> ThreadLocal cache = <FONT ID="New">new</FONT> ThreadLocal(){ };
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> ThreadLocal exampleCache = <FONT ID="New">new</FONT> ThreadLocal(){ };
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="Public">public</FONT> ChainTrigrams() { <FONT ID="Super">super</FONT>(<FONT ID="StringLiteral">"LBJ2.nlp.coherence.ChainTrigrams"</FONT>); }
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  <FONT ID="Public">public</FONT> String getInputType() { <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"[LLBJ2.nlp.coref.Document;"</FONT>; }
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="Public">public</FONT> String getOutputType() { <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"real%"</FONT>; }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="Public">public</FONT> FeatureVector classify(Object __example)
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  {
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="If">if</FONT> (!(__example <FONT ID="InstanceOf">instanceof</FONT> Document[]))
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>      String type = __example == <FONT ID="Null">null</FONT> ? <FONT ID="StringLiteral">"null"</FONT> : __example.getClass().getName();
+<FONT ID="LN">30  </FONT><A NAME="30"></A>      System.err.println(<FONT ID="StringLiteral">"Classifier 'ChainTrigrams(Document[])' defined on line 548 of cohere.lbj received '"</FONT> + type + <FONT ID="StringLiteral">"' as input."</FONT>);
+<FONT ID="LN">31  </FONT><A NAME="31"></A>      <FONT ID="New">new</FONT> Exception().printStackTrace();
+<FONT ID="LN">32  </FONT><A NAME="32"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    }
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    <FONT ID="If">if</FONT> (__example == ChainTrigrams.exampleCache.get()) <FONT ID="Return">return</FONT> (FeatureVector) ChainTrigrams.cache.get();
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    Document[] pair = (Document[]) __example;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    FeatureVector __result = <FONT ID="New">new</FONT> FeatureVector();
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    String __id;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    Map counts0 = pair[<FONT ID="IntegerLiteral">0</FONT>].getChainNgramCounts(<FONT ID="IntegerLiteral">3</FONT>);
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    Map counts1 = pair[<FONT ID="IntegerLiteral">1</FONT>].getChainNgramCounts(<FONT ID="IntegerLiteral">3</FONT>);
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    <FONT ID="For">for</FONT> (Iterator I = counts0.entrySet().iterator(); I.hasNext(); )
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>      Map.Entry entry = (Map.Entry) I.next();
+<FONT ID="LN">46  </FONT><A NAME="46"></A>      <FONT ID="Int">int</FONT> c0 = ((Integer) entry.getValue()).intValue();
+<FONT ID="LN">47  </FONT><A NAME="47"></A>      <FONT ID="Int">int</FONT> c1 = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>      <FONT ID="If">if</FONT> (counts1.containsKey(entry.getKey()))
+<FONT ID="LN">49  </FONT><A NAME="49"></A>      {
+<FONT ID="LN">50  </FONT><A NAME="50"></A>        c1 = ((Integer) counts1.get(entry.getKey())).intValue();
+<FONT ID="LN">51  </FONT><A NAME="51"></A>      }
+<FONT ID="LN">52  </FONT><A NAME="52"></A>      __id = <FONT ID="This">this</FONT>.name + (entry.getKey());
+<FONT ID="LN">53  </FONT><A NAME="53"></A>      __result.addFeature(<FONT ID="New">new</FONT> RealFeature(<FONT ID="This">this</FONT>.containingPackage, __id, c0 - c1));
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    }
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="For">for</FONT> (Iterator I = counts1.entrySet().iterator(); I.hasNext(); )
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>      Map.Entry entry = (Map.Entry) I.next();
+<FONT ID="LN">58  </FONT><A NAME="58"></A>      <FONT ID="If">if</FONT> (!counts0.containsKey(entry.getKey()))
+<FONT ID="LN">59  </FONT><A NAME="59"></A>      {
+<FONT ID="LN">60  </FONT><A NAME="60"></A>        <FONT ID="Int">int</FONT> c1 = ((Integer) counts1.get(entry.getKey())).intValue();
+<FONT ID="LN">61  </FONT><A NAME="61"></A>        __id = <FONT ID="This">this</FONT>.name + (entry.getKey());
+<FONT ID="LN">62  </FONT><A NAME="62"></A>        __result.addFeature(<FONT ID="New">new</FONT> RealFeature(<FONT ID="This">this</FONT>.containingPackage, __id, -c1));
+<FONT ID="LN">63  </FONT><A NAME="63"></A>      }
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    }
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    ChainTrigrams.exampleCache.set(__example);
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    ChainTrigrams.cache.set(__result);
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="Return">return</FONT> __result;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  }
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="Public">public</FONT> FeatureVector[] classify(Object[] examples)
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; examples.length; ++i)
+<FONT ID="LN">75  </FONT><A NAME="75"></A>      <FONT ID="If">if</FONT> (!(examples[i] <FONT ID="InstanceOf">instanceof</FONT> Document[]))
+<FONT ID="LN">76  </FONT><A NAME="76"></A>      {
+<FONT ID="LN">77  </FONT><A NAME="77"></A>        System.err.println(<FONT ID="StringLiteral">"Classifier 'ChainTrigrams(Document[])' defined on line 548 of cohere.lbj received '"</FONT> + examples[i].getClass().getName() + <FONT ID="StringLiteral">"' as input."</FONT>);
+<FONT ID="LN">78  </FONT><A NAME="78"></A>        <FONT ID="New">new</FONT> Exception().printStackTrace();
+<FONT ID="LN">79  </FONT><A NAME="79"></A>        System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">80  </FONT><A NAME="80"></A>      }
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <FONT ID="Return">return</FONT> <FONT ID="Super">super</FONT>.classify(examples);
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> hashCode() { <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"ChainTrigrams"</FONT>.hashCode(); }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object o) { <FONT ID="Return">return</FONT> o <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../LBJ2/nlp/coherence/ChainTrigrams.java.html">ChainTrigrams</A>; }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>}
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ChainTrigrams.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

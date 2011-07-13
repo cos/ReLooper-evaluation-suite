@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.util.AttributeImpl (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AttributeImpl.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.util;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.lang.reflect.Field;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.lang.reflect.Modifier;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * Base class for Attributes that can be added to a 
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * {@link org.apache.lucene.util.AttributeSource}.
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * &lt;p&gt;
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * Attributes are used to add data in a dynamic, yet type-safe way to a source
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * of usually streamed objects, e. g. a {@link org.apache.lucene.analysis.TokenStream}.
+<FONT ID="LN">30  </FONT><A NAME="30"></A> */</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> AttributeImpl <FONT ID="Implements">implements</FONT> Cloneable, Serializable, <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A> {  
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">33  </FONT><A NAME="33"></A>   * Clears the values in this AttributeImpl and resets it to its 
+<FONT ID="LN">34  </FONT><A NAME="34"></A>   * default value. If this implementation implements more than one Attribute interface
+<FONT ID="LN">35  </FONT><A NAME="35"></A>   * it clears all.
+<FONT ID="LN">36  </FONT><A NAME="36"></A>   */</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> clear();
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">40  </FONT><A NAME="40"></A>   * The default implementation of this method accesses all declared
+<FONT ID="LN">41  </FONT><A NAME="41"></A>   * fields of this object and prints the values in the following syntax:
+<FONT ID="LN">42  </FONT><A NAME="42"></A>   * 
+<FONT ID="LN">43  </FONT><A NAME="43"></A>   * &lt;pre&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   *   public String toString() {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   *     return "start=" + startOffset + ",end=" + endOffset;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>   *   }
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   * &lt;/pre&gt;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   * 
+<FONT ID="LN">49  </FONT><A NAME="49"></A>   * This method may be overridden by subclasses.
+<FONT ID="LN">50  </FONT><A NAME="50"></A>   */</FONT>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    StringBuffer buffer = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    Class clazz = <FONT ID="This">this</FONT>.getClass();
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    Field[] fields = clazz.getDeclaredFields();
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">56  </FONT><A NAME="56"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; fields.length; i++) {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>        Field f = fields[i];
+<FONT ID="LN">58  </FONT><A NAME="58"></A>        <FONT ID="If">if</FONT> (Modifier.isStatic(f.getModifiers())) <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>        f.setAccessible(<FONT ID="True">true</FONT>);
+<FONT ID="LN">60  </FONT><A NAME="60"></A>        Object value = f.get(<FONT ID="This">this</FONT>);
+<FONT ID="LN">61  </FONT><A NAME="61"></A>        <FONT ID="If">if</FONT> (buffer.length()&gt;<FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">62  </FONT><A NAME="62"></A>          buffer.append(<FONT ID="CharacerLiteral">','</FONT>);
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        }
+<FONT ID="LN">64  </FONT><A NAME="64"></A>        <FONT ID="If">if</FONT> (value == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">65  </FONT><A NAME="65"></A>          buffer.append(f.getName() + <FONT ID="StringLiteral">"=null"</FONT>);
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">67  </FONT><A NAME="67"></A>          buffer.append(f.getName() + <FONT ID="StringLiteral">"="</FONT> + value);
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        }
+<FONT ID="LN">69  </FONT><A NAME="69"></A>      }
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    } <FONT ID="Catch">catch</FONT> (IllegalAccessException e) {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>      <FONT ID="SingleLineComment">// this should never happen, because we're just accessing fields
+<FONT ID="LN">72  </FONT><A NAME="72"></A></FONT>      <FONT ID="SingleLineComment">// from 'this'
+<FONT ID="LN">73  </FONT><A NAME="73"></A></FONT>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(e);
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    }
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="Return">return</FONT> buffer.toString();
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  }
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * Subclasses must implement this method and should compute
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   * a hashCode similar to this:
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   * &lt;pre&gt;
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   *   public int hashCode() {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   *     int code = startOffset;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   *     code = code * 31 + endOffset;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   *     return code;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   *   }
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   * &lt;/pre&gt; 
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * 
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   * see also {@link #equals(Object)}
+<FONT ID="LN">91  </FONT><A NAME="91"></A>   */</FONT>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Int">int</FONT> hashCode();
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * All values used for computation of {@link #hashCode()} 
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * should be checked here for equality.
+<FONT ID="LN">97  </FONT><A NAME="97"></A>   * 
+<FONT ID="LN">98  </FONT><A NAME="98"></A>   * see also {@link Object#equals(Object)}
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object other);
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * Copies the values from this Attribute into the passed-in
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * target attribute. The target implementation must support all the
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   * Attributes this implementation supports.
+<FONT ID="LN">106 </FONT><A NAME="106"></A>   */</FONT>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> copyTo(<A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> target);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   * Shallow clone. Subclasses must override this if they 
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   * need to clone any members deeply,
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   */</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Public">public</FONT> Object clone() {
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    Object clone = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">116 </FONT><A NAME="116"></A>      clone = <FONT ID="Super">super</FONT>.clone();
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    } <FONT ID="Catch">catch</FONT> (CloneNotSupportedException e) {
+<FONT ID="LN">118 </FONT><A NAME="118"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(e);  <FONT ID="SingleLineComment">// shouldn't happen
+<FONT ID="LN">119 </FONT><A NAME="119"></A></FONT>    }
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="Return">return</FONT> clone;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>}
+<FONT ID="LN">123 </FONT><A NAME="123"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AttributeImpl.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

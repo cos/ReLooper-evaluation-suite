@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.coref.BestLinkMergedPronouns (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BestLinkMergedPronouns.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.coref;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * This class implements a classifier which takes the predictions of another
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * coreference classifier and then merges the singleton pronouns.
+<FONT ID="LN">10  </FONT><A NAME="10"></A> **/</FONT>
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> BestLinkMergedPronouns <FONT ID="Extends">extends</FONT> <A HREF="../../../LBJ2/nlp/coref/MergedPronouns.java.html">MergedPronouns</A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A>{
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  <FONT ID="FormalComment">/** Constructor. */</FONT>
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  <FONT ID="Public">public</FONT> BestLinkMergedPronouns()
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  {
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    <FONT ID="Super">super</FONT>(<FONT ID="StringLiteral">"BestLinkMergedPronouns"</FONT>, <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/HCBLDataCoref.java.html">HCBLDataCoref</A>());
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  }
+<FONT ID="LN">18  </FONT><A NAME="18"></A>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    * Two {@link MergedPronouns} classifiers are equivalent when their
+<FONT ID="LN">22  </FONT><A NAME="22"></A>    * run-time types are the same.  Implementing this method is necessary to
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    * make inference over this classifier work.
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    *
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    * @param o  The object with which to compare this object.
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    * @return &lt;code&gt;true&lt;/code&gt; iff the argument object is an instance of
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    *         class &lt;code&gt;BestLinkMergedPronouns&lt;/code&gt;.
+<FONT ID="LN">28  </FONT><A NAME="28"></A>   **/</FONT>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object o)
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  {
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="Return">return</FONT> o <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../LBJ2/nlp/coref/BestLinkMergedPronouns.java.html">BestLinkMergedPronouns</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  }
+<FONT ID="LN">33  </FONT><A NAME="33"></A>}
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BestLinkMergedPronouns.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

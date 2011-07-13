@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.seg.PlainToTokenParser (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">PlainToTokenParser.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.seg;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> LBJ2.nlp.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * This parser takes the {@link LBJ2.nlp.Word}s in the representation created
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * by another {@link LBJ2.parse.Parser} and creates a new representation
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * consisting of {@link Token}s.  The input parser is actually expected to
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * return a {@link LBJ2.parse.LinkedVector} populated by
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * {@link LBJ2.nlp.Word}s with each call to {@link LBJ2.parse.Parser#next()}.
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * The {@link Token}s returned by calls to this class's {@link #next()}
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * method are also contained in {@link LBJ2.parse.LinkedVector}s representing
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  * sentences which are accessible via the
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  * {@link LBJ2.parse.LinkedVector#parent} field.
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  *
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  * @author Nick Rizzolo
+<FONT ID="LN">19  </FONT><A NAME="19"></A> **/</FONT>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> PlainToTokenParser <FONT ID="Implements">implements</FONT> Parser
+<FONT ID="LN">21  </FONT><A NAME="21"></A>{
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    * A parser creating a representation consisting of {@link LBJ2.nlp.Word}s.
+<FONT ID="LN">24  </FONT><A NAME="24"></A>   **/</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="Protected">protected</FONT> Parser parser;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="FormalComment">/** The next token to return. */</FONT>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A> next;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    * The only constructor.
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    *
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    * @param p  A parser creating a representation consisting of
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    *           {@link LBJ2.nlp.Word}s.
+<FONT ID="LN">35  </FONT><A NAME="35"></A>   **/</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  <FONT ID="Public">public</FONT> PlainToTokenParser(Parser p) { parser = p; }
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    * This method returns {@link Token}s until the input is exhausted, at
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    * which point it returns &lt;code&gt;null&lt;/code&gt;.
+<FONT ID="LN">42  </FONT><A NAME="42"></A>   **/</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="Public">public</FONT> Object next()
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="While">while</FONT> (next == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    {
+<FONT ID="LN">47  </FONT><A NAME="47"></A>      LinkedVector words = (LinkedVector) parser.next();
+<FONT ID="LN">48  </FONT><A NAME="48"></A>      <FONT ID="If">if</FONT> (words == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>      Word w = (Word) words.get(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">50  </FONT><A NAME="50"></A>      <A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A> t = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A>(w, <FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>      <FONT ID="For">for</FONT> (w = (Word) w.next; w != <FONT ID="Null">null</FONT>; w = (Word) w.next)
+<FONT ID="LN">53  </FONT><A NAME="53"></A>      {
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        t.next = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A>(w, t, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        t = (<A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A>) t.next;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>      }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>      LinkedVector tokens = <FONT ID="New">new</FONT> LinkedVector(t);
+<FONT ID="LN">59  </FONT><A NAME="59"></A>      next = (<A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A>) tokens.get(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    }
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    <A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A> result = next;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    next = (<A HREF="../../../LBJ2/nlp/seg/Token.java.html">Token</A>) next.next;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  }
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="FormalComment">/** Sets this parser back to the beginning of the raw data. */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> reset()
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    parser.reset();
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    next = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  }
+<FONT ID="LN">74  </FONT><A NAME="74"></A>}
+<FONT ID="LN">75  </FONT><A NAME="75"></A>
+<FONT ID="LN">76  </FONT><A NAME="76"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">PlainToTokenParser.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

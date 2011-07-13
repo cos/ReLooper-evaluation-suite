@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.io.HexInputStream (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">HexInputStream.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.io;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * This class receives input from another &lt;code&gt;InputStream&lt;/code&gt; assuming
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * that data is little endian, hexidecimal text, converts that text to bytes,
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * and makes those bytes available through its interface.  The most common
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * usage of this class will involve passing it to the constructor of another
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * &lt;code&gt;InputStream&lt;/code&gt;.  For instance: &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  *
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * &lt;pre&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  *   ObjectInputStream ois =
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  *     new ObjectInputStream(
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  *       new GZIPInputStream(
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  *         new HexInputStream(new FileInputStream(fileName))));
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  * &lt;/pre&gt;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  *
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  * @see HexOutputStream
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  * @author Nick Rizzolo
+<FONT ID="LN">22  </FONT><A NAME="22"></A> **/</FONT>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> HexInputStream <FONT ID="Extends">extends</FONT> InputStream
+<FONT ID="LN">24  </FONT><A NAME="24"></A>{
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="FormalComment">/** Characters representing a hexidecimal digit. */</FONT>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String digits = <FONT ID="StringLiteral">"0123456789ABCDEF"</FONT>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    * The &lt;code&gt;InputStream&lt;/code&gt; from which yet-to-be-converted input
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    * should be received.
+<FONT ID="LN">31  </FONT><A NAME="31"></A>   **/</FONT>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  <FONT ID="Private">private</FONT> InputStream in;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    * Initializes this stream with another input stream.
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    *
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    * @param i  The input stream from which yet-to-be-converted input should
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    *           be received.
+<FONT ID="LN">40  </FONT><A NAME="40"></A>   **/</FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="Public">public</FONT> HexInputStream(InputStream i) { in = i; }
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    * Reads the next byte of data from the input stream.  The value is
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    * returned as an &lt;code&gt;int&lt;/code&gt; in the range 0 to 255.  If no byte is
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    * available because the end of the stream has been reached, the value -1
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    * is returned.  This method blocks until input data is available, the end
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    * of the stream is detected, or an exception is thrown.
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    *
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    * @return The next byte of data, or -1 if the end of the stream is
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    *         reached.
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   **/</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> read() <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  {
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="Int">int</FONT> d1 = in.read();
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="If">if</FONT> (d1 == -<FONT ID="IntegerLiteral">1</FONT>) <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Int">int</FONT> d2 = in.read();
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="If">if</FONT> (d2 == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">60  </FONT><A NAME="60"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"HexInputStream: Unexpected end of file"</FONT>);
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    <FONT ID="Int">int</FONT> i1 = digits.indexOf((<FONT ID="Char">char</FONT>) d1);
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    <FONT ID="If">if</FONT> (i1 == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">64  </FONT><A NAME="64"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"HexInputStream: Invalid input character: '"</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>                            + ((<FONT ID="Char">char</FONT>) d1) + <FONT ID="StringLiteral">"' ("</FONT> + d1 + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Int">int</FONT> i2 = digits.indexOf((<FONT ID="Char">char</FONT>) d2);
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    <FONT ID="If">if</FONT> (i2 == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">68  </FONT><A NAME="68"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"HexInputStream: Invalid input character: '"</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>                            + ((<FONT ID="Char">char</FONT>) d2) + <FONT ID="StringLiteral">"' ("</FONT> + d2 + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="Return">return</FONT> (i2 &lt;&lt; <FONT ID="IntegerLiteral">4</FONT>) | i1;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  }
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    * This method has the same effect as &lt;code&gt;read(b, 0, b.length)&lt;/code&gt;.
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    *
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    * @param b  A buffer in which the converted input is stored.
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    * @return   The total number of bytes read into the buffer, or -1 if there
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    *           is no more data because the end of the stream was previously
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    *           reached.
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   **/</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> read(<FONT ID="Byte">byte</FONT>[] b) <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  {
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    <FONT ID="Return">return</FONT> read(b, <FONT ID="IntegerLiteral">0</FONT>, b.length);
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    * Reads up to &lt;code&gt;len&lt;/code&gt; bytes of data from another input stream
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    * into an array of bytes.  An attempt is made to read as many as
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    * &lt;code&gt;len&lt;/code&gt; bytes, but a smaller number may be read, possibly zero.
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    * The number of bytes actually read is returned as an integer. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    *
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    * This method blocks until input data is available, end of file is
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    * detected, or an exception is thrown. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    *
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    * If &lt;code&gt;b&lt;/code&gt; is &lt;code&gt;null&lt;/code&gt;, a
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    * &lt;code&gt;NullPointerException&lt;/code&gt; is thrown. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    *
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    * If &lt;code&gt;off&lt;/code&gt; is negative, or &lt;code&gt;len&lt;/code&gt; is negative, or
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    * &lt;code&gt;off+len&lt;/code&gt; is greater than the length of the array
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    * &lt;code&gt;b&lt;/code&gt;, then an &lt;code&gt;IndexOutOfBoundsException&lt;/code&gt; is
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    * thrown.  &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    *
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    * If &lt;code&gt;len&lt;/code&gt; is zero, then no bytes are read and 0 is returned;
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    * otherwise, there is an attempt to read at least one byte.  If no byte is
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    * available because the stream is at end of file, the value -1 is
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    * returned; otherwise, at least one byte is read and stored into
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    * &lt;code&gt;b&lt;/code&gt;. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    *
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    * The first byte read is stored into element &lt;code&gt;b[off]&lt;/code&gt;, the next
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    * one into &lt;code&gt;b[off+1]&lt;/code&gt;, and so on.  The number of bytes read is,
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    * at most, equal to &lt;code&gt;len&lt;/code&gt;.  Let &lt;i&gt;k&lt;/i&gt; be the number of bytes
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    * actually read; these bytes will be stored in elements
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    * &lt;code&gt;b[off]&lt;/code&gt; through &lt;code&gt;b[off+k-1]&lt;/code&gt;, leaving elements
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    * &lt;code&gt;b[off+k]&lt;/code&gt; through &lt;code&gt;b[off+len-1]&lt;/code&gt; unaffected.
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    * &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    *
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    * In every case, elements &lt;code&gt;b[0]&lt;/code&gt; through &lt;code&gt;b[off-1]&lt;/code&gt;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    * and elements &lt;code&gt;b[off+len]&lt;/code&gt; through &lt;code&gt;b[b.length-1]&lt;/code&gt;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    * are unaffected. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    *
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    * If the first byte cannot be read for any reason other than end of file,
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    * then an &lt;code&gt;IOException&lt;/code&gt; is thrown.  In particular, an
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    * &lt;code&gt;IOException&lt;/code&gt; is thrown if the input stream has been closed.
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    *
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    * @param b    A buffer into which the converted input is stored.
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    * @param off  The offset in the buffer at which to begin writing.
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    * @param len  The amount of bytes to be received and written into the
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    *             buffer.
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    * @return     The total number of bytes read into the buffer, or -1 if
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    *             there is no more data because the end of the stream has been
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    *             reached.
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   **/</FONT>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> read(<FONT ID="Byte">byte</FONT>[] b, <FONT ID="Int">int</FONT> off, <FONT ID="Int">int</FONT> len) <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    <FONT ID="Byte">byte</FONT>[] hex = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[<FONT ID="IntegerLiteral">2</FONT> * len];
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    <FONT ID="Int">int</FONT> bytesRead = in.read(hex);
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    <FONT ID="If">if</FONT> (bytesRead == -<FONT ID="IntegerLiteral">1</FONT>) <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    <FONT ID="If">if</FONT> (bytesRead % <FONT ID="IntegerLiteral">2</FONT> == <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">142 </FONT><A NAME="142"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"HexInputStream: Unexpected end of file"</FONT>);
+<FONT ID="LN">143 </FONT><A NAME="143"></A>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; bytesRead; i += <FONT ID="IntegerLiteral">2</FONT>)
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    {
+<FONT ID="LN">146 </FONT><A NAME="146"></A>      <FONT ID="Int">int</FONT> d1 = digits.indexOf((<FONT ID="Char">char</FONT>) hex[i]);
+<FONT ID="LN">147 </FONT><A NAME="147"></A>      <FONT ID="If">if</FONT> (d1 == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">148 </FONT><A NAME="148"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"HexInputStream: Invalid input character: '"</FONT>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>                              + ((<FONT ID="Char">char</FONT>) hex[i]) + <FONT ID="StringLiteral">"' ("</FONT> + ((<FONT ID="Int">int</FONT>) hex[i])
+<FONT ID="LN">150 </FONT><A NAME="150"></A>                              + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">151 </FONT><A NAME="151"></A>      <FONT ID="Int">int</FONT> d2 = digits.indexOf((<FONT ID="Char">char</FONT>) hex[i + <FONT ID="IntegerLiteral">1</FONT>]);
+<FONT ID="LN">152 </FONT><A NAME="152"></A>      <FONT ID="If">if</FONT> (d2 == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">153 </FONT><A NAME="153"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"HexInputStream: Invalid input character: '"</FONT>
+<FONT ID="LN">154 </FONT><A NAME="154"></A>                              + ((<FONT ID="Char">char</FONT>) hex[i + <FONT ID="IntegerLiteral">1</FONT>]) + <FONT ID="StringLiteral">"' ("</FONT>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>                              + ((<FONT ID="Int">int</FONT>) hex[i + <FONT ID="IntegerLiteral">1</FONT>]) + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">156 </FONT><A NAME="156"></A>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>      b[i / <FONT ID="IntegerLiteral">2</FONT>] = (<FONT ID="Byte">byte</FONT>) ((d2 &lt;&lt; <FONT ID="IntegerLiteral">4</FONT>) | d1);
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    }
+<FONT ID="LN">159 </FONT><A NAME="159"></A>
+<FONT ID="LN">160 </FONT><A NAME="160"></A>    <FONT ID="Return">return</FONT> bytesRead / <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  }
+<FONT ID="LN">162 </FONT><A NAME="162"></A>
+<FONT ID="LN">163 </FONT><A NAME="163"></A>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    * Skips over and discards &lt;code&gt;n&lt;/code&gt; bytes of data from this input
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    * stream.  The skip method may, for a variety of reasons, end up skipping
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    * over some smaller number of bytes, possibly 0.  This may result from any
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    * of a number of conditions; reaching end of file before &lt;code&gt;n&lt;/code&gt;
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    * bytes have been skipped is only one possibility.  The actual number of
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    * bytes skipped is returned. If &lt;code&gt;n&lt;/code&gt; is negative, no bytes are
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    * skipped.
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    *
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    * @param n  The number of bytes to be skipped.
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    * @return   The actual number of bytes skipped.
+<FONT ID="LN">175 </FONT><A NAME="175"></A>   **/</FONT>
+<FONT ID="LN">176 </FONT><A NAME="176"></A>  <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> skip(<FONT ID="Long">long</FONT> n) <FONT ID="Throws">throws</FONT> IOException { <FONT ID="Return">return</FONT> in.skip(n * <FONT ID="IntegerLiteral">2</FONT>); }
+<FONT ID="LN">177 </FONT><A NAME="177"></A>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    * Returns the number of bytes that can be read (or skipped over) from this
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    * input stream without blocking by the next caller of a method for this
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    * input stream.  The next caller might be the same thread or or another
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    * thread.
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    *
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    * @return The number of bytes that can be read from this input stream
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    *         without blocking.
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   **/</FONT>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> available() <FONT ID="Throws">throws</FONT> IOException { <FONT ID="Return">return</FONT> in.available() / <FONT ID="IntegerLiteral">2</FONT>; }
+<FONT ID="LN">189 </FONT><A NAME="189"></A>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    * Closes this input stream and releases any system resources associated
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    * with the stream.
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   **/</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> close() <FONT ID="Throws">throws</FONT> IOException { in.close(); }
+<FONT ID="LN">196 </FONT><A NAME="196"></A>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    * Marks the current position in this input stream.  A subsequent call to
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    * the &lt;code&gt;reset&lt;/code&gt; method repositions this stream at the last marked
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    * position so that subsequent reads re-read the same bytes.
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    *
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    * The &lt;code&gt;readlimit&lt;/code&gt; argument tells this input stream to allow
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    * that many bytes to be read before the mark position gets invalidated.
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    *
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    * The general contract of mark is that, if the method
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    * &lt;code&gt;markSupported&lt;/code&gt; returns &lt;code&gt;true&lt;/code&gt;, the stream somehow
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    * remembers all the bytes read after the call to mark and stands ready to
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    * supply those same bytes again if and whenever the method
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    * &lt;code&gt;reset&lt;/code&gt; is called. However, the stream is not required to
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    * remember any data at all if more than &lt;code&gt;readlimit&lt;/code&gt; bytes are
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    * read from the stream before &lt;code&gt;reset&lt;/code&gt; is called.
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    *
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    * @param readlimit  The maximum limit of bytes that can be read before the
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    *                   mark position becomes invalid.
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   **/</FONT>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> mark(<FONT ID="Int">int</FONT> readlimit) { in.mark(readlimit * <FONT ID="IntegerLiteral">2</FONT>); }
+<FONT ID="LN">218 </FONT><A NAME="218"></A>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    * Repositions this stream to the position at the time the
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    * &lt;code&gt;mark&lt;/code&gt; method was last called on this input stream.
+<FONT ID="LN">223 </FONT><A NAME="223"></A>   **/</FONT>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> reset() <FONT ID="Throws">throws</FONT> IOException { in.reset(); }
+<FONT ID="LN">225 </FONT><A NAME="225"></A>
+<FONT ID="LN">226 </FONT><A NAME="226"></A>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    * Tests if this input stream supports the mark and reset methods.  Whether
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    * or not &lt;code&gt;mark&lt;/code&gt; and &lt;code&gt;reset&lt;/code&gt; are supported is an
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    * invariant property of the provided input stream instance.
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    *
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    * @return &lt;code&gt;true&lt;/code&gt; iff the provided input stream instance
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    *         supports the &lt;code&gt;mark&lt;/code&gt; and &lt;code&gt;reset&lt;/code&gt; methods.
+<FONT ID="LN">234 </FONT><A NAME="234"></A>   **/</FONT>
+<FONT ID="LN">235 </FONT><A NAME="235"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> markSupported() { <FONT ID="Return">return</FONT> in.markSupported(); }
+<FONT ID="LN">236 </FONT><A NAME="236"></A>}
+<FONT ID="LN">237 </FONT><A NAME="237"></A>
+<FONT ID="LN">238 </FONT><A NAME="238"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">HexInputStream.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

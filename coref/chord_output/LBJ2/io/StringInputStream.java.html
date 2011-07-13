@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.io.StringInputStream (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StringInputStream.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.io;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * This class allows an application to create an input stream in which the
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * bytes read are supplied by the contents of a string.
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  *
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * &lt;p&gt;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * Only strings that contain only printable, ASCII characters will be
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * handled correctly by this class.  If the string contains any other
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * characters, the behavior of this class is undefined.
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  *
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  * @author Nick Rizzolo
+<FONT ID="LN">16  </FONT><A NAME="16"></A> **/</FONT>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> StringInputStream <FONT ID="Extends">extends</FONT> InputStream
+<FONT ID="LN">18  </FONT><A NAME="18"></A>{
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  <FONT ID="FormalComment">/** The string from which bytes are read. */</FONT>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="Protected">protected</FONT> String buffer;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  <FONT ID="FormalComment">/** The index of the next character to read from the input stream buffer. */</FONT>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> position;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="FormalComment">/** The number of valid characters in the input stream buffer. */</FONT>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> size;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    * Creates a &lt;code&gt;StringInputStream&lt;/code&gt; to read data from the specified
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    * string.
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    *
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    * @param s  The underlying input buffer.
+<FONT ID="LN">34  </FONT><A NAME="34"></A>   **/</FONT>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  <FONT ID="Public">public</FONT> StringInputStream(String s)
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    buffer = s;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    position = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    size = s.length();
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  }
+<FONT ID="LN">41  </FONT><A NAME="41"></A>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    * Reads the next byte of data from this input stream.  The value of the
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    * next &lt;code&gt;char&lt;/code&gt; in the string is returned as an &lt;code&gt;int&lt;/code&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    * in the range &lt;code&gt;0&lt;/code&gt; to &lt;code&gt;255&lt;/code&gt;.  If no
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    * &lt;code&gt;char&lt;/code&gt; is available because the end of the string has been
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    * reached, the value &lt;code&gt;-1&lt;/code&gt; is returned.
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    *
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    * &lt;p&gt;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    * The &lt;code&gt;read&lt;/code&gt; method of &lt;code&gt;StringInputStream&lt;/code&gt; will not
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    * block.  It simply converts the next character available to an
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    * &lt;code&gt;int&lt;/code&gt; and returns that &lt;code&gt;int&lt;/code&gt;.
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    *
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    * @return The next byte of data, or &lt;code&gt;-1&lt;/code&gt; if the end of the
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    *         stream is reached.
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   **/</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> read()
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  {
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    <FONT ID="Return">return</FONT> (position &lt; size) ? (<FONT ID="Int">int</FONT>) buffer.charAt(position++) : -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  }
+<FONT ID="LN">62  </FONT><A NAME="62"></A>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    * Reads up to &lt;code&gt;len char&lt;/code&gt;s from this input stream into an array
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    * of bytes.
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    *
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    * &lt;p&gt;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    * The &lt;code&gt;read&lt;/code&gt; method of &lt;code&gt;StringInputStream&lt;/code&gt; cannot
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    * block.  It simply casts the characters in this input stream's buffer
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    * into &lt;code&gt;byte&lt;/code&gt;s, storing them in the byte array argument.
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    *
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    * @param b    The buffer into which the data is read.
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    * @param off  The first index in &lt;code&gt;b&lt;/code&gt; in which bytes should be
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    *             stored.
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    * @param len  The maximum number of bytes read.
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    * @return     The total number of bytes read into the buffer, or
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    *             &lt;code&gt;-1&lt;/code&gt; if there is no more data because the end of
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    *             the stream has been reached.
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   **/</FONT>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> read(<FONT ID="Byte">byte</FONT> b[], <FONT ID="Int">int</FONT> off, <FONT ID="Int">int</FONT> len)
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="If">if</FONT> (position &gt;= size) <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="If">if</FONT> (len &lt; <FONT ID="IntegerLiteral">1</FONT>) <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="If">if</FONT> (position + len &gt; size) len = size - position;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="Int">int</FONT> result = len;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="For">for</FONT> (; len &gt; <FONT ID="IntegerLiteral">0</FONT>; --len) b[off++] = (<FONT ID="Byte">byte</FONT>) buffer.charAt(position++);
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    * Skips &lt;code&gt;n&lt;/code&gt; bytes of input from this input stream.  Fewer bytes
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    * might be skipped if the end of the input stream is reached.
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    *
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    * @param n  The number of bytes to be skipped.
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    * @return   The actual number of bytes skipped.
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   **/</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> skip(<FONT ID="Long">long</FONT> n)
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="If">if</FONT> (n &lt;= <FONT ID="IntegerLiteral">0</FONT>) <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="If">if</FONT> (n &gt; size - position) n = size - position;
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    position += n;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    <FONT ID="Return">return</FONT> n;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    * Returns the number of bytes that can be read from the input stream
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    * without blocking.
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    *
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    * @return The value of &lt;code&gt;size - position&lt;/code&gt;, which is the number
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    *         of bytes remaining to be read from the input buffer.
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   **/</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> available() { <FONT ID="Return">return</FONT> size - position; }
+<FONT ID="LN">117 </FONT><A NAME="117"></A>
+<FONT ID="LN">118 </FONT><A NAME="118"></A>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    * Resets the input stream to begin reading from the first character of
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    * this input stream's underlying buffer.
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   **/</FONT>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> reset() { position = <FONT ID="IntegerLiteral">0</FONT>; }
+<FONT ID="LN">124 </FONT><A NAME="124"></A>}
+<FONT ID="LN">125 </FONT><A NAME="125"></A>
+<FONT ID="LN">126 </FONT><A NAME="126"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StringInputStream.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

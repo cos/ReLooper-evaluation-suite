@@ -1,0 +1,110 @@
+<Flist>
+<F id="F0" sign="[*]" file="" line="0">
+
+</F>
+<F id="F1" sign="java.io.FilterOutputStream.out" file="java/io/FilterOutputStream.java" line="0">
+
+</F>
+<F id="F2" sign="java.io.PrintStream.autoFlush" file="java/io/PrintStream.java" line="0">
+
+</F>
+<F id="F3" sign="java.io.PrintStream.charOut" file="java/io/PrintStream.java" line="0">
+
+</F>
+<F id="F4" sign="java.io.PrintStream.closing" file="java/io/PrintStream.java" line="0">
+
+</F>
+<F id="F5" sign="java.io.PrintStream.formatter" file="java/io/PrintStream.java" line="0">
+
+</F>
+<F id="F6" sign="java.io.PrintStream.textOut" file="java/io/PrintStream.java" line="0">
+
+</F>
+<F id="F7" sign="java.io.PrintStream.trouble" file="java/io/PrintStream.java" line="0">
+
+</F>
+<F id="F8" sign="java.lang.AbstractStringBuilder.count" file="java/lang/AbstractStringBuilder.java" line="0">
+
+</F>
+<F id="F9" sign="java.lang.AbstractStringBuilder.sizeTable" file="java/lang/AbstractStringBuilder.java" line="0">
+
+</F>
+<F id="F10" sign="java.lang.AbstractStringBuilder.value" file="java/lang/AbstractStringBuilder.java" line="0">
+
+</F>
+<F id="F11" sign="java.lang.String.CASE_INSENSITIVE_ORDER" file="java/lang/String.java" line="0">
+
+</F>
+<F id="F12" sign="java.lang.String.count" file="java/lang/String.java" line="0">
+
+</F>
+<F id="F13" sign="java.lang.String.hash" file="java/lang/String.java" line="0">
+
+</F>
+<F id="F14" sign="java.lang.String.offset" file="java/lang/String.java" line="0">
+
+</F>
+<F id="F15" sign="java.lang.String.serialPersistentFields" file="java/lang/String.java" line="0">
+
+</F>
+<F id="F16" sign="java.lang.String.serialVersionUID" file="java/lang/String.java" line="0">
+
+</F>
+<F id="F17" sign="java.lang.String.value" file="java/lang/String.java" line="0">
+
+</F>
+<F id="F18" sign="java.lang.StringBuilder.serialVersionUID" file="java/lang/StringBuilder.java" line="0">
+
+</F>
+<F id="F19" sign="java.lang.System.cons" file="java/lang/System.java" line="0">
+
+</F>
+<F id="F20" sign="java.lang.System.err" file="java/lang/System.java" line="0">
+
+</F>
+<F id="F21" sign="java.lang.System.in" file="java/lang/System.java" line="0">
+
+</F>
+<F id="F22" sign="java.lang.System.out" file="java/lang/System.java" line="0">
+
+</F>
+<F id="F23" sign="java.lang.System.props" file="java/lang/System.java" line="0">
+
+</F>
+<F id="F24" sign="java.lang.System.security" file="java/lang/System.java" line="0">
+
+</F>
+<F id="F25" sign="org.dacapo.lusearch.Search.MAX_DOCS_TO_COLLECT" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F26" sign="org.dacapo.lusearch.Search.completed" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F27" sign="org.dacapo.lusearch.Search$QueryProcessor.field" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F28" sign="org.dacapo.lusearch.Search$QueryProcessor.hitsPerPage" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F29" sign="org.dacapo.lusearch.Search$QueryProcessor.in" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F30" sign="org.dacapo.lusearch.Search$QueryProcessor.out" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F31" sign="org.dacapo.lusearch.Search$QueryProcessor.parent" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F32" sign="org.dacapo.lusearch.Search$QueryProcessor.raw" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F33" sign="org.dacapo.lusearch.Search$QueryProcessor.reader" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F34" sign="org.dacapo.lusearch.Search$QueryProcessor.searcher" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+<F id="F35" sign="org.dacapo.lusearch.Search$QueryProcessor.this$0" file="org/dacapo/lusearch/Search.java" line="0">
+
+</F>
+</Flist>

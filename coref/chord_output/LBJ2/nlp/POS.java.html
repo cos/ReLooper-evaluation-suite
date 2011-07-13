@@ -1,0 +1,338 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.POS (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">POS.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.io.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * This class converts the &lt;code&gt;String&lt;/code&gt; names of POS tags into
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * discrete integer values.
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  *
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * @author Nick Rizzolo
+<FONT ID="LN">12  </FONT><A NAME="12"></A> **/</FONT>
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> POS <FONT ID="Implements">implements</FONT> Serializable
+<FONT ID="LN">14  </FONT><A NAME="14"></A>{
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  <FONT ID="FormalComment">/** The actual part of speech is encoded as an integer. */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> value;
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    * Constructor that initializes the &lt;code&gt;value&lt;/code&gt; variable.  This
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    * constructor should never be called, since all possible parts of speech
+<FONT ID="LN">22  </FONT><A NAME="22"></A>    * are numerated by name as &lt;code&gt;public static final&lt;/code&gt; variables.
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    *
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    * @param v  The value of the new part of speech object.
+<FONT ID="LN">25  </FONT><A NAME="25"></A>   **/</FONT>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="Public">public</FONT> POS(<FONT ID="Int">int</FONT> v) { value = v; }
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  <FONT ID="FormalComment">/** Returns the name of the part of speech represented by this object. */</FONT>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  <FONT ID="Public">public</FONT> String toString() { <FONT ID="Return">return</FONT> names[value]; }
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  <FONT ID="FormalComment">/** Returns the token that represents the same part of speech. */</FONT>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  <FONT ID="Public">public</FONT> String toToken() { <FONT ID="Return">return</FONT> tokens[value]; }
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  <FONT ID="FormalComment">/** Returns the integer used to represent this part of speech tag. */</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getValue() { <FONT ID="Return">return</FONT> value; }
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    * Two &lt;code&gt;POS&lt;/code&gt; objects are equal iff their &lt;code&gt;value&lt;/code&gt;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    * variables are equal.
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    *
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    * @param o  The object to compare against this &lt;code&gt;POS&lt;/code&gt; object.
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    * @return   &lt;code&gt;true&lt;/code&gt; iff the input object is a &lt;code&gt;POS&lt;/code&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    *           object with the same &lt;code&gt;value&lt;/code&gt;.
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   **/</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object o)
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  {
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="If">if</FONT> (!(o <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>)) <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="Return">return</FONT> ((<A HREF="../../LBJ2/nlp/POS.java.html">POS</A>) o).value == value;
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  }
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="FormalComment">/** Simply returns the &lt;code&gt;value&lt;/code&gt; variable. */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> hashCode() { <FONT ID="Return">return</FONT> value; }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    * An array of all names of part of speech tags. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    *
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    * Those names are: &lt;br&gt;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    * &lt;ol start=0&gt;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    *   &lt;li&gt; pound sign &lt;li&gt; dollar sign &lt;li&gt; open double quote
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    *   &lt;li&gt; close double quote &lt;li&gt; comma &lt;li&gt; left bracket
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    *   &lt;li&gt; right bracket &lt;li&gt; final punctuation &lt;li&gt; (semi-)colon
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    *   &lt;li&gt; coordinating conjunction &lt;li&gt; cardinal number &lt;li&gt; determiner
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    *   &lt;li&gt; existential there &lt;li&gt; foreign word &lt;li&gt; preposition
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    *   &lt;li&gt; adjective &lt;li&gt; comparative adjective &lt;li&gt; superlative adjective
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    *   &lt;li&gt; list item marker &lt;li&gt; modal &lt;li&gt; singular noun
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    *   &lt;li&gt; proper singular noun &lt;li&gt; proper plural noun &lt;li&gt; plural noun
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    *   &lt;li&gt; predeterminer &lt;li&gt; possesive ending &lt;li&gt; possesive pronoun
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    *   &lt;li&gt; personal pronoun &lt;li&gt; adverb &lt;li&gt; comparative adverb
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    *   &lt;li&gt; superlative adverb &lt;li&gt; particle &lt;li&gt; symbol &lt;li&gt; to
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    *   &lt;li&gt; interjection &lt;li&gt; base form verb &lt;li&gt; verb past tense
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    *   &lt;li&gt; verb gerund / present participle &lt;li&gt; verb past participle
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    *   &lt;li&gt; verb non 3rd ps.  sing. present &lt;li&gt; verb 3rd ps.  sing. present
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    *   &lt;li&gt; wh-determiner &lt;li&gt; wh-pronoun &lt;li&gt; possesive wh-pronoun
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    *   &lt;li&gt; wh-adverb
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    * &lt;/ol&gt;
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   **/</FONT>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String[] names =
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="StringLiteral">"pound sign"</FONT>, <FONT ID="StringLiteral">"dollar sign"</FONT>, <FONT ID="StringLiteral">"open double quote"</FONT>, <FONT ID="StringLiteral">"close double quote"</FONT>,
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    <FONT ID="StringLiteral">"comma"</FONT>, <FONT ID="StringLiteral">"left bracket"</FONT>, <FONT ID="StringLiteral">"right bracket"</FONT>, <FONT ID="StringLiteral">"final punctuation"</FONT>,
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="StringLiteral">"(semi-)colon"</FONT>, <FONT ID="StringLiteral">"coordinating conjunction"</FONT>, <FONT ID="StringLiteral">"cardinal number"</FONT>,
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="StringLiteral">"determiner"</FONT>, <FONT ID="StringLiteral">"existential there"</FONT>, <FONT ID="StringLiteral">"foreign word"</FONT>, <FONT ID="StringLiteral">"preposition"</FONT>,
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="StringLiteral">"adjective"</FONT>, <FONT ID="StringLiteral">"comparative adjective"</FONT>, <FONT ID="StringLiteral">"superlative adjective"</FONT>,
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="StringLiteral">"list item marker"</FONT>, <FONT ID="StringLiteral">"modal"</FONT>, <FONT ID="StringLiteral">"singular noun"</FONT>, <FONT ID="StringLiteral">"proper singular noun"</FONT>,
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    <FONT ID="StringLiteral">"proper plural noun"</FONT>, <FONT ID="StringLiteral">"plural noun"</FONT>, <FONT ID="StringLiteral">"predeterminer"</FONT>, <FONT ID="StringLiteral">"possesive ending"</FONT>,
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    <FONT ID="StringLiteral">"personal pronoun"</FONT>, <FONT ID="StringLiteral">"possesive pronoun"</FONT>, <FONT ID="StringLiteral">"adverb"</FONT>, <FONT ID="StringLiteral">"comparative adverb"</FONT>,
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <FONT ID="StringLiteral">"superlative adverb"</FONT>, <FONT ID="StringLiteral">"particle"</FONT>, <FONT ID="StringLiteral">"symbol"</FONT>, <FONT ID="StringLiteral">"to"</FONT>, <FONT ID="StringLiteral">"interjection"</FONT>,
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="StringLiteral">"base form verb"</FONT>, <FONT ID="StringLiteral">"verb past tense"</FONT>, <FONT ID="StringLiteral">"verb gerund / present participle"</FONT>,
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="StringLiteral">"verb past participle"</FONT>, <FONT ID="StringLiteral">"verb non 3rd ps. sing. present"</FONT>,
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    <FONT ID="StringLiteral">"verb 3rd ps.  sing.  present"</FONT>, <FONT ID="StringLiteral">"wh-determiner"</FONT>, <FONT ID="StringLiteral">"wh-pronoun"</FONT>,
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="StringLiteral">"possesive wh-pronoun"</FONT>, <FONT ID="StringLiteral">"wh-adverb"</FONT>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  };
+<FONT ID="LN">98  </FONT><A NAME="98"></A>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    * An array of all tokens that represent parts of speech as found in
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    * corpora. &lt;br&gt;&lt;br&gt;
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    *
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    * Those tokens are: &lt;br&gt;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    * &lt;ol start=0&gt;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    *   &lt;li&gt; "#" &lt;li&gt; "$" &lt;li&gt; "``" &lt;li&gt; "''" &lt;li&gt; "," &lt;li&gt; "-LRB-"
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    *   &lt;li&gt; "-RRB-" &lt;li&gt; "." &lt;li&gt; ":" &lt;li&gt; "CC" &lt;li&gt; "CD" &lt;li&gt; "DT" &lt;li&gt; "EX"
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    *   &lt;li&gt; "FW" &lt;li&gt; "IN" &lt;li&gt; "JJ" &lt;li&gt; "JJR" &lt;li&gt; "JJS" &lt;li&gt; "LS"
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    *   &lt;li&gt; "MD" &lt;li&gt; "NN" &lt;li&gt; "NNP" &lt;li&gt; "NNPS" &lt;li&gt; "NNS" &lt;li&gt; "PDT"
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    *   &lt;li&gt; "POS" &lt;li&gt; "PRP" &lt;li&gt; "PRP$" &lt;li&gt; "RB" &lt;li&gt; "RBR" &lt;li&gt; "RBS"
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    *   &lt;li&gt; "RP" &lt;li&gt; "SYM" &lt;li&gt; "TO" &lt;li&gt; "UH" &lt;li&gt; "VB" &lt;li&gt; "VBD"
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    *   &lt;li&gt; "VBG" &lt;li&gt; "VBN" &lt;li&gt; "VBP" &lt;li&gt; "VBZ" &lt;li&gt; "WDT" &lt;li&gt; "WP"
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    *   &lt;li&gt; "WP$" &lt;li&gt; "WRB"
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    * &lt;/ol&gt;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   **/</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String[] tokens =
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  {
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="StringLiteral">"#"</FONT>, <FONT ID="StringLiteral">"$"</FONT>, <FONT ID="StringLiteral">"``"</FONT>, <FONT ID="StringLiteral">"''"</FONT>, <FONT ID="StringLiteral">","</FONT>, <FONT ID="StringLiteral">"-LRB-"</FONT>, <FONT ID="StringLiteral">"-RRB-"</FONT>, <FONT ID="StringLiteral">"."</FONT>, <FONT ID="StringLiteral">":"</FONT>, <FONT ID="StringLiteral">"CC"</FONT>, <FONT ID="StringLiteral">"CD"</FONT>, <FONT ID="StringLiteral">"DT"</FONT>,
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    <FONT ID="StringLiteral">"EX"</FONT>, <FONT ID="StringLiteral">"FW"</FONT>, <FONT ID="StringLiteral">"IN"</FONT>, <FONT ID="StringLiteral">"JJ"</FONT>, <FONT ID="StringLiteral">"JJR"</FONT>, <FONT ID="StringLiteral">"JJS"</FONT>, <FONT ID="StringLiteral">"LS"</FONT>, <FONT ID="StringLiteral">"MD"</FONT>, <FONT ID="StringLiteral">"NN"</FONT>, <FONT ID="StringLiteral">"NNP"</FONT>, <FONT ID="StringLiteral">"NNPS"</FONT>,
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="StringLiteral">"NNS"</FONT>, <FONT ID="StringLiteral">"PDT"</FONT>, <FONT ID="StringLiteral">"POS"</FONT>, <FONT ID="StringLiteral">"PRP"</FONT>, <FONT ID="StringLiteral">"PRP$"</FONT>, <FONT ID="StringLiteral">"RB"</FONT>, <FONT ID="StringLiteral">"RBR"</FONT>, <FONT ID="StringLiteral">"RBS"</FONT>, <FONT ID="StringLiteral">"RP"</FONT>, <FONT ID="StringLiteral">"SYM"</FONT>, <FONT ID="StringLiteral">"TO"</FONT>,
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="StringLiteral">"UH"</FONT>, <FONT ID="StringLiteral">"VB"</FONT>, <FONT ID="StringLiteral">"VBD"</FONT>, <FONT ID="StringLiteral">"VBG"</FONT>, <FONT ID="StringLiteral">"VBN"</FONT>, <FONT ID="StringLiteral">"VBP"</FONT>, <FONT ID="StringLiteral">"VBZ"</FONT>, <FONT ID="StringLiteral">"WDT"</FONT>, <FONT ID="StringLiteral">"WP"</FONT>, <FONT ID="StringLiteral">"WP$"</FONT>, <FONT ID="StringLiteral">"WRB"</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  };
+<FONT ID="LN">123 </FONT><A NAME="123"></A>
+<FONT ID="LN">124 </FONT><A NAME="124"></A>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  <FONT ID="FormalComment">/** Map from &lt;code&gt;String&lt;/code&gt; tokens to &lt;code&gt;POS&lt;/code&gt; objects. */</FONT>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> HashMap fromTokens = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    * Converts a &lt;code&gt;POS&lt;/code&gt; object to the token that represents the same
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    * part of speech.
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    *
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    * @param tag  The &lt;code&gt;POS&lt;/code&gt; object to convert.
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    * @return     The token representing the same part of speech.
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   **/</FONT>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String toToken(<A HREF="../../LBJ2/nlp/POS.java.html">POS</A> tag) { <FONT ID="Return">return</FONT> tokens[tag.value]; }
+<FONT ID="LN">137 </FONT><A NAME="137"></A>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    * Converts a token to the &lt;code&gt;POS&lt;/code&gt; object that represents the same
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    * part of speech.
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    *
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    * @param s  The token to convert.
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    * @return   The &lt;code&gt;POS&lt;/code&gt; object representing the same part of
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    *           speech.
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   **/</FONT>
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> fromToken(String s)
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> result = (<A HREF="../../LBJ2/nlp/POS.java.html">POS</A>) fromTokens.get(s);
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    assert result != <FONT ID="Null">null</FONT>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>         : <FONT ID="StringLiteral">"LBJ ASSERTION FAILED: Unrecognized POS tag: '"</FONT> + s + <FONT ID="StringLiteral">"'"</FONT>;
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "pound sign" tag. */</FONT>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> pound = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "dollar sign" tag. */</FONT>
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> dollar = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "open double quote" tag. */</FONT>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> openDoubleQuote = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">2</FONT>);
+<FONT ID="LN">163 </FONT><A NAME="163"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "close double quote" tag. */</FONT>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> closeDoubleQuote = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">3</FONT>);
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "comma" tag. */</FONT>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> comma = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">4</FONT>);
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "left bracket" tag. */</FONT>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> leftBracket = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">5</FONT>);
+<FONT ID="LN">169 </FONT><A NAME="169"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "right bracket" tag. */</FONT>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> rightBracket = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">6</FONT>);
+<FONT ID="LN">171 </FONT><A NAME="171"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "final punctuation" tag. */</FONT>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> period = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">7</FONT>);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "(semi-)colon" tag. */</FONT>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> colon = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">8</FONT>);
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    * &lt;code&gt;POS&lt;/code&gt; object representing the "coordinating conjunction" tag.
+<FONT ID="LN">177 </FONT><A NAME="177"></A>   **/</FONT>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> CC = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">9</FONT>);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "cardinal number" tag. */</FONT>
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> CD = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "determiner" tag. */</FONT>
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> DT = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">11</FONT>);
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "existential there" tag. */</FONT>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> EX = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">12</FONT>);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "foreign word" tag. */</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> FW = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">13</FONT>);
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "preposition" tag. */</FONT>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> IN = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">14</FONT>);
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "adjective" tag. */</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> JJ = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">15</FONT>);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "comparative adjective" tag. */</FONT>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> JJR = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">16</FONT>);
+<FONT ID="LN">193 </FONT><A NAME="193"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "superlative adjective" tag. */</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> JJS = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">17</FONT>);
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "list item marker" tag. */</FONT>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> LS = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">18</FONT>);
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "modal" tag. */</FONT>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> MD = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">19</FONT>);
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "singular noun" tag. */</FONT>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> NN = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">20</FONT>);
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "proper singular noun" tag. */</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> NNP = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">21</FONT>);
+<FONT ID="LN">203 </FONT><A NAME="203"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "proper plural noun" tag. */</FONT>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> NNPS = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">22</FONT>);
+<FONT ID="LN">205 </FONT><A NAME="205"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "plural noun" tag. */</FONT>
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> NNS = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">23</FONT>);
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "predeterminer" tag. */</FONT>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> PDT = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">24</FONT>);
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "possesive ending" tag. */</FONT>
+<FONT ID="LN">210 </FONT><A NAME="210"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> POS = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">25</FONT>);
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "personal pronoun" tag. */</FONT>
+<FONT ID="LN">212 </FONT><A NAME="212"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> PRP = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">26</FONT>);
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "possessive pronoun" tag. */</FONT>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> PRP_DOLLAR = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">27</FONT>);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "adverb" tag. */</FONT>
+<FONT ID="LN">216 </FONT><A NAME="216"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> RB = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">28</FONT>);
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "comparative adverb" tag. */</FONT>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> RBR = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">29</FONT>);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "superlative adverb" tag. */</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> RBS = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">30</FONT>);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "particle" tag. */</FONT>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> RP = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">31</FONT>);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "symbol" tag. */</FONT>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> SYM = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">32</FONT>);
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "to" tag. */</FONT>
+<FONT ID="LN">226 </FONT><A NAME="226"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> TO = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">33</FONT>);
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "interjection" tag. */</FONT>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> UH = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">34</FONT>);
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "base form verb" tag. */</FONT>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> VB = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">35</FONT>);
+<FONT ID="LN">231 </FONT><A NAME="231"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "verb past tense" tag. */</FONT>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> VBD = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">36</FONT>);
+<FONT ID="LN">233 </FONT><A NAME="233"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    * &lt;code&gt;POS&lt;/code&gt; object representing the "verb gerund / present
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    * participle" tag.
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   **/</FONT>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> VBG = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">37</FONT>);
+<FONT ID="LN">238 </FONT><A NAME="238"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "verb past participle" tag. */</FONT>
+<FONT ID="LN">239 </FONT><A NAME="239"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> VBN = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">38</FONT>);
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    * &lt;code&gt;POS&lt;/code&gt; object representing the "verb non 3rd ps sing present"
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    * tag.
+<FONT ID="LN">243 </FONT><A NAME="243"></A>   **/</FONT>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> VBP = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">39</FONT>);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    * &lt;code&gt;POS&lt;/code&gt; object representing the "verb 3rd ps sing present" tag.
+<FONT ID="LN">247 </FONT><A NAME="247"></A>   **/</FONT>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> VBZ = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">40</FONT>);
+<FONT ID="LN">249 </FONT><A NAME="249"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "wh-determiner" tag. */</FONT>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> WDT = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">41</FONT>);
+<FONT ID="LN">251 </FONT><A NAME="251"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "wh-pronoun" tag. */</FONT>
+<FONT ID="LN">252 </FONT><A NAME="252"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> WP = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">42</FONT>);
+<FONT ID="LN">253 </FONT><A NAME="253"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "possesive wh-pronoun" tag. */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> WP_DOLLAR = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">43</FONT>);
+<FONT ID="LN">255 </FONT><A NAME="255"></A>  <FONT ID="FormalComment">/** &lt;code&gt;POS&lt;/code&gt; object representing the "wh-adverb" tag. */</FONT>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A> WRB = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/POS.java.html">POS</A>(<FONT ID="IntegerLiteral">44</FONT>);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>
+<FONT ID="LN">258 </FONT><A NAME="258"></A>
+<FONT ID="LN">259 </FONT><A NAME="259"></A>  <FONT ID="Static">static</FONT>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  {
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    fromTokens = <FONT ID="New">new</FONT> HashMap();
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    fromTokens.put(tokens[pound.value], pound);
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    fromTokens.put(tokens[dollar.value], dollar);
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    fromTokens.put(tokens[openDoubleQuote.value], openDoubleQuote);
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    fromTokens.put(tokens[closeDoubleQuote.value], closeDoubleQuote);
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    fromTokens.put(tokens[comma.value], comma);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    fromTokens.put(tokens[leftBracket.value], leftBracket);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    fromTokens.put(tokens[rightBracket.value], rightBracket);
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    fromTokens.put(tokens[period.value], period);
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    fromTokens.put(tokens[colon.value], colon);
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    fromTokens.put(tokens[CC.value], CC);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    fromTokens.put(tokens[CD.value], CD);
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    fromTokens.put(tokens[DT.value], DT);
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    fromTokens.put(tokens[EX.value], EX);
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    fromTokens.put(tokens[FW.value], FW);
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    fromTokens.put(tokens[IN.value], IN);
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    fromTokens.put(tokens[JJ.value], JJ);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    fromTokens.put(tokens[JJR.value], JJR);
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    fromTokens.put(tokens[JJS.value], JJS);
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    fromTokens.put(tokens[LS.value], LS);
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    fromTokens.put(tokens[MD.value], MD);
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    fromTokens.put(tokens[NN.value], NN);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    fromTokens.put(tokens[NNP.value], NNP);
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    fromTokens.put(tokens[NNPS.value], NNPS);
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    fromTokens.put(tokens[NNS.value], NNS);
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    fromTokens.put(tokens[PDT.value], PDT);
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    fromTokens.put(tokens[POS.value], POS);
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    fromTokens.put(tokens[PRP.value], PRP);
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    fromTokens.put(tokens[PRP_DOLLAR.value], PRP_DOLLAR);
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    fromTokens.put(tokens[RB.value], RB);
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    fromTokens.put(tokens[RBR.value], RBR);
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    fromTokens.put(tokens[RBS.value], RBS);
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    fromTokens.put(tokens[RP.value], RP);
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    fromTokens.put(tokens[SYM.value], SYM);
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    fromTokens.put(tokens[TO.value], TO);
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    fromTokens.put(tokens[UH.value], UH);
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    fromTokens.put(tokens[VB.value], VB);
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    fromTokens.put(tokens[VBD.value], VBD);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    fromTokens.put(tokens[VBG.value], VBG);
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    fromTokens.put(tokens[VBN.value], VBN);
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    fromTokens.put(tokens[VBP.value], VBP);
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    fromTokens.put(tokens[VBZ.value], VBZ);
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    fromTokens.put(tokens[WDT.value], WDT);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    fromTokens.put(tokens[WP.value], WP);
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    fromTokens.put(tokens[WP_DOLLAR.value], WP_DOLLAR);
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    fromTokens.put(tokens[WRB.value], WRB);
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  }
+<FONT ID="LN">308 </FONT><A NAME="308"></A>}
+<FONT ID="LN">309 </FONT><A NAME="309"></A>
+<FONT ID="LN">310 </FONT><A NAME="310"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">POS.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

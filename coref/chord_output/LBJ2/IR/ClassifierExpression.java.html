@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.IR.ClassifierExpression (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ClassifierExpression.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.IR;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A>
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">5   </FONT><A NAME="5"></A>  * Abstract classifier expression class.  The member variables of this class
+<FONT ID="LN">6   </FONT><A NAME="6"></A>  * are filled in either during parsing or during semantic analysis, but in
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * any case, they do not represent AST children that exist in the source.
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  *
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * @author Nick Rizzolo
+<FONT ID="LN">10  </FONT><A NAME="10"></A> **/</FONT>
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> ClassifierExpression <FONT ID="Extends">extends</FONT> <A HREF="../../LBJ2/IR/ASTNode.java.html">ASTNode</A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A>                                           <FONT ID="Implements">implements</FONT> <A HREF="../../LBJ2/CodeGenerator.java.html">LBJ2.CodeGenerator</A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A>{
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">15  </FONT><A NAME="15"></A>    * (&amp;oslash;) The text of a Javadoc comment that may be associated with
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    * this classifier.
+<FONT ID="LN">17  </FONT><A NAME="17"></A>   **/</FONT>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  <FONT ID="Public">public</FONT> String comment;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  <FONT ID="FormalComment">/** Expression describing what is being declared. */</FONT>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="Public">public</FONT> <A HREF="../../LBJ2/IR/Name.java.html">Name</A> name;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  <FONT ID="FormalComment">/** The return type of the declared classifier. */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  <FONT ID="Public">public</FONT> <A HREF="../../LBJ2/IR/ClassifierReturnType.java.html">ClassifierReturnType</A> returnType;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="FormalComment">/** Specification of the classifier's input. */</FONT>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  <FONT ID="Public">public</FONT> <A HREF="../../LBJ2/IR/Argument.java.html">Argument</A> argument;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="FormalComment">/** Indicates whether this expression was parenthesized in the source. */</FONT>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> parenthesized = <FONT ID="False">false</FONT>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    * The expression representing the field to cache this classifier's result
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    * in.
+<FONT ID="LN">30  </FONT><A NAME="30"></A>   **/</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  <FONT ID="Public">public</FONT> <A HREF="../../LBJ2/IR/Name.java.html">Name</A> cacheIn;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    * Default constructor.
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    *
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    * @param line       The line on which the source code represented by this
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    *                   node is found.
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    * @param byteOffset The byte offset from the beginning of the source file
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    *                   at which the source code represented by this node is
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    *                   found.
+<FONT ID="LN">42  </FONT><A NAME="42"></A>   **/</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  ClassifierExpression(<FONT ID="Int">int</FONT> line, <FONT ID="Int">int</FONT> byteOffset) { <FONT ID="Super">super</FONT>(line, byteOffset); }
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="FormalComment">/** Returns the name of the &lt;code&gt;ClassifierExpression&lt;/code&gt;. */</FONT>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="Public">public</FONT> String getName() { <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">""</FONT> + name; }
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    * Returns the line number on which this AST node is found in the source
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    * (starting from line 0).  This method exists to fulfull the
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    * implementation of &lt;code&gt;CodeGenerator&lt;/code&gt;.
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    * @see LBJ2.CodeGenerator
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   **/</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getLine() { <FONT ID="Return">return</FONT> line; }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    * Sets the &lt;code&gt;cacheIn&lt;/code&gt; member variable to the argument.
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    *
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    * @param c  The new expression for the &lt;code&gt;cacheIn&lt;/code&gt; member
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    *           variable.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   **/</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setCacheIn(<A HREF="../../LBJ2/IR/Name.java.html">Name</A> c) { cacheIn = c; }
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    * Creates a &lt;code&gt;StringBuffer&lt;/code&gt; containing a shallow representation
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    * of this &lt;code&gt;ClassifierExpression&lt;/code&gt;.
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    *
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    * @return A &lt;code&gt;StringBuffer&lt;/code&gt; containing a shallow text
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    *         representation of the given node.
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   **/</FONT>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Abstract">abstract</FONT> <FONT ID="Public">public</FONT> StringBuffer shallow();
+<FONT ID="LN">76  </FONT><A NAME="76"></A>}
+<FONT ID="LN">77  </FONT><A NAME="77"></A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ClassifierExpression.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,214 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.search.Collector (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Collector.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.search;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">org.apache.lucene.index.IndexReader</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * &lt;p&gt;Expert: Collectors are primarily meant to be used to
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * gather raw results from a search, and implement sorting
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * or custom result filtering, collation, etc. &lt;/p&gt;
+<FONT ID="LN">28  </FONT><A NAME="28"></A> *
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * &lt;p&gt;As of 2.9, this class replaces the deprecated
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * HitCollector, and offers an API for efficient collection
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * of hits across sequential {@link IndexReader}s. {@link
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * IndexSearcher} advances the collector through each of the
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * sub readers, in an arbitrary order. This results in a
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * higher performance means of collection.&lt;/p&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A> *
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * &lt;p&gt;Lucene's core collectors are derived from Collector.
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * Likely your application can use one of these classes, or
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * subclass {@link TopDocsCollector}, instead of
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * implementing Collector directly:
+<FONT ID="LN">40  </FONT><A NAME="40"></A> *
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * &lt;ul&gt;
+<FONT ID="LN">42  </FONT><A NAME="42"></A> *      
+<FONT ID="LN">43  </FONT><A NAME="43"></A> *   &lt;li&gt;{@link TopDocsCollector} is an abstract base class
+<FONT ID="LN">44  </FONT><A NAME="44"></A> *   that assumes you will retrieve the top N docs,
+<FONT ID="LN">45  </FONT><A NAME="45"></A> *   according to some criteria, after collection is
+<FONT ID="LN">46  </FONT><A NAME="46"></A> *   done.  &lt;/li&gt;
+<FONT ID="LN">47  </FONT><A NAME="47"></A> *
+<FONT ID="LN">48  </FONT><A NAME="48"></A> *   &lt;li&gt;{@link TopScoreDocCollector} is a concrete subclass
+<FONT ID="LN">49  </FONT><A NAME="49"></A> *   {@link TopDocsCollector} and sorts according to score +
+<FONT ID="LN">50  </FONT><A NAME="50"></A> *   docID.  This is used internally by the {@link
+<FONT ID="LN">51  </FONT><A NAME="51"></A> *   IndexSearcher} search methods that do not take an
+<FONT ID="LN">52  </FONT><A NAME="52"></A> *   explicit {@link Sort}. It is likely the most frequently
+<FONT ID="LN">53  </FONT><A NAME="53"></A> *   used collector.&lt;/li&gt;
+<FONT ID="LN">54  </FONT><A NAME="54"></A> *
+<FONT ID="LN">55  </FONT><A NAME="55"></A> *   &lt;li&gt;{@link TopFieldCollector} subclasses {@link
+<FONT ID="LN">56  </FONT><A NAME="56"></A> *   TopDocsCollector} and sorts according to a specified
+<FONT ID="LN">57  </FONT><A NAME="57"></A> *   {@link Sort} object (sort by field).  This is used
+<FONT ID="LN">58  </FONT><A NAME="58"></A> *   internally by the {@link IndexSearcher} search methods
+<FONT ID="LN">59  </FONT><A NAME="59"></A> *   that take an explicit {@link Sort}.
+<FONT ID="LN">60  </FONT><A NAME="60"></A> *
+<FONT ID="LN">61  </FONT><A NAME="61"></A> *   &lt;li&gt;{@link TimeLimitingCollector}, which wraps any other
+<FONT ID="LN">62  </FONT><A NAME="62"></A> *   Collector and aborts the search if it's taken too much
+<FONT ID="LN">63  </FONT><A NAME="63"></A> *   time, will subclass Collector in 3.0 (presently it
+<FONT ID="LN">64  </FONT><A NAME="64"></A> *   subclasses the deprecated HitCollector).&lt;/li&gt;
+<FONT ID="LN">65  </FONT><A NAME="65"></A> *
+<FONT ID="LN">66  </FONT><A NAME="66"></A> *   &lt;li&gt;{@link PositiveScoresOnlyCollector} wraps any other
+<FONT ID="LN">67  </FONT><A NAME="67"></A> *   Collector and prevents collection of hits whose score
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *   is &amp;lt;= 0.0&lt;/li&gt;
+<FONT ID="LN">69  </FONT><A NAME="69"></A> *
+<FONT ID="LN">70  </FONT><A NAME="70"></A> * &lt;/ul&gt;
+<FONT ID="LN">71  </FONT><A NAME="71"></A> *
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * &lt;p&gt;Collector decouples the score from the collected doc:
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * the score computation is skipped entirely if it's not
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * needed.  Collectors that do need the score should
+<FONT ID="LN">75  </FONT><A NAME="75"></A> * implement the {@link #setScorer} method, to hold onto the
+<FONT ID="LN">76  </FONT><A NAME="76"></A> * passed {@link Scorer} instance, and call {@link
+<FONT ID="LN">77  </FONT><A NAME="77"></A> * Scorer#score()} within the collect method to compute the
+<FONT ID="LN">78  </FONT><A NAME="78"></A> * current hit's score.  If your collector may request the
+<FONT ID="LN">79  </FONT><A NAME="79"></A> * score for a single hit multiple times, you should use
+<FONT ID="LN">80  </FONT><A NAME="80"></A> * {@link ScoreCachingWrappingScorer}. &lt;/p&gt;
+<FONT ID="LN">81  </FONT><A NAME="81"></A> * 
+<FONT ID="LN">82  </FONT><A NAME="82"></A> * &lt;p&gt;&lt;b&gt;NOTE:&lt;/b&gt; The doc that is passed to the collect
+<FONT ID="LN">83  </FONT><A NAME="83"></A> * method is relative to the current reader. If your
+<FONT ID="LN">84  </FONT><A NAME="84"></A> * collector needs to resolve this to the docID space of the
+<FONT ID="LN">85  </FONT><A NAME="85"></A> * Multi*Reader, you must re-base it by recording the
+<FONT ID="LN">86  </FONT><A NAME="86"></A> * docBase from the most recent setNextReader call.  Here's
+<FONT ID="LN">87  </FONT><A NAME="87"></A> * a simple example showing how to collect docIDs into a
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * BitSet:&lt;/p&gt;
+<FONT ID="LN">89  </FONT><A NAME="89"></A> * 
+<FONT ID="LN">90  </FONT><A NAME="90"></A> * &lt;pre&gt;
+<FONT ID="LN">91  </FONT><A NAME="91"></A> * Searcher searcher = new IndexSearcher(indexReader);
+<FONT ID="LN">92  </FONT><A NAME="92"></A> * final BitSet bits = new BitSet(indexReader.maxDoc());
+<FONT ID="LN">93  </FONT><A NAME="93"></A> * searcher.search(query, new Collector() {
+<FONT ID="LN">94  </FONT><A NAME="94"></A> *   private int docBase;
+<FONT ID="LN">95  </FONT><A NAME="95"></A> * 
+<FONT ID="LN">96  </FONT><A NAME="96"></A> *   &lt;em&gt;// ignore scorer&lt;/em&gt;
+<FONT ID="LN">97  </FONT><A NAME="97"></A> *   public void setScorer(Scorer scorer) {
+<FONT ID="LN">98  </FONT><A NAME="98"></A> *   }
+<FONT ID="LN">99  </FONT><A NAME="99"></A> *
+<FONT ID="LN">100 </FONT><A NAME="100"></A> *   &lt;em&gt;// accept docs out of order (for a BitSet it doesn't matter)&lt;/em&gt;
+<FONT ID="LN">101 </FONT><A NAME="101"></A> *   public boolean acceptsDocsOutOfOrder() {
+<FONT ID="LN">102 </FONT><A NAME="102"></A> *     return true;
+<FONT ID="LN">103 </FONT><A NAME="103"></A> *   }
+<FONT ID="LN">104 </FONT><A NAME="104"></A> * 
+<FONT ID="LN">105 </FONT><A NAME="105"></A> *   public void collect(int doc) {
+<FONT ID="LN">106 </FONT><A NAME="106"></A> *     bits.set(doc + docBase);
+<FONT ID="LN">107 </FONT><A NAME="107"></A> *   }
+<FONT ID="LN">108 </FONT><A NAME="108"></A> * 
+<FONT ID="LN">109 </FONT><A NAME="109"></A> *   public void setNextReader(IndexReader reader, int docBase) {
+<FONT ID="LN">110 </FONT><A NAME="110"></A> *     this.docBase = docBase;
+<FONT ID="LN">111 </FONT><A NAME="111"></A> *   }
+<FONT ID="LN">112 </FONT><A NAME="112"></A> * });
+<FONT ID="LN">113 </FONT><A NAME="113"></A> * &lt;/pre&gt;
+<FONT ID="LN">114 </FONT><A NAME="114"></A> *
+<FONT ID="LN">115 </FONT><A NAME="115"></A> * &lt;p&gt;Not all collectors will need to rebase the docID.  For
+<FONT ID="LN">116 </FONT><A NAME="116"></A> * example, a collector that simply counts the total number
+<FONT ID="LN">117 </FONT><A NAME="117"></A> * of hits would skip it.&lt;/p&gt;
+<FONT ID="LN">118 </FONT><A NAME="118"></A> * 
+<FONT ID="LN">119 </FONT><A NAME="119"></A> * &lt;p&gt;&lt;b&gt;NOTE:&lt;/b&gt; Prior to 2.9, Lucene silently filtered
+<FONT ID="LN">120 </FONT><A NAME="120"></A> * out hits with score &lt;= 0.  As of 2.9, the core Collectors
+<FONT ID="LN">121 </FONT><A NAME="121"></A> * no longer do that.  It's very unusual to have such hits
+<FONT ID="LN">122 </FONT><A NAME="122"></A> * (a negative query boost, or function query returning
+<FONT ID="LN">123 </FONT><A NAME="123"></A> * negative custom scores, could cause it to happen).  If
+<FONT ID="LN">124 </FONT><A NAME="124"></A> * you need that behavior, use {@link
+<FONT ID="LN">125 </FONT><A NAME="125"></A> * PositiveScoresOnlyCollector}.&lt;/p&gt;
+<FONT ID="LN">126 </FONT><A NAME="126"></A> *
+<FONT ID="LN">127 </FONT><A NAME="127"></A> * &lt;p&gt;&lt;b&gt;NOTE:&lt;/b&gt; This API is experimental and might change
+<FONT ID="LN">128 </FONT><A NAME="128"></A> * in incompatible ways in the next release.&lt;/p&gt;
+<FONT ID="LN">129 </FONT><A NAME="129"></A> * 
+<FONT ID="LN">130 </FONT><A NAME="130"></A> * @since 2.9
+<FONT ID="LN">131 </FONT><A NAME="131"></A> */</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> Collector {
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * Called before successive calls to {@link #collect(int)}. Implementations
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * that need the score of the current document (passed-in to
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * {@link #collect(int)}), should save the passed-in Scorer and call
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   * scorer.score() when needed.
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   */</FONT>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> setScorer(<A HREF="../../../../org/apache/lucene/search/Scorer.java.html">Scorer</A> scorer) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * Called once for every document matching a query, with the unbased document
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * number.
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * 
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   * &lt;p&gt;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   * Note: This is called in an inner search loop. For good search performance,
+<FONT ID="LN">148 </FONT><A NAME="148"></A>   * implementations of this method should not call {@link Searcher#doc(int)} or
+<FONT ID="LN">149 </FONT><A NAME="149"></A>   * {@link org.apache.lucene.index.IndexReader#document(int)} on every hit.
+<FONT ID="LN">150 </FONT><A NAME="150"></A>   * Doing so can slow searches by an order of magnitude or more.
+<FONT ID="LN">151 </FONT><A NAME="151"></A>   */</FONT>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> collect(<FONT ID="Int">int</FONT> doc) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>
+<FONT ID="LN">154 </FONT><A NAME="154"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * Called before collecting from each IndexReader. All doc ids in
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * {@link #collect(int)} will correspond to reader.
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * 
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   * Add docBase to the current IndexReaders internal document id to re-base ids
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   * in {@link #collect(int)}.
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   * 
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   * @param reader
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   *          next IndexReader
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * @param docBase
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   */</FONT>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> setNextReader(<A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> reader, <FONT ID="Int">int</FONT> docBase) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * Return &lt;code&gt;true&lt;/code&gt; if this collector does not
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   * require the matching docIDs to be delivered in int sort
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   * order (smallest to largest) to {@link #collect}.
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   *
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   * &lt;p&gt; Most Lucene Query implementations will visit
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   * matching docIDs in order.  However, some queries
+<FONT ID="LN">174 </FONT><A NAME="174"></A>   * (currently limited to certain cases of {@link
+<FONT ID="LN">175 </FONT><A NAME="175"></A>   * BooleanQuery}) can achieve faster searching if the
+<FONT ID="LN">176 </FONT><A NAME="176"></A>   * &lt;code&gt;Collector&lt;/code&gt; allows them to deliver the
+<FONT ID="LN">177 </FONT><A NAME="177"></A>   * docIDs out of order.&lt;/p&gt;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   *
+<FONT ID="LN">179 </FONT><A NAME="179"></A>   * &lt;p&gt; Many collectors don't mind getting docIDs out of
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   * order, so it's important to return &lt;code&gt;true&lt;/code&gt;
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * here.
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   */</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Boolean">boolean</FONT> acceptsDocsOutOfOrder();
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  
+<FONT ID="LN">185 </FONT><A NAME="185"></A>}
+<FONT ID="LN">186 </FONT><A NAME="186"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Collector.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

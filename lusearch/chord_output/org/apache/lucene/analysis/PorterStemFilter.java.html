@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.analysis.PorterStemFilter (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">PorterStemFilter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.analysis;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/analysis/tokenattributes/TermAttribute.java.html">org.apache.lucene.analysis.tokenattributes.TermAttribute</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="FormalComment">/** Transforms the token stream as per the Porter stemming algorithm.
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    Note: the input to the stemming filter must already be in lower case,
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    so you will need to use LowerCaseFilter or LowerCaseTokenizer farther
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    down the Tokenizer chain in order for this to work properly!
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    &lt;P&gt;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    To use this filter with other analyzers, you'll want to write an
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    Analyzer class that sets up the TokenStream chain as you want it.
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    To use this with LowerCaseTokenizer, for example, you'd write an
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    analyzer like this:
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    &lt;P&gt;
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    &lt;PRE&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    class MyAnalyzer extends Analyzer {
+<FONT ID="LN">36  </FONT><A NAME="36"></A>      public final TokenStream tokenStream(String fieldName, Reader reader) {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        return new PorterStemFilter(new LowerCaseTokenizer(reader));
+<FONT ID="LN">38  </FONT><A NAME="38"></A>      }
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    }
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    &lt;/PRE&gt;
+<FONT ID="LN">41  </FONT><A NAME="41"></A>*/</FONT>
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> PorterStemFilter <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/analysis/TokenFilter.java.html">TokenFilter</A> {
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/analysis/PorterStemmer.java.html">PorterStemmer</A> stemmer;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/analysis/tokenattributes/TermAttribute.java.html">TermAttribute</A> termAtt;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Public">public</FONT> PorterStemFilter(<A HREF="../../../../org/apache/lucene/analysis/TokenStream.java.html">TokenStream</A> in) {
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    <FONT ID="Super">super</FONT>(in);
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    stemmer = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/analysis/PorterStemmer.java.html">PorterStemmer</A>();
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    termAtt = (<A HREF="../../../../org/apache/lucene/analysis/tokenattributes/TermAttribute.java.html">TermAttribute</A>) addAttribute(<A HREF="../../../../org/apache/lucene/analysis/tokenattributes/TermAttribute.java.html">TermAttribute</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  }
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Boolean">boolean</FONT> incrementToken() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="If">if</FONT> (!input.incrementToken())
+<FONT ID="LN">54  </FONT><A NAME="54"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="If">if</FONT> (stemmer.stem(termAtt.termBuffer(), <FONT ID="IntegerLiteral">0</FONT>, termAtt.termLength()))
+<FONT ID="LN">57  </FONT><A NAME="57"></A>      termAtt.setTermBuffer(stemmer.getResultBuffer(), <FONT ID="IntegerLiteral">0</FONT>, stemmer.getResultLength());
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  }
+<FONT ID="LN">60  </FONT><A NAME="60"></A>}
+<FONT ID="LN">61  </FONT><A NAME="61"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">PorterStemFilter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

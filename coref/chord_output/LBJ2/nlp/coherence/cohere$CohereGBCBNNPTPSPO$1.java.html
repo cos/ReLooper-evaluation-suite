@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.coherence.cohere$CohereGBCBNNPTPSPO$1 (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">cohere$CohereGBCBNNPTPSPO$1.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="SingleLineComment">// Modifying this comment will cause the next execution of LBJ2 to overwrite this file.
+<FONT ID="LN">2   </FONT><A NAME="2"></A></FONT><FONT ID="SingleLineComment">// F1B88000000000000000B2A4D4CC155584ECFC84D2A455176035EEE4ECE4E7E71012101C10EFA268A1E29F9C5A9B9A97521D1BA050989954A9A063ABA0EE549992E4999E54989B5CA3A0EC9198999707E1007432FAD715000000
+<FONT ID="LN">3   </FONT><A NAME="3"></A></FONT>
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Package">package</FONT> LBJ2.nlp.coherence;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> LBJ2.infer.*;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> LBJ2.learn.*;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> LBJ2.nlp.coref.*;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A>
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> cohere$CohereGBCBNNPTPSPO$1 <FONT ID="Extends">extends</FONT> Classifier
+<FONT ID="LN">15  </FONT><A NAME="15"></A>{
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../../LBJ2/nlp/coherence/GridBigrams.java.html">GridBigrams</A> __GridBigrams = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/GridBigrams.java.html">GridBigrams</A>();
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../../LBJ2/nlp/coherence/ChainBigrams.java.html">ChainBigrams</A> __ChainBigrams = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/ChainBigrams.java.html">ChainBigrams</A>();
+<FONT ID="LN">18  </FONT><A NAME="18"></A>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> ThreadLocal cache = <FONT ID="New">new</FONT> ThreadLocal(){ };
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> ThreadLocal exampleCache = <FONT ID="New">new</FONT> ThreadLocal(){ };
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  <FONT ID="Public">public</FONT> cohere$CohereGBCBNNPTPSPO$1() { <FONT ID="Super">super</FONT>(<FONT ID="StringLiteral">"LBJ2.nlp.coherence.cohere$CohereGBCBNNPTPSPO$1"</FONT>); }
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  <FONT ID="Public">public</FONT> String getInputType() { <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"[LLBJ2.nlp.coref.Document;"</FONT>; }
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  <FONT ID="Public">public</FONT> String getOutputType() { <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"real%"</FONT>; }
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  <FONT ID="Public">public</FONT> FeatureVector classify(Object example)
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    <FONT ID="If">if</FONT> (!(example <FONT ID="InstanceOf">instanceof</FONT> Document[]))
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    {
+<FONT ID="LN">31  </FONT><A NAME="31"></A>      String type = example == <FONT ID="Null">null</FONT> ? <FONT ID="StringLiteral">"null"</FONT> : example.getClass().getName();
+<FONT ID="LN">32  </FONT><A NAME="32"></A>      System.err.println(<FONT ID="StringLiteral">"Classifier 'cohere$CohereGBCBNNPTPSPO$1(Document[])' defined on line 75 of cohere.lbj received '"</FONT> + type + <FONT ID="StringLiteral">"' as input."</FONT>);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>      <FONT ID="New">new</FONT> Exception().printStackTrace();
+<FONT ID="LN">34  </FONT><A NAME="34"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    }
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="If">if</FONT> (example == exampleCache.get()) <FONT ID="Return">return</FONT> (FeatureVector) cache.get();
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    FeatureVector result = <FONT ID="New">new</FONT> FeatureVector();
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    result.addFeatures(__GridBigrams.classify(example));
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    result.addFeatures(__ChainBigrams.classify(example));
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    exampleCache.set(example);
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    cache.set(result);
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  }
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Public">public</FONT> FeatureVector[] classify(Object[] examples)
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  {
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; examples.length; ++i)
+<FONT ID="LN">52  </FONT><A NAME="52"></A>      <FONT ID="If">if</FONT> (!(examples[i] <FONT ID="InstanceOf">instanceof</FONT> Document[]))
+<FONT ID="LN">53  </FONT><A NAME="53"></A>      {
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        System.err.println(<FONT ID="StringLiteral">"Classifier 'cohere$CohereGBCBNNPTPSPO$1(Document[])' defined on line 75 of cohere.lbj received '"</FONT> + examples[i].getClass().getName() + <FONT ID="StringLiteral">"' as input."</FONT>);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        <FONT ID="New">new</FONT> Exception().printStackTrace();
+<FONT ID="LN">56  </FONT><A NAME="56"></A>        System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">57  </FONT><A NAME="57"></A>      }
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="Return">return</FONT> <FONT ID="Super">super</FONT>.classify(examples);
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  }
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> hashCode() { <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"cohere$CohereGBCBNNPTPSPO$1"</FONT>.hashCode(); }
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object o) { <FONT ID="Return">return</FONT> o <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../LBJ2/nlp/coherence/cohere$CohereGBCBNNPTPSPO$1.java.html">cohere$CohereGBCBNNPTPSPO$1</A>; }
+<FONT ID="LN">64  </FONT><A NAME="64"></A>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Public">public</FONT> java.util.LinkedList getCompositeChildren()
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  {
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    java.util.LinkedList result = <FONT ID="New">new</FONT> java.util.LinkedList();
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    result.add(__GridBigrams);
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    result.add(__ChainBigrams);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>}
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">cohere$CohereGBCBNNPTPSPO$1.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

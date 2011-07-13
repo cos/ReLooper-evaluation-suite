@@ -1,0 +1,318 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.coherence.CoherenceTester (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CoherenceTester.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.coherence;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> LBJ2.learn.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/parse/Parser.java.html">LBJ2.parse.Parser</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> LBJ2.nlp.coref.*;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/util/ClassUtils.java.html">LBJ2.util.ClassUtils</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A>
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * This class may be used to produce a report of the accuracy of a coherence
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * classifier.
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  *
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * &lt;h4&gt;Usage&lt;/h4&gt;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  * &lt;blockquote&gt;&lt;pre&gt;
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  *   java LBJ2.nlp.coherence.CoherenceTester &amp;lt;coherence classifier&amp;gt; \
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  *                                           &amp;lt;labeled data&amp;gt; \
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  *                                           &amp;lt;shuffle pair order&amp;gt; \
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  *                                           &amp;lt;examples per document&amp;gt; \
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  *                                           &amp;lt;shuffleIds&amp;gt; \
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  *                                           [&amp;lt;verbosity&amp;gt;]
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  * &lt;/pre&gt;&lt;/blockquote&gt;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  * or
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  * &lt;blockquote&gt;&lt;pre&gt;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  *   java LBJ2.nlp.coherence.CoherenceTester &amp;lt;coherence classifier&amp;gt; \
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  *                                           &amp;lt;labeled data&amp;gt; \
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  *                                           &amp;lt;shuffle pair order&amp;gt; \
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  *                                           &amp;lt;coref classifier&amp;gt; \
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  *                                           [&amp;lt;verbosity&amp;gt;]
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  * &lt;/pre&gt;&lt;/blockquote&gt;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  * or
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  * &lt;blockquote&gt;&lt;pre&gt;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  *   java LBJ2.nlp.coherence.CoherenceTester &amp;lt;coherence classifier&amp;gt; \
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  *                                           &amp;lt;labeled data&amp;gt; \
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  *                                           &amp;lt;shuffle pair order&amp;gt; \
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  *                                           &amp;lt;coref classifier 1&amp;gt; \
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  *                                           &amp;lt;coref classifier 2&amp;gt; \
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  *                                           [&amp;lt;verbosity&amp;gt;]
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  * &lt;/pre&gt;&lt;/blockquote&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  * or
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  * &lt;blockquote&gt;&lt;pre&gt;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  *   java LBJ2.nlp.coherence.CoherenceTester &amp;lt;coherence classifier&amp;gt; \
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  *                                           &amp;lt;labeled data&amp;gt; \
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  *                                           &amp;lt;shuffle pair order&amp;gt; \
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  *                                           &amp;lt;coref classifier&amp;gt; \
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  *                                           &amp;lt;change probability&amp;gt; \
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  *                                           &amp;lt;new ID probability&amp;gt; \
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  *                                           [&amp;lt;verbosity&amp;gt;]
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  * &lt;/pre&gt;&lt;/blockquote&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  *
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  * &lt;h4&gt;Input&lt;/h4&gt;
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  * &lt;p&gt; The first command line form above is used to produce document pairs in
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  * which one of the documents is coref gold and the other is a shuffled
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  * version of gold.  The second form creates pairs of gold labels and
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  * predictions from the specified coref classifier (which can either be an
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  * actual &lt;code&gt;Classifier&lt;/code&gt; or a directory containing the predictions
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  * of a classifier).  The third form takes two such classifiers, considering
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  * whichever produces the higher &lt;i&gt;B&lt;sup&gt;3&lt;/sup&gt;&lt;/i&gt; score to be the more
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  * coherent.  The fourth command line form is similar to the third, except it
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  * is assumed that one of the coref classifiers will be
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  * &lt;code&gt;LBJ2.nlp.coref.PerturbedLabels&lt;/code&gt;.
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  *
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  * &lt;p&gt; All forms start with the same three command line arguments.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  * &lt;code&gt;&amp;lt;coherence classifier&amp;gt;&lt;/code&gt; is the fully qualified name of
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  * the coherence classifier to test.  &lt;code&gt;&amp;lt;labeled data&amp;gt;&lt;/code&gt; is
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  * the name of a file containing names of ACE 2004 documents.
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  * &lt;code&gt;&amp;lt;shuffle pair order&amp;gt;&lt;/code&gt; must be exactly &lt;code&gt;true&lt;/code&gt;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  * or &lt;code&gt;false&lt;/code&gt;, and it controls whether the order of the documents
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  * in each document-pair-example will be randomly permuted.
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  *
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  * &lt;p&gt; The rest of the command line arguments are particular to the forms
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  * they appear in.  &lt;code&gt;&amp;lt;examples per document&amp;gt;&lt;/code&gt; is the maximum
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  * number of shuffled document pairs to create per original document.
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  * &lt;code&gt;&amp;lt;shuffleIds&amp;gt;&lt;/code&gt; will force entity IDs to be shuffled when
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  * it appears explicitly as &lt;code&gt;true&lt;/code&gt; and sentence ordering to be
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  * shuffled when it appears explicitly as &lt;code&gt;false&lt;/code&gt;.  The always
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  * optional &lt;code&gt;&amp;lt;verbosity&amp;gt;&lt;/code&gt; is an interger; the greater the
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  * value, the more output is produced on &lt;code&gt;STDOUT&lt;/code&gt;.
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  * &lt;code&gt;&amp;lt;coref classifier&amp;gt;&lt;/code&gt; can be one of two things.  First, it
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  * can be the fully qualified name of a coref classifier that makes a
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  * &lt;code&gt;true&lt;/code&gt; or &lt;code&gt;false&lt;/code&gt; prediction about a pair of
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  * mentions stored in a {@link Mention}&lt;code&gt;[]&lt;/code&gt;.  Second, it can be a
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  * directory within which files labeled with predictions are stored.
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  * &lt;code&gt;&amp;lt;change probability&amp;gt;&lt;/code&gt; and &lt;code&gt;&amp;lt;new ID
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  * probability&amp;gt;&lt;/code&gt; are parameters for
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  * &lt;code&gt;LBJ2.nlp.coref.PerturbedLabels&lt;/code&gt;.
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  *
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  * &lt;h4&gt;Output&lt;/h4&gt;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  * &lt;p&gt; The main output is generated by the
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  * &lt;code&gt;LBJ2.classify.TestDiscrete&lt;/code&gt; class.  See its online
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  * documentation at
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  * &lt;a href="http://flake.cs.uiuc.edu/~rizzolo/LBJ2/library/LBJ2/classify/TestDiscrete.html"&gt;http://flake.cs.uiuc.edu/~rizzolo/LBJ2/library/LBJ2/classify/TestDiscrete.html&lt;/a&gt;.
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  * This output is generated regardless of the value of
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  * &lt;code&gt;&amp;lt;verbosity&amp;gt;&lt;/code&gt;.  When &lt;code&gt;&amp;lt;verbosity&amp;gt;&lt;/code&gt; is
+<FONT ID="LN">95  </FONT><A NAME="95"></A>  * greater than 0, the name of each document followed by the coherence
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  * classifier's unnormalized score on that document is printed.
+<FONT ID="LN">97  </FONT><A NAME="97"></A> **/</FONT>
+<FONT ID="LN">98  </FONT><A NAME="98"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> CoherenceTester
+<FONT ID="LN">99  </FONT><A NAME="99"></A>{
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args)
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    String coherenceName = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    String filename = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="Boolean">boolean</FONT> shufflePairOrder = <FONT ID="False">false</FONT>;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    <FONT ID="Boolean">boolean</FONT> automaticShuffling = <FONT ID="False">false</FONT>;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    <FONT ID="Boolean">boolean</FONT> perturbed = <FONT ID="False">false</FONT>;
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    String predictedDataRoot1 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    String predictedDataRoot2 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="Int">int</FONT> examplesPerDocument = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    <FONT ID="Boolean">boolean</FONT> shuffleIds = <FONT ID="False">false</FONT>;
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    Classifier corefClassifier1 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    Classifier corefClassifier2 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="Double">double</FONT> changeProbability = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    <FONT ID="Double">double</FONT> newIDProbability = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="Int">int</FONT> verbosity = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="Try">try</FONT>
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    {
+<FONT ID="LN">119 </FONT><A NAME="119"></A>      coherenceName = args[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">120 </FONT><A NAME="120"></A>      filename = args[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">121 </FONT><A NAME="121"></A>      shufflePairOrder = args[<FONT ID="IntegerLiteral">2</FONT>].equals(<FONT ID="StringLiteral">"true"</FONT>);
+<FONT ID="LN">122 </FONT><A NAME="122"></A>      automaticShuffling = Character.isDigit(args[<FONT ID="IntegerLiteral">3</FONT>].charAt(<FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">123 </FONT><A NAME="123"></A>
+<FONT ID="LN">124 </FONT><A NAME="124"></A>      <FONT ID="If">if</FONT> (automaticShuffling)
+<FONT ID="LN">125 </FONT><A NAME="125"></A>      {
+<FONT ID="LN">126 </FONT><A NAME="126"></A>        examplesPerDocument = Integer.parseInt(args[<FONT ID="IntegerLiteral">3</FONT>]);
+<FONT ID="LN">127 </FONT><A NAME="127"></A>        <FONT ID="If">if</FONT> (examplesPerDocument &lt; <FONT ID="IntegerLiteral">1</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">128 </FONT><A NAME="128"></A>        shuffleIds = args[<FONT ID="IntegerLiteral">4</FONT>].equals(<FONT ID="StringLiteral">"true"</FONT>);
+<FONT ID="LN">129 </FONT><A NAME="129"></A>        <FONT ID="If">if</FONT> (args.length == <FONT ID="IntegerLiteral">6</FONT>) verbosity = Integer.parseInt(args[<FONT ID="IntegerLiteral">5</FONT>]);
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        <FONT ID="If">if</FONT> (args.length &gt; <FONT ID="IntegerLiteral">6</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      {
+<FONT ID="LN">134 </FONT><A NAME="134"></A>        String corefName = args[<FONT ID="IntegerLiteral">3</FONT>];
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        corefClassifier1 = ClassUtils.getClassifier(corefName, <FONT ID="False">false</FONT>);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        <FONT ID="If">if</FONT> (corefClassifier1 == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">138 </FONT><A NAME="138"></A>        {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>          predictedDataRoot1 = args[<FONT ID="IntegerLiteral">3</FONT>];
+<FONT ID="LN">140 </FONT><A NAME="140"></A>          corefName = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>        }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>        <FONT ID="If">if</FONT> (args.length == <FONT ID="IntegerLiteral">5</FONT> &amp;&amp; Character.isDigit(args[<FONT ID="IntegerLiteral">4</FONT>].charAt(<FONT ID="IntegerLiteral">0</FONT>)))
+<FONT ID="LN">144 </FONT><A NAME="144"></A>          verbosity = Integer.parseInt(args[<FONT ID="IntegerLiteral">4</FONT>]);
+<FONT ID="LN">145 </FONT><A NAME="145"></A>        <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args.length &gt;= <FONT ID="IntegerLiteral">5</FONT>)
+<FONT ID="LN">146 </FONT><A NAME="146"></A>        {
+<FONT ID="LN">147 </FONT><A NAME="147"></A>          perturbed = <FONT ID="True">true</FONT>;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>          <FONT ID="Try">try</FONT>
+<FONT ID="LN">150 </FONT><A NAME="150"></A>          {
+<FONT ID="LN">151 </FONT><A NAME="151"></A>            changeProbability = Double.parseDouble(args[<FONT ID="IntegerLiteral">4</FONT>]);
+<FONT ID="LN">152 </FONT><A NAME="152"></A>            newIDProbability = Double.parseDouble(args[<FONT ID="IntegerLiteral">5</FONT>]);
+<FONT ID="LN">153 </FONT><A NAME="153"></A>          }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>          <FONT ID="Catch">catch</FONT> (Exception e) { perturbed = <FONT ID="False">false</FONT>; }
+<FONT ID="LN">155 </FONT><A NAME="155"></A>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>          <FONT ID="If">if</FONT> (perturbed)
+<FONT ID="LN">157 </FONT><A NAME="157"></A>          {
+<FONT ID="LN">158 </FONT><A NAME="158"></A>            <FONT ID="If">if</FONT> (args.length == <FONT ID="IntegerLiteral">7</FONT>) verbosity = Integer.parseInt(args[<FONT ID="IntegerLiteral">6</FONT>]);
+<FONT ID="LN">159 </FONT><A NAME="159"></A>            <FONT ID="If">if</FONT> (args.length &gt; <FONT ID="IntegerLiteral">7</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">160 </FONT><A NAME="160"></A>          }
+<FONT ID="LN">161 </FONT><A NAME="161"></A>          <FONT ID="Else">else</FONT>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>          {
+<FONT ID="LN">163 </FONT><A NAME="163"></A>            corefName = args[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">164 </FONT><A NAME="164"></A>            corefClassifier2 = ClassUtils.getClassifier(corefName, <FONT ID="False">false</FONT>);
+<FONT ID="LN">165 </FONT><A NAME="165"></A>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>            <FONT ID="If">if</FONT> (corefClassifier2 == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">167 </FONT><A NAME="167"></A>            {
+<FONT ID="LN">168 </FONT><A NAME="168"></A>              predictedDataRoot2 = args[<FONT ID="IntegerLiteral">4</FONT>];
+<FONT ID="LN">169 </FONT><A NAME="169"></A>              corefName = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>            }
+<FONT ID="LN">171 </FONT><A NAME="171"></A>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>            <FONT ID="If">if</FONT> (args.length == <FONT ID="IntegerLiteral">6</FONT>) verbosity = Integer.parseInt(args[<FONT ID="IntegerLiteral">5</FONT>]);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>            <FONT ID="If">if</FONT> (args.length &gt; <FONT ID="IntegerLiteral">6</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">174 </FONT><A NAME="174"></A>          }
+<FONT ID="LN">175 </FONT><A NAME="175"></A>        }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>      }
+<FONT ID="LN">177 </FONT><A NAME="177"></A>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      <FONT ID="If">if</FONT> (verbosity &lt; <FONT ID="IntegerLiteral">0</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    }
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    {
+<FONT ID="LN">182 </FONT><A NAME="182"></A>      System.err.println(
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="StringLiteral">"usage: java LBJ2.nlp.coherence.CoherenceTester &lt;coherence classifier&gt; \\\n"</FONT>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>+ <FONT ID="StringLiteral">"                                               &lt;labeled data&gt; \\\n"</FONT>
+<FONT ID="LN">185 </FONT><A NAME="185"></A>+ <FONT ID="StringLiteral">"                                               &lt;shuffle pair order&gt; \\\n"</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>+ <FONT ID="StringLiteral">"                                               &lt;examples per document&gt; \\\n"</FONT>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>+ <FONT ID="StringLiteral">"                                               &lt;shuffleIds&gt; \\\n"</FONT>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>+ <FONT ID="StringLiteral">"                                               [&lt;verbosity&gt;]\n"</FONT>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>+ <FONT ID="StringLiteral">" or\n"</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>+ <FONT ID="StringLiteral">"       java LBJ2.nlp.coherence.CoherenceTester &lt;coherence classifier&gt; \\\n"</FONT>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>+ <FONT ID="StringLiteral">"                                               &lt;labeled data&gt; \\\n"</FONT>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>+ <FONT ID="StringLiteral">"                                               &lt;shuffle pair order&gt; \\\n"</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>+ <FONT ID="StringLiteral">"                                               &lt;coref classifier&gt; \\\n"</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>+ <FONT ID="StringLiteral">"                                               [&lt;verbosity&gt;]\n"</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>+ <FONT ID="StringLiteral">" or\n"</FONT>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>+ <FONT ID="StringLiteral">"       java LBJ2.nlp.coherence.CoherenceTester &lt;coherence classifier&gt; \\\n"</FONT>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>+ <FONT ID="StringLiteral">"                                               &lt;labeled data&gt; \\\n"</FONT>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>+ <FONT ID="StringLiteral">"                                               &lt;shuffle pair order&gt; \\\n"</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>+ <FONT ID="StringLiteral">"                                               &lt;coref classifier 1&gt; \\\n"</FONT>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>+ <FONT ID="StringLiteral">"                                               &lt;coref classifier 2&gt; \\\n"</FONT>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>+ <FONT ID="StringLiteral">"                                               [&lt;verbosity&gt;]\n"</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>+ <FONT ID="StringLiteral">" or\n"</FONT>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>+ <FONT ID="StringLiteral">"       java LBJ2.nlp.coherence.CoherenceTester &lt;coherence classifier&gt; \\\n"</FONT>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>+ <FONT ID="StringLiteral">"                                               &lt;labeled data&gt; \\\n"</FONT>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>+ <FONT ID="StringLiteral">"                                               &lt;shuffle pair order&gt; \\\n"</FONT>
+<FONT ID="LN">206 </FONT><A NAME="206"></A>+ <FONT ID="StringLiteral">"                                               &lt;coref classifier&gt; \\\n"</FONT>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>+ <FONT ID="StringLiteral">"                                               &lt;change probability&gt; \\\n"</FONT>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>+ <FONT ID="StringLiteral">"                                               &lt;new ID probability&gt; \\\n"</FONT>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>+ <FONT ID="StringLiteral">"                                               [&lt;verbosity&gt;]"</FONT>);
+<FONT ID="LN">210 </FONT><A NAME="210"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    }
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    Learner cohere = ClassUtils.getLearner(coherenceName);
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    Classifier labeler = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/CoherenceLabel.java.html">CoherenceLabel</A>();
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    TestDiscrete tester = <FONT ID="New">new</FONT> TestDiscrete();
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> parser = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    <FONT ID="If">if</FONT> (automaticShuffling)
+<FONT ID="LN">219 </FONT><A NAME="219"></A>      parser =
+<FONT ID="LN">220 </FONT><A NAME="220"></A>        <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/DocumentPairParser.java.html">DocumentPairParser</A>(<FONT ID="New">new</FONT> ACE2004DocumentParser(filename),
+<FONT ID="LN">221 </FONT><A NAME="221"></A>                               examplesPerDocument, shuffleIds,
+<FONT ID="LN">222 </FONT><A NAME="222"></A>                               shufflePairOrder);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (predictedDataRoot2 == <FONT ID="Null">null</FONT> &amp;&amp; corefClassifier2 == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    {
+<FONT ID="LN">225 </FONT><A NAME="225"></A>      <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> p1 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">226 </FONT><A NAME="226"></A>      <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> p2 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">227 </FONT><A NAME="227"></A>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>      <FONT ID="If">if</FONT> (perturbed)
+<FONT ID="LN">229 </FONT><A NAME="229"></A>      {
+<FONT ID="LN">230 </FONT><A NAME="230"></A>        p1 =
+<FONT ID="LN">231 </FONT><A NAME="231"></A>          <FONT ID="New">new</FONT> PredictedDocumentParser(
+<FONT ID="LN">232 </FONT><A NAME="232"></A>              <FONT ID="New">new</FONT> ACE2004DocumentParser(filename),
+<FONT ID="LN">233 </FONT><A NAME="233"></A>              <FONT ID="New">new</FONT> PerturbedLabels());
+<FONT ID="LN">234 </FONT><A NAME="234"></A>        PerturbedLabels.setParameters(changeProbability, newIDProbability);
+<FONT ID="LN">235 </FONT><A NAME="235"></A>        labeler = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/B3Label.java.html">B3Label</A>(verbosity);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>      }
+<FONT ID="LN">237 </FONT><A NAME="237"></A>      <FONT ID="Else">else</FONT> p1 = <FONT ID="New">new</FONT> ACE2004DocumentParser(filename);
+<FONT ID="LN">238 </FONT><A NAME="238"></A>
+<FONT ID="LN">239 </FONT><A NAME="239"></A>      <FONT ID="If">if</FONT> (predictedDataRoot1 != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">240 </FONT><A NAME="240"></A>        p2 = <FONT ID="New">new</FONT> PrePredictedDocumentParser(predictedDataRoot1, filename);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">242 </FONT><A NAME="242"></A>        p2 =
+<FONT ID="LN">243 </FONT><A NAME="243"></A>          <FONT ID="New">new</FONT> PredictedDocumentParser(
+<FONT ID="LN">244 </FONT><A NAME="244"></A>              <FONT ID="New">new</FONT> ACE2004DocumentParser(filename),
+<FONT ID="LN">245 </FONT><A NAME="245"></A>              corefClassifier1);
+<FONT ID="LN">246 </FONT><A NAME="246"></A>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>      parser = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/DocumentPairParser.java.html">DocumentPairParser</A>(p1, p2, shufflePairOrder);
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    }
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    {
+<FONT ID="LN">251 </FONT><A NAME="251"></A>      <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> p1 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">252 </FONT><A NAME="252"></A>      <A HREF="../../../LBJ2/parse/Parser.java.html">Parser</A> p2 = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">253 </FONT><A NAME="253"></A>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>      <FONT ID="If">if</FONT> (predictedDataRoot1 != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">255 </FONT><A NAME="255"></A>        p1 = <FONT ID="New">new</FONT> PrePredictedDocumentParser(predictedDataRoot1, filename);
+<FONT ID="LN">256 </FONT><A NAME="256"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">257 </FONT><A NAME="257"></A>        p1 = <FONT ID="New">new</FONT> PredictedDocumentParser(<FONT ID="New">new</FONT> ACE2004DocumentParser(filename),
+<FONT ID="LN">258 </FONT><A NAME="258"></A>                                         corefClassifier1);
+<FONT ID="LN">259 </FONT><A NAME="259"></A>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>      <FONT ID="If">if</FONT> (predictedDataRoot2 != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">261 </FONT><A NAME="261"></A>        p2 = <FONT ID="New">new</FONT> PrePredictedDocumentParser(predictedDataRoot2, filename);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">263 </FONT><A NAME="263"></A>        p2 = <FONT ID="New">new</FONT> PredictedDocumentParser(<FONT ID="New">new</FONT> ACE2004DocumentParser(filename),
+<FONT ID="LN">264 </FONT><A NAME="264"></A>                                         corefClassifier2);
+<FONT ID="LN">265 </FONT><A NAME="265"></A>
+<FONT ID="LN">266 </FONT><A NAME="266"></A>      parser = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/DocumentPairParser.java.html">DocumentPairParser</A>(p1, p2, shufflePairOrder);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>      labeler = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coherence/B3Label.java.html">B3Label</A>(verbosity);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    }
+<FONT ID="LN">269 </FONT><A NAME="269"></A>
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    <FONT ID="For">for</FONT> (Object e = parser.next(); e != <FONT ID="Null">null</FONT>; e = parser.next())
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    {
+<FONT ID="LN">272 </FONT><A NAME="272"></A>      String label = labeler.discreteValue(e);
+<FONT ID="LN">273 </FONT><A NAME="273"></A>      String prediction = cohere.discreteValue(e);
+<FONT ID="LN">274 </FONT><A NAME="274"></A>      tester.reportPrediction(prediction, label);
+<FONT ID="LN">275 </FONT><A NAME="275"></A>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>      <FONT ID="If">if</FONT> (verbosity &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">277 </FONT><A NAME="277"></A>      {
+<FONT ID="LN">278 </FONT><A NAME="278"></A>        Document[] pair = (Document[]) e;
+<FONT ID="LN">279 </FONT><A NAME="279"></A>        System.out.println(
+<FONT ID="LN">280 </FONT><A NAME="280"></A>            pair[<FONT ID="IntegerLiteral">0</FONT>].getName() + <FONT ID="StringLiteral">": "</FONT> + cohere.scores(e).get(label));
+<FONT ID="LN">281 </FONT><A NAME="281"></A>        <FONT ID="If">if</FONT> (verbosity &gt; <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">282 </FONT><A NAME="282"></A>          System.out.println(cohere.getExtractor().classify(e));
+<FONT ID="LN">283 </FONT><A NAME="283"></A>      }
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    }
+<FONT ID="LN">285 </FONT><A NAME="285"></A>
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    tester.printPerformance(System.out);
+<FONT ID="LN">287 </FONT><A NAME="287"></A>  }
+<FONT ID="LN">288 </FONT><A NAME="288"></A>}
+<FONT ID="LN">289 </FONT><A NAME="289"></A>
+<FONT ID="LN">290 </FONT><A NAME="290"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CoherenceTester.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,108 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.FieldReaderException (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldReaderException.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">3   </FONT><A NAME="3"></A> * Copyright 2004 The Apache Software Foundation
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * Licensed under the Apache License, Version 2.0 (the "License");
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * you may not use this file except in compliance with the License.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * You may obtain a copy of the License at
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * limitations under the License.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> */</FONT>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> **/</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> FieldReaderException <FONT ID="Extends">extends</FONT> RuntimeException{
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">24  </FONT><A NAME="24"></A>   * Constructs a new runtime exception with &lt;code&gt;null&lt;/code&gt; as its
+<FONT ID="LN">25  </FONT><A NAME="25"></A>   * detail message.  The cause is not initialized, and may subsequently be
+<FONT ID="LN">26  </FONT><A NAME="26"></A>   * initialized by a call to {@link #initCause}.
+<FONT ID="LN">27  </FONT><A NAME="27"></A>   */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  <FONT ID="Public">public</FONT> FieldReaderException() {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  }
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">32  </FONT><A NAME="32"></A>   * Constructs a new runtime exception with the specified cause and a
+<FONT ID="LN">33  </FONT><A NAME="33"></A>   * detail message of &lt;tt&gt;(cause==null &amp;#63; null : cause.toString())&lt;/tt&gt;
+<FONT ID="LN">34  </FONT><A NAME="34"></A>   * (which typically contains the class and detail message of
+<FONT ID="LN">35  </FONT><A NAME="35"></A>   * &lt;tt&gt;cause&lt;/tt&gt;).  
+<FONT ID="LN">36  </FONT><A NAME="36"></A>   * &lt;p&gt;
+<FONT ID="LN">37  </FONT><A NAME="37"></A>   * This constructor is useful for runtime exceptions
+<FONT ID="LN">38  </FONT><A NAME="38"></A>   * that are little more than wrappers for other throwables.
+<FONT ID="LN">39  </FONT><A NAME="39"></A>   *
+<FONT ID="LN">40  </FONT><A NAME="40"></A>   * @param cause the cause (which is saved for later retrieval by the
+<FONT ID="LN">41  </FONT><A NAME="41"></A>   *              {@link #getCause()} method).  (A &lt;tt&gt;null&lt;/tt&gt; value is
+<FONT ID="LN">42  </FONT><A NAME="42"></A>   *              permitted, and indicates that the cause is nonexistent or
+<FONT ID="LN">43  </FONT><A NAME="43"></A>   *              unknown.)
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   * @since 1.4
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   */</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Public">public</FONT> FieldReaderException(Throwable cause) {
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    <FONT ID="Super">super</FONT>(cause);
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  }
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   * Constructs a new runtime exception with the specified detail message.
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * The cause is not initialized, and may subsequently be initialized by a
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   * call to {@link #initCause}.
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   *
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   * @param message the detail message. The detail message is saved for
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   *                later retrieval by the {@link #getMessage()} method.
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="Public">public</FONT> FieldReaderException(String message) {
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="Super">super</FONT>(message);
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  }
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * Constructs a new runtime exception with the specified detail message and
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   * cause.  &lt;p&gt;Note that the detail message associated with
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   * &lt;code&gt;cause&lt;/code&gt; is &lt;i&gt;not&lt;/i&gt; automatically incorporated in
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   * this runtime exception's detail message.
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   *
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   * @param message the detail message (which is saved for later retrieval
+<FONT ID="LN">69  </FONT><A NAME="69"></A>   *                by the {@link #getMessage()} method).
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   * @param cause   the cause (which is saved for later retrieval by the
+<FONT ID="LN">71  </FONT><A NAME="71"></A>   *                {@link #getCause()} method).  (A &lt;tt&gt;null&lt;/tt&gt; value is
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   *                permitted, and indicates that the cause is nonexistent or
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   *                unknown.)
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   * @since 1.4
+<FONT ID="LN">75  </FONT><A NAME="75"></A>   */</FONT>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="Public">public</FONT> FieldReaderException(String message, Throwable cause) {
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Super">super</FONT>(message, cause);
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  }
+<FONT ID="LN">79  </FONT><A NAME="79"></A>}
+<FONT ID="LN">80  </FONT><A NAME="80"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldReaderException.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

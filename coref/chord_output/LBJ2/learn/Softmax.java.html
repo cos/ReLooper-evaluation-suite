@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.learn.Softmax (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Softmax.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.learn;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * The softmax normalization function replaces each score with the fraction
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * of its exponential out of the sum of all scores' exponentials.  In other
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * words, each score &lt;code&gt;x&lt;sub&gt;i&lt;/sub&gt;&lt;/code&gt; is replaced by
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * &lt;code&gt;exp(x&lt;sub&gt;i&lt;/sub&gt;) / sum&lt;sub&gt;j&lt;/sub&gt; exp(x&lt;sub&gt;j&lt;/sub&gt;)&lt;/code&gt;.
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  *
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * @author Nick Rizzolo
+<FONT ID="LN">13  </FONT><A NAME="13"></A> **/</FONT>
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Softmax <FONT ID="Extends">extends</FONT> <A HREF="../../LBJ2/learn/Normalizer.java.html">Normalizer</A>
+<FONT ID="LN">15  </FONT><A NAME="15"></A>{
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">17  </FONT><A NAME="17"></A>    * Normalizes the given &lt;code&gt;ScoreSet&lt;/code&gt;; its scores are modified in
+<FONT ID="LN">18  </FONT><A NAME="18"></A>    * place before it is returned.
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    *
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    * @param scores The set of scores to normalize.
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    * @return       The normalized set of scores.
+<FONT ID="LN">22  </FONT><A NAME="22"></A>   **/</FONT>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="Public">public</FONT> ScoreSet normalize(ScoreSet scores)
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  {
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    Score[] array = scores.toArray();
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    <FONT ID="Double">double</FONT> sum = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; array.length; ++i)
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>      array[i].score = Math.exp(array[i].score);
+<FONT ID="LN">30  </FONT><A NAME="30"></A>      sum += array[i].score;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    }
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; array.length; ++i) array[i].score /= sum;
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="Return">return</FONT> scores;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  }
+<FONT ID="LN">36  </FONT><A NAME="36"></A>}
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Softmax.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.util.StringHelper (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StringHelper.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.util;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">22  </FONT><A NAME="22"></A> * Methods for manipulating strings.
+<FONT ID="LN">23  </FONT><A NAME="23"></A> *
+<FONT ID="LN">24  </FONT><A NAME="24"></A> * $Id: StringHelper.java 801344 2009-08-05 18:05:06Z yonik $
+<FONT ID="LN">25  </FONT><A NAME="25"></A> */</FONT>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> StringHelper {
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A>   * Expert:
+<FONT ID="LN">29  </FONT><A NAME="29"></A>   * The StringInterner implementation used by Lucene.
+<FONT ID="LN">30  </FONT><A NAME="30"></A>   * This shouldn't be changed to an incompatible implementation after other Lucene APIs have been used.
+<FONT ID="LN">31  </FONT><A NAME="31"></A>   */</FONT>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/util/StringInterner.java.html">StringInterner</A> interner = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/SimpleStringInterner.java.html">SimpleStringInterner</A>(<FONT ID="IntegerLiteral">1024</FONT>,<FONT ID="IntegerLiteral">8</FONT>);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  <FONT ID="FormalComment">/** Return the same string object for all equal strings */</FONT>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String intern(String s) {
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="Return">return</FONT> interner.intern(s);
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  }
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">40  </FONT><A NAME="40"></A>   * Compares two byte[] arrays, element by element, and returns the
+<FONT ID="LN">41  </FONT><A NAME="41"></A>   * number of elements common to both arrays.
+<FONT ID="LN">42  </FONT><A NAME="42"></A>   *
+<FONT ID="LN">43  </FONT><A NAME="43"></A>   * @param bytes1 The first byte[] to compare
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   * @param bytes2 The second byte[] to compare
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   * @return The number of common elements.
+<FONT ID="LN">46  </FONT><A NAME="46"></A>   */</FONT>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> bytesDifference(<FONT ID="Byte">byte</FONT>[] bytes1, <FONT ID="Int">int</FONT> len1, <FONT ID="Byte">byte</FONT>[] bytes2, <FONT ID="Int">int</FONT> len2) {
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="Int">int</FONT> len = len1 &lt; len2 ? len1 : len2;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; len; i++)
+<FONT ID="LN">50  </FONT><A NAME="50"></A>      <FONT ID="If">if</FONT> (bytes1[i] != bytes2[i])
+<FONT ID="LN">51  </FONT><A NAME="51"></A>        <FONT ID="Return">return</FONT> i;
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="Return">return</FONT> len;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  }
+<FONT ID="LN">54  </FONT><A NAME="54"></A>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   * Compares two strings, character by character, and returns the
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   * first position where the two strings differ from one another.
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   *
+<FONT ID="LN">59  </FONT><A NAME="59"></A>   * @param s1 The first string to compare
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   * @param s2 The second string to compare
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * @return The first position where the two strings differ.
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   */</FONT>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> stringDifference(String s1, String s2) {
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="Int">int</FONT> len1 = s1.length();
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    <FONT ID="Int">int</FONT> len2 = s2.length();
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Int">int</FONT> len = len1 &lt; len2 ? len1 : len2;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; len; i++) {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>      <FONT ID="If">if</FONT> (s1.charAt(i) != s2.charAt(i)) {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>          <FONT ID="Return">return</FONT> i;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>      }
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="Return">return</FONT> len;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  }
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Private">private</FONT> StringHelper() {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  }
+<FONT ID="LN">77  </FONT><A NAME="77"></A>}
+<FONT ID="LN">78  </FONT><A NAME="78"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StringHelper.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

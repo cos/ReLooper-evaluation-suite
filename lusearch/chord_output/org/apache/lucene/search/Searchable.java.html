@@ -1,0 +1,213 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.search.Searchable (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Searchable.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.search;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/Document.java.html">org.apache.lucene.document.Document</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/FieldSelector.java.html">org.apache.lucene.document.FieldSelector</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">org.apache.lucene.index.CorruptIndexException</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/Term.java.html">org.apache.lucene.index.Term</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * The interface for search implementations.
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * 
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * &lt;p&gt;
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * Searchable is the abstract network protocol for searching. Implementations
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * provide search over a single index, over multiple indices, and over indices
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * on remote servers.
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * 
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * &lt;p&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * Queries, filters and sort criteria are designed to be compact so that they
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * may be efficiently passed to a remote index, with only the top-scoring hits
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * being returned, rather than every matching hit.
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * 
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * &lt;b&gt;NOTE:&lt;/b&gt; this interface is kept public for convenience. Since it is not
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * expected to be implemented directly, it may be changed unexpectedly between
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * releases.
+<FONT ID="LN">43  </FONT><A NAME="43"></A> */</FONT>
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Public">public</FONT> <FONT ID="Interface">interface</FONT> Searchable {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="FormalComment">/** Lower-level search API.
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   *
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   * &lt;p&gt;{@link HitCollector#collect(int,float)} is called for every non-zero
+<FONT ID="LN">49  </FONT><A NAME="49"></A>   * scoring document.
+<FONT ID="LN">50  </FONT><A NAME="50"></A>   * &lt;br&gt;HitCollector-based access to remote indexes is discouraged.
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   *
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * &lt;p&gt;Applications should only use this if they need &lt;i&gt;all&lt;/i&gt; of the
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   * matching documents.  The high-level search API ({@link
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   * Searcher#search(Query)}) is usually more efficient, as it skips
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   * non-high-scoring hits.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   *
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   * @param weight to match documents
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   * @param filter if non-null, used to permit documents to be collected.
+<FONT ID="LN">59  </FONT><A NAME="59"></A>   * @param results to receive hits
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   * @throws BooleanQuery.TooManyClauses
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * @deprecated use {@link #search(Weight, Filter, Collector)} instead.
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   */</FONT>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="Void">void</FONT> search(<A HREF="../../../../org/apache/lucene/search/Weight.java.html">Weight</A> weight, <A HREF="../../../../org/apache/lucene/search/Filter.java.html">Filter</A> filter, <A HREF="../../../../org/apache/lucene/search/HitCollector.java.html">HitCollector</A> results)
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   * Lower-level search API.
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   * 
+<FONT ID="LN">69  </FONT><A NAME="69"></A>   * &lt;p&gt;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   * {@link Collector#collect(int)} is called for every document. &lt;br&gt;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>   * Collector-based access to remote indexes is discouraged.
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   * 
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   * &lt;p&gt;
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   * Applications should only use this if they need &lt;i&gt;all&lt;/i&gt; of the matching
+<FONT ID="LN">75  </FONT><A NAME="75"></A>   * documents. The high-level search API ({@link Searcher#search(Query)}) is
+<FONT ID="LN">76  </FONT><A NAME="76"></A>   * usually more efficient, as it skips non-high-scoring hits.
+<FONT ID="LN">77  </FONT><A NAME="77"></A>   * 
+<FONT ID="LN">78  </FONT><A NAME="78"></A>   * @param weight
+<FONT ID="LN">79  </FONT><A NAME="79"></A>   *          to match documents
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * @param filter
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   *          if non-null, used to permit documents to be collected.
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   * @param collector
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   *          to receive hits
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   * @throws BooleanQuery.TooManyClauses
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   */</FONT>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Void">void</FONT> search(<A HREF="../../../../org/apache/lucene/search/Weight.java.html">Weight</A> weight, <A HREF="../../../../org/apache/lucene/search/Filter.java.html">Filter</A> filter, <A HREF="../../../../org/apache/lucene/search/Collector.java.html">Collector</A> collector) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="FormalComment">/** Frees resources associated with this Searcher.
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * Be careful not to call this method while you are still using objects
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   * like {@link Hits}.
+<FONT ID="LN">91  </FONT><A NAME="91"></A>   */</FONT>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  <FONT ID="Void">void</FONT> close() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">93  </FONT><A NAME="93"></A>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  <FONT ID="FormalComment">/** Expert: Returns the number of documents containing &lt;code&gt;term&lt;/code&gt;.
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * 
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * @see org.apache.lucene.index.IndexReader#docFreq(Term)
+<FONT ID="LN">97  </FONT><A NAME="97"></A>   */</FONT>
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  <FONT ID="Int">int</FONT> docFreq(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="FormalComment">/** Expert: For each term in the terms array, calculates the number of
+<FONT ID="LN">101 </FONT><A NAME="101"></A>   * documents containing &lt;code&gt;term&lt;/code&gt;. Returns an array with these
+<FONT ID="LN">102 </FONT><A NAME="102"></A>   * document frequencies. Used to minimize number of remote calls.
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   */</FONT>
+<FONT ID="LN">104 </FONT><A NAME="104"></A>  <FONT ID="Int">int</FONT>[] docFreqs(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A>[] terms) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="FormalComment">/** Expert: Returns one greater than the largest possible document number.
+<FONT ID="LN">107 </FONT><A NAME="107"></A>   * 
+<FONT ID="LN">108 </FONT><A NAME="108"></A>   * @see org.apache.lucene.index.IndexReader#maxDoc()
+<FONT ID="LN">109 </FONT><A NAME="109"></A>   */</FONT>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  <FONT ID="Int">int</FONT> maxDoc() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="FormalComment">/** Expert: Low-level search implementation.  Finds the top &lt;code&gt;n&lt;/code&gt;
+<FONT ID="LN">113 </FONT><A NAME="113"></A>   * hits for &lt;code&gt;query&lt;/code&gt;, applying &lt;code&gt;filter&lt;/code&gt; if non-null.
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   *
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   * &lt;p&gt;Applications should usually call {@link Searcher#search(Query)} or
+<FONT ID="LN">116 </FONT><A NAME="116"></A>   * {@link Searcher#search(Query,Filter)} instead.
+<FONT ID="LN">117 </FONT><A NAME="117"></A>   * @throws BooleanQuery.TooManyClauses
+<FONT ID="LN">118 </FONT><A NAME="118"></A>   */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <A HREF="../../../../org/apache/lucene/search/TopDocs.java.html">TopDocs</A> search(<A HREF="../../../../org/apache/lucene/search/Weight.java.html">Weight</A> weight, <A HREF="../../../../org/apache/lucene/search/Filter.java.html">Filter</A> filter, <FONT ID="Int">int</FONT> n) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   * Returns the stored fields of document &lt;code&gt;i&lt;/code&gt;.
+<FONT ID="LN">123 </FONT><A NAME="123"></A>   * 
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   * @see org.apache.lucene.index.IndexReader#document(int)
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">127 </FONT><A NAME="127"></A>   */</FONT>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc(<FONT ID="Int">int</FONT> i) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">131 </FONT><A NAME="131"></A>   * Get the {@link org.apache.lucene.document.Document} at the &lt;code&gt;n&lt;/code&gt;&lt;sup&gt;th&lt;/sup&gt; position. The {@link org.apache.lucene.document.FieldSelector}
+<FONT ID="LN">132 </FONT><A NAME="132"></A>   * may be used to determine what {@link org.apache.lucene.document.Field}s to load and how they should be loaded.
+<FONT ID="LN">133 </FONT><A NAME="133"></A>   * 
+<FONT ID="LN">134 </FONT><A NAME="134"></A>   * &lt;b&gt;NOTE:&lt;/b&gt; If the underlying Reader (more specifically, the underlying &lt;code&gt;FieldsReader&lt;/code&gt;) is closed before the lazy {@link org.apache.lucene.document.Field} is
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * loaded an exception may be thrown.  If you want the value of a lazy {@link org.apache.lucene.document.Field} to be available after closing you must
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * explicitly load it or fetch the Document again with a new loader.
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * 
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   *  
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   * @param n Get the document at the &lt;code&gt;n&lt;/code&gt;&lt;sup&gt;th&lt;/sup&gt; position
+<FONT ID="LN">140 </FONT><A NAME="140"></A>   * @param fieldSelector The {@link org.apache.lucene.document.FieldSelector} to use to determine what Fields should be loaded on the Document.  May be null, in which case all Fields will be loaded.
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * @return The stored fields of the {@link org.apache.lucene.document.Document} at the nth position
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * 
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * @see org.apache.lucene.index.IndexReader#document(int, FieldSelector)
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   * @see org.apache.lucene.document.Fieldable
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   * @see org.apache.lucene.document.FieldSelector
+<FONT ID="LN">148 </FONT><A NAME="148"></A>   * @see org.apache.lucene.document.SetBasedFieldSelector
+<FONT ID="LN">149 </FONT><A NAME="149"></A>   * @see org.apache.lucene.document.LoadFirstFieldSelector
+<FONT ID="LN">150 </FONT><A NAME="150"></A>   */</FONT>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  <A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc(<FONT ID="Int">int</FONT> n, <A HREF="../../../../org/apache/lucene/document/FieldSelector.java.html">FieldSelector</A> fieldSelector) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  <FONT ID="FormalComment">/** Expert: called to re-write queries into primitive queries.
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * @throws BooleanQuery.TooManyClauses
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   */</FONT>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  <A HREF="../../../../org/apache/lucene/search/Query.java.html">Query</A> rewrite(<A HREF="../../../../org/apache/lucene/search/Query.java.html">Query</A> query) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">157 </FONT><A NAME="157"></A>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="FormalComment">/** Expert: low-level implementation method
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   * Returns an Explanation that describes how &lt;code&gt;doc&lt;/code&gt; scored against
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   * &lt;code&gt;weight&lt;/code&gt;.
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   *
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   * &lt;p&gt;This is intended to be used in developing Similarity implementations,
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * and, for good performance, should not be displayed with every hit.
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   * Computing an explanation is as expensive as executing the query over the
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * entire index.
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * &lt;p&gt;Applications should call {@link Searcher#explain(Query, int)}.
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * @throws BooleanQuery.TooManyClauses
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   */</FONT>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>  <A HREF="../../../../org/apache/lucene/search/Explanation.java.html">Explanation</A> explain(<A HREF="../../../../org/apache/lucene/search/Weight.java.html">Weight</A> weight, <FONT ID="Int">int</FONT> doc) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>  <FONT ID="FormalComment">/** Expert: Low-level search implementation with arbitrary sorting.  Finds
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   * the top &lt;code&gt;n&lt;/code&gt; hits for &lt;code&gt;query&lt;/code&gt;, applying
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   * &lt;code&gt;filter&lt;/code&gt; if non-null, and sorting the hits by the criteria in
+<FONT ID="LN">174 </FONT><A NAME="174"></A>   * &lt;code&gt;sort&lt;/code&gt;.
+<FONT ID="LN">175 </FONT><A NAME="175"></A>   *
+<FONT ID="LN">176 </FONT><A NAME="176"></A>   * &lt;p&gt;Applications should usually call {@link
+<FONT ID="LN">177 </FONT><A NAME="177"></A>   * Searcher#search(Query,Filter,int,Sort)} instead.
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   * 
+<FONT ID="LN">179 </FONT><A NAME="179"></A>   * @throws BooleanQuery.TooManyClauses
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   */</FONT>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  <A HREF="../../../../org/apache/lucene/search/TopFieldDocs.java.html">TopFieldDocs</A> search(<A HREF="../../../../org/apache/lucene/search/Weight.java.html">Weight</A> weight, <A HREF="../../../../org/apache/lucene/search/Filter.java.html">Filter</A> filter, <FONT ID="Int">int</FONT> n, <A HREF="../../../../org/apache/lucene/search/Sort.java.html">Sort</A> sort)
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">183 </FONT><A NAME="183"></A>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>}
+<FONT ID="LN">185 </FONT><A NAME="185"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Searchable.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

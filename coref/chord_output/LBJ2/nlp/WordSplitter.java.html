@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.WordSplitter (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">WordSplitter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * This parser takes the plain, unannotated {@link Sentence}s returned by
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  * another parser (e.g., {@link SentenceSplitter}) and splits them into
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * {@link Word} objects.  Entire sentences now represented as
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * {@link LBJ2.parse.LinkedVector}s are then returned one at a time by calls
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * to the &lt;code&gt;next()&lt;/code&gt; method.
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  *
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * &lt;p&gt; A {@link #main(String[])} method is also implemented which applies
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * this class to plain text in a straight-forward way.
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  *
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  * @author Nick Rizzolo
+<FONT ID="LN">17  </FONT><A NAME="17"></A> **/</FONT>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> WordSplitter <FONT ID="Implements">implements</FONT> Parser
+<FONT ID="LN">19  </FONT><A NAME="19"></A>{
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    * Run this program on a file containing plain text, and it will produce
+<FONT ID="LN">22  </FONT><A NAME="22"></A>    * the same text on &lt;code&gt;STDOUT&lt;/code&gt; rearranged so that each line
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    * contains exactly one sentence, and so that character sequences deemed to
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    * be "words" are delimited by whitespace.
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    *
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    * &lt;p&gt; Usage:
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    * &lt;code&gt; java LBJ2.nlp.WordSplitter &amp;lt;file name&amp;gt; &lt;/code&gt;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    *
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    * @param args The command line arguments.
+<FONT ID="LN">30  </FONT><A NAME="30"></A>   **/</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args)
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  {
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    String filename = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    <FONT ID="Try">try</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>      filename = args[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">38  </FONT><A NAME="38"></A>      <FONT ID="If">if</FONT> (args.length &gt; <FONT ID="IntegerLiteral">1</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    }
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    {
+<FONT ID="LN">42  </FONT><A NAME="42"></A>      System.err.println(<FONT ID="StringLiteral">"usage: java LBJ2.nlp.WordSplitter &lt;file name&gt;"</FONT>);
+<FONT ID="LN">43  </FONT><A NAME="43"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    }
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <A HREF="../../LBJ2/nlp/WordSplitter.java.html">WordSplitter</A> splitter = <FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/WordSplitter.java.html">WordSplitter</A>(<FONT ID="New">new</FONT> <A HREF="../../LBJ2/nlp/SentenceSplitter.java.html">SentenceSplitter</A>(filename));
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="For">for</FONT> (LinkedVector s = (LinkedVector) splitter.next(); s != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>         s = (LinkedVector) splitter.next())
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    {
+<FONT ID="LN">51  </FONT><A NAME="51"></A>      <FONT ID="If">if</FONT> (s.size() &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">52  </FONT><A NAME="52"></A>      {
+<FONT ID="LN">53  </FONT><A NAME="53"></A>        <A HREF="../../LBJ2/nlp/Word.java.html">Word</A> w = (<A HREF="../../LBJ2/nlp/Word.java.html">Word</A>) s.get(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        System.out.print(w.form);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        <FONT ID="For">for</FONT> (w = (<A HREF="../../LBJ2/nlp/Word.java.html">Word</A>) w.next ; w != <FONT ID="Null">null</FONT>; w = (<A HREF="../../LBJ2/nlp/Word.java.html">Word</A>) w.next)
+<FONT ID="LN">56  </FONT><A NAME="56"></A>          System.out.print(<FONT ID="StringLiteral">" "</FONT> + w.form);
+<FONT ID="LN">57  </FONT><A NAME="57"></A>      }
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>      System.out.println();
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    }
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  }
+<FONT ID="LN">62  </FONT><A NAME="62"></A>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="FormalComment">/** The {@link Sentence} returning parser. */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Protected">protected</FONT> Parser parser;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    * Initializing constructor.
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    *
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    * @param p  The {@link Sentence} returning parser.
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   **/</FONT>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  <FONT ID="Public">public</FONT> WordSplitter(Parser p) { parser = p; }
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    * Returns {@link LBJ2.parse.LinkedVector}s of {@link Word} objects one at
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    * a time.
+<FONT ID="LN">79  </FONT><A NAME="79"></A>   **/</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  <FONT ID="Public">public</FONT> Object next()
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  {
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <A HREF="../../LBJ2/nlp/Sentence.java.html">Sentence</A> sentence = (<A HREF="../../LBJ2/nlp/Sentence.java.html">Sentence</A>) parser.next();
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="If">if</FONT> (sentence == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="Return">return</FONT> sentence.wordSplit();
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="FormalComment">/** Sets this parser back to the beginning of the raw data. */</FONT>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> reset() { parser.reset(); }
+<FONT ID="LN">90  </FONT><A NAME="90"></A>}
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">WordSplitter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,1130 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.Train (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Train.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.util.zip.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.io.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.lang.reflect.*;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> LBJ2.IR.*;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> LBJ2.learn.*;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> LBJ2.parse.*;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> <A HREF="../LBJ2/util/StudentT.java.html">LBJ2.util.StudentT</A>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A>
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  * After code has been generated with {@link TranslateToJava}, this pass
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  * trains any classifiers for which training was indicated.
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  *
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  * @see    LBJ2.TranslateToJava
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  * @author Nick Rizzolo
+<FONT ID="LN">20  </FONT><A NAME="20"></A> **/</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Train <FONT ID="Extends">extends</FONT> <A HREF="../LBJ2/Pass.java.html">Pass</A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>{
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    * Any code that's interested can check this variable to see if training is
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    * currently taking place.
+<FONT ID="LN">26  </FONT><A NAME="26"></A>   **/</FONT>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> TRAINING = <FONT ID="False">false</FONT>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    * Generates a &lt;code&gt;String&lt;/code&gt; containing the name of the specified
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    * &lt;code&gt;Throwable&lt;/code&gt; and its stack trace.
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    *
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    * @param t  &lt;code&gt;Throwable&lt;/code&gt;.
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    * @return   The generated message.
+<FONT ID="LN">36  </FONT><A NAME="36"></A>   **/</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> String stackTrace(Throwable t)
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    String message = <FONT ID="StringLiteral">"  "</FONT> + t + <FONT ID="StringLiteral">"\n"</FONT>;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    StackTraceElement[] elements = t.getStackTrace();
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    <FONT ID="If">if</FONT> (elements.length == <FONT ID="IntegerLiteral">0</FONT>) message += <FONT ID="StringLiteral">"    no stack trace available\n"</FONT>;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; elements.length; ++i)
+<FONT ID="LN">43  </FONT><A NAME="43"></A>      message += <FONT ID="StringLiteral">"    "</FONT> + elements[i] + <FONT ID="StringLiteral">"\n"</FONT>;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="Return">return</FONT> message;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  }
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    * Run the &lt;code&gt;javac&lt;/code&gt; compiler with the specified arguments in
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    * addition to those specified on the command line.
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    *
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    * @param arguments  The arguments to send to &lt;code&gt;javac&lt;/code&gt;.
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    * @return           &lt;code&gt;true&lt;/code&gt; iff errors were encountered.
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   **/</FONT>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> runJavac(String arguments)
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    Process javac = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    String pathArguments = <FONT ID="StringLiteral">"-classpath \""</FONT> + Main.classPath + <FONT ID="StringLiteral">"\" -sourcepath \""</FONT>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>                           + Main.sourcePath + <FONT ID="StringLiteral">"\""</FONT>;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="If">if</FONT> (Main.generatedSourceDirectory != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    {
+<FONT ID="LN">63  </FONT><A NAME="63"></A>      String gsd = Main.generatedSourceDirectory;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>      <FONT ID="Int">int</FONT> packageIndex = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>      <FONT ID="If">if</FONT> (!AST.globalSymbolTable.getPackage().equals(<FONT ID="StringLiteral">""</FONT>))
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        packageIndex =
+<FONT ID="LN">67  </FONT><A NAME="67"></A>          gsd.lastIndexOf(File.separator + AST.globalSymbolTable.getPackage()
+<FONT ID="LN">68  </FONT><A NAME="68"></A>                                           .replace(<FONT ID="CharacerLiteral">'.'</FONT>, File.separatorChar));
+<FONT ID="LN">69  </FONT><A NAME="69"></A>      <FONT ID="If">if</FONT> (packageIndex != -<FONT ID="IntegerLiteral">1</FONT>) gsd = gsd.substring(<FONT ID="IntegerLiteral">0</FONT>, packageIndex);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>      pathArguments += File.pathSeparator + gsd;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    <FONT ID="If">if</FONT> (Main.classPackageDirectory != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">74  </FONT><A NAME="74"></A>      pathArguments += <FONT ID="StringLiteral">" -d "</FONT> + Main.classPackageDirectory;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    String command = Configuration.javac + <FONT ID="StringLiteral">" "</FONT> + Main.javacArguments + <FONT ID="StringLiteral">" "</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>                     + pathArguments + <FONT ID="StringLiteral">" "</FONT> + arguments;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    <FONT ID="Try">try</FONT> { javac = Runtime.getRuntime().exec(command); }
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    {
+<FONT ID="LN">82  </FONT><A NAME="82"></A>      System.err.println(<FONT ID="StringLiteral">"Failed to execute 'javac': "</FONT> + e);
+<FONT ID="LN">83  </FONT><A NAME="83"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    }
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    BufferedReader error =
+<FONT ID="LN">87  </FONT><A NAME="87"></A>      <FONT ID="New">new</FONT> BufferedReader(<FONT ID="New">new</FONT> InputStreamReader(javac.getErrorStream()));
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="Try">try</FONT>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>      <FONT ID="For">for</FONT> (String line = error.readLine(); line != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>           line = error.readLine())
+<FONT ID="LN">92  </FONT><A NAME="92"></A>        System.out.println(line);
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    }
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    {
+<FONT ID="LN">96  </FONT><A NAME="96"></A>      System.err.println(<FONT ID="StringLiteral">"Error reading STDERR from 'javac': "</FONT> + e);
+<FONT ID="LN">97  </FONT><A NAME="97"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    }
+<FONT ID="LN">99  </FONT><A NAME="99"></A>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    <FONT ID="Int">int</FONT> exit = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="Try">try</FONT> { exit = javac.waitFor(); }
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    {
+<FONT ID="LN">104 </FONT><A NAME="104"></A>      System.err.println(<FONT ID="StringLiteral">"Error waiting for 'javac' to terminate: "</FONT> + e);
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    <FONT ID="Return">return</FONT> exit != <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  }
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    * Progress output will be printed every &lt;code&gt;progressOutput&lt;/code&gt;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    * examples.
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   **/</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> progressOutput;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    * Set to &lt;code&gt;true&lt;/code&gt; iff there existed a
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    * {@link LearningClassifierExpression} for which new code was generated.
+<FONT ID="LN">120 </FONT><A NAME="120"></A>   **/</FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> newCode;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    * An array of the training threads, which is never modified after it is
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    * constructed.
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   **/</FONT>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  <FONT ID="Protected">protected</FONT> TrainingThread[] threads;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>  <FONT ID="FormalComment">/** A map of all the training threads indexed by the name of the learner. */</FONT>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <FONT ID="Protected">protected</FONT> HashMap threadMap;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    * The keys of this map are the names of learners; the values are
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    * &lt;code&gt;LinkedList&lt;/code&gt;s of the names of the learners that the learner
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    * named by the key depends on.
+<FONT ID="LN">133 </FONT><A NAME="133"></A>   **/</FONT>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="Protected">protected</FONT> HashMap learnerDependencies;
+<FONT ID="LN">135 </FONT><A NAME="135"></A>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    * Instantiates a pass that runs on an entire {@link AST}.
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    *
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    * @param ast    The program to run this pass on.
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    * @param output Progress output will be printed every &lt;code&gt;output&lt;/code&gt;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    *               examples.
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   **/</FONT>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  <FONT ID="Public">public</FONT> Train(AST ast, <FONT ID="Int">int</FONT> output)
+<FONT ID="LN">145 </FONT><A NAME="145"></A>  {
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    <FONT ID="Super">super</FONT>(ast);
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    progressOutput = output;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  }
+<FONT ID="LN">149 </FONT><A NAME="149"></A>
+<FONT ID="LN">150 </FONT><A NAME="150"></A>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    * Adds an edge from dependor to dependency in the
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    * {@link #learnerDependencies} graph.  If &lt;code&gt;dependency&lt;/code&gt; is
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    * &lt;code&gt;null&lt;/code&gt;, no new list item is added, but the
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    * &lt;code&gt;HashSet&lt;/code&gt; associated with &lt;code&gt;dependor&lt;/code&gt; is still
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    * created if it didn't already exist.
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    *
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    * @param dependor   The name of the node doing the depending.
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    * @param dependency The name of the node depended on.
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   **/</FONT>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> addDependency(String dependor, String dependency)
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  {
+<FONT ID="LN">163 </FONT><A NAME="163"></A>    HashSet dependencies = (HashSet) learnerDependencies.get(dependor);
+<FONT ID="LN">164 </FONT><A NAME="164"></A>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    <FONT ID="If">if</FONT> (dependencies == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    {
+<FONT ID="LN">167 </FONT><A NAME="167"></A>      dependencies = <FONT ID="New">new</FONT> HashSet();
+<FONT ID="LN">168 </FONT><A NAME="168"></A>      learnerDependencies.put(dependor, dependencies);
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    }
+<FONT ID="LN">170 </FONT><A NAME="170"></A>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="If">if</FONT> (dependency != <FONT ID="Null">null</FONT>) dependencies.add(dependency);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>  }
+<FONT ID="LN">173 </FONT><A NAME="173"></A>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    * This method initializes the {@link #learnerDependencies} graph such
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    * that the entry for each learner contains the names of all learners that
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    * depend on it, except that cycles are broken by preferring that learners
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    * appearing earlier in the source get trained first.
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   **/</FONT>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> fillLearnerDependorsDAG()
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  {
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    threads =
+<FONT ID="LN">184 </FONT><A NAME="184"></A>      (TrainingThread[]) threadMap.values().toArray(<FONT ID="New">new</FONT> TrainingThread[<FONT ID="IntegerLiteral">0</FONT>]);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    Arrays.sort(threads,
+<FONT ID="LN">186 </FONT><A NAME="186"></A>                <FONT ID="New">new</FONT> Comparator()
+<FONT ID="LN">187 </FONT><A NAME="187"></A>                {
+<FONT ID="LN">188 </FONT><A NAME="188"></A>                  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> compare(Object o1, Object o2)
+<FONT ID="LN">189 </FONT><A NAME="189"></A>                  {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>                    TrainingThread t1 = (TrainingThread) o1;
+<FONT ID="LN">191 </FONT><A NAME="191"></A>                    TrainingThread t2 = (TrainingThread) o2;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>                    <FONT ID="Return">return</FONT> t2.byteOffset - t1.byteOffset;
+<FONT ID="LN">193 </FONT><A NAME="193"></A>                  }
+<FONT ID="LN">194 </FONT><A NAME="194"></A>                });
+<FONT ID="LN">195 </FONT><A NAME="195"></A>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; threads.length - <FONT ID="IntegerLiteral">1</FONT>; ++i)
+<FONT ID="LN">197 </FONT><A NAME="197"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = i + <FONT ID="IntegerLiteral">1</FONT>; j &lt; threads.length; ++j)
+<FONT ID="LN">198 </FONT><A NAME="198"></A>      {
+<FONT ID="LN">199 </FONT><A NAME="199"></A>        <FONT ID="If">if</FONT> (SemanticAnalysis.isDependentOn(threads[i].getName(),
+<FONT ID="LN">200 </FONT><A NAME="200"></A>                                           threads[j].getName()))
+<FONT ID="LN">201 </FONT><A NAME="201"></A>          addDependency(threads[i].getName(), threads[j].getName());
+<FONT ID="LN">202 </FONT><A NAME="202"></A>        <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (SemanticAnalysis.isDependentOn(threads[j].getName(),
+<FONT ID="LN">203 </FONT><A NAME="203"></A>                                                threads[i].getName()))
+<FONT ID="LN">204 </FONT><A NAME="204"></A>          addDependency(threads[j].getName(), threads[i].getName());
+<FONT ID="LN">205 </FONT><A NAME="205"></A>      }
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    * This method updates the {@link #learnerDependencies} graph by removing
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    * the specified name from every dependencies list, and then starts every
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    * thread that has no more dependencies.
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    *
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    * @param name The name of a learner whose training has completed.
+<FONT ID="LN">215 </FONT><A NAME="215"></A>   **/</FONT>
+<FONT ID="LN">216 </FONT><A NAME="216"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> executeReadyThreads(String name)
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  {
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    LinkedList ready = <FONT ID="New">new</FONT> LinkedList();
+<FONT ID="LN">219 </FONT><A NAME="219"></A>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    <FONT ID="Synchronized">synchronized</FONT> (learnerDependencies)
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    {
+<FONT ID="LN">222 </FONT><A NAME="222"></A>      <FONT ID="For">for</FONT> (Iterator I = learnerDependencies.entrySet().iterator();
+<FONT ID="LN">223 </FONT><A NAME="223"></A>           I.hasNext(); )
+<FONT ID="LN">224 </FONT><A NAME="224"></A>      {
+<FONT ID="LN">225 </FONT><A NAME="225"></A>        Map.Entry e = (Map.Entry) I.next();
+<FONT ID="LN">226 </FONT><A NAME="226"></A>        HashSet dependencies = (HashSet) e.getValue();
+<FONT ID="LN">227 </FONT><A NAME="227"></A>        dependencies.remove(name);
+<FONT ID="LN">228 </FONT><A NAME="228"></A>        <FONT ID="If">if</FONT> (dependencies.size() == <FONT ID="IntegerLiteral">0</FONT>) ready.add(e.getKey());
+<FONT ID="LN">229 </FONT><A NAME="229"></A>      }
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    }
+<FONT ID="LN">231 </FONT><A NAME="231"></A>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    <FONT ID="For">for</FONT> (Iterator I = ready.iterator(); I.hasNext(); )
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    {
+<FONT ID="LN">234 </FONT><A NAME="234"></A>      TrainingThread thread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">235 </FONT><A NAME="235"></A>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>      <FONT ID="Synchronized">synchronized</FONT> (threadMap)
+<FONT ID="LN">237 </FONT><A NAME="237"></A>      {
+<FONT ID="LN">238 </FONT><A NAME="238"></A>        thread = (TrainingThread) threadMap.remove(I.next());
+<FONT ID="LN">239 </FONT><A NAME="239"></A>      }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>      <FONT ID="If">if</FONT> (thread != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">242 </FONT><A NAME="242"></A>      {
+<FONT ID="LN">243 </FONT><A NAME="243"></A>        thread.start();
+<FONT ID="LN">244 </FONT><A NAME="244"></A>
+<FONT ID="LN">245 </FONT><A NAME="245"></A>        <FONT ID="If">if</FONT> (!Main.concurrentTraining)
+<FONT ID="LN">246 </FONT><A NAME="246"></A>        {
+<FONT ID="LN">247 </FONT><A NAME="247"></A>          <FONT ID="Try">try</FONT> { thread.join(); }
+<FONT ID="LN">248 </FONT><A NAME="248"></A>          <FONT ID="Catch">catch</FONT> (InterruptedException e)
+<FONT ID="LN">249 </FONT><A NAME="249"></A>          {
+<FONT ID="LN">250 </FONT><A NAME="250"></A>            System.err.println(<FONT ID="StringLiteral">"LBJ ERROR: Training of "</FONT> + thread.getName()
+<FONT ID="LN">251 </FONT><A NAME="251"></A>                               + <FONT ID="StringLiteral">" has been interrupted."</FONT>);
+<FONT ID="LN">252 </FONT><A NAME="252"></A>            fatalError = <FONT ID="True">true</FONT>;
+<FONT ID="LN">253 </FONT><A NAME="253"></A>          }
+<FONT ID="LN">254 </FONT><A NAME="254"></A>        }
+<FONT ID="LN">255 </FONT><A NAME="255"></A>      }
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    }
+<FONT ID="LN">257 </FONT><A NAME="257"></A>  }
+<FONT ID="LN">258 </FONT><A NAME="258"></A>
+<FONT ID="LN">259 </FONT><A NAME="259"></A>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    * Runs this pass on all nodes of the indicated type.
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    *
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    * @param ast  The node to process.
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   **/</FONT>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(AST ast)
+<FONT ID="LN">266 </FONT><A NAME="266"></A>  {
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    <FONT ID="If">if</FONT> (RevisionAnalysis.noChanges) <FONT ID="Return">return</FONT>;
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    TRAINING = <FONT ID="True">true</FONT>;
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    threadMap = <FONT ID="New">new</FONT> HashMap();
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    learnerDependencies = <FONT ID="New">new</FONT> HashMap();
+<FONT ID="LN">271 </FONT><A NAME="271"></A>
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    String files = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    <FONT ID="For">for</FONT> (Iterator I = Main.fileNames.iterator(); I.hasNext(); )
+<FONT ID="LN">274 </FONT><A NAME="274"></A>      files += <FONT ID="StringLiteral">" "</FONT> + I.next();
+<FONT ID="LN">275 </FONT><A NAME="275"></A>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    System.out.println(<FONT ID="StringLiteral">"Compiling generated code"</FONT>);
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    <FONT ID="If">if</FONT> (runJavac(files)) <FONT ID="Return">return</FONT>;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    runOnChildren(ast);
+<FONT ID="LN">280 </FONT><A NAME="280"></A>
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    fillLearnerDependorsDAG();
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    executeReadyThreads(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; threads.length; ++i)
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    {
+<FONT ID="LN">286 </FONT><A NAME="286"></A>      <FONT ID="Try">try</FONT> { threads[i].join(); }
+<FONT ID="LN">287 </FONT><A NAME="287"></A>      <FONT ID="Catch">catch</FONT> (InterruptedException e)
+<FONT ID="LN">288 </FONT><A NAME="288"></A>      {
+<FONT ID="LN">289 </FONT><A NAME="289"></A>        System.err.println(<FONT ID="StringLiteral">"LBJ ERROR: Training of "</FONT> + threads[i].getName()
+<FONT ID="LN">290 </FONT><A NAME="290"></A>                           + <FONT ID="StringLiteral">" has been interrupted."</FONT>);
+<FONT ID="LN">291 </FONT><A NAME="291"></A>        fatalError = <FONT ID="True">true</FONT>;
+<FONT ID="LN">292 </FONT><A NAME="292"></A>      }
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    }
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    <FONT ID="If">if</FONT> (!fatalError &amp;&amp; newCode)
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    {
+<FONT ID="LN">297 </FONT><A NAME="297"></A>      System.out.println(<FONT ID="StringLiteral">"Compiling generated code"</FONT>);
+<FONT ID="LN">298 </FONT><A NAME="298"></A>      runJavac(files);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    }
+<FONT ID="LN">300 </FONT><A NAME="300"></A>
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    TRAINING = <FONT ID="False">false</FONT>;
+<FONT ID="LN">302 </FONT><A NAME="302"></A>  }
+<FONT ID="LN">303 </FONT><A NAME="303"></A>
+<FONT ID="LN">304 </FONT><A NAME="304"></A>
+<FONT ID="LN">305 </FONT><A NAME="305"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    * Runs this pass on all nodes of the indicated type.
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    *
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    * @param lce  The node to process.
+<FONT ID="LN">309 </FONT><A NAME="309"></A>   **/</FONT>
+<FONT ID="LN">310 </FONT><A NAME="310"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(LearningClassifierExpression lce)
+<FONT ID="LN">311 </FONT><A NAME="311"></A>  {
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    runOnChildren(lce);
+<FONT ID="LN">313 </FONT><A NAME="313"></A>
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    String lceName = lce.name.toString();
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    <FONT ID="If">if</FONT> (lce.parser != <FONT ID="Null">null</FONT>
+<FONT ID="LN">316 </FONT><A NAME="316"></A>          &amp;&amp; RevisionAnalysis.revisionStatus.get(lceName)
+<FONT ID="LN">317 </FONT><A NAME="317"></A>             .equals(RevisionAnalysis.UNAFFECTED)
+<FONT ID="LN">318 </FONT><A NAME="318"></A>        || lce.parser == <FONT ID="Null">null</FONT>
+<FONT ID="LN">319 </FONT><A NAME="319"></A>           &amp;&amp; !RevisionAnalysis.revisionStatus.get(lceName)
+<FONT ID="LN">320 </FONT><A NAME="320"></A>               .equals(RevisionAnalysis.REVISED))
+<FONT ID="LN">321 </FONT><A NAME="321"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">322 </FONT><A NAME="322"></A>
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    newCode = <FONT ID="True">true</FONT>;
+<FONT ID="LN">324 </FONT><A NAME="324"></A>
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    <FONT ID="SingleLineComment">// First, instantiate the learner.
+<FONT ID="LN">326 </FONT><A NAME="326"></A></FONT>    Class learnerClass = ast.symbolTable.classForName(lceName);
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    <FONT ID="If">if</FONT> (learnerClass == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">328 </FONT><A NAME="328"></A>    {
+<FONT ID="LN">329 </FONT><A NAME="329"></A>      reportError(lce.line,
+<FONT ID="LN">330 </FONT><A NAME="330"></A>                  <FONT ID="StringLiteral">"Could not locate class for classifier '"</FONT> + lceName + <FONT ID="StringLiteral">"'."</FONT>);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    }
+<FONT ID="LN">333 </FONT><A NAME="333"></A>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    Learner learner = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    <FONT ID="Try">try</FONT> { learner = (Learner) learnerClass.newInstance(); }
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    {
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      reportError(lce.line,
+<FONT ID="LN">339 </FONT><A NAME="339"></A>                  <FONT ID="StringLiteral">"Could not instantiate learner '"</FONT> + lceName + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">340 </FONT><A NAME="340"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    }
+<FONT ID="LN">342 </FONT><A NAME="342"></A>
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    <FONT ID="SingleLineComment">// Get the unique instance.
+<FONT ID="LN">344 </FONT><A NAME="344"></A></FONT>    Method getInstance = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    <FONT ID="Try">try</FONT>
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    {
+<FONT ID="LN">347 </FONT><A NAME="347"></A>      getInstance =
+<FONT ID="LN">348 </FONT><A NAME="348"></A>        learnerClass.getDeclaredMethod(<FONT ID="StringLiteral">"getInstance"</FONT>, <FONT ID="New">new</FONT> Class[<FONT ID="IntegerLiteral">0</FONT>]);
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    }
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    {
+<FONT ID="LN">352 </FONT><A NAME="352"></A>      reportError(lce.line, <FONT ID="StringLiteral">"Could not access method '"</FONT> + lceName
+<FONT ID="LN">353 </FONT><A NAME="353"></A>                            + <FONT ID="StringLiteral">".getInstance()': "</FONT> + e);
+<FONT ID="LN">354 </FONT><A NAME="354"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    }
+<FONT ID="LN">356 </FONT><A NAME="356"></A>
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    <FONT ID="Try">try</FONT> { learner = (Learner) getInstance.invoke(<FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>); }
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    {
+<FONT ID="LN">360 </FONT><A NAME="360"></A>      reportError(lce.line,
+<FONT ID="LN">361 </FONT><A NAME="361"></A>                  <FONT ID="StringLiteral">"Could not get unique instance of '"</FONT> + lce.parser.name
+<FONT ID="LN">362 </FONT><A NAME="362"></A>                  + <FONT ID="StringLiteral">"': "</FONT> + e + <FONT ID="StringLiteral">", caused by"</FONT>);
+<FONT ID="LN">363 </FONT><A NAME="363"></A>      System.err.print(stackTrace(e.getCause()));
+<FONT ID="LN">364 </FONT><A NAME="364"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">365 </FONT><A NAME="365"></A>    }
+<FONT ID="LN">366 </FONT><A NAME="366"></A>
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    <FONT ID="If">if</FONT> (learner == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    {
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      System.err.println(<FONT ID="StringLiteral">"Could not get unique instance of '"</FONT> + lceName
+<FONT ID="LN">370 </FONT><A NAME="370"></A>                         + <FONT ID="StringLiteral">"'."</FONT>);
+<FONT ID="LN">371 </FONT><A NAME="371"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    }
+<FONT ID="LN">373 </FONT><A NAME="373"></A>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>    Parser parser = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    <FONT ID="If">if</FONT> (lce.parser != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    {
+<FONT ID="LN">377 </FONT><A NAME="377"></A>      <FONT ID="SingleLineComment">// Next, instantiate the parser.
+<FONT ID="LN">378 </FONT><A NAME="378"></A></FONT>      Method getParser = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">379 </FONT><A NAME="379"></A>      <FONT ID="Try">try</FONT>
+<FONT ID="LN">380 </FONT><A NAME="380"></A>      {
+<FONT ID="LN">381 </FONT><A NAME="381"></A>        getParser = learnerClass.getDeclaredMethod(<FONT ID="StringLiteral">"getParser"</FONT>, <FONT ID="New">new</FONT> Class[<FONT ID="IntegerLiteral">0</FONT>]);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>      }
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">384 </FONT><A NAME="384"></A>      {
+<FONT ID="LN">385 </FONT><A NAME="385"></A>        reportError(lce.line, <FONT ID="StringLiteral">"Could not access method '"</FONT> + lceName
+<FONT ID="LN">386 </FONT><A NAME="386"></A>                              + <FONT ID="StringLiteral">".getParser()': "</FONT> + e);
+<FONT ID="LN">387 </FONT><A NAME="387"></A>        <FONT ID="Return">return</FONT>;
+<FONT ID="LN">388 </FONT><A NAME="388"></A>      }
+<FONT ID="LN">389 </FONT><A NAME="389"></A>
+<FONT ID="LN">390 </FONT><A NAME="390"></A>      <FONT ID="Try">try</FONT> { parser = (Parser) getParser.invoke(<FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>); }
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">392 </FONT><A NAME="392"></A>      {
+<FONT ID="LN">393 </FONT><A NAME="393"></A>        reportError(lce.line,
+<FONT ID="LN">394 </FONT><A NAME="394"></A>                    <FONT ID="StringLiteral">"Could not instantiate parser '"</FONT> + lce.parser.name + <FONT ID="StringLiteral">"': "</FONT>
+<FONT ID="LN">395 </FONT><A NAME="395"></A>                    + e + <FONT ID="StringLiteral">", caused by"</FONT>);
+<FONT ID="LN">396 </FONT><A NAME="396"></A>        Throwable cause = e.getCause();
+<FONT ID="LN">397 </FONT><A NAME="397"></A>        System.err.print(stackTrace(cause));
+<FONT ID="LN">398 </FONT><A NAME="398"></A>
+<FONT ID="LN">399 </FONT><A NAME="399"></A>        <FONT ID="If">if</FONT> (cause <FONT ID="InstanceOf">instanceof</FONT> ExceptionInInitializerError)
+<FONT ID="LN">400 </FONT><A NAME="400"></A>        {
+<FONT ID="LN">401 </FONT><A NAME="401"></A>          System.err.println(<FONT ID="StringLiteral">"... caused by"</FONT>);
+<FONT ID="LN">402 </FONT><A NAME="402"></A>          System.err.print(
+<FONT ID="LN">403 </FONT><A NAME="403"></A>              stackTrace(((ExceptionInInitializerError) cause).getCause()));
+<FONT ID="LN">404 </FONT><A NAME="404"></A>        }
+<FONT ID="LN">405 </FONT><A NAME="405"></A>
+<FONT ID="LN">406 </FONT><A NAME="406"></A>        <FONT ID="Return">return</FONT>;
+<FONT ID="LN">407 </FONT><A NAME="407"></A>      }
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    }
+<FONT ID="LN">409 </FONT><A NAME="409"></A>
+<FONT ID="LN">410 </FONT><A NAME="410"></A>    TrainingThread thread =
+<FONT ID="LN">411 </FONT><A NAME="411"></A>      <FONT ID="New">new</FONT> TrainingThread(lceName, lce.byteOffset, learnerClass, learner,
+<FONT ID="LN">412 </FONT><A NAME="412"></A>                         parser, lce);
+<FONT ID="LN">413 </FONT><A NAME="413"></A>    threadMap.put(lceName, thread);
+<FONT ID="LN">414 </FONT><A NAME="414"></A>    addDependency(lceName, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">415 </FONT><A NAME="415"></A>  }
+<FONT ID="LN">416 </FONT><A NAME="416"></A>
+<FONT ID="LN">417 </FONT><A NAME="417"></A>
+<FONT ID="LN">418 </FONT><A NAME="418"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    * Runs this pass on all nodes of the indicated type.  There's no reason to
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    * traverse children of {@link CodedClassifier}s, so this method exists
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    * simply to stop that from happening.
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    *
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    * @param cc The node to process.
+<FONT ID="LN">424 </FONT><A NAME="424"></A>   **/</FONT>
+<FONT ID="LN">425 </FONT><A NAME="425"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(CodedClassifier cc) { }
+<FONT ID="LN">426 </FONT><A NAME="426"></A>
+<FONT ID="LN">427 </FONT><A NAME="427"></A>
+<FONT ID="LN">428 </FONT><A NAME="428"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    * Runs this pass on all nodes of the indicated type.  There's no reason to
+<FONT ID="LN">430 </FONT><A NAME="430"></A>    * traverse children of {@link ConstraintDeclaration}s, so this method
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    * exists simply to stop that from happening.
+<FONT ID="LN">432 </FONT><A NAME="432"></A>    *
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    * @param cd The node to process.
+<FONT ID="LN">434 </FONT><A NAME="434"></A>   **/</FONT>
+<FONT ID="LN">435 </FONT><A NAME="435"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(ConstraintDeclaration cd) { }
+<FONT ID="LN">436 </FONT><A NAME="436"></A>
+<FONT ID="LN">437 </FONT><A NAME="437"></A>
+<FONT ID="LN">438 </FONT><A NAME="438"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    * Runs this pass on all nodes of the indicated type.  There's no reason to
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    * traverse children of {@link InferenceDeclaration}s, so this method
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    * exists simply to stop that from happening.
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    *
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    * @param id The node to process.
+<FONT ID="LN">444 </FONT><A NAME="444"></A>   **/</FONT>
+<FONT ID="LN">445 </FONT><A NAME="445"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(InferenceDeclaration id) { }
+<FONT ID="LN">446 </FONT><A NAME="446"></A>
+<FONT ID="LN">447 </FONT><A NAME="447"></A>
+<FONT ID="LN">448 </FONT><A NAME="448"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    * This class contains the code that trains a learning classifier.  It is a
+<FONT ID="LN">450 </FONT><A NAME="450"></A>    * subclass of &lt;code&gt;Thread&lt;/code&gt; so that it may be executed concurrently.
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    *
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    * @author Nick Rizzolo
+<FONT ID="LN">453 </FONT><A NAME="453"></A>   **/</FONT>
+<FONT ID="LN">454 </FONT><A NAME="454"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Class">class</FONT> TrainingThread <FONT ID="Extends">extends</FONT> Thread
+<FONT ID="LN">455 </FONT><A NAME="455"></A>  {
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    <FONT ID="FormalComment">/** The byte offset at which the learner appeared. */</FONT>
+<FONT ID="LN">457 </FONT><A NAME="457"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> byteOffset;
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    <FONT ID="FormalComment">/** The class of the learner to train. */</FONT>
+<FONT ID="LN">459 </FONT><A NAME="459"></A>    <FONT ID="Protected">protected</FONT> Class learnerClass;
+<FONT ID="LN">460 </FONT><A NAME="460"></A>    <FONT ID="FormalComment">/** The learner to train. */</FONT>
+<FONT ID="LN">461 </FONT><A NAME="461"></A>    <FONT ID="Protected">protected</FONT> Learner learner;
+<FONT ID="LN">462 </FONT><A NAME="462"></A>    <FONT ID="FormalComment">/** The parser from which training objects are obtained. */</FONT>
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    <FONT ID="Protected">protected</FONT> Parser parser;
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    <FONT ID="FormalComment">/** The expression that specified the learner. */</FONT>
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    <FONT ID="Protected">protected</FONT> LearningClassifierExpression lce;
+<FONT ID="LN">466 </FONT><A NAME="466"></A>
+<FONT ID="LN">467 </FONT><A NAME="467"></A>
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">469 </FONT><A NAME="469"></A>      * Initializing constructor.
+<FONT ID="LN">470 </FONT><A NAME="470"></A>      *
+<FONT ID="LN">471 </FONT><A NAME="471"></A>      * @param n    The name of the learner.
+<FONT ID="LN">472 </FONT><A NAME="472"></A>      * @param b    The byte offset at which the learner appeared.
+<FONT ID="LN">473 </FONT><A NAME="473"></A>      * @param c    The class of the learner.
+<FONT ID="LN">474 </FONT><A NAME="474"></A>      * @param l    The learner.
+<FONT ID="LN">475 </FONT><A NAME="475"></A>      * @param p    The parser.
+<FONT ID="LN">476 </FONT><A NAME="476"></A>      * @param lce  The expression that specified the learner.
+<FONT ID="LN">477 </FONT><A NAME="477"></A>     **/</FONT>
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    <FONT ID="Public">public</FONT> TrainingThread(String n, <FONT ID="Int">int</FONT> b, Class c, Learner l, Parser p,
+<FONT ID="LN">479 </FONT><A NAME="479"></A>                          LearningClassifierExpression lce)
+<FONT ID="LN">480 </FONT><A NAME="480"></A>    {
+<FONT ID="LN">481 </FONT><A NAME="481"></A>      <FONT ID="Super">super</FONT>(n);
+<FONT ID="LN">482 </FONT><A NAME="482"></A>      byteOffset = b;
+<FONT ID="LN">483 </FONT><A NAME="483"></A>      learnerClass = c;
+<FONT ID="LN">484 </FONT><A NAME="484"></A>      learner = l;
+<FONT ID="LN">485 </FONT><A NAME="485"></A>      parser = p;
+<FONT ID="LN">486 </FONT><A NAME="486"></A>      <FONT ID="This">this</FONT>.lce = lce;
+<FONT ID="LN">487 </FONT><A NAME="487"></A>    }
+<FONT ID="LN">488 </FONT><A NAME="488"></A>
+<FONT ID="LN">489 </FONT><A NAME="489"></A>
+<FONT ID="LN">490 </FONT><A NAME="490"></A>    <FONT ID="FormalComment">/** Performs the training and then generates the new code. */</FONT>
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run()
+<FONT ID="LN">492 </FONT><A NAME="492"></A>    {
+<FONT ID="LN">493 </FONT><A NAME="493"></A>      <FONT ID="If">if</FONT> (parser != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">494 </FONT><A NAME="494"></A>      {
+<FONT ID="LN">495 </FONT><A NAME="495"></A>        <FONT ID="SingleLineComment">// if a progressOutput value is specified in the lce, override that
+<FONT ID="LN">496 </FONT><A NAME="496"></A></FONT>        <FONT ID="SingleLineComment">// which was provided via command line. If neither are provided,
+<FONT ID="LN">497 </FONT><A NAME="497"></A></FONT>        <FONT ID="SingleLineComment">// default is 0.
+<FONT ID="LN">498 </FONT><A NAME="498"></A></FONT>        <FONT ID="If">if</FONT> (lce.progressOutput != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">499 </FONT><A NAME="499"></A>        {
+<FONT ID="LN">500 </FONT><A NAME="500"></A>          <FONT ID="Int">int</FONT> p = Integer.parseInt(lce.progressOutput.value);
+<FONT ID="LN">501 </FONT><A NAME="501"></A>          progressOutput = p;
+<FONT ID="LN">502 </FONT><A NAME="502"></A>        }
+<FONT ID="LN">503 </FONT><A NAME="503"></A>
+<FONT ID="LN">504 </FONT><A NAME="504"></A>        <FONT ID="Int">int</FONT> examples = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">505 </FONT><A NAME="505"></A>
+<FONT ID="LN">506 </FONT><A NAME="506"></A>        <FONT ID="SingleLineComment">// declare these outside of the conditional so they can be referenced
+<FONT ID="LN">507 </FONT><A NAME="507"></A></FONT>        <FONT ID="SingleLineComment">// later
+<FONT ID="LN">508 </FONT><A NAME="508"></A></FONT>        <FONT ID="SingleLineComment">// store the old labeler and extractor
+<FONT ID="LN">509 </FONT><A NAME="509"></A></FONT>        Classifier labeler = learner.getLabeler();
+<FONT ID="LN">510 </FONT><A NAME="510"></A>        Parser oldparser = parser;
+<FONT ID="LN">511 </FONT><A NAME="511"></A>
+<FONT ID="LN">512 </FONT><A NAME="512"></A>        System.out.println(<FONT ID="StringLiteral">"Training "</FONT> + getName());
+<FONT ID="LN">513 </FONT><A NAME="513"></A>
+<FONT ID="LN">514 </FONT><A NAME="514"></A>        <FONT ID="SingleLineComment">// ----------------- Feature Vector Pre-Extraction -----------------
+<FONT ID="LN">515 </FONT><A NAME="515"></A></FONT>        <FONT ID="Boolean">boolean</FONT> preExtract =
+<FONT ID="LN">516 </FONT><A NAME="516"></A>          lce.preExtract != <FONT ID="Null">null</FONT>
+<FONT ID="LN">517 </FONT><A NAME="517"></A>          &amp;&amp; Boolean.valueOf(lce.preExtract.value).booleanValue();
+<FONT ID="LN">518 </FONT><A NAME="518"></A>        <FONT ID="If">if</FONT> (preExtract)
+<FONT ID="LN">519 </FONT><A NAME="519"></A>        {
+<FONT ID="LN">520 </FONT><A NAME="520"></A>          String exampleFilePath = getName() + <FONT ID="StringLiteral">".ex"</FONT>;
+<FONT ID="LN">521 </FONT><A NAME="521"></A>          <FONT ID="If">if</FONT> (Main.generatedSourceDirectory != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">522 </FONT><A NAME="522"></A>            exampleFilePath = Main.generatedSourceDirectory + File.separator
+<FONT ID="LN">523 </FONT><A NAME="523"></A>                              + exampleFilePath;
+<FONT ID="LN">524 </FONT><A NAME="524"></A>          File exampleFile = <FONT ID="New">new</FONT> File(exampleFilePath);
+<FONT ID="LN">525 </FONT><A NAME="525"></A>
+<FONT ID="LN">526 </FONT><A NAME="526"></A>          <FONT ID="If">if</FONT> (lce.rounds != <FONT ID="Null">null</FONT> &amp;&amp; exampleFile.exists()
+<FONT ID="LN">527 </FONT><A NAME="527"></A>              &amp;&amp; !exampleFile.delete())
+<FONT ID="LN">528 </FONT><A NAME="528"></A>          {
+<FONT ID="LN">529 </FONT><A NAME="529"></A>            System.err.println(<FONT ID="StringLiteral">"LBJ ERROR: Can't delete "</FONT> + exampleFile);
+<FONT ID="LN">530 </FONT><A NAME="530"></A>            System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">531 </FONT><A NAME="531"></A>          }
+<FONT ID="LN">532 </FONT><A NAME="532"></A>
+<FONT ID="LN">533 </FONT><A NAME="533"></A>          DataOutputStream dos = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">534 </FONT><A NAME="534"></A>          <FONT ID="Try">try</FONT>
+<FONT ID="LN">535 </FONT><A NAME="535"></A>          {
+<FONT ID="LN">536 </FONT><A NAME="536"></A>            dos =
+<FONT ID="LN">537 </FONT><A NAME="537"></A>              <FONT ID="New">new</FONT> DataOutputStream(
+<FONT ID="LN">538 </FONT><A NAME="538"></A>                  <FONT ID="New">new</FONT> FileOutputStream(exampleFilePath, <FONT ID="True">true</FONT>));
+<FONT ID="LN">539 </FONT><A NAME="539"></A>          }
+<FONT ID="LN">540 </FONT><A NAME="540"></A>          <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">541 </FONT><A NAME="541"></A>          {
+<FONT ID="LN">542 </FONT><A NAME="542"></A>            System.err.println(<FONT ID="StringLiteral">"Can't create feature vector stream for '"</FONT>
+<FONT ID="LN">543 </FONT><A NAME="543"></A>                               + getName() + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">544 </FONT><A NAME="544"></A>            System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">545 </FONT><A NAME="545"></A>          }
+<FONT ID="LN">546 </FONT><A NAME="546"></A>
+<FONT ID="LN">547 </FONT><A NAME="547"></A>          LinkedHashMap lexicon = <FONT ID="New">new</FONT> LinkedHashMap();
+<FONT ID="LN">548 </FONT><A NAME="548"></A>          <FONT ID="Int">int</FONT> nextFeatureIndex = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">549 </FONT><A NAME="549"></A>          Classifier extractor = learner.getExtractor();
+<FONT ID="LN">550 </FONT><A NAME="550"></A>
+<FONT ID="LN">551 </FONT><A NAME="551"></A>          <FONT ID="For">for</FONT> (Object example = parser.next(); example != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">552 </FONT><A NAME="552"></A>               example = parser.next())
+<FONT ID="LN">553 </FONT><A NAME="553"></A>          {
+<FONT ID="LN">554 </FONT><A NAME="554"></A>            <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; examples % progressOutput == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">555 </FONT><A NAME="555"></A>              System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">", pre-extract: "</FONT>
+<FONT ID="LN">556 </FONT><A NAME="556"></A>                                 + examples + <FONT ID="StringLiteral">" examples at "</FONT> + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">557 </FONT><A NAME="557"></A>
+<FONT ID="LN">558 </FONT><A NAME="558"></A>            <FONT ID="Try">try</FONT>
+<FONT ID="LN">559 </FONT><A NAME="559"></A>            {
+<FONT ID="LN">560 </FONT><A NAME="560"></A>              <FONT ID="SingleLineComment">// if we run into a fold separator, write a -1
+<FONT ID="LN">561 </FONT><A NAME="561"></A></FONT>              <FONT ID="If">if</FONT> (example == FoldSeparator.separator)
+<FONT ID="LN">562 </FONT><A NAME="562"></A>              {
+<FONT ID="LN">563 </FONT><A NAME="563"></A>                dos.writeInt(-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">564 </FONT><A NAME="564"></A>              }
+<FONT ID="LN">565 </FONT><A NAME="565"></A>              <FONT ID="SingleLineComment">// otherwise, act normally
+<FONT ID="LN">566 </FONT><A NAME="566"></A></FONT>              <FONT ID="Else">else</FONT>
+<FONT ID="LN">567 </FONT><A NAME="567"></A>              {
+<FONT ID="LN">568 </FONT><A NAME="568"></A>                ++examples;
+<FONT ID="LN">569 </FONT><A NAME="569"></A>                FeatureVector vector = extractor.classify(example);
+<FONT ID="LN">570 </FONT><A NAME="570"></A>                vector.addLabels(labeler.classify(example));
+<FONT ID="LN">571 </FONT><A NAME="571"></A>
+<FONT ID="LN">572 </FONT><A NAME="572"></A>                dos.writeInt(vector.labels.size());
+<FONT ID="LN">573 </FONT><A NAME="573"></A>                <FONT ID="For">for</FONT> (Iterator I = vector.labels.iterator(); I.hasNext(); )
+<FONT ID="LN">574 </FONT><A NAME="574"></A>                {
+<FONT ID="LN">575 </FONT><A NAME="575"></A>                  Feature f = (Feature) I.next();
+<FONT ID="LN">576 </FONT><A NAME="576"></A>                  Integer index = (Integer) lexicon.get(f);
+<FONT ID="LN">577 </FONT><A NAME="577"></A>
+<FONT ID="LN">578 </FONT><A NAME="578"></A>                  <FONT ID="If">if</FONT> (index == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">579 </FONT><A NAME="579"></A>                  {
+<FONT ID="LN">580 </FONT><A NAME="580"></A>                    f.intern();
+<FONT ID="LN">581 </FONT><A NAME="581"></A>                    index = <FONT ID="New">new</FONT> Integer(nextFeatureIndex++);
+<FONT ID="LN">582 </FONT><A NAME="582"></A>                    lexicon.put(f, index);
+<FONT ID="LN">583 </FONT><A NAME="583"></A>                  }
+<FONT ID="LN">584 </FONT><A NAME="584"></A>
+<FONT ID="LN">585 </FONT><A NAME="585"></A>                  dos.writeInt(index.intValue());
+<FONT ID="LN">586 </FONT><A NAME="586"></A>                }
+<FONT ID="LN">587 </FONT><A NAME="587"></A>
+<FONT ID="LN">588 </FONT><A NAME="588"></A>                dos.writeInt(vector.features.size());
+<FONT ID="LN">589 </FONT><A NAME="589"></A>                <FONT ID="For">for</FONT> (Iterator I = vector.features.iterator(); I.hasNext(); )
+<FONT ID="LN">590 </FONT><A NAME="590"></A>                {
+<FONT ID="LN">591 </FONT><A NAME="591"></A>                  Feature f = (Feature) I.next();
+<FONT ID="LN">592 </FONT><A NAME="592"></A>                  Integer index = (Integer) lexicon.get(f);
+<FONT ID="LN">593 </FONT><A NAME="593"></A>
+<FONT ID="LN">594 </FONT><A NAME="594"></A>                  <FONT ID="If">if</FONT> (index == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">595 </FONT><A NAME="595"></A>                  {
+<FONT ID="LN">596 </FONT><A NAME="596"></A>                    f.intern();
+<FONT ID="LN">597 </FONT><A NAME="597"></A>                    index = <FONT ID="New">new</FONT> Integer(nextFeatureIndex++);
+<FONT ID="LN">598 </FONT><A NAME="598"></A>                    lexicon.put(f, index);
+<FONT ID="LN">599 </FONT><A NAME="599"></A>                  }
+<FONT ID="LN">600 </FONT><A NAME="600"></A>
+<FONT ID="LN">601 </FONT><A NAME="601"></A>                  dos.writeInt(index.intValue());
+<FONT ID="LN">602 </FONT><A NAME="602"></A>                }
+<FONT ID="LN">603 </FONT><A NAME="603"></A>              }
+<FONT ID="LN">604 </FONT><A NAME="604"></A>            }
+<FONT ID="LN">605 </FONT><A NAME="605"></A>            <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">606 </FONT><A NAME="606"></A>            {
+<FONT ID="LN">607 </FONT><A NAME="607"></A>              System.err.println(<FONT ID="StringLiteral">"Can't write example for '"</FONT> + getName()
+<FONT ID="LN">608 </FONT><A NAME="608"></A>                                 + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">609 </FONT><A NAME="609"></A>              e.printStackTrace();
+<FONT ID="LN">610 </FONT><A NAME="610"></A>              System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">611 </FONT><A NAME="611"></A>            }
+<FONT ID="LN">612 </FONT><A NAME="612"></A>          }
+<FONT ID="LN">613 </FONT><A NAME="613"></A>
+<FONT ID="LN">614 </FONT><A NAME="614"></A>          <FONT ID="Try">try</FONT> { dos.close(); }
+<FONT ID="LN">615 </FONT><A NAME="615"></A>          <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">616 </FONT><A NAME="616"></A>          {
+<FONT ID="LN">617 </FONT><A NAME="617"></A>            System.err.println(<FONT ID="StringLiteral">"Can't close feature vector stream for '"</FONT>
+<FONT ID="LN">618 </FONT><A NAME="618"></A>                               + getName() + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">619 </FONT><A NAME="619"></A>            System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">620 </FONT><A NAME="620"></A>          }
+<FONT ID="LN">621 </FONT><A NAME="621"></A>
+<FONT ID="LN">622 </FONT><A NAME="622"></A>          <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">623 </FONT><A NAME="623"></A>            System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">", pre-extract: "</FONT> + examples
+<FONT ID="LN">624 </FONT><A NAME="624"></A>                               + <FONT ID="StringLiteral">" examples processed at "</FONT> + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">625 </FONT><A NAME="625"></A>
+<FONT ID="LN">626 </FONT><A NAME="626"></A>          ObjectOutputStream oos = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">627 </FONT><A NAME="627"></A>          String lexiconFilePath = getName() + <FONT ID="StringLiteral">".lex"</FONT>;
+<FONT ID="LN">628 </FONT><A NAME="628"></A>          <FONT ID="If">if</FONT> (Main.generatedSourceDirectory != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">629 </FONT><A NAME="629"></A>            lexiconFilePath = Main.generatedSourceDirectory + File.separator
+<FONT ID="LN">630 </FONT><A NAME="630"></A>                              + lexiconFilePath;
+<FONT ID="LN">631 </FONT><A NAME="631"></A>
+<FONT ID="LN">632 </FONT><A NAME="632"></A>          <FONT ID="Try">try</FONT>
+<FONT ID="LN">633 </FONT><A NAME="633"></A>          {
+<FONT ID="LN">634 </FONT><A NAME="634"></A>            oos =
+<FONT ID="LN">635 </FONT><A NAME="635"></A>              <FONT ID="New">new</FONT> ObjectOutputStream(<FONT ID="New">new</FONT> FileOutputStream(lexiconFilePath));
+<FONT ID="LN">636 </FONT><A NAME="636"></A>          }
+<FONT ID="LN">637 </FONT><A NAME="637"></A>          <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">638 </FONT><A NAME="638"></A>          {
+<FONT ID="LN">639 </FONT><A NAME="639"></A>            System.err.println(<FONT ID="StringLiteral">"Can't create lexicon stream for '"</FONT> + getName()
+<FONT ID="LN">640 </FONT><A NAME="640"></A>                               + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">641 </FONT><A NAME="641"></A>            System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">642 </FONT><A NAME="642"></A>          }
+<FONT ID="LN">643 </FONT><A NAME="643"></A>
+<FONT ID="LN">644 </FONT><A NAME="644"></A>          Feature[] lexiconArray =
+<FONT ID="LN">645 </FONT><A NAME="645"></A>            (Feature[]) lexicon.keySet().toArray(<FONT ID="New">new</FONT> Feature[<FONT ID="IntegerLiteral">0</FONT>]);
+<FONT ID="LN">646 </FONT><A NAME="646"></A>          <FONT ID="Try">try</FONT> { oos.writeObject(lexiconArray); }
+<FONT ID="LN">647 </FONT><A NAME="647"></A>          <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">648 </FONT><A NAME="648"></A>          {
+<FONT ID="LN">649 </FONT><A NAME="649"></A>            System.err.println(<FONT ID="StringLiteral">"Can't write lexicon for '"</FONT> + getName() + <FONT ID="StringLiteral">"': "</FONT>
+<FONT ID="LN">650 </FONT><A NAME="650"></A>                               + e);
+<FONT ID="LN">651 </FONT><A NAME="651"></A>            System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">652 </FONT><A NAME="652"></A>          }
+<FONT ID="LN">653 </FONT><A NAME="653"></A>
+<FONT ID="LN">654 </FONT><A NAME="654"></A>          <FONT ID="Try">try</FONT> { oos.close(); }
+<FONT ID="LN">655 </FONT><A NAME="655"></A>          <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">656 </FONT><A NAME="656"></A>          {
+<FONT ID="LN">657 </FONT><A NAME="657"></A>            System.err.println(<FONT ID="StringLiteral">"Can't close lexicon stream for '"</FONT>
+<FONT ID="LN">658 </FONT><A NAME="658"></A>                + getName() + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">659 </FONT><A NAME="659"></A>            System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">660 </FONT><A NAME="660"></A>          }
+<FONT ID="LN">661 </FONT><A NAME="661"></A>
+<FONT ID="LN">662 </FONT><A NAME="662"></A>          <FONT ID="SingleLineComment">// Setting up the learner to pull from the file
+<FONT ID="LN">663 </FONT><A NAME="663"></A></FONT>          <FONT ID="Final">final</FONT> String returnType = lce.labeler.returnType.getTypeName();
+<FONT ID="LN">664 </FONT><A NAME="664"></A>          <FONT ID="Final">final</FONT> String[] allowable =
+<FONT ID="LN">665 </FONT><A NAME="665"></A>            <FONT ID="New">new</FONT> String[lce.labeler.returnType.values.size()];
+<FONT ID="LN">666 </FONT><A NAME="666"></A>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>          ConstantList.ConstantListIterator I =
+<FONT ID="LN">668 </FONT><A NAME="668"></A>            lce.labeler.returnType.values.listIterator();
+<FONT ID="LN">669 </FONT><A NAME="669"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; I.hasNext(); ++i)
+<FONT ID="LN">670 </FONT><A NAME="670"></A>            allowable[i] = I.nextItem().value;
+<FONT ID="LN">671 </FONT><A NAME="671"></A>
+<FONT ID="LN">672 </FONT><A NAME="672"></A>          <FONT ID="If">if</FONT> (labeler.getOutputType().equals(<FONT ID="StringLiteral">"discrete"</FONT>))
+<FONT ID="LN">673 </FONT><A NAME="673"></A>            learner.setLabeler(
+<FONT ID="LN">674 </FONT><A NAME="674"></A>                <FONT ID="New">new</FONT> LabelVectorReturner()
+<FONT ID="LN">675 </FONT><A NAME="675"></A>                {
+<FONT ID="LN">676 </FONT><A NAME="676"></A>                  <FONT ID="Public">public</FONT> String getOutputType() { <FONT ID="Return">return</FONT> returnType; }
+<FONT ID="LN">677 </FONT><A NAME="677"></A>                  <FONT ID="Public">public</FONT> String[] allowableValues() { <FONT ID="Return">return</FONT> allowable; }
+<FONT ID="LN">678 </FONT><A NAME="678"></A>                  <FONT ID="Public">public</FONT> String discreteValue(Object e)
+<FONT ID="LN">679 </FONT><A NAME="679"></A>                  {
+<FONT ID="LN">680 </FONT><A NAME="680"></A>                    <FONT ID="Return">return</FONT> ((DiscreteFeature) classify(e).firstFeature())
+<FONT ID="LN">681 </FONT><A NAME="681"></A>                           .getValue();
+<FONT ID="LN">682 </FONT><A NAME="682"></A>                  }
+<FONT ID="LN">683 </FONT><A NAME="683"></A>                });
+<FONT ID="LN">684 </FONT><A NAME="684"></A>          <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (labeler.getOutputType().equals(<FONT ID="StringLiteral">"real"</FONT>))
+<FONT ID="LN">685 </FONT><A NAME="685"></A>            learner.setLabeler(
+<FONT ID="LN">686 </FONT><A NAME="686"></A>                <FONT ID="New">new</FONT> LabelVectorReturner()
+<FONT ID="LN">687 </FONT><A NAME="687"></A>                {
+<FONT ID="LN">688 </FONT><A NAME="688"></A>                  <FONT ID="Public">public</FONT> String getOutputType() { <FONT ID="Return">return</FONT> returnType; }
+<FONT ID="LN">689 </FONT><A NAME="689"></A>                  <FONT ID="Public">public</FONT> String[] allowableValues() { <FONT ID="Return">return</FONT> allowable; }
+<FONT ID="LN">690 </FONT><A NAME="690"></A>                  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> realValue(Object e)
+<FONT ID="LN">691 </FONT><A NAME="691"></A>                  {
+<FONT ID="LN">692 </FONT><A NAME="692"></A>                    <FONT ID="Return">return</FONT> ((RealFeature) classify(e).firstFeature())
+<FONT ID="LN">693 </FONT><A NAME="693"></A>                           .getValue();
+<FONT ID="LN">694 </FONT><A NAME="694"></A>                  }
+<FONT ID="LN">695 </FONT><A NAME="695"></A>                });
+<FONT ID="LN">696 </FONT><A NAME="696"></A>          <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (labeler.getOutputType().equals(<FONT ID="StringLiteral">"discrete[]"</FONT>))
+<FONT ID="LN">697 </FONT><A NAME="697"></A>            learner.setLabeler(
+<FONT ID="LN">698 </FONT><A NAME="698"></A>                <FONT ID="New">new</FONT> LabelVectorReturner()
+<FONT ID="LN">699 </FONT><A NAME="699"></A>                {
+<FONT ID="LN">700 </FONT><A NAME="700"></A>                  <FONT ID="Public">public</FONT> String getOutputType() { <FONT ID="Return">return</FONT> returnType; }
+<FONT ID="LN">701 </FONT><A NAME="701"></A>                  <FONT ID="Public">public</FONT> String[] allowableValues() { <FONT ID="Return">return</FONT> allowable; }
+<FONT ID="LN">702 </FONT><A NAME="702"></A>                  <FONT ID="Public">public</FONT> String[] discreteValueArray(Object e)
+<FONT ID="LN">703 </FONT><A NAME="703"></A>                  {
+<FONT ID="LN">704 </FONT><A NAME="704"></A>                    <FONT ID="Return">return</FONT> classify(e).discreteValueArray();
+<FONT ID="LN">705 </FONT><A NAME="705"></A>                  }
+<FONT ID="LN">706 </FONT><A NAME="706"></A>                });
+<FONT ID="LN">707 </FONT><A NAME="707"></A>          <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (labeler.getOutputType().equals(<FONT ID="StringLiteral">"real[]"</FONT>))
+<FONT ID="LN">708 </FONT><A NAME="708"></A>            learner.setLabeler(
+<FONT ID="LN">709 </FONT><A NAME="709"></A>                <FONT ID="New">new</FONT> LabelVectorReturner()
+<FONT ID="LN">710 </FONT><A NAME="710"></A>                {
+<FONT ID="LN">711 </FONT><A NAME="711"></A>                  <FONT ID="Public">public</FONT> String getOutputType() { <FONT ID="Return">return</FONT> returnType; }
+<FONT ID="LN">712 </FONT><A NAME="712"></A>                  <FONT ID="Public">public</FONT> String[] allowableValues() { <FONT ID="Return">return</FONT> allowable; }
+<FONT ID="LN">713 </FONT><A NAME="713"></A>                  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT>[] realValueArray(Object e)
+<FONT ID="LN">714 </FONT><A NAME="714"></A>                  {
+<FONT ID="LN">715 </FONT><A NAME="715"></A>                    <FONT ID="Return">return</FONT> classify(e).realValueArray();
+<FONT ID="LN">716 </FONT><A NAME="716"></A>                  }
+<FONT ID="LN">717 </FONT><A NAME="717"></A>                });
+<FONT ID="LN">718 </FONT><A NAME="718"></A>          <FONT ID="Else">else</FONT>
+<FONT ID="LN">719 </FONT><A NAME="719"></A>            learner.setLabeler(
+<FONT ID="LN">720 </FONT><A NAME="720"></A>                <FONT ID="New">new</FONT> LabelVectorReturner()
+<FONT ID="LN">721 </FONT><A NAME="721"></A>                {
+<FONT ID="LN">722 </FONT><A NAME="722"></A>                  <FONT ID="Public">public</FONT> String getOutputType() { <FONT ID="Return">return</FONT> returnType; }
+<FONT ID="LN">723 </FONT><A NAME="723"></A>                  <FONT ID="Public">public</FONT> String[] allowableValues() { <FONT ID="Return">return</FONT> allowable; }
+<FONT ID="LN">724 </FONT><A NAME="724"></A>                });
+<FONT ID="LN">725 </FONT><A NAME="725"></A>
+<FONT ID="LN">726 </FONT><A NAME="726"></A>          <FONT ID="SingleLineComment">// set the parser to be a FeatureVectorParser, so we can train from
+<FONT ID="LN">727 </FONT><A NAME="727"></A></FONT>          <FONT ID="SingleLineComment">// the data we just extracted
+<FONT ID="LN">728 </FONT><A NAME="728"></A></FONT>          parser = <FONT ID="New">new</FONT> FeatureVectorParser(exampleFilePath, lexiconArray);
+<FONT ID="LN">729 </FONT><A NAME="729"></A>        }
+<FONT ID="LN">730 </FONT><A NAME="730"></A>
+<FONT ID="LN">731 </FONT><A NAME="731"></A>
+<FONT ID="LN">732 </FONT><A NAME="732"></A>        <FONT ID="SingleLineComment">// ------------------- Cross Validation -----------------------------
+<FONT ID="LN">733 </FONT><A NAME="733"></A></FONT>        <FONT ID="If">if</FONT> (lce.K != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">734 </FONT><A NAME="734"></A>        {
+<FONT ID="LN">735 </FONT><A NAME="735"></A>          <FONT ID="Int">int</FONT> k = Integer.parseInt(lce.K.value);
+<FONT ID="LN">736 </FONT><A NAME="736"></A>
+<FONT ID="LN">737 </FONT><A NAME="737"></A>          <FONT ID="If">if</FONT> (k &gt; <FONT ID="IntegerLiteral">1</FONT> || lce.splitStrategy == FoldParser.SplitStrategy.manual)
+<FONT ID="LN">738 </FONT><A NAME="738"></A>          {
+<FONT ID="LN">739 </FONT><A NAME="739"></A>            FoldParser.SplitStrategy splitStrategy = lce.splitStrategy;
+<FONT ID="LN">740 </FONT><A NAME="740"></A>
+<FONT ID="LN">741 </FONT><A NAME="741"></A>            System.out.print(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">": Cross Validation: "</FONT>);
+<FONT ID="LN">742 </FONT><A NAME="742"></A>            <FONT ID="If">if</FONT> (k != -<FONT ID="IntegerLiteral">1</FONT>) System.out.print(<FONT ID="StringLiteral">"k = "</FONT> + k + <FONT ID="StringLiteral">", "</FONT>);
+<FONT ID="LN">743 </FONT><A NAME="743"></A>            System.out.print(<FONT ID="StringLiteral">"Split = "</FONT> + splitStrategy.getName());
+<FONT ID="LN">744 </FONT><A NAME="744"></A>
+<FONT ID="LN">745 </FONT><A NAME="745"></A>            <FONT ID="Int">int</FONT> rounds = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">746 </FONT><A NAME="746"></A>            <FONT ID="If">if</FONT> (lce.rounds != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">747 </FONT><A NAME="747"></A>              rounds = Integer.parseInt(lce.rounds.value);
+<FONT ID="LN">748 </FONT><A NAME="748"></A>            <FONT ID="If">if</FONT> (rounds != <FONT ID="IntegerLiteral">1</FONT>) System.out.print(<FONT ID="StringLiteral">", Rounds = "</FONT> + rounds);
+<FONT ID="LN">749 </FONT><A NAME="749"></A>            System.out.println();
+<FONT ID="LN">750 </FONT><A NAME="750"></A>
+<FONT ID="LN">751 </FONT><A NAME="751"></A>            FoldParser foldParser = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">752 </FONT><A NAME="752"></A>            <FONT ID="SingleLineComment">// If we pre-extracted, we know how many examples there are
+<FONT ID="LN">753 </FONT><A NAME="753"></A></FONT>            <FONT ID="SingleLineComment">// already; otherwise FoldParser will have to compute it.
+<FONT ID="LN">754 </FONT><A NAME="754"></A></FONT>            <FONT ID="If">if</FONT> (preExtract)
+<FONT ID="LN">755 </FONT><A NAME="755"></A>              foldParser =
+<FONT ID="LN">756 </FONT><A NAME="756"></A>                <FONT ID="New">new</FONT> FoldParser(parser, k, splitStrategy, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="False">false</FONT>, examples);
+<FONT ID="LN">757 </FONT><A NAME="757"></A>            <FONT ID="Else">else</FONT>
+<FONT ID="LN">758 </FONT><A NAME="758"></A>              foldParser = <FONT ID="New">new</FONT> FoldParser(parser, k, splitStrategy, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="False">false</FONT>);
+<FONT ID="LN">759 </FONT><A NAME="759"></A>            k = foldParser.getK();
+<FONT ID="LN">760 </FONT><A NAME="760"></A>
+<FONT ID="LN">761 </FONT><A NAME="761"></A>            <FONT ID="SingleLineComment">// An array to store the results of k-fold testing
+<FONT ID="LN">762 </FONT><A NAME="762"></A></FONT>            <FONT ID="Double">double</FONT>[] results = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[k];
+<FONT ID="LN">763 </FONT><A NAME="763"></A>
+<FONT ID="LN">764 </FONT><A NAME="764"></A>            Classifier oracle = learner.getLabeler();
+<FONT ID="LN">765 </FONT><A NAME="765"></A>            TestingMetric testingMetric = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">766 </FONT><A NAME="766"></A>
+<FONT ID="LN">767 </FONT><A NAME="767"></A>            <FONT ID="If">if</FONT> (lce.testingMetric != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">768 </FONT><A NAME="768"></A>            {
+<FONT ID="LN">769 </FONT><A NAME="769"></A>              <FONT ID="SingleLineComment">// i basically copied this section from where Nick gets an
+<FONT ID="LN">770 </FONT><A NAME="770"></A></FONT>              <FONT ID="SingleLineComment">// instance of Parser
+<FONT ID="LN">771 </FONT><A NAME="771"></A></FONT>
+<FONT ID="LN">772 </FONT><A NAME="772"></A>              Method getTestingMetric = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">773 </FONT><A NAME="773"></A>              <FONT ID="Try">try</FONT>
+<FONT ID="LN">774 </FONT><A NAME="774"></A>              {
+<FONT ID="LN">775 </FONT><A NAME="775"></A>                getTestingMetric =
+<FONT ID="LN">776 </FONT><A NAME="776"></A>                  learnerClass.getDeclaredMethod(<FONT ID="StringLiteral">"getTestingMetric"</FONT>,
+<FONT ID="LN">777 </FONT><A NAME="777"></A>                                                 <FONT ID="New">new</FONT> Class[<FONT ID="IntegerLiteral">0</FONT>]);
+<FONT ID="LN">778 </FONT><A NAME="778"></A>              }
+<FONT ID="LN">779 </FONT><A NAME="779"></A>              <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">780 </FONT><A NAME="780"></A>              {
+<FONT ID="LN">781 </FONT><A NAME="781"></A>                reportError(lce.line,
+<FONT ID="LN">782 </FONT><A NAME="782"></A>                            <FONT ID="StringLiteral">"Could not access method'"</FONT> + getName()
+<FONT ID="LN">783 </FONT><A NAME="783"></A>                            + <FONT ID="StringLiteral">".getTestingMetric()': "</FONT> + e);
+<FONT ID="LN">784 </FONT><A NAME="784"></A>                <FONT ID="Return">return</FONT>;
+<FONT ID="LN">785 </FONT><A NAME="785"></A>              }
+<FONT ID="LN">786 </FONT><A NAME="786"></A>
+<FONT ID="LN">787 </FONT><A NAME="787"></A>              <FONT ID="Try">try</FONT>
+<FONT ID="LN">788 </FONT><A NAME="788"></A>              {
+<FONT ID="LN">789 </FONT><A NAME="789"></A>                testingMetric =
+<FONT ID="LN">790 </FONT><A NAME="790"></A>                  (TestingMetric) getTestingMetric.invoke(<FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">791 </FONT><A NAME="791"></A>              }
+<FONT ID="LN">792 </FONT><A NAME="792"></A>              <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">793 </FONT><A NAME="793"></A>              {
+<FONT ID="LN">794 </FONT><A NAME="794"></A>                reportError(lce.line,
+<FONT ID="LN">795 </FONT><A NAME="795"></A>                            <FONT ID="StringLiteral">"Could not instantiate testing metric '"</FONT>
+<FONT ID="LN">796 </FONT><A NAME="796"></A>                            + lce.parser.name + <FONT ID="StringLiteral">"': "</FONT> + e + <FONT ID="StringLiteral">", caused by"</FONT>);
+<FONT ID="LN">797 </FONT><A NAME="797"></A>                System.err.print(stackTrace(e.getCause()));
+<FONT ID="LN">798 </FONT><A NAME="798"></A>                <FONT ID="Return">return</FONT>;
+<FONT ID="LN">799 </FONT><A NAME="799"></A>              }
+<FONT ID="LN">800 </FONT><A NAME="800"></A>            }
+<FONT ID="LN">801 </FONT><A NAME="801"></A>            <FONT ID="Else">else</FONT>
+<FONT ID="LN">802 </FONT><A NAME="802"></A>            {
+<FONT ID="LN">803 </FONT><A NAME="803"></A>              <FONT ID="SingleLineComment">// if no user-implemented testing metric was specified,
+<FONT ID="LN">804 </FONT><A NAME="804"></A></FONT>              <FONT ID="SingleLineComment">// default to the built-in accuracy metric
+<FONT ID="LN">805 </FONT><A NAME="805"></A></FONT>              testingMetric = <FONT ID="New">new</FONT> Accuracy();
+<FONT ID="LN">806 </FONT><A NAME="806"></A>            }
+<FONT ID="LN">807 </FONT><A NAME="807"></A>
+<FONT ID="LN">808 </FONT><A NAME="808"></A>            <FONT ID="Boolean">boolean</FONT> usingAccuracy = testingMetric <FONT ID="InstanceOf">instanceof</FONT> Accuracy;
+<FONT ID="LN">809 </FONT><A NAME="809"></A>            String metricName = testingMetric.getClass().getName();
+<FONT ID="LN">810 </FONT><A NAME="810"></A>            <FONT ID="While">while</FONT> (metricName.indexOf(<FONT ID="CharacerLiteral">'.'</FONT>) != -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">811 </FONT><A NAME="811"></A>              metricName = metricName.substring(metricName.indexOf(<FONT ID="CharacerLiteral">'.'</FONT>) + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">812 </FONT><A NAME="812"></A>
+<FONT ID="LN">813 </FONT><A NAME="813"></A>            <FONT ID="SingleLineComment">// Go through the example file K times, learning a different
+<FONT ID="LN">814 </FONT><A NAME="814"></A></FONT>            <FONT ID="SingleLineComment">// subset each time.
+<FONT ID="LN">815 </FONT><A NAME="815"></A></FONT>            <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; k; foldParser.setPivot(++i))
+<FONT ID="LN">816 </FONT><A NAME="816"></A>            {
+<FONT ID="LN">817 </FONT><A NAME="817"></A>              <FONT ID="SingleLineComment">// train on all subsets except the i'th
+<FONT ID="LN">818 </FONT><A NAME="818"></A></FONT>              System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName()
+<FONT ID="LN">819 </FONT><A NAME="819"></A>                                 + <FONT ID="StringLiteral">": training against subset "</FONT> + i);
+<FONT ID="LN">820 </FONT><A NAME="820"></A>
+<FONT ID="LN">821 </FONT><A NAME="821"></A>              <FONT ID="SingleLineComment">// go through training once per round
+<FONT ID="LN">822 </FONT><A NAME="822"></A></FONT>              <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> r = <FONT ID="IntegerLiteral">0</FONT>; r &lt; rounds; ++r)
+<FONT ID="LN">823 </FONT><A NAME="823"></A>              {
+<FONT ID="LN">824 </FONT><A NAME="824"></A>                examples = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">825 </FONT><A NAME="825"></A>
+<FONT ID="LN">826 </FONT><A NAME="826"></A>                <FONT ID="For">for</FONT> (Object example = foldParser.next(); example != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">827 </FONT><A NAME="827"></A>                     example = foldParser.next(), ++examples)
+<FONT ID="LN">828 </FONT><A NAME="828"></A>                {
+<FONT ID="LN">829 </FONT><A NAME="829"></A>                  <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; examples % progressOutput == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">830 </FONT><A NAME="830"></A>                    System.out.println(
+<FONT ID="LN">831 </FONT><A NAME="831"></A>                        <FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">", round "</FONT> + r + <FONT ID="StringLiteral">", "</FONT> + examples
+<FONT ID="LN">832 </FONT><A NAME="832"></A>                        + <FONT ID="StringLiteral">" examples processed at "</FONT> + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">833 </FONT><A NAME="833"></A>                  learner.learn(example);
+<FONT ID="LN">834 </FONT><A NAME="834"></A>                }
+<FONT ID="LN">835 </FONT><A NAME="835"></A>
+<FONT ID="LN">836 </FONT><A NAME="836"></A>                <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">837 </FONT><A NAME="837"></A>                  System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">", "</FONT> + examples
+<FONT ID="LN">838 </FONT><A NAME="838"></A>                                     + <FONT ID="StringLiteral">" examples processed at "</FONT>
+<FONT ID="LN">839 </FONT><A NAME="839"></A>                                     + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">840 </FONT><A NAME="840"></A>
+<FONT ID="LN">841 </FONT><A NAME="841"></A>                foldParser.reset();
+<FONT ID="LN">842 </FONT><A NAME="842"></A>              }
+<FONT ID="LN">843 </FONT><A NAME="843"></A>
+<FONT ID="LN">844 </FONT><A NAME="844"></A>              learner.doneLearning();
+<FONT ID="LN">845 </FONT><A NAME="845"></A>              foldParser.setFromPivot(<FONT ID="True">true</FONT>);
+<FONT ID="LN">846 </FONT><A NAME="846"></A>              results[i] = testingMetric.test(oracle, learner, foldParser);
+<FONT ID="LN">847 </FONT><A NAME="847"></A>
+<FONT ID="LN">848 </FONT><A NAME="848"></A>              System.out.print(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">": subset "</FONT> + i);
+<FONT ID="LN">849 </FONT><A NAME="849"></A>              <FONT ID="Double">double</FONT> rounded = results[i];
+<FONT ID="LN">850 </FONT><A NAME="850"></A>              <FONT ID="If">if</FONT> (usingAccuracy) rounded *= <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">851 </FONT><A NAME="851"></A>              rounded = Math.round(rounded * <FONT ID="IntegerLiteral">100000</FONT>) / <FONT ID="FloatPointLiteral">100000.0</FONT>;
+<FONT ID="LN">852 </FONT><A NAME="852"></A>              System.out.print(<FONT ID="StringLiteral">" "</FONT> + metricName + <FONT ID="StringLiteral">": "</FONT> + rounded);
+<FONT ID="LN">853 </FONT><A NAME="853"></A>              <FONT ID="If">if</FONT> (usingAccuracy) System.out.print(<FONT ID="StringLiteral">"%"</FONT>);
+<FONT ID="LN">854 </FONT><A NAME="854"></A>              System.out.println();
+<FONT ID="LN">855 </FONT><A NAME="855"></A>
+<FONT ID="LN">856 </FONT><A NAME="856"></A>              foldParser.setFromPivot(<FONT ID="False">false</FONT>);
+<FONT ID="LN">857 </FONT><A NAME="857"></A>              learner.forget();
+<FONT ID="LN">858 </FONT><A NAME="858"></A>            }
+<FONT ID="LN">859 </FONT><A NAME="859"></A>
+<FONT ID="LN">860 </FONT><A NAME="860"></A>
+<FONT ID="LN">861 </FONT><A NAME="861"></A>            <FONT ID="SingleLineComment">// x: the mean of the testing results
+<FONT ID="LN">862 </FONT><A NAME="862"></A></FONT>            <FONT ID="Double">double</FONT> x = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">863 </FONT><A NAME="863"></A>            <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; k; ++i)
+<FONT ID="LN">864 </FONT><A NAME="864"></A>              x += results[i];
+<FONT ID="LN">865 </FONT><A NAME="865"></A>            x /= (<FONT ID="Double">double</FONT>) k;
+<FONT ID="LN">866 </FONT><A NAME="866"></A>
+<FONT ID="LN">867 </FONT><A NAME="867"></A>            <FONT ID="SingleLineComment">// s: the standard deviation of the testing results
+<FONT ID="LN">868 </FONT><A NAME="868"></A></FONT>            <FONT ID="Double">double</FONT> s = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">869 </FONT><A NAME="869"></A>            <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; k; ++i)
+<FONT ID="LN">870 </FONT><A NAME="870"></A>              s += (results[i] - x) * (results[i] - x);
+<FONT ID="LN">871 </FONT><A NAME="871"></A>            s /= (<FONT ID="Double">double</FONT>) (k - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">872 </FONT><A NAME="872"></A>            s = Math.sqrt(s);
+<FONT ID="LN">873 </FONT><A NAME="873"></A>
+<FONT ID="LN">874 </FONT><A NAME="874"></A>            <FONT ID="SingleLineComment">// sem: estimated standard error of the mean
+<FONT ID="LN">875 </FONT><A NAME="875"></A></FONT>            <FONT ID="Double">double</FONT> sem = s / Math.sqrt(k);
+<FONT ID="LN">876 </FONT><A NAME="876"></A>
+<FONT ID="LN">877 </FONT><A NAME="877"></A>            <FONT ID="SingleLineComment">// alpha: unconfidence level
+<FONT ID="LN">878 </FONT><A NAME="878"></A></FONT>            <FONT ID="Double">double</FONT> alpha = Double.parseDouble(lce.alpha.value);
+<FONT ID="LN">879 </FONT><A NAME="879"></A>
+<FONT ID="LN">880 </FONT><A NAME="880"></A>            <FONT ID="Double">double</FONT> t = StudentT.tTable(k - <FONT ID="IntegerLiteral">1</FONT>, alpha);
+<FONT ID="LN">881 </FONT><A NAME="881"></A>            <FONT ID="Double">double</FONT> halfInterval = t * sem;
+<FONT ID="LN">882 </FONT><A NAME="882"></A>
+<FONT ID="LN">883 </FONT><A NAME="883"></A>            <FONT ID="If">if</FONT> (usingAccuracy)
+<FONT ID="LN">884 </FONT><A NAME="884"></A>            {
+<FONT ID="LN">885 </FONT><A NAME="885"></A>              x *= <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">886 </FONT><A NAME="886"></A>              halfInterval *= <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">887 </FONT><A NAME="887"></A>            }
+<FONT ID="LN">888 </FONT><A NAME="888"></A>
+<FONT ID="LN">889 </FONT><A NAME="889"></A>            halfInterval = Math.round(halfInterval * <FONT ID="IntegerLiteral">100000</FONT>) / <FONT ID="FloatPointLiteral">100000.0</FONT>;
+<FONT ID="LN">890 </FONT><A NAME="890"></A>            x = Math.round(x * <FONT ID="IntegerLiteral">100000</FONT>) / <FONT ID="FloatPointLiteral">100000.0</FONT>;
+<FONT ID="LN">891 </FONT><A NAME="891"></A>
+<FONT ID="LN">892 </FONT><A NAME="892"></A>            System.out.print(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">": "</FONT> + (<FONT ID="IntegerLiteral">100</FONT> * (<FONT ID="IntegerLiteral">1</FONT> - alpha))
+<FONT ID="LN">893 </FONT><A NAME="893"></A>                             + <FONT ID="StringLiteral">"% confidence interval: "</FONT> + x);
+<FONT ID="LN">894 </FONT><A NAME="894"></A>            <FONT ID="If">if</FONT> (usingAccuracy) System.out.print(<FONT ID="StringLiteral">"%"</FONT>);
+<FONT ID="LN">895 </FONT><A NAME="895"></A>            System.out.print(<FONT ID="StringLiteral">" +/- "</FONT> + halfInterval);
+<FONT ID="LN">896 </FONT><A NAME="896"></A>            <FONT ID="If">if</FONT> (usingAccuracy) System.out.print(<FONT ID="StringLiteral">"%"</FONT>);
+<FONT ID="LN">897 </FONT><A NAME="897"></A>            System.out.println();
+<FONT ID="LN">898 </FONT><A NAME="898"></A>
+<FONT ID="LN">899 </FONT><A NAME="899"></A>            parser.reset();
+<FONT ID="LN">900 </FONT><A NAME="900"></A>
+<FONT ID="LN">901 </FONT><A NAME="901"></A>            System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName()
+<FONT ID="LN">902 </FONT><A NAME="902"></A>                               + <FONT ID="StringLiteral">": training on entire training set"</FONT>);
+<FONT ID="LN">903 </FONT><A NAME="903"></A>          } <FONT ID="SingleLineComment">// end of 'if k &gt; 1' section
+<FONT ID="LN">904 </FONT><A NAME="904"></A></FONT>        }
+<FONT ID="LN">905 </FONT><A NAME="905"></A>
+<FONT ID="LN">906 </FONT><A NAME="906"></A>        <FONT ID="SingleLineComment">// ------------------- Final Training --------------------------------
+<FONT ID="LN">907 </FONT><A NAME="907"></A></FONT>        <FONT ID="If">if</FONT> (lce.rounds == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">908 </FONT><A NAME="908"></A>        {
+<FONT ID="LN">909 </FONT><A NAME="909"></A>          examples = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">910 </FONT><A NAME="910"></A>
+<FONT ID="LN">911 </FONT><A NAME="911"></A>          <FONT ID="For">for</FONT> (Object example = parser.next(); example != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">912 </FONT><A NAME="912"></A>               example = parser.next())
+<FONT ID="LN">913 </FONT><A NAME="913"></A>          {
+<FONT ID="LN">914 </FONT><A NAME="914"></A>            <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; examples % progressOutput == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">915 </FONT><A NAME="915"></A>              System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">": "</FONT> + examples
+<FONT ID="LN">916 </FONT><A NAME="916"></A>                                 + <FONT ID="StringLiteral">" examples processed at "</FONT> + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">917 </FONT><A NAME="917"></A>
+<FONT ID="LN">918 </FONT><A NAME="918"></A>            <FONT ID="If">if</FONT> (example != FoldSeparator.separator)
+<FONT ID="LN">919 </FONT><A NAME="919"></A>            {
+<FONT ID="LN">920 </FONT><A NAME="920"></A>              learner.learn(example);
+<FONT ID="LN">921 </FONT><A NAME="921"></A>              ++examples;
+<FONT ID="LN">922 </FONT><A NAME="922"></A>            }
+<FONT ID="LN">923 </FONT><A NAME="923"></A>          }
+<FONT ID="LN">924 </FONT><A NAME="924"></A>
+<FONT ID="LN">925 </FONT><A NAME="925"></A>          <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">926 </FONT><A NAME="926"></A>            System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">": "</FONT> + examples
+<FONT ID="LN">927 </FONT><A NAME="927"></A>                               + <FONT ID="StringLiteral">" examples processed at "</FONT> + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">928 </FONT><A NAME="928"></A>        }
+<FONT ID="LN">929 </FONT><A NAME="929"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">930 </FONT><A NAME="930"></A>        {
+<FONT ID="LN">931 </FONT><A NAME="931"></A>          <FONT ID="Int">int</FONT> rounds = Integer.parseInt(lce.rounds.value);
+<FONT ID="LN">932 </FONT><A NAME="932"></A>
+<FONT ID="LN">933 </FONT><A NAME="933"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">1</FONT>; i &lt;= rounds; ++i)
+<FONT ID="LN">934 </FONT><A NAME="934"></A>          {
+<FONT ID="LN">935 </FONT><A NAME="935"></A>            examples = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">936 </FONT><A NAME="936"></A>
+<FONT ID="LN">937 </FONT><A NAME="937"></A>            <FONT ID="For">for</FONT> (Object example = parser.next(); example != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">938 </FONT><A NAME="938"></A>                 example = parser.next())
+<FONT ID="LN">939 </FONT><A NAME="939"></A>            {
+<FONT ID="LN">940 </FONT><A NAME="940"></A>              <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; examples % progressOutput == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">941 </FONT><A NAME="941"></A>                System.out.println(
+<FONT ID="LN">942 </FONT><A NAME="942"></A>                    <FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">", round "</FONT> + i + <FONT ID="StringLiteral">": "</FONT> + examples
+<FONT ID="LN">943 </FONT><A NAME="943"></A>                    + <FONT ID="StringLiteral">" examples processed at "</FONT> + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">944 </FONT><A NAME="944"></A>
+<FONT ID="LN">945 </FONT><A NAME="945"></A>              <FONT ID="If">if</FONT> (example != FoldSeparator.separator)
+<FONT ID="LN">946 </FONT><A NAME="946"></A>              {
+<FONT ID="LN">947 </FONT><A NAME="947"></A>                learner.learn(example);
+<FONT ID="LN">948 </FONT><A NAME="948"></A>                ++examples;
+<FONT ID="LN">949 </FONT><A NAME="949"></A>              }
+<FONT ID="LN">950 </FONT><A NAME="950"></A>            }
+<FONT ID="LN">951 </FONT><A NAME="951"></A>
+<FONT ID="LN">952 </FONT><A NAME="952"></A>            <FONT ID="If">if</FONT> (progressOutput &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">953 </FONT><A NAME="953"></A>              System.out.println(<FONT ID="StringLiteral">"  "</FONT> + getName() + <FONT ID="StringLiteral">", round "</FONT> + i + <FONT ID="StringLiteral">": "</FONT>
+<FONT ID="LN">954 </FONT><A NAME="954"></A>                                 + examples + <FONT ID="StringLiteral">" examples processed at "</FONT>
+<FONT ID="LN">955 </FONT><A NAME="955"></A>                                 + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">956 </FONT><A NAME="956"></A>            parser.reset();
+<FONT ID="LN">957 </FONT><A NAME="957"></A>          }
+<FONT ID="LN">958 </FONT><A NAME="958"></A>        }
+<FONT ID="LN">959 </FONT><A NAME="959"></A>
+<FONT ID="LN">960 </FONT><A NAME="960"></A>        <FONT ID="SingleLineComment">// Resetting the labeler and parser
+<FONT ID="LN">961 </FONT><A NAME="961"></A></FONT>        <FONT ID="If">if</FONT> (preExtract)
+<FONT ID="LN">962 </FONT><A NAME="962"></A>        {
+<FONT ID="LN">963 </FONT><A NAME="963"></A>          learner.setLabeler(labeler);
+<FONT ID="LN">964 </FONT><A NAME="964"></A>          parser = oldparser;
+<FONT ID="LN">965 </FONT><A NAME="965"></A>        }
+<FONT ID="LN">966 </FONT><A NAME="966"></A>
+<FONT ID="LN">967 </FONT><A NAME="967"></A>        learner.doneLearning();
+<FONT ID="LN">968 </FONT><A NAME="968"></A>      }
+<FONT ID="LN">969 </FONT><A NAME="969"></A>
+<FONT ID="LN">970 </FONT><A NAME="970"></A>      String lcFilePath = getName() + <FONT ID="StringLiteral">".lc"</FONT>;
+<FONT ID="LN">971 </FONT><A NAME="971"></A>      <FONT ID="If">if</FONT> (Main.classDirectory != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">972 </FONT><A NAME="972"></A>        lcFilePath = Main.classDirectory + File.separator + lcFilePath;
+<FONT ID="LN">973 </FONT><A NAME="973"></A>
+<FONT ID="LN">974 </FONT><A NAME="974"></A>      <FONT ID="SingleLineComment">// Write the unique instance.
+<FONT ID="LN">975 </FONT><A NAME="975"></A></FONT>      ObjectOutputStream oos = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">976 </FONT><A NAME="976"></A>      <FONT ID="Try">try</FONT>
+<FONT ID="LN">977 </FONT><A NAME="977"></A>      {
+<FONT ID="LN">978 </FONT><A NAME="978"></A>        oos = <FONT ID="New">new</FONT> ObjectOutputStream(
+<FONT ID="LN">979 </FONT><A NAME="979"></A>                <FONT ID="New">new</FONT> GZIPOutputStream(<FONT ID="New">new</FONT> FileOutputStream(lcFilePath)));
+<FONT ID="LN">980 </FONT><A NAME="980"></A>      }
+<FONT ID="LN">981 </FONT><A NAME="981"></A>      <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">982 </FONT><A NAME="982"></A>      {
+<FONT ID="LN">983 </FONT><A NAME="983"></A>        System.err.println(<FONT ID="StringLiteral">"Can't create object stream for '"</FONT> + getName()
+<FONT ID="LN">984 </FONT><A NAME="984"></A>                           + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">985 </FONT><A NAME="985"></A>        System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">986 </FONT><A NAME="986"></A>      }
+<FONT ID="LN">987 </FONT><A NAME="987"></A>
+<FONT ID="LN">988 </FONT><A NAME="988"></A>      <FONT ID="Try">try</FONT> { oos.writeObject(learner); }
+<FONT ID="LN">989 </FONT><A NAME="989"></A>      <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">990 </FONT><A NAME="990"></A>      {
+<FONT ID="LN">991 </FONT><A NAME="991"></A>        System.err.println(<FONT ID="StringLiteral">"Can't write to object stream for '"</FONT> + getName()
+<FONT ID="LN">992 </FONT><A NAME="992"></A>                           + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">993 </FONT><A NAME="993"></A>        System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">994 </FONT><A NAME="994"></A>      }
+<FONT ID="LN">995 </FONT><A NAME="995"></A>
+<FONT ID="LN">996 </FONT><A NAME="996"></A>      <FONT ID="Try">try</FONT> { oos.close(); }
+<FONT ID="LN">997 </FONT><A NAME="997"></A>      <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">998 </FONT><A NAME="998"></A>      {
+<FONT ID="LN">999 </FONT><A NAME="999"></A>        System.err.println(<FONT ID="StringLiteral">"Can't close object stream for '"</FONT> + getName()
+<FONT ID="LN">1000</FONT><A NAME="1000"></A>                           + <FONT ID="StringLiteral">"': "</FONT> + e);
+<FONT ID="LN">1001</FONT><A NAME="1001"></A>        System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1002</FONT><A NAME="1002"></A>      }
+<FONT ID="LN">1003</FONT><A NAME="1003"></A>
+<FONT ID="LN">1004</FONT><A NAME="1004"></A>      Field fieldIsTraining = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1005</FONT><A NAME="1005"></A>      <FONT ID="Try">try</FONT> { fieldIsTraining = learnerClass.getField(<FONT ID="StringLiteral">"isTraining"</FONT>); }
+<FONT ID="LN">1006</FONT><A NAME="1006"></A>      <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">1007</FONT><A NAME="1007"></A>      {
+<FONT ID="LN">1008</FONT><A NAME="1008"></A>        System.err.println(<FONT ID="StringLiteral">"Can't access "</FONT> + learnerClass
+<FONT ID="LN">1009</FONT><A NAME="1009"></A>                           + <FONT ID="StringLiteral">"'s isTraining field: "</FONT> + e);
+<FONT ID="LN">1010</FONT><A NAME="1010"></A>        System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1011</FONT><A NAME="1011"></A>      }
+<FONT ID="LN">1012</FONT><A NAME="1012"></A>
+<FONT ID="LN">1013</FONT><A NAME="1013"></A>      <FONT ID="Try">try</FONT> { fieldIsTraining.setBoolean(learner, <FONT ID="False">false</FONT>); }
+<FONT ID="LN">1014</FONT><A NAME="1014"></A>      <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">1015</FONT><A NAME="1015"></A>      {
+<FONT ID="LN">1016</FONT><A NAME="1016"></A>        System.err.println(<FONT ID="StringLiteral">"Can't set "</FONT> + learnerClass
+<FONT ID="LN">1017</FONT><A NAME="1017"></A>                           + <FONT ID="StringLiteral">"'s isTraining field: "</FONT> + e);
+<FONT ID="LN">1018</FONT><A NAME="1018"></A>        System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1019</FONT><A NAME="1019"></A>      }
+<FONT ID="LN">1020</FONT><A NAME="1020"></A>
+<FONT ID="LN">1021</FONT><A NAME="1021"></A>      <FONT ID="SingleLineComment">// Write the new code.
+<FONT ID="LN">1022</FONT><A NAME="1022"></A></FONT>      PrintStream out = TranslateToJava.open(lce);
+<FONT ID="LN">1023</FONT><A NAME="1023"></A>      <FONT ID="If">if</FONT> (out == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT>;
+<FONT ID="LN">1024</FONT><A NAME="1024"></A>
+<FONT ID="LN">1025</FONT><A NAME="1025"></A>      out.println(TranslateToJava.disclaimer);
+<FONT ID="LN">1026</FONT><A NAME="1026"></A>      out.print(<FONT ID="StringLiteral">"// "</FONT>);
+<FONT ID="LN">1027</FONT><A NAME="1027"></A>      TranslateToJava.compressAndPrint(lce.shallow(), out);
+<FONT ID="LN">1028</FONT><A NAME="1028"></A>      out.println(<FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">1029</FONT><A NAME="1029"></A>
+<FONT ID="LN">1030</FONT><A NAME="1030"></A>      ast.symbolTable.generateHeader(out);
+<FONT ID="LN">1031</FONT><A NAME="1031"></A>
+<FONT ID="LN">1032</FONT><A NAME="1032"></A>      <FONT ID="If">if</FONT> (lce.cacheIn != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1033</FONT><A NAME="1033"></A>      {
+<FONT ID="LN">1034</FONT><A NAME="1034"></A>        String field = lce.cacheIn.toString();
+<FONT ID="LN">1035</FONT><A NAME="1035"></A>        <FONT ID="Boolean">boolean</FONT> cachedInMap = field.equals(ClassifierAssignment.mapCache);
+<FONT ID="LN">1036</FONT><A NAME="1036"></A>        <FONT ID="If">if</FONT> (cachedInMap) out.println(<FONT ID="StringLiteral">"import java.util.WeakHashMap;"</FONT>);
+<FONT ID="LN">1037</FONT><A NAME="1037"></A>      }
+<FONT ID="LN">1038</FONT><A NAME="1038"></A>
+<FONT ID="LN">1039</FONT><A NAME="1039"></A>      out.println(<FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">1040</FONT><A NAME="1040"></A>      <FONT ID="If">if</FONT> (lce.comment != <FONT ID="Null">null</FONT>) out.println(lce.comment);
+<FONT ID="LN">1041</FONT><A NAME="1041"></A>
+<FONT ID="LN">1042</FONT><A NAME="1042"></A>      out.println(<FONT ID="StringLiteral">"\n\npublic class "</FONT> + getName() + <FONT ID="StringLiteral">" extends "</FONT>
+<FONT ID="LN">1043</FONT><A NAME="1043"></A>                  + lce.learnerName);
+<FONT ID="LN">1044</FONT><A NAME="1044"></A>      out.println(<FONT ID="StringLiteral">"{"</FONT>);
+<FONT ID="LN">1045</FONT><A NAME="1045"></A>      out.println(<FONT ID="StringLiteral">"  public static boolean isTraining = false;"</FONT>);
+<FONT ID="LN">1046</FONT><A NAME="1046"></A>      out.println(<FONT ID="StringLiteral">"  private static java.net.URL lcFilePath;"</FONT>);
+<FONT ID="LN">1047</FONT><A NAME="1047"></A>      out.println(<FONT ID="StringLiteral">"  private static "</FONT> + getName() + <FONT ID="StringLiteral">" instance;"</FONT>);
+<FONT ID="LN">1048</FONT><A NAME="1048"></A>      out.println(<FONT ID="StringLiteral">"  public static "</FONT> + getName() + <FONT ID="StringLiteral">" getInstance()"</FONT>);
+<FONT ID="LN">1049</FONT><A NAME="1049"></A>      out.println(<FONT ID="StringLiteral">"  {"</FONT>);
+<FONT ID="LN">1050</FONT><A NAME="1050"></A>      out.println(<FONT ID="StringLiteral">"    if (instance == null)"</FONT>);
+<FONT ID="LN">1051</FONT><A NAME="1051"></A>      out.println(<FONT ID="StringLiteral">"      instance = ("</FONT> + lce.name + <FONT ID="StringLiteral">") "</FONT>
+<FONT ID="LN">1052</FONT><A NAME="1052"></A>                  + <FONT ID="StringLiteral">"Classifier.binaryRead(lcFilePath, \""</FONT> + lce.name
+<FONT ID="LN">1053</FONT><A NAME="1053"></A>                  + <FONT ID="StringLiteral">"\");"</FONT>);
+<FONT ID="LN">1054</FONT><A NAME="1054"></A>      out.println(<FONT ID="StringLiteral">"    return instance;"</FONT>);
+<FONT ID="LN">1055</FONT><A NAME="1055"></A>      out.println(<FONT ID="StringLiteral">"  }\n"</FONT>);
+<FONT ID="LN">1056</FONT><A NAME="1056"></A>
+<FONT ID="LN">1057</FONT><A NAME="1057"></A>      out.println(<FONT ID="StringLiteral">"  static"</FONT>);
+<FONT ID="LN">1058</FONT><A NAME="1058"></A>      out.println(<FONT ID="StringLiteral">"  {"</FONT>);
+<FONT ID="LN">1059</FONT><A NAME="1059"></A>      out.println(<FONT ID="StringLiteral">"    lcFilePath = "</FONT> + getName() + <FONT ID="StringLiteral">".class.getResource(\""</FONT>
+<FONT ID="LN">1060</FONT><A NAME="1060"></A>                  + getName() + <FONT ID="StringLiteral">".lc\");\n"</FONT>);
+<FONT ID="LN">1061</FONT><A NAME="1061"></A>
+<FONT ID="LN">1062</FONT><A NAME="1062"></A>      out.println(<FONT ID="StringLiteral">"    if (lcFilePath == null)"</FONT>);
+<FONT ID="LN">1063</FONT><A NAME="1063"></A>      out.println(<FONT ID="StringLiteral">"    {"</FONT>);
+<FONT ID="LN">1064</FONT><A NAME="1064"></A>      out.println(<FONT ID="StringLiteral">"      System.err.println(\"ERROR: Can't locate "</FONT>
+<FONT ID="LN">1065</FONT><A NAME="1065"></A>                  + getName() + <FONT ID="StringLiteral">".lc in the class path.\");"</FONT>);
+<FONT ID="LN">1066</FONT><A NAME="1066"></A>      out.println(<FONT ID="StringLiteral">"      System.exit(1);"</FONT>);
+<FONT ID="LN">1067</FONT><A NAME="1067"></A>      out.println(<FONT ID="StringLiteral">"    }"</FONT>);
+<FONT ID="LN">1068</FONT><A NAME="1068"></A>      out.println(<FONT ID="StringLiteral">"  }\n"</FONT>);
+<FONT ID="LN">1069</FONT><A NAME="1069"></A>
+<FONT ID="LN">1070</FONT><A NAME="1070"></A>      out.println(<FONT ID="StringLiteral">"  public void save()"</FONT>);
+<FONT ID="LN">1071</FONT><A NAME="1071"></A>      out.println(<FONT ID="StringLiteral">"  {"</FONT>);
+<FONT ID="LN">1072</FONT><A NAME="1072"></A>      out.println(<FONT ID="StringLiteral">"    if (instance == null) return;\n"</FONT>);
+<FONT ID="LN">1073</FONT><A NAME="1073"></A>
+<FONT ID="LN">1074</FONT><A NAME="1074"></A>      out.println(<FONT ID="StringLiteral">"    if (lcFilePath.toString().indexOf(\".jar!\" + "</FONT>
+<FONT ID="LN">1075</FONT><A NAME="1075"></A>                  + <FONT ID="StringLiteral">"java.io.File.separator) != -1)"</FONT>);
+<FONT ID="LN">1076</FONT><A NAME="1076"></A>      out.println(<FONT ID="StringLiteral">"    {"</FONT>);
+<FONT ID="LN">1077</FONT><A NAME="1077"></A>      out.println(<FONT ID="StringLiteral">"      System.err.println(\"WARNING: "</FONT> + getName() + <FONT ID="StringLiteral">".lc "</FONT>
+<FONT ID="LN">1078</FONT><A NAME="1078"></A>                  + <FONT ID="StringLiteral">"is part of a jar file.  It will be written to the "</FONT>
+<FONT ID="LN">1079</FONT><A NAME="1079"></A>                  + <FONT ID="StringLiteral">"current directory.  Use 'jar -u' to update the jar "</FONT>
+<FONT ID="LN">1080</FONT><A NAME="1080"></A>                  + <FONT ID="StringLiteral">"file.  To avoid seeing this message in the future, "</FONT>
+<FONT ID="LN">1081</FONT><A NAME="1081"></A>                  + <FONT ID="StringLiteral">"unpack the jar file and put the unpacked files on your "</FONT>
+<FONT ID="LN">1082</FONT><A NAME="1082"></A>                  + <FONT ID="StringLiteral">"class path instead.\");"</FONT>);
+<FONT ID="LN">1083</FONT><A NAME="1083"></A>      out.println(
+<FONT ID="LN">1084</FONT><A NAME="1084"></A>          <FONT ID="StringLiteral">"      instance.binaryWrite(System.getProperty(\"user.dir\") + "</FONT>
+<FONT ID="LN">1085</FONT><A NAME="1085"></A>          + <FONT ID="StringLiteral">"java.io.File.separator + \""</FONT> + getName() + <FONT ID="StringLiteral">".lc\", \""</FONT>
+<FONT ID="LN">1086</FONT><A NAME="1086"></A>          + getName() + <FONT ID="StringLiteral">"\");"</FONT>);
+<FONT ID="LN">1087</FONT><A NAME="1087"></A>      out.println(<FONT ID="StringLiteral">"    }"</FONT>);
+<FONT ID="LN">1088</FONT><A NAME="1088"></A>      out.println(<FONT ID="StringLiteral">"    else instance.binaryWrite(lcFilePath.getPath(), \""</FONT>
+<FONT ID="LN">1089</FONT><A NAME="1089"></A>                  + getName() + <FONT ID="StringLiteral">"\");"</FONT>);
+<FONT ID="LN">1090</FONT><A NAME="1090"></A>      out.println(<FONT ID="StringLiteral">"  }\n"</FONT>);
+<FONT ID="LN">1091</FONT><A NAME="1091"></A>
+<FONT ID="LN">1092</FONT><A NAME="1092"></A>      TranslateToJava.generateLearnerBody(out, lce, <FONT ID="True">true</FONT>);
+<FONT ID="LN">1093</FONT><A NAME="1093"></A>
+<FONT ID="LN">1094</FONT><A NAME="1094"></A>      out.println(<FONT ID="StringLiteral">"}\n"</FONT>);
+<FONT ID="LN">1095</FONT><A NAME="1095"></A>      out.close();
+<FONT ID="LN">1096</FONT><A NAME="1096"></A>
+<FONT ID="LN">1097</FONT><A NAME="1097"></A>      executeReadyThreads(getName());
+<FONT ID="LN">1098</FONT><A NAME="1098"></A>    }
+<FONT ID="LN">1099</FONT><A NAME="1099"></A>  }
+<FONT ID="LN">1100</FONT><A NAME="1100"></A>}
+<FONT ID="LN">1101</FONT><A NAME="1101"></A>
+<FONT ID="LN">1102</FONT><A NAME="1102"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Train.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

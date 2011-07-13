@@ -1,0 +1,504 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.util.AttributeSource (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AttributeSource.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.util;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.lang.ref.WeakReference;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.util.Collections;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.util.NoSuchElementException;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> java.util.LinkedHashMap;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.util.WeakHashMap;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.util.LinkedList;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.util.Map;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.util.Map.Entry;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/analysis/TokenStream.java.html">org.apache.lucene.analysis.TokenStream</A>; <FONT ID="SingleLineComment">// for javadocs
+<FONT ID="LN">31  </FONT><A NAME="31"></A></FONT>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * An AttributeSource contains a list of different {@link AttributeImpl}s,
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * and methods to add and get them. There can only be a single instance
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * of an attribute in the same AttributeSource instance. This is ensured
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * by passing in the actual type of the Attribute (Class&amp;lt;Attribute&amp;gt;) to 
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * the {@link #addAttribute(Class)}, which then checks if an instance of
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * that type is already present. If yes, it returns the instance, otherwise
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * it creates a new instance and returns it.
+<FONT ID="LN">40  </FONT><A NAME="40"></A> */</FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> AttributeSource {
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">43  </FONT><A NAME="43"></A>   * An AttributeFactory creates instances of {@link AttributeImpl}s.
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   */</FONT>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> AttributeFactory {
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">47  </FONT><A NAME="47"></A>     * returns an {@link AttributeImpl} for the supplied {@link Attribute} interface class.
+<FONT ID="LN">48  </FONT><A NAME="48"></A>     * &lt;p&gt;Signature for Java 1.5: &lt;code&gt;public AttributeImpl createAttributeInstance(Class%lt;? extends Attribute&amp;gt; attClass)&lt;/code&gt;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>     */</FONT>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> createAttributeInstance(Class attClass);
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">53  </FONT><A NAME="53"></A>     * This is the default factory that creates {@link AttributeImpl}s using the
+<FONT ID="LN">54  </FONT><A NAME="54"></A>     * class name of the supplied {@link Attribute} interface class by appending &lt;code&gt;Impl&lt;/code&gt; to it.
+<FONT ID="LN">55  </FONT><A NAME="55"></A>     */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> AttributeFactory DEFAULT_ATTRIBUTE_FACTORY = <FONT ID="New">new</FONT> DefaultAttributeFactory();
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> DefaultAttributeFactory <FONT ID="Extends">extends</FONT> AttributeFactory {
+<FONT ID="LN">59  </FONT><A NAME="59"></A>      <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> WeakHashMap<FONT ID="MultiLineComment">/*&lt;Class&lt;? extends Attribute&gt;, WeakReference&lt;Class&lt;? extends AttributeImpl&gt;&gt;&gt;*/</FONT> attClassImplMap = <FONT ID="New">new</FONT> WeakHashMap();
+<FONT ID="LN">60  </FONT><A NAME="60"></A>      
+<FONT ID="LN">61  </FONT><A NAME="61"></A>      <FONT ID="Private">private</FONT> DefaultAttributeFactory() {}
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    
+<FONT ID="LN">63  </FONT><A NAME="63"></A>      <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> createAttributeInstance(Class attClass) {
+<FONT ID="LN">64  </FONT><A NAME="64"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">65  </FONT><A NAME="65"></A>          <FONT ID="Return">return</FONT> (<A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A>) getClassForInterface(attClass).newInstance();
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        } <FONT ID="Catch">catch</FONT> (InstantiationException e) {
+<FONT ID="LN">67  </FONT><A NAME="67"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"Could not instantiate implementing class for "</FONT> + attClass.getName());
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        } <FONT ID="Catch">catch</FONT> (IllegalAccessException e) {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"Could not instantiate implementing class for "</FONT> + attClass.getName());
+<FONT ID="LN">70  </FONT><A NAME="70"></A>        }
+<FONT ID="LN">71  </FONT><A NAME="71"></A>      }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>      
+<FONT ID="LN">73  </FONT><A NAME="73"></A>      <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> Class getClassForInterface(Class attClass) {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>        <FONT ID="Synchronized">synchronized</FONT>(attClassImplMap) {
+<FONT ID="LN">75  </FONT><A NAME="75"></A>          <FONT ID="Final">final</FONT> WeakReference ref = (WeakReference) attClassImplMap.get(attClass);
+<FONT ID="LN">76  </FONT><A NAME="76"></A>          Class clazz = (ref == <FONT ID="Null">null</FONT>) ? <FONT ID="Null">null</FONT> : ((Class) ref.get());
+<FONT ID="LN">77  </FONT><A NAME="77"></A>          <FONT ID="If">if</FONT> (clazz == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">78  </FONT><A NAME="78"></A>            <FONT ID="Try">try</FONT> {
+<FONT ID="LN">79  </FONT><A NAME="79"></A>              attClassImplMap.put(attClass, <FONT ID="New">new</FONT> WeakReference(
+<FONT ID="LN">80  </FONT><A NAME="80"></A>                clazz = Class.forName(attClass.getName() + <FONT ID="StringLiteral">"Impl"</FONT>, <FONT ID="True">true</FONT>, attClass.getClassLoader())
+<FONT ID="LN">81  </FONT><A NAME="81"></A>              ));
+<FONT ID="LN">82  </FONT><A NAME="82"></A>            } <FONT ID="Catch">catch</FONT> (ClassNotFoundException e) {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>              <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"Could not find implementing class for "</FONT> + attClass.getName());
+<FONT ID="LN">84  </FONT><A NAME="84"></A>            }
+<FONT ID="LN">85  </FONT><A NAME="85"></A>          }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>          <FONT ID="Return">return</FONT> clazz;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>        }
+<FONT ID="LN">88  </FONT><A NAME="88"></A>      }
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    }
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>      
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  <FONT ID="SingleLineComment">// These two maps must always be in sync!!!
+<FONT ID="LN">93  </FONT><A NAME="93"></A></FONT>  <FONT ID="SingleLineComment">// So they are private, final and read-only from the outside (read-only iterators)
+<FONT ID="LN">94  </FONT><A NAME="94"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> Map<FONT ID="MultiLineComment">/*&lt;Class&lt;Attribute&gt;,AttributeImpl&gt;*/</FONT> attributes;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> Map<FONT ID="MultiLineComment">/*&lt;Class&lt;AttributeImpl&gt;,AttributeImpl&gt;*/</FONT> attributeImpls;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  <FONT ID="Private">private</FONT> AttributeFactory factory;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   * An AttributeSource using the default attribute factory {@link AttributeSource.AttributeFactory#DEFAULT_ATTRIBUTE_FACTORY}.
+<FONT ID="LN">101 </FONT><A NAME="101"></A>   */</FONT>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="Public">public</FONT> AttributeSource() {
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="This">this</FONT>(AttributeFactory.DEFAULT_ATTRIBUTE_FACTORY);
+<FONT ID="LN">104 </FONT><A NAME="104"></A>  }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">107 </FONT><A NAME="107"></A>   * An AttributeSource that uses the same attributes as the supplied one.
+<FONT ID="LN">108 </FONT><A NAME="108"></A>   */</FONT>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="Public">public</FONT> AttributeSource(<A HREF="../../../../org/apache/lucene/util/AttributeSource.java.html">AttributeSource</A> input) {
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    <FONT ID="If">if</FONT> (input == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">111 </FONT><A NAME="111"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"input AttributeSource must not be null"</FONT>);
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    }
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="This">this</FONT>.attributes = input.attributes;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    <FONT ID="This">this</FONT>.attributeImpls = input.attributeImpls;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="This">this</FONT>.factory = input.factory;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  }
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">119 </FONT><A NAME="119"></A>   * An AttributeSource using the supplied {@link AttributeFactory} for creating new {@link Attribute} instances.
+<FONT ID="LN">120 </FONT><A NAME="120"></A>   */</FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="Public">public</FONT> AttributeSource(AttributeFactory factory) {
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="This">this</FONT>.attributes = <FONT ID="New">new</FONT> LinkedHashMap();
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="This">this</FONT>.attributeImpls = <FONT ID="New">new</FONT> LinkedHashMap();
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    <FONT ID="This">this</FONT>.factory = factory;
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  }
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  
+<FONT ID="LN">127 </FONT><A NAME="127"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">128 </FONT><A NAME="128"></A>   * returns the used AttributeFactory.
+<FONT ID="LN">129 </FONT><A NAME="129"></A>   */</FONT>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  <FONT ID="Public">public</FONT> AttributeFactory getAttributeFactory() {
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.factory;
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  }
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/** Returns a new iterator that iterates the attribute classes
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * in the same order they were added in.
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * &lt;p&gt;Signature for Java 1.5: &lt;code&gt;public Iterator&amp;lt;Class&amp;lt;? extends Attribute&amp;gt;&amp;gt; getAttributeClassesIterator()&lt;/code&gt;
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   */</FONT>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  <FONT ID="Public">public</FONT> Iterator getAttributeClassesIterator() {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    <FONT ID="Return">return</FONT> Collections.unmodifiableSet(attributes.keySet()).iterator();
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  }
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  <FONT ID="FormalComment">/** Returns a new iterator that iterates all unique Attribute implementations.
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * This iterator may contain less entries that {@link #getAttributeClassesIterator},
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * if one instance implements more than one Attribute interface.
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * &lt;p&gt;Signature for Java 1.5: &lt;code&gt;public Iterator&amp;lt;AttributeImpl&amp;gt; getAttributeImplsIterator()&lt;/code&gt;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   */</FONT>
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  <FONT ID="Public">public</FONT> Iterator getAttributeImplsIterator() {
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    <FONT ID="If">if</FONT> (hasAttributes()) {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>      <FONT ID="If">if</FONT> (currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">150 </FONT><A NAME="150"></A>        computeCurrentState();
+<FONT ID="LN">151 </FONT><A NAME="151"></A>      }
+<FONT ID="LN">152 </FONT><A NAME="152"></A>      <FONT ID="Final">final</FONT> State initState = currentState;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Iterator() {
+<FONT ID="LN">154 </FONT><A NAME="154"></A>        <FONT ID="Private">private</FONT> State state = initState;
+<FONT ID="LN">155 </FONT><A NAME="155"></A>      
+<FONT ID="LN">156 </FONT><A NAME="156"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> remove() {
+<FONT ID="LN">157 </FONT><A NAME="157"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException();
+<FONT ID="LN">158 </FONT><A NAME="158"></A>        }
+<FONT ID="LN">159 </FONT><A NAME="159"></A>        
+<FONT ID="LN">160 </FONT><A NAME="160"></A>        <FONT ID="Public">public</FONT> Object next() {
+<FONT ID="LN">161 </FONT><A NAME="161"></A>          <FONT ID="If">if</FONT> (state == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">162 </FONT><A NAME="162"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> NoSuchElementException();
+<FONT ID="LN">163 </FONT><A NAME="163"></A>          <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> att = state.attribute;
+<FONT ID="LN">164 </FONT><A NAME="164"></A>          state = state.next;
+<FONT ID="LN">165 </FONT><A NAME="165"></A>          <FONT ID="Return">return</FONT> att;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>        }
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        
+<FONT ID="LN">168 </FONT><A NAME="168"></A>        <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasNext() {
+<FONT ID="LN">169 </FONT><A NAME="169"></A>          <FONT ID="Return">return</FONT> state != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        }
+<FONT ID="LN">171 </FONT><A NAME="171"></A>      };
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">173 </FONT><A NAME="173"></A>      <FONT ID="Return">return</FONT> Collections.EMPTY_SET.iterator();
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    }
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>  
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  <FONT ID="FormalComment">/** a cache that stores all interfaces for known implementation classes for performance (slow reflection) */</FONT>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> WeakHashMap<FONT ID="MultiLineComment">/*&lt;Class&lt;? extends AttributeImpl&gt;,LinkedList&lt;WeakReference&lt;Class&lt;? extends Attribute&gt;&gt;&gt;&gt;*/</FONT>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    knownImplClasses = <FONT ID="New">new</FONT> WeakHashMap();
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  <FONT ID="FormalComment">/** Adds a custom AttributeImpl instance with one or more Attribute interfaces. */</FONT>
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addAttributeImpl(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> att) {
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    <FONT ID="Final">final</FONT> Class clazz = att.getClass();
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    <FONT ID="If">if</FONT> (attributeImpls.containsKey(clazz)) <FONT ID="Return">return</FONT>;
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    LinkedList foundInterfaces;
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    <FONT ID="Synchronized">synchronized</FONT>(knownImplClasses) {
+<FONT ID="LN">187 </FONT><A NAME="187"></A>      foundInterfaces = (LinkedList) knownImplClasses.get(clazz);
+<FONT ID="LN">188 </FONT><A NAME="188"></A>      <FONT ID="If">if</FONT> (foundInterfaces == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">189 </FONT><A NAME="189"></A>        <FONT ID="SingleLineComment">// we have a strong reference to the class instance holding all interfaces in the list (parameter "att"),
+<FONT ID="LN">190 </FONT><A NAME="190"></A></FONT>        <FONT ID="SingleLineComment">// so all WeakReferences are never evicted by GC
+<FONT ID="LN">191 </FONT><A NAME="191"></A></FONT>        knownImplClasses.put(clazz, foundInterfaces=<FONT ID="New">new</FONT> LinkedList());
+<FONT ID="LN">192 </FONT><A NAME="192"></A>        <FONT ID="SingleLineComment">// find all interfaces that this attribute instance implements
+<FONT ID="LN">193 </FONT><A NAME="193"></A></FONT>        <FONT ID="SingleLineComment">// and that extend the Attribute interface
+<FONT ID="LN">194 </FONT><A NAME="194"></A></FONT>        Class actClazz = clazz;
+<FONT ID="LN">195 </FONT><A NAME="195"></A>        <FONT ID="Do">do</FONT> {
+<FONT ID="LN">196 </FONT><A NAME="196"></A>          Class[] interfaces = actClazz.getInterfaces();
+<FONT ID="LN">197 </FONT><A NAME="197"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; interfaces.length; i++) {
+<FONT ID="LN">198 </FONT><A NAME="198"></A>            <FONT ID="Final">final</FONT> Class curInterface = interfaces[i];
+<FONT ID="LN">199 </FONT><A NAME="199"></A>            <FONT ID="If">if</FONT> (curInterface != <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A>.<FONT ID="Class">class</FONT> &amp;&amp; <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A>.<FONT ID="Class">class</FONT>.isAssignableFrom(curInterface)) {
+<FONT ID="LN">200 </FONT><A NAME="200"></A>              foundInterfaces.add(<FONT ID="New">new</FONT> WeakReference(curInterface));
+<FONT ID="LN">201 </FONT><A NAME="201"></A>            }
+<FONT ID="LN">202 </FONT><A NAME="202"></A>          }
+<FONT ID="LN">203 </FONT><A NAME="203"></A>          actClazz = actClazz.getSuperclass();
+<FONT ID="LN">204 </FONT><A NAME="204"></A>        } <FONT ID="While">while</FONT> (actClazz != <FONT ID="Null">null</FONT>);
+<FONT ID="LN">205 </FONT><A NAME="205"></A>      }
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    <FONT ID="SingleLineComment">// add all interfaces of this AttributeImpl to the maps
+<FONT ID="LN">209 </FONT><A NAME="209"></A></FONT>    <FONT ID="For">for</FONT> (Iterator it = foundInterfaces.iterator(); it.hasNext(); ) {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>      <FONT ID="Final">final</FONT> WeakReference curInterfaceRef = (WeakReference) it.next();
+<FONT ID="LN">211 </FONT><A NAME="211"></A>      <FONT ID="Final">final</FONT> Class curInterface = (Class) curInterfaceRef.get();
+<FONT ID="LN">212 </FONT><A NAME="212"></A>      assert (curInterface != <FONT ID="Null">null</FONT>) :
+<FONT ID="LN">213 </FONT><A NAME="213"></A>        <FONT ID="StringLiteral">"We have a strong reference on the class holding the interfaces, so they should never get evicted"</FONT>;
+<FONT ID="LN">214 </FONT><A NAME="214"></A>      <FONT ID="SingleLineComment">// Attribute is a superclass of this interface
+<FONT ID="LN">215 </FONT><A NAME="215"></A></FONT>      <FONT ID="If">if</FONT> (!attributes.containsKey(curInterface)) {
+<FONT ID="LN">216 </FONT><A NAME="216"></A>        <FONT ID="SingleLineComment">// invalidate state to force recomputation in captureState()
+<FONT ID="LN">217 </FONT><A NAME="217"></A></FONT>        <FONT ID="This">this</FONT>.currentState = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">218 </FONT><A NAME="218"></A>        attributes.put(curInterface, att);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>        attributeImpls.put(clazz, att);
+<FONT ID="LN">220 </FONT><A NAME="220"></A>      }
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    }
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>  
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   * The caller must pass in a Class&amp;lt;? extends Attribute&amp;gt; value.
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   * This method first checks if an instance of that class is 
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * already in this AttributeSource and returns it. Otherwise a
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * new instance is created, added to this AttributeSource and returned. 
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * &lt;p&gt;Signature for Java 1.5: &lt;code&gt;public &amp;lt;T extends Attribute&amp;gt; T addAttribute(Class&amp;lt;T&amp;gt;)&lt;/code&gt;
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   */</FONT>
+<FONT ID="LN">231 </FONT><A NAME="231"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A> addAttribute(Class attClass) {
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A> att = (<A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A>) attributes.get(attClass);
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    <FONT ID="If">if</FONT> (att == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">234 </FONT><A NAME="234"></A>      <FONT ID="If">if</FONT> (!(attClass.isInterface() &amp;&amp; <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A>.<FONT ID="Class">class</FONT>.isAssignableFrom(attClass))) {
+<FONT ID="LN">235 </FONT><A NAME="235"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(
+<FONT ID="LN">236 </FONT><A NAME="236"></A>          <FONT ID="StringLiteral">"addAttribute() only accepts an interface that extends Attribute, but "</FONT> +
+<FONT ID="LN">237 </FONT><A NAME="237"></A>          attClass.getName() + <FONT ID="StringLiteral">" does not fulfil this contract."</FONT>
+<FONT ID="LN">238 </FONT><A NAME="238"></A>        );
+<FONT ID="LN">239 </FONT><A NAME="239"></A>      }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> attImpl = <FONT ID="This">this</FONT>.factory.createAttributeInstance(attClass);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>      addAttributeImpl(attImpl);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>      <FONT ID="Return">return</FONT> attImpl;
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">244 </FONT><A NAME="244"></A>      <FONT ID="Return">return</FONT> att;
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    }
+<FONT ID="LN">246 </FONT><A NAME="246"></A>  }
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  
+<FONT ID="LN">248 </FONT><A NAME="248"></A>  <FONT ID="FormalComment">/** Returns true, iff this AttributeSource has any attributes */</FONT>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasAttributes() {
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    <FONT ID="Return">return</FONT> !<FONT ID="This">this</FONT>.attributes.isEmpty();
+<FONT ID="LN">251 </FONT><A NAME="251"></A>  }
+<FONT ID="LN">252 </FONT><A NAME="252"></A>
+<FONT ID="LN">253 </FONT><A NAME="253"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">254 </FONT><A NAME="254"></A>   * The caller must pass in a Class&amp;lt;? extends Attribute&amp;gt; value. 
+<FONT ID="LN">255 </FONT><A NAME="255"></A>   * Returns true, iff this AttributeSource contains the passed-in Attribute.
+<FONT ID="LN">256 </FONT><A NAME="256"></A>   * &lt;p&gt;Signature for Java 1.5: &lt;code&gt;public boolean hasAttribute(Class&amp;lt;? extends Attribute&amp;gt;)&lt;/code&gt;
+<FONT ID="LN">257 </FONT><A NAME="257"></A>   */</FONT>
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasAttribute(Class attClass) {
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.attributes.containsKey(attClass);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  }
+<FONT ID="LN">261 </FONT><A NAME="261"></A>
+<FONT ID="LN">262 </FONT><A NAME="262"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">263 </FONT><A NAME="263"></A>   * The caller must pass in a Class&amp;lt;? extends Attribute&amp;gt; value. 
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   * Returns the instance of the passed in Attribute contained in this AttributeSource
+<FONT ID="LN">265 </FONT><A NAME="265"></A>   * &lt;p&gt;Signature for Java 1.5: &lt;code&gt;public &amp;lt;T extends Attribute&amp;gt; T getAttribute(Class&amp;lt;T&amp;gt;)&lt;/code&gt;
+<FONT ID="LN">266 </FONT><A NAME="266"></A>   * 
+<FONT ID="LN">267 </FONT><A NAME="267"></A>   * @throws IllegalArgumentException if this AttributeSource does not contain the
+<FONT ID="LN">268 </FONT><A NAME="268"></A>   *         Attribute. It is recommended to always use {@link #addAttribute} even in consumers
+<FONT ID="LN">269 </FONT><A NAME="269"></A>   *         of TokenStreams, because you cannot know if a specific TokenStream really uses
+<FONT ID="LN">270 </FONT><A NAME="270"></A>   *         a specific Attribute. {@link #addAttribute} will automatically make the attribute
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   *         available. If you want to only use the attribute, if it is available (to optimize
+<FONT ID="LN">272 </FONT><A NAME="272"></A>   *         consuming), use {@link #hasAttribute}.
+<FONT ID="LN">273 </FONT><A NAME="273"></A>   */</FONT>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A> getAttribute(Class attClass) {
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A> att = (<A HREF="../../../../org/apache/lucene/util/Attribute.java.html">Attribute</A>) <FONT ID="This">this</FONT>.attributes.get(attClass);
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <FONT ID="If">if</FONT> (att == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">277 </FONT><A NAME="277"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"This AttributeSource does not have the attribute '"</FONT> + attClass.getName() + <FONT ID="StringLiteral">"'."</FONT>);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    }
+<FONT ID="LN">279 </FONT><A NAME="279"></A>
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    <FONT ID="Return">return</FONT> att;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>  }
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  
+<FONT ID="LN">283 </FONT><A NAME="283"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   * This class holds the state of an AttributeSource.
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   * @see #captureState
+<FONT ID="LN">286 </FONT><A NAME="286"></A>   * @see #restoreState
+<FONT ID="LN">287 </FONT><A NAME="287"></A>   */</FONT>
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> State <FONT ID="Implements">implements</FONT> Cloneable {
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> attribute;
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    <FONT ID="Private">private</FONT> State next;
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    <FONT ID="Public">public</FONT> Object clone() {
+<FONT ID="LN">293 </FONT><A NAME="293"></A>      State clone = <FONT ID="New">new</FONT> State();
+<FONT ID="LN">294 </FONT><A NAME="294"></A>      clone.attribute = (<A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A>) attribute.clone();
+<FONT ID="LN">295 </FONT><A NAME="295"></A>      
+<FONT ID="LN">296 </FONT><A NAME="296"></A>      <FONT ID="If">if</FONT> (next != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">297 </FONT><A NAME="297"></A>        clone.next = (State) next.clone();
+<FONT ID="LN">298 </FONT><A NAME="298"></A>      }
+<FONT ID="LN">299 </FONT><A NAME="299"></A>      
+<FONT ID="LN">300 </FONT><A NAME="300"></A>      <FONT ID="Return">return</FONT> clone;
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    }
+<FONT ID="LN">302 </FONT><A NAME="302"></A>  }
+<FONT ID="LN">303 </FONT><A NAME="303"></A>  
+<FONT ID="LN">304 </FONT><A NAME="304"></A>  <FONT ID="Private">private</FONT> State currentState = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">305 </FONT><A NAME="305"></A>  
+<FONT ID="LN">306 </FONT><A NAME="306"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> computeCurrentState() {
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    currentState = <FONT ID="New">new</FONT> State();
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    State c = currentState;
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    Iterator it = attributeImpls.values().iterator();
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    c.attribute = (<A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A>) it.next();
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    <FONT ID="While">while</FONT> (it.hasNext()) {
+<FONT ID="LN">312 </FONT><A NAME="312"></A>      c.next = <FONT ID="New">new</FONT> State();
+<FONT ID="LN">313 </FONT><A NAME="313"></A>      c = c.next;
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      c.attribute = (<A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A>) it.next();
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    }        
+<FONT ID="LN">316 </FONT><A NAME="316"></A>  }
+<FONT ID="LN">317 </FONT><A NAME="317"></A>  
+<FONT ID="LN">318 </FONT><A NAME="318"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">319 </FONT><A NAME="319"></A>   * Resets all Attributes in this AttributeSource by calling
+<FONT ID="LN">320 </FONT><A NAME="320"></A>   * {@link AttributeImpl#clear()} on each Attribute implementation.
+<FONT ID="LN">321 </FONT><A NAME="321"></A>   */</FONT>
+<FONT ID="LN">322 </FONT><A NAME="322"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> clearAttributes() {
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    <FONT ID="If">if</FONT> (hasAttributes()) {
+<FONT ID="LN">324 </FONT><A NAME="324"></A>      <FONT ID="If">if</FONT> (currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">325 </FONT><A NAME="325"></A>        computeCurrentState();
+<FONT ID="LN">326 </FONT><A NAME="326"></A>      }
+<FONT ID="LN">327 </FONT><A NAME="327"></A>      <FONT ID="For">for</FONT> (State state = currentState; state != <FONT ID="Null">null</FONT>; state = state.next) {
+<FONT ID="LN">328 </FONT><A NAME="328"></A>        state.attribute.clear();
+<FONT ID="LN">329 </FONT><A NAME="329"></A>      }
+<FONT ID="LN">330 </FONT><A NAME="330"></A>    }
+<FONT ID="LN">331 </FONT><A NAME="331"></A>  }
+<FONT ID="LN">332 </FONT><A NAME="332"></A>  
+<FONT ID="LN">333 </FONT><A NAME="333"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">334 </FONT><A NAME="334"></A>   * Captures the state of all Attributes. The return value can be passed to
+<FONT ID="LN">335 </FONT><A NAME="335"></A>   * {@link #restoreState} to restore the state of this or another AttributeSource.
+<FONT ID="LN">336 </FONT><A NAME="336"></A>   */</FONT>
+<FONT ID="LN">337 </FONT><A NAME="337"></A>  <FONT ID="Public">public</FONT> State captureState() {
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    <FONT ID="If">if</FONT> (!hasAttributes()) {
+<FONT ID="LN">339 </FONT><A NAME="339"></A>      <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    }
+<FONT ID="LN">341 </FONT><A NAME="341"></A>      
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    <FONT ID="If">if</FONT> (currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">343 </FONT><A NAME="343"></A>      computeCurrentState();
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    }
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    <FONT ID="Return">return</FONT> (State) <FONT ID="This">this</FONT>.currentState.clone();
+<FONT ID="LN">346 </FONT><A NAME="346"></A>  }
+<FONT ID="LN">347 </FONT><A NAME="347"></A>  
+<FONT ID="LN">348 </FONT><A NAME="348"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">349 </FONT><A NAME="349"></A>   * Restores this state by copying the values of all attribute implementations
+<FONT ID="LN">350 </FONT><A NAME="350"></A>   * that this state contains into the attributes implementations of the targetStream.
+<FONT ID="LN">351 </FONT><A NAME="351"></A>   * The targetStream must contain a corresponding instance for each argument
+<FONT ID="LN">352 </FONT><A NAME="352"></A>   * contained in this state (e.g. it is not possible to restore the state of
+<FONT ID="LN">353 </FONT><A NAME="353"></A>   * an AttributeSource containing a TermAttribute into a AttributeSource using
+<FONT ID="LN">354 </FONT><A NAME="354"></A>   * a Token instance as implementation).
+<FONT ID="LN">355 </FONT><A NAME="355"></A>   * &lt;p&gt;
+<FONT ID="LN">356 </FONT><A NAME="356"></A>   * Note that this method does not affect attributes of the targetStream
+<FONT ID="LN">357 </FONT><A NAME="357"></A>   * that are not contained in this state. In other words, if for example
+<FONT ID="LN">358 </FONT><A NAME="358"></A>   * the targetStream contains an OffsetAttribute, but this state doesn't, then
+<FONT ID="LN">359 </FONT><A NAME="359"></A>   * the value of the OffsetAttribute remains unchanged. It might be desirable to
+<FONT ID="LN">360 </FONT><A NAME="360"></A>   * reset its value to the default, in which case the caller should first
+<FONT ID="LN">361 </FONT><A NAME="361"></A>   * call {@link TokenStream#clearAttributes()} on the targetStream.   
+<FONT ID="LN">362 </FONT><A NAME="362"></A>   */</FONT>
+<FONT ID="LN">363 </FONT><A NAME="363"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> restoreState(State state) {
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    <FONT ID="If">if</FONT> (state == <FONT ID="Null">null</FONT>)  <FONT ID="Return">return</FONT>;
+<FONT ID="LN">365 </FONT><A NAME="365"></A>    
+<FONT ID="LN">366 </FONT><A NAME="366"></A>    <FONT ID="Do">do</FONT> {
+<FONT ID="LN">367 </FONT><A NAME="367"></A>      <A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A> targetImpl = (<A HREF="../../../../org/apache/lucene/util/AttributeImpl.java.html">AttributeImpl</A>) attributeImpls.get(state.attribute.getClass());
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      <FONT ID="If">if</FONT> (targetImpl == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">369 </FONT><A NAME="369"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"State contains an AttributeImpl that is not in this AttributeSource"</FONT>);
+<FONT ID="LN">370 </FONT><A NAME="370"></A>      state.attribute.copyTo(targetImpl);
+<FONT ID="LN">371 </FONT><A NAME="371"></A>      state = state.next;
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    } <FONT ID="While">while</FONT> (state != <FONT ID="Null">null</FONT>);
+<FONT ID="LN">373 </FONT><A NAME="373"></A>  }
+<FONT ID="LN">374 </FONT><A NAME="374"></A>
+<FONT ID="LN">375 </FONT><A NAME="375"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> hashCode() {
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    <FONT ID="Int">int</FONT> code = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">377 </FONT><A NAME="377"></A>    <FONT ID="If">if</FONT> (hasAttributes()) {
+<FONT ID="LN">378 </FONT><A NAME="378"></A>      <FONT ID="If">if</FONT> (currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">379 </FONT><A NAME="379"></A>        computeCurrentState();
+<FONT ID="LN">380 </FONT><A NAME="380"></A>      }
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      <FONT ID="For">for</FONT> (State state = currentState; state != <FONT ID="Null">null</FONT>; state = state.next) {
+<FONT ID="LN">382 </FONT><A NAME="382"></A>        code = code * <FONT ID="IntegerLiteral">31</FONT> + state.attribute.hashCode();
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      }
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    }
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    <FONT ID="Return">return</FONT> code;
+<FONT ID="LN">387 </FONT><A NAME="387"></A>  }
+<FONT ID="LN">388 </FONT><A NAME="388"></A>  
+<FONT ID="LN">389 </FONT><A NAME="389"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object obj) {
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    <FONT ID="If">if</FONT> (obj == <FONT ID="This">this</FONT>) {
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    }
+<FONT ID="LN">393 </FONT><A NAME="393"></A>
+<FONT ID="LN">394 </FONT><A NAME="394"></A>    <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeSource.java.html">AttributeSource</A>) {
+<FONT ID="LN">395 </FONT><A NAME="395"></A>      <A HREF="../../../../org/apache/lucene/util/AttributeSource.java.html">AttributeSource</A> other = (<A HREF="../../../../org/apache/lucene/util/AttributeSource.java.html">AttributeSource</A>) obj;  
+<FONT ID="LN">396 </FONT><A NAME="396"></A>    
+<FONT ID="LN">397 </FONT><A NAME="397"></A>      <FONT ID="If">if</FONT> (hasAttributes()) {
+<FONT ID="LN">398 </FONT><A NAME="398"></A>        <FONT ID="If">if</FONT> (!other.hasAttributes()) {
+<FONT ID="LN">399 </FONT><A NAME="399"></A>          <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">400 </FONT><A NAME="400"></A>        }
+<FONT ID="LN">401 </FONT><A NAME="401"></A>        
+<FONT ID="LN">402 </FONT><A NAME="402"></A>        <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.attributeImpls.size() != other.attributeImpls.size()) {
+<FONT ID="LN">403 </FONT><A NAME="403"></A>          <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">404 </FONT><A NAME="404"></A>        }
+<FONT ID="LN">405 </FONT><A NAME="405"></A>  
+<FONT ID="LN">406 </FONT><A NAME="406"></A>        <FONT ID="SingleLineComment">// it is only equal if all attribute impls are the same in the same order
+<FONT ID="LN">407 </FONT><A NAME="407"></A></FONT>        <FONT ID="If">if</FONT> (<FONT ID="This">this</FONT>.currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">408 </FONT><A NAME="408"></A>          <FONT ID="This">this</FONT>.computeCurrentState();
+<FONT ID="LN">409 </FONT><A NAME="409"></A>        }
+<FONT ID="LN">410 </FONT><A NAME="410"></A>        State thisState = <FONT ID="This">this</FONT>.currentState;
+<FONT ID="LN">411 </FONT><A NAME="411"></A>        <FONT ID="If">if</FONT> (other.currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">412 </FONT><A NAME="412"></A>          other.computeCurrentState();
+<FONT ID="LN">413 </FONT><A NAME="413"></A>        }
+<FONT ID="LN">414 </FONT><A NAME="414"></A>        State otherState = other.currentState;
+<FONT ID="LN">415 </FONT><A NAME="415"></A>        <FONT ID="While">while</FONT> (thisState != <FONT ID="Null">null</FONT> &amp;&amp; otherState != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">416 </FONT><A NAME="416"></A>          <FONT ID="If">if</FONT> (otherState.attribute.getClass() != thisState.attribute.getClass() || !otherState.attribute.equals(thisState.attribute)) {
+<FONT ID="LN">417 </FONT><A NAME="417"></A>            <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">418 </FONT><A NAME="418"></A>          }
+<FONT ID="LN">419 </FONT><A NAME="419"></A>          thisState = thisState.next;
+<FONT ID="LN">420 </FONT><A NAME="420"></A>          otherState = otherState.next;
+<FONT ID="LN">421 </FONT><A NAME="421"></A>        }
+<FONT ID="LN">422 </FONT><A NAME="422"></A>        <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">423 </FONT><A NAME="423"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">424 </FONT><A NAME="424"></A>        <FONT ID="Return">return</FONT> !other.hasAttributes();
+<FONT ID="LN">425 </FONT><A NAME="425"></A>      }
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    } <FONT ID="Else">else</FONT>
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">428 </FONT><A NAME="428"></A>  }
+<FONT ID="LN">429 </FONT><A NAME="429"></A>  
+<FONT ID="LN">430 </FONT><A NAME="430"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    StringBuffer sb = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">432 </FONT><A NAME="432"></A>    sb.append(<FONT ID="CharacerLiteral">'('</FONT>);
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    <FONT ID="If">if</FONT> (hasAttributes()) {
+<FONT ID="LN">435 </FONT><A NAME="435"></A>      <FONT ID="If">if</FONT> (currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">436 </FONT><A NAME="436"></A>        computeCurrentState();
+<FONT ID="LN">437 </FONT><A NAME="437"></A>      }
+<FONT ID="LN">438 </FONT><A NAME="438"></A>      <FONT ID="For">for</FONT> (State state = currentState; state != <FONT ID="Null">null</FONT>; state = state.next) {
+<FONT ID="LN">439 </FONT><A NAME="439"></A>        <FONT ID="If">if</FONT> (state != currentState) sb.append(<FONT ID="CharacerLiteral">','</FONT>);
+<FONT ID="LN">440 </FONT><A NAME="440"></A>        sb.append(state.attribute.toString());
+<FONT ID="LN">441 </FONT><A NAME="441"></A>      }
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    }
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    sb.append(<FONT ID="CharacerLiteral">')'</FONT>);
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    <FONT ID="Return">return</FONT> sb.toString();
+<FONT ID="LN">445 </FONT><A NAME="445"></A>  }
+<FONT ID="LN">446 </FONT><A NAME="446"></A>  
+<FONT ID="LN">447 </FONT><A NAME="447"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">448 </FONT><A NAME="448"></A>   * Performs a clone of all {@link AttributeImpl} instances returned in a new
+<FONT ID="LN">449 </FONT><A NAME="449"></A>   * AttributeSource instance. This method can be used to e.g. create another TokenStream
+<FONT ID="LN">450 </FONT><A NAME="450"></A>   * with exactly the same attributes (using {@link #AttributeSource(AttributeSource)})
+<FONT ID="LN">451 </FONT><A NAME="451"></A>   */</FONT>
+<FONT ID="LN">452 </FONT><A NAME="452"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeSource.java.html">AttributeSource</A> cloneAttributes() {
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    <A HREF="../../../../org/apache/lucene/util/AttributeSource.java.html">AttributeSource</A> clone = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/AttributeSource.java.html">AttributeSource</A>(<FONT ID="This">this</FONT>.factory);
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    <FONT ID="SingleLineComment">// first clone the impls
+<FONT ID="LN">456 </FONT><A NAME="456"></A></FONT>    <FONT ID="If">if</FONT> (hasAttributes()) {
+<FONT ID="LN">457 </FONT><A NAME="457"></A>      <FONT ID="If">if</FONT> (currentState == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">458 </FONT><A NAME="458"></A>        computeCurrentState();
+<FONT ID="LN">459 </FONT><A NAME="459"></A>      }
+<FONT ID="LN">460 </FONT><A NAME="460"></A>      <FONT ID="For">for</FONT> (State state = currentState; state != <FONT ID="Null">null</FONT>; state = state.next) {
+<FONT ID="LN">461 </FONT><A NAME="461"></A>        clone.attributeImpls.put(state.attribute.getClass(), state.attribute.clone());
+<FONT ID="LN">462 </FONT><A NAME="462"></A>      }
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    }
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    <FONT ID="SingleLineComment">// now the interfaces
+<FONT ID="LN">466 </FONT><A NAME="466"></A></FONT>    Iterator<FONT ID="MultiLineComment">/*&lt;Entry&lt;Class&lt;Attribute&gt;, AttributeImpl&gt;&gt;*/</FONT> attIt = <FONT ID="This">this</FONT>.attributes.entrySet().iterator(); 
+<FONT ID="LN">467 </FONT><A NAME="467"></A>    <FONT ID="While">while</FONT> (attIt.hasNext()) {
+<FONT ID="LN">468 </FONT><A NAME="468"></A>      Entry<FONT ID="MultiLineComment">/*&lt;Class&lt;Attribute&gt;, AttributeImpl&gt;*/</FONT> entry = (Entry<FONT ID="MultiLineComment">/*&lt;Class&lt;Attribute&gt;, AttributeImpl&gt;*/</FONT>) attIt.next();
+<FONT ID="LN">469 </FONT><A NAME="469"></A>      clone.attributes.put(entry.getKey(), clone.attributeImpls.get(entry.getValue().getClass()));
+<FONT ID="LN">470 </FONT><A NAME="470"></A>    }
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    <FONT ID="Return">return</FONT> clone;
+<FONT ID="LN">473 </FONT><A NAME="473"></A>  }
+<FONT ID="LN">474 </FONT><A NAME="474"></A>
+<FONT ID="LN">475 </FONT><A NAME="475"></A>}
+<FONT ID="LN">476 </FONT><A NAME="476"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AttributeSource.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

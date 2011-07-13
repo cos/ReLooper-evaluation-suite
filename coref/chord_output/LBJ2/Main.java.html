@@ -1,0 +1,594 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.Main (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Main.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.io.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java_cup.runtime.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> LBJ2.frontend.*;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> LBJ2.IR.*;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A>
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * LBJ2's command line interface.  Passing a source file to this class will
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * invoke LBJ2's frontend and optimization passes, resulting in the execution
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * of the source file's code including creation of java files that implement
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * the source file's semantics. &lt;p&gt;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  *
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  * &lt;font size=+2&gt;&lt;b&gt;LBJ&lt;/b&gt;&lt;/font&gt; stands for
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  * &lt;font size=+1&gt;&lt;b&gt;L&lt;/b&gt;&lt;/font&gt;earning &lt;font size=+1&gt;&lt;b&gt;B&lt;/b&gt;&lt;/font&gt;ased
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  * &lt;font size=+1&gt;&lt;b&gt;J&lt;/b&gt;&lt;/font&gt;ava.  LBJ2 is a language for building systems
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  * that learn. &lt;p&gt;
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  *
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  * &lt;dl&gt;
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  *   &lt;dt&gt;Usage:&lt;/dt&gt;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  *   &lt;dd&gt;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  *     &lt;code&gt;java LBJ2.Main [options] &amp;lt;source file&amp;gt;&lt;/code&gt;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  *     &lt;dl&gt;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  *       &lt;dt&gt;where [options] is one or more of the following:&lt;/dt&gt;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  *       &lt;dd&gt;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  *         &lt;table&gt;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  *           &lt;tr&gt;
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-c&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  *             &lt;td&gt;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  *               Compile only: This option tells LBJ2 to translate the given
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  *               source to Java, but not to compile the generated Java
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  *               sources or do any training.
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  *             &lt;/td&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  *           &lt;tr&gt;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-d &amp;lt;directory&amp;gt;&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  *             &lt;td&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  *               Any class files generated during compilation will be written
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  *               in the specified directory, just like &lt;code&gt;javac&lt;/code&gt;'s
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  *               &lt;code&gt;-d&lt;/code&gt; command line parameter.
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  *             &lt;/td&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  *           &lt;tr&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-j &amp;lt;a&amp;gt;&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  *             &lt;td&gt;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  *               Sends the contents of &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt; to
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  *               &lt;code&gt;javac&lt;/code&gt; as command line arguments while
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  *               compiling.  Don't forget to put quotes around
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  *               &lt;code&gt;&amp;lt;a&amp;gt;&lt;/code&gt; if there is more than one such
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  *               argument or if the argument has a parameter.
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  *             &lt;/td&gt;
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  * &lt;!-- This doesn't work at the moment, so don't use it.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  *           &lt;tr&gt;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-p&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  *             &lt;td&gt;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  *               Train in parallel: When this option is enabled, learners
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  *               that don't depend on each other are trained concurrently.
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  *             &lt;/td&gt;
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  * --&gt;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  *           &lt;tr&gt;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  *             &lt;td valign=top nowrap&gt;&lt;code&gt;-s&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  *             &lt;td&gt; Print the names of all declarations and quit. &lt;/td&gt;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  *           &lt;tr&gt;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  *             &lt;td valign=top nowrap&gt;&lt;code&gt;-t &amp;lt;n&amp;gt;&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  *             &lt;td&gt;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  *               Enables default progress output during training.  A message
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  *               is printed every &lt;code&gt;&amp;lt;n&amp;gt;&lt;/code&gt; examples while
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  *               training any classifier whose &lt;code&gt;learn&lt;/code&gt; expression
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  *               doesn't contain a &lt;code&gt;progressOutput&lt;/code&gt; clause.
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  *             &lt;/td&gt;
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  *           &lt;tr&gt;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-v&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  *             &lt;td&gt; Prints the version number and exits. &lt;/td&gt;
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  *           &lt;tr&gt;
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-w&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  *             &lt;td&gt;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  *               Disables the output of warning messages.  Currenlty, there
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  *               are only two types of warnings.  A warning is reported if a
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  *               constraint declaration does not contain any constraint
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  *               statements, and a warning is reported if a learner's type is
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  *               less specific than the declared type of the classifier it's
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  *               being used in.
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  *             &lt;/td&gt;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  *           &lt;tr&gt;
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-x&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  *             &lt;td&gt;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>  *               Clean: Delete all files that would otherwise be generated.
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  *               No code is generated and no training takes place.
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  *             &lt;/td&gt;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  *           &lt;tr&gt;
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  *             &lt;td valign=top nowrap&gt;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  *               &lt;code&gt;-generatedsourcepath &amp;lt;directory&amp;gt;&lt;/code&gt;&lt;br&gt;
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  *               &lt;code&gt;-gsp &amp;lt;directory&amp;gt;&lt;/code&gt;
+<FONT ID="LN">103 </FONT><A NAME="103"></A>  *             &lt;/td&gt;
+<FONT ID="LN">104 </FONT><A NAME="104"></A>  *             &lt;td&gt;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  *               LBJ will potentially generate many Java source files.  Use
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  *               this option to have LBJ write them to the specified
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  *               directory instead of the current directory.
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  *               &lt;code&gt;&amp;lt;directory&amp;gt;&lt;/code&gt; must already exist.  Note
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  *               that LBJ will also compile these files which can result in
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  *               even more class files than there were sources.  Those class
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  *               files will also be written in &lt;code&gt;&amp;lt;directory&amp;gt;&lt;/code&gt;
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  *               unless the &lt;code&gt;-d&lt;/code&gt; command line parameter is
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  *               utilized as well. 
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  *             &lt;/td&gt;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  *           &lt;tr&gt;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  *             &lt;td valign=top&gt;&lt;code&gt;-sourcepath &amp;lt;path&amp;gt;&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  *             &lt;td&gt;
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  *               If the LBJ source depends on classes whose source files
+<FONT ID="LN">120 </FONT><A NAME="120"></A>  *               cannot be found on the user's classpath, specify the
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  *               directories where they can be found using this parameter.
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  *               It works just like &lt;code&gt;javac&lt;/code&gt;'s
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  *               &lt;code&gt;-sourcepath&lt;/code&gt; command line parameter.
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  *             &lt;/td&gt;
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  *           &lt;tr&gt;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>  *             &lt;td valign=top&gt;&lt;code&gt;--parserDebug&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  *             &lt;td&gt;Debug: Debug output for parse phase only.&lt;/td&gt;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  *           &lt;tr&gt;
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  *             &lt;td valign=top&gt;&lt;code&gt;--lexerOutput&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  *             &lt;td&gt;Lexer output: Print lexical token stream and quit.&lt;/td&gt;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  *           &lt;tr&gt;
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  *             &lt;td valign=top&gt;&lt;code&gt;--parserOutput&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  *             &lt;td&gt;Parser output: Print the parsed AST and quit.&lt;/td&gt;
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  *           &lt;tr&gt;
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  *             &lt;td valign=top&gt;&lt;code&gt;--semanticOutput&lt;/code&gt;&lt;/td&gt;
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  *             &lt;td&gt;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  *               Semantic analysis output: Print semantic analysis
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  *               information and quit.
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  *             &lt;/td&gt;
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  *           &lt;/tr&gt;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>  *         &lt;/table&gt;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  *       &lt;/dd&gt;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  *     &lt;/dl&gt;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  *   &lt;/dd&gt;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  * &lt;/dl&gt;
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  *
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  * @author Nick Rizzolo
+<FONT ID="LN">152 </FONT><A NAME="152"></A> **/</FONT>
+<FONT ID="LN">153 </FONT><A NAME="153"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Main
+<FONT ID="LN">154 </FONT><A NAME="154"></A>{
+<FONT ID="LN">155 </FONT><A NAME="155"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    * This flag is set to &lt;code&gt;true&lt;/code&gt; if token printing is enabled on
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    * the command line.  Tokens are the output from the scanner.
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   **/</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> printTokens = <FONT ID="False">false</FONT>;
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    * This flag is set to &lt;code&gt;true&lt;/code&gt; if AST printing is enabled on the
+<FONT ID="LN">162 </FONT><A NAME="162"></A>    * command line.  The AST is the output from the parser.
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   **/</FONT>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> printAST = <FONT ID="False">false</FONT>;
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    * This flag is set to &lt;code&gt;true&lt;/code&gt; if semantic analysis output is
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    * enabled on the command line.
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   **/</FONT>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> printSemantic = <FONT ID="False">false</FONT>;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    * This flag is set to &lt;code&gt;true&lt;/code&gt; if the output of parser debugging
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    * information is enabled on the command line.
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   **/</FONT>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> parserDebug = <FONT ID="False">false</FONT>;
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    * Set to the granularity at which progress messages should be printed
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    * during training.
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   **/</FONT>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> trainingOutput = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    * This flag is set to &lt;code&gt;true&lt;/code&gt; if cleaning has been enabled on
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    * the command line.
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   **/</FONT>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> clean = <FONT ID="False">false</FONT>;
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    * This flag is set to &lt;code&gt;true&lt;/code&gt; if the user has requested that the
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    * source only be compiled to Java.
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   **/</FONT>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> compileOnly = <FONT ID="False">false</FONT>;
+<FONT ID="LN">190 </FONT><A NAME="190"></A>  <FONT ID="FormalComment">/** This flag is set if concurrent training has been enabled. */</FONT>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> concurrentTraining = <FONT ID="False">false</FONT>;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>  <FONT ID="FormalComment">/** This flag is set if warnings have been disabled on the command line. */</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> warningsDisabled = <FONT ID="False">false</FONT>;
+<FONT ID="LN">194 </FONT><A NAME="194"></A>  <FONT ID="FormalComment">/** This flag is set if symbol printing is enabled on the command line. */</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> printSymbols = <FONT ID="False">false</FONT>;
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  <FONT ID="FormalComment">/** The relative path to the LBJ source file. */</FONT>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String sourceDirectory;
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  <FONT ID="FormalComment">/** The name of the LBJ2 source file as specified on the command line. */</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String sourceFilename;
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  <FONT ID="FormalComment">/** The source file's name without the &lt;code&gt;.lbj&lt;/code&gt; extension. */</FONT>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String sourceFileBase;
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    * Holds command line arguments to be sent to &lt;code&gt;javac&lt;/code&gt; when
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    * compiling.
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   **/</FONT>
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String javacArguments = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    * A list of names of files generated by the compiler, created as they are
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    * generated.
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   **/</FONT>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> HashSet fileNames;
+<FONT ID="LN">212 </FONT><A NAME="212"></A>  <FONT ID="FormalComment">/** The directory in which class files should be written. */</FONT>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String classDirectory;
+<FONT ID="LN">214 </FONT><A NAME="214"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    * The directory in which Javac will place class files in a subdirectory
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    * structure appropriate for their package;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>   **/</FONT>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String classPackageDirectory;
+<FONT ID="LN">219 </FONT><A NAME="219"></A>  <FONT ID="FormalComment">/** The directory in which to search for source files. */</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String classPath = System.getProperty(<FONT ID="StringLiteral">"java.class.path"</FONT>);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>  <FONT ID="FormalComment">/** The directory in which to search for source files. */</FONT>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String sourcePath = System.getProperty(<FONT ID="StringLiteral">"java.class.path"</FONT>);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    * The directory in which to write generated Java source files; actually,
+<FONT ID="LN">225 </FONT><A NAME="225"></A>    * inside this directory they will be written in a subdirectory structure
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    * appropriate for their package.
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   **/</FONT>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String generatedSourceDirectory;
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="FormalComment">/** The passes that will be executed. */</FONT>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> LinkedList passes;
+<FONT ID="LN">231 </FONT><A NAME="231"></A>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>
+<FONT ID="LN">233 </FONT><A NAME="233"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    * The main compiler driver.  This method parses command line options and
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    * then calls all of LBJ2's components.
+<FONT ID="LN">236 </FONT><A NAME="236"></A>    *
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    * @param args           The user's command line arguments are found here.
+<FONT ID="LN">238 </FONT><A NAME="238"></A>    * @exception Exception  An exception is thrown when any error occurs.
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   **/</FONT>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args) <FONT ID="Throws">throws</FONT> Exception
+<FONT ID="LN">241 </FONT><A NAME="241"></A>  {
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    AST ast = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    <FONT ID="Try">try</FONT> { ast = frontend(ProcessCommandLine(args)); }
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    {
+<FONT ID="LN">246 </FONT><A NAME="246"></A>      <FONT ID="If">if</FONT> (<FONT ID="StringLiteral">"version"</FONT>.equals(e.getMessage())) System.exit(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">247 </FONT><A NAME="247"></A>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>      <FONT ID="If">if</FONT> (e.getMessage() == <FONT ID="Null">null</FONT>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>          || !e.getMessage().equals(<FONT ID="StringLiteral">"Incorrect arguments"</FONT>))
+<FONT ID="LN">250 </FONT><A NAME="250"></A>        <FONT ID="Throw">throw</FONT> e;
+<FONT ID="LN">251 </FONT><A NAME="251"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    }
+<FONT ID="LN">253 </FONT><A NAME="253"></A>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    <FONT ID="If">if</FONT> (ast == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT>;
+<FONT ID="LN">255 </FONT><A NAME="255"></A>      <FONT ID="SingleLineComment">// Happens if --lexerOutput, --parserOutput, or --semanticOutput is
+<FONT ID="LN">256 </FONT><A NAME="256"></A></FONT>      <FONT ID="SingleLineComment">// enabled.
+<FONT ID="LN">257 </FONT><A NAME="257"></A></FONT>
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    fileNames = <FONT ID="New">new</FONT> HashSet();
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    passes = <FONT ID="New">new</FONT> LinkedList();
+<FONT ID="LN">260 </FONT><A NAME="260"></A>
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    <FONT ID="New">new</FONT> <A HREF="../LBJ2/SemanticAnalysis.java.html">SemanticAnalysis</A>(ast).run();
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    Pass.printErrorsAndWarnings();
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    <FONT ID="If">if</FONT> (generatedSourceDirectory != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>      <FONT ID="If">if</FONT> (!AST.globalSymbolTable.getPackage().equals(<FONT ID="StringLiteral">""</FONT>))
+<FONT ID="LN">267 </FONT><A NAME="267"></A>        generatedSourceDirectory +=
+<FONT ID="LN">268 </FONT><A NAME="268"></A>          File.separator + AST.globalSymbolTable.getPackage()
+<FONT ID="LN">269 </FONT><A NAME="269"></A>                           .replace(<FONT ID="CharacerLiteral">'.'</FONT>, File.separatorChar);
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    }
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (sourceDirectory != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">272 </FONT><A NAME="272"></A>      generatedSourceDirectory = sourceDirectory;
+<FONT ID="LN">273 </FONT><A NAME="273"></A>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    <FONT ID="If">if</FONT> (classPackageDirectory != <FONT ID="Null">null</FONT>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>        &amp;&amp; !AST.globalSymbolTable.getPackage().equals(<FONT ID="StringLiteral">""</FONT>))
+<FONT ID="LN">276 </FONT><A NAME="276"></A>      classDirectory =
+<FONT ID="LN">277 </FONT><A NAME="277"></A>        classPackageDirectory + File.separator
+<FONT ID="LN">278 </FONT><A NAME="278"></A>        + AST.globalSymbolTable.getPackage().replace(<FONT ID="CharacerLiteral">'.'</FONT>, File.separatorChar);
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    <FONT ID="Else">else</FONT> classDirectory = classPackageDirectory;
+<FONT ID="LN">280 </FONT><A NAME="280"></A>
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    <FONT ID="If">if</FONT> (clean) passes.add(<FONT ID="New">new</FONT> <A HREF="../LBJ2/Clean.java.html">Clean</A>(ast));
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    {
+<FONT ID="LN">284 </FONT><A NAME="284"></A>      passes.add(<FONT ID="New">new</FONT> <A HREF="../LBJ2/RevisionAnalysis.java.html">RevisionAnalysis</A>(ast));
+<FONT ID="LN">285 </FONT><A NAME="285"></A>      passes.add(<FONT ID="New">new</FONT> <A HREF="../LBJ2/TranslateToJava.java.html">TranslateToJava</A>(ast));
+<FONT ID="LN">286 </FONT><A NAME="286"></A>      <FONT ID="If">if</FONT> (!compileOnly) passes.add(<FONT ID="New">new</FONT> <A HREF="../LBJ2/Train.java.html">Train</A>(ast, trainingOutput));
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    }
+<FONT ID="LN">288 </FONT><A NAME="288"></A>
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    <FONT ID="For">for</FONT> (Iterator I = passes.iterator(); I.hasNext() &amp;&amp; !Pass.fatalError; )
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    {
+<FONT ID="LN">291 </FONT><A NAME="291"></A>      ((<A HREF="../LBJ2/Pass.java.html">Pass</A>) I.next()).run();
+<FONT ID="LN">292 </FONT><A NAME="292"></A>      Pass.printErrorsAndWarnings();
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    }
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    <FONT ID="If">if</FONT> (Pass.fatalError) System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">296 </FONT><A NAME="296"></A>  }
+<FONT ID="LN">297 </FONT><A NAME="297"></A>
+<FONT ID="LN">298 </FONT><A NAME="298"></A>
+<FONT ID="LN">299 </FONT><A NAME="299"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    * Sets all the internal flags that correspond to the specified command
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    * line parameters, and checks the command line for errors.
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    *
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    * @param args           The user's command line arguments are found here.
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    * @exception Exception  An exception is thrown if an error is found.
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    * @return               A stream for the input source file.
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   **/</FONT>
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> FileInputStream ProcessCommandLine(String[] args)
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="Throws">throws</FONT> Exception
+<FONT ID="LN">309 </FONT><A NAME="309"></A>  {
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    <FONT ID="If">if</FONT> (args.length &lt; <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    {
+<FONT ID="LN">312 </FONT><A NAME="312"></A>      PrintUsage();
+<FONT ID="LN">313 </FONT><A NAME="313"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Incorrect arguments"</FONT>);
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    }
+<FONT ID="LN">315 </FONT><A NAME="315"></A>
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    <FONT ID="Boolean">boolean</FONT> printVersion = <FONT ID="False">false</FONT>;
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    <FONT ID="Int">int</FONT> index;
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    <FONT ID="For">for</FONT> (index = <FONT ID="IntegerLiteral">0</FONT>; index &lt; args.length - <FONT ID="IntegerLiteral">1</FONT>; ++index)
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    {
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-t"</FONT>))
+<FONT ID="LN">321 </FONT><A NAME="321"></A>      {
+<FONT ID="LN">322 </FONT><A NAME="322"></A>        <FONT ID="Try">try</FONT>
+<FONT ID="LN">323 </FONT><A NAME="323"></A>        {
+<FONT ID="LN">324 </FONT><A NAME="324"></A>          trainingOutput = Integer.parseInt(args[++index]);
+<FONT ID="LN">325 </FONT><A NAME="325"></A>          <FONT ID="If">if</FONT> (trainingOutput &lt; <FONT ID="IntegerLiteral">0</FONT>) <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">326 </FONT><A NAME="326"></A>        }
+<FONT ID="LN">327 </FONT><A NAME="327"></A>        <FONT ID="Catch">catch</FONT> (Exception e)
+<FONT ID="LN">328 </FONT><A NAME="328"></A>        {
+<FONT ID="LN">329 </FONT><A NAME="329"></A>          PrintUsage();
+<FONT ID="LN">330 </FONT><A NAME="330"></A>          <FONT ID="Throw">throw</FONT>
+<FONT ID="LN">331 </FONT><A NAME="331"></A>            <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"The -t argument must be followed by a "</FONT>
+<FONT ID="LN">332 </FONT><A NAME="332"></A>                          + <FONT ID="StringLiteral">"non-negative integer."</FONT>);
+<FONT ID="LN">333 </FONT><A NAME="333"></A>        }
+<FONT ID="LN">334 </FONT><A NAME="334"></A>      }
+<FONT ID="LN">335 </FONT><A NAME="335"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-c"</FONT>)) compileOnly = <FONT ID="True">true</FONT>;
+<FONT ID="LN">336 </FONT><A NAME="336"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-d"</FONT>))
+<FONT ID="LN">337 </FONT><A NAME="337"></A>        classPackageDirectory = args[++index];
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-j"</FONT>))
+<FONT ID="LN">339 </FONT><A NAME="339"></A>        javacArguments += <FONT ID="StringLiteral">" "</FONT> + args[++index];
+<FONT ID="LN">340 </FONT><A NAME="340"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-p"</FONT>)) concurrentTraining = <FONT ID="True">true</FONT>;
+<FONT ID="LN">341 </FONT><A NAME="341"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-s"</FONT>)) printSymbols = <FONT ID="True">true</FONT>;
+<FONT ID="LN">342 </FONT><A NAME="342"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-v"</FONT>)) printVersion = <FONT ID="True">true</FONT>;
+<FONT ID="LN">343 </FONT><A NAME="343"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-w"</FONT>)) warningsDisabled = <FONT ID="True">true</FONT>;
+<FONT ID="LN">344 </FONT><A NAME="344"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-x"</FONT>)) clean = <FONT ID="True">true</FONT>;
+<FONT ID="LN">345 </FONT><A NAME="345"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-generatedsourcepath"</FONT>)
+<FONT ID="LN">346 </FONT><A NAME="346"></A>               || args[index].equals(<FONT ID="StringLiteral">"-gsp"</FONT>))
+<FONT ID="LN">347 </FONT><A NAME="347"></A>        generatedSourceDirectory = args[++index];
+<FONT ID="LN">348 </FONT><A NAME="348"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"-sourcepath"</FONT>)) sourcePath = args[++index];
+<FONT ID="LN">349 </FONT><A NAME="349"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"--parserDebug"</FONT>)) parserDebug = <FONT ID="True">true</FONT>;
+<FONT ID="LN">350 </FONT><A NAME="350"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"--lexerOutput"</FONT>)) printTokens = <FONT ID="True">true</FONT>;
+<FONT ID="LN">351 </FONT><A NAME="351"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"--parserOutput"</FONT>)) printAST = <FONT ID="True">true</FONT>;
+<FONT ID="LN">352 </FONT><A NAME="352"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[index].equals(<FONT ID="StringLiteral">"--semanticOutput"</FONT>)) printSemantic = <FONT ID="True">true</FONT>;
+<FONT ID="LN">353 </FONT><A NAME="353"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">354 </FONT><A NAME="354"></A>      {
+<FONT ID="LN">355 </FONT><A NAME="355"></A>        PrintUsage();
+<FONT ID="LN">356 </FONT><A NAME="356"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Unrecognized parameter: "</FONT> + args[index]);
+<FONT ID="LN">357 </FONT><A NAME="357"></A>      }
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    }
+<FONT ID="LN">359 </FONT><A NAME="359"></A>
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    <FONT ID="If">if</FONT> (printVersion || args.length == <FONT ID="IntegerLiteral">1</FONT> &amp;&amp; args[<FONT ID="IntegerLiteral">0</FONT>].equals(<FONT ID="StringLiteral">"-v"</FONT>))
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    {
+<FONT ID="LN">362 </FONT><A NAME="362"></A>      System.out.println(<FONT ID="StringLiteral">"Learning Based Java (LBJ) "</FONT>
+<FONT ID="LN">363 </FONT><A NAME="363"></A>                         + Configuration.packageVersion);
+<FONT ID="LN">364 </FONT><A NAME="364"></A>      System.out.println(
+<FONT ID="LN">365 </FONT><A NAME="365"></A>          <FONT ID="StringLiteral">"Copyright (C) 2008, Nicholas D. Rizzolo and Dan Roth."</FONT>);
+<FONT ID="LN">366 </FONT><A NAME="366"></A>      System.out.println(<FONT ID="StringLiteral">"Cognitive Computations Group"</FONT>);
+<FONT ID="LN">367 </FONT><A NAME="367"></A>      System.out.println(<FONT ID="StringLiteral">"University of Illinois at Urbana-Champaign"</FONT>);
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      System.out.println(Configuration.webSite);
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"version"</FONT>);
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    }
+<FONT ID="LN">371 </FONT><A NAME="371"></A>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    <FONT ID="If">if</FONT> (javacArguments.indexOf(<FONT ID="StringLiteral">"-d "</FONT>) != -<FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">373 </FONT><A NAME="373"></A>        || javacArguments.indexOf(<FONT ID="StringLiteral">"-sourcepath "</FONT>) != -<FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>        || javacArguments.indexOf(<FONT ID="StringLiteral">"-classpath "</FONT>) != -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">375 </FONT><A NAME="375"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(
+<FONT ID="LN">376 </FONT><A NAME="376"></A>          <FONT ID="StringLiteral">"None of the options '-d', '-sourcepath', or '-classpath' should "</FONT>
+<FONT ID="LN">377 </FONT><A NAME="377"></A>          + <FONT ID="StringLiteral">"be specified inside LBJ's '-j' option.  Instead, specify '-d' "</FONT>
+<FONT ID="LN">378 </FONT><A NAME="378"></A>          + <FONT ID="StringLiteral">"and '-sourcepath' directly as options to LBJ, and specify "</FONT>
+<FONT ID="LN">379 </FONT><A NAME="379"></A>          + <FONT ID="StringLiteral">"-classpath to the JVM when executing LBJ."</FONT>);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>
+<FONT ID="LN">381 </FONT><A NAME="381"></A>    <FONT ID="If">if</FONT> (clean
+<FONT ID="LN">382 </FONT><A NAME="382"></A>        &amp;&amp; (compileOnly || printTokens || printAST || printSemantic
+<FONT ID="LN">383 </FONT><A NAME="383"></A>            || trainingOutput != <FONT ID="IntegerLiteral">0</FONT>))
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    {
+<FONT ID="LN">385 </FONT><A NAME="385"></A>      System.err.println(
+<FONT ID="LN">386 </FONT><A NAME="386"></A>          <FONT ID="StringLiteral">"The -x flag supercedes all other flags except --parserDebug and "</FONT>
+<FONT ID="LN">387 </FONT><A NAME="387"></A>          + <FONT ID="StringLiteral">"the path related flags."</FONT>);
+<FONT ID="LN">388 </FONT><A NAME="388"></A>      compileOnly = printTokens = printAST = printSemantic = <FONT ID="False">false</FONT>;
+<FONT ID="LN">389 </FONT><A NAME="389"></A>      trainingOutput = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    }
+<FONT ID="LN">391 </FONT><A NAME="391"></A>
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    <FONT ID="If">if</FONT> (index &gt;= args.length)
+<FONT ID="LN">393 </FONT><A NAME="393"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Error: No input filename specified."</FONT>);
+<FONT ID="LN">394 </FONT><A NAME="394"></A>
+<FONT ID="LN">395 </FONT><A NAME="395"></A>    String file = args[index];
+<FONT ID="LN">396 </FONT><A NAME="396"></A>    <FONT ID="If">if</FONT> (!(file.length() &gt; <FONT ID="IntegerLiteral">4</FONT> &amp;&amp; file.endsWith(<FONT ID="StringLiteral">".lbj"</FONT>)))
+<FONT ID="LN">397 </FONT><A NAME="397"></A>    {
+<FONT ID="LN">398 </FONT><A NAME="398"></A>      PrintUsage();
+<FONT ID="LN">399 </FONT><A NAME="399"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Source file name must end with \".lbj\"."</FONT>);
+<FONT ID="LN">400 </FONT><A NAME="400"></A>    }
+<FONT ID="LN">401 </FONT><A NAME="401"></A>
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    <FONT ID="Int">int</FONT> lastSlash = file.lastIndexOf(File.separatorChar);
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    <FONT ID="If">if</FONT> (lastSlash != -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    {
+<FONT ID="LN">405 </FONT><A NAME="405"></A>      sourceDirectory = file.substring(<FONT ID="IntegerLiteral">0</FONT>, lastSlash);
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      sourceFilename = file.substring(lastSlash + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    }
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    <FONT ID="Else">else</FONT> sourceFilename = file;
+<FONT ID="LN">409 </FONT><A NAME="409"></A>
+<FONT ID="LN">410 </FONT><A NAME="410"></A>    sourceFileBase = sourceFilename.substring(<FONT ID="IntegerLiteral">0</FONT>, sourceFilename.length() - <FONT ID="IntegerLiteral">4</FONT>);
+<FONT ID="LN">411 </FONT><A NAME="411"></A>
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    FileInputStream instream;
+<FONT ID="LN">413 </FONT><A NAME="413"></A>    <FONT ID="Try">try</FONT> { instream = <FONT ID="New">new</FONT> FileInputStream(file); }
+<FONT ID="LN">414 </FONT><A NAME="414"></A>    <FONT ID="Catch">catch</FONT> (FileNotFoundException e)
+<FONT ID="LN">415 </FONT><A NAME="415"></A>    {
+<FONT ID="LN">416 </FONT><A NAME="416"></A>      System.err.println(<FONT ID="StringLiteral">"Error: Unable to open input file "</FONT> + file + <FONT ID="StringLiteral">": "</FONT>
+<FONT ID="LN">417 </FONT><A NAME="417"></A>                         + e.getMessage());
+<FONT ID="LN">418 </FONT><A NAME="418"></A>      <FONT ID="Throw">throw</FONT> e;
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    }
+<FONT ID="LN">420 </FONT><A NAME="420"></A>
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    <FONT ID="Return">return</FONT> instream;
+<FONT ID="LN">422 </FONT><A NAME="422"></A>  }
+<FONT ID="LN">423 </FONT><A NAME="423"></A>
+<FONT ID="LN">424 </FONT><A NAME="424"></A>
+<FONT ID="LN">425 </FONT><A NAME="425"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    * This method scans and then parses the input.
+<FONT ID="LN">427 </FONT><A NAME="427"></A>    *
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    * @param in             A stream for the source input file.
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    * @exception Exception  Thrown when any error occurs.
+<FONT ID="LN">430 </FONT><A NAME="430"></A>    * @return               The AST that results from parsing.
+<FONT ID="LN">431 </FONT><A NAME="431"></A>   **/</FONT>
+<FONT ID="LN">432 </FONT><A NAME="432"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> AST frontend(FileInputStream in) <FONT ID="Throws">throws</FONT> Exception
+<FONT ID="LN">433 </FONT><A NAME="433"></A>  {
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    Yylex scanner = <FONT ID="New">new</FONT> Yylex(in);
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    scanner.sourceFilename = sourceFilename;
+<FONT ID="LN">436 </FONT><A NAME="436"></A>    <FONT ID="If">if</FONT> (printTokens)
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    {
+<FONT ID="LN">438 </FONT><A NAME="438"></A>      dumpTokenStream(scanner);
+<FONT ID="LN">439 </FONT><A NAME="439"></A>      <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    }
+<FONT ID="LN">441 </FONT><A NAME="441"></A>
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    AST ast = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    parser LBJ2parser = <FONT ID="New">new</FONT> parser(scanner);
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    <FONT ID="If">if</FONT> (parserDebug) ast = (AST) LBJ2parser.debug_parse().value;
+<FONT ID="LN">445 </FONT><A NAME="445"></A>    <FONT ID="Else">else</FONT> ast = (AST) LBJ2parser.parse().value;
+<FONT ID="LN">446 </FONT><A NAME="446"></A>
+<FONT ID="LN">447 </FONT><A NAME="447"></A>    <FONT ID="If">if</FONT> (ast == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">448 </FONT><A NAME="448"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> InternalError(<FONT ID="StringLiteral">"Parser returned null abstract syntax tree."</FONT>);
+<FONT ID="LN">449 </FONT><A NAME="449"></A>
+<FONT ID="LN">450 </FONT><A NAME="450"></A>    AST result = ast;
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    <FONT ID="If">if</FONT> (printAST)
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    {
+<FONT ID="LN">453 </FONT><A NAME="453"></A>      <FONT ID="New">new</FONT> <A HREF="../LBJ2/PrintAST.java.html">PrintAST</A>(ast).run();
+<FONT ID="LN">454 </FONT><A NAME="454"></A>      result = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    }
+<FONT ID="LN">456 </FONT><A NAME="456"></A>
+<FONT ID="LN">457 </FONT><A NAME="457"></A>    <FONT ID="If">if</FONT> (printSemantic)
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    {
+<FONT ID="LN">459 </FONT><A NAME="459"></A>      <A HREF="../LBJ2/SemanticAnalysis.java.html">SemanticAnalysis</A> semantic = <FONT ID="New">new</FONT> <A HREF="../LBJ2/SemanticAnalysis.java.html">SemanticAnalysis</A>(ast);
+<FONT ID="LN">460 </FONT><A NAME="460"></A>      semantic.run();
+<FONT ID="LN">461 </FONT><A NAME="461"></A>      System.out.println(<FONT ID="StringLiteral">"\nGlobal symbol table:"</FONT>);
+<FONT ID="LN">462 </FONT><A NAME="462"></A>      System.out.println(<FONT ID="StringLiteral">"--------------------"</FONT>);
+<FONT ID="LN">463 </FONT><A NAME="463"></A>      ast.symbolTable.print();
+<FONT ID="LN">464 </FONT><A NAME="464"></A>
+<FONT ID="LN">465 </FONT><A NAME="465"></A>      System.out.println(<FONT ID="StringLiteral">"\nDependor graph:"</FONT>);
+<FONT ID="LN">466 </FONT><A NAME="466"></A>      System.out.println(<FONT ID="StringLiteral">"--------------------"</FONT>);
+<FONT ID="LN">467 </FONT><A NAME="467"></A>      SemanticAnalysis.printDependorGraph();
+<FONT ID="LN">468 </FONT><A NAME="468"></A>
+<FONT ID="LN">469 </FONT><A NAME="469"></A>      System.out.println(<FONT ID="StringLiteral">"\nInvoked graph:"</FONT>);
+<FONT ID="LN">470 </FONT><A NAME="470"></A>      System.out.println(<FONT ID="StringLiteral">"--------------------"</FONT>);
+<FONT ID="LN">471 </FONT><A NAME="471"></A>      SemanticAnalysis.printInvokedGraph();
+<FONT ID="LN">472 </FONT><A NAME="472"></A>      System.out.println();
+<FONT ID="LN">473 </FONT><A NAME="473"></A>
+<FONT ID="LN">474 </FONT><A NAME="474"></A>      result = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    }
+<FONT ID="LN">476 </FONT><A NAME="476"></A>
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    <FONT ID="If">if</FONT> (printSymbols)
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    {
+<FONT ID="LN">479 </FONT><A NAME="479"></A>      <FONT ID="New">new</FONT> <A HREF="../LBJ2/DeclarationNames.java.html">DeclarationNames</A>(ast).run();
+<FONT ID="LN">480 </FONT><A NAME="480"></A>      result = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">481 </FONT><A NAME="481"></A>    }
+<FONT ID="LN">482 </FONT><A NAME="482"></A>
+<FONT ID="LN">483 </FONT><A NAME="483"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">484 </FONT><A NAME="484"></A>  }
+<FONT ID="LN">485 </FONT><A NAME="485"></A>
+<FONT ID="LN">486 </FONT><A NAME="486"></A>
+<FONT ID="LN">487 </FONT><A NAME="487"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">488 </FONT><A NAME="488"></A>   * Dump the token stream produced by the given scanner to standard output.
+<FONT ID="LN">489 </FONT><A NAME="489"></A>   * Returns when the end-of-file token is returned from the scanner, or if an
+<FONT ID="LN">490 </FONT><A NAME="490"></A>   * exception is thrown by the scanner's next_token() method. &lt;p&gt;
+<FONT ID="LN">491 </FONT><A NAME="491"></A>   *
+<FONT ID="LN">492 </FONT><A NAME="492"></A>   * Tokens are output as follows: the name of the token (as provided by the
+<FONT ID="LN">493 </FONT><A NAME="493"></A>   * array symNames.nameTable[]), followed by a tab, followed by the token's
+<FONT ID="LN">494 </FONT><A NAME="494"></A>   * semantic value (see TokenValue.toString()), followed by a tab, followed
+<FONT ID="LN">495 </FONT><A NAME="495"></A>   * by the line and the byte offset in the file where the token began (the
+<FONT ID="LN">496 </FONT><A NAME="496"></A>   * last two separated by a colon). &lt;p&gt;
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   *
+<FONT ID="LN">498 </FONT><A NAME="498"></A>   * Error tokens are printed specially; an error message is printed with only
+<FONT ID="LN">499 </FONT><A NAME="499"></A>   * the line number listed.
+<FONT ID="LN">500 </FONT><A NAME="500"></A>   *
+<FONT ID="LN">501 </FONT><A NAME="501"></A>   * @param scanner A reference to the JLex generated scanner object.
+<FONT ID="LN">502 </FONT><A NAME="502"></A>   */</FONT>
+<FONT ID="LN">503 </FONT><A NAME="503"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> dumpTokenStream(Yylex scanner)
+<FONT ID="LN">504 </FONT><A NAME="504"></A>  {
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    Symbol t;
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    TokenValue tValue;
+<FONT ID="LN">507 </FONT><A NAME="507"></A>
+<FONT ID="LN">508 </FONT><A NAME="508"></A>    <FONT ID="While">while</FONT> (<FONT ID="True">true</FONT>)
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    {
+<FONT ID="LN">510 </FONT><A NAME="510"></A>      <FONT ID="Try">try</FONT> { t = scanner.next_token(); }
+<FONT ID="LN">511 </FONT><A NAME="511"></A>      <FONT ID="Catch">catch</FONT> (IOException e)
+<FONT ID="LN">512 </FONT><A NAME="512"></A>      {
+<FONT ID="LN">513 </FONT><A NAME="513"></A>        System.err.println(e);
+<FONT ID="LN">514 </FONT><A NAME="514"></A>        <FONT ID="Return">return</FONT>;
+<FONT ID="LN">515 </FONT><A NAME="515"></A>      }
+<FONT ID="LN">516 </FONT><A NAME="516"></A>
+<FONT ID="LN">517 </FONT><A NAME="517"></A>      tValue = (TokenValue)t.value;
+<FONT ID="LN">518 </FONT><A NAME="518"></A>      <FONT ID="Switch">switch</FONT> (t.sym)
+<FONT ID="LN">519 </FONT><A NAME="519"></A>      {
+<FONT ID="LN">520 </FONT><A NAME="520"></A>        <FONT ID="Case">case</FONT> sym.EOF: <FONT ID="Return">return</FONT>;
+<FONT ID="LN">521 </FONT><A NAME="521"></A>        <FONT ID="Case">case</FONT> sym.error:
+<FONT ID="LN">522 </FONT><A NAME="522"></A>          System.out.println(<FONT ID="StringLiteral">"Scanner returned error token at "</FONT>
+<FONT ID="LN">523 </FONT><A NAME="523"></A>                              + tValue.line);
+<FONT ID="LN">524 </FONT><A NAME="524"></A>          <FONT ID="Break">break</FONT>;
+<FONT ID="LN">525 </FONT><A NAME="525"></A>        <FONT ID="Default">default</FONT>:
+<FONT ID="LN">526 </FONT><A NAME="526"></A>          System.out.println(symNames.nameTable[t.sym] + <FONT ID="StringLiteral">"\t"</FONT> + tValue
+<FONT ID="LN">527 </FONT><A NAME="527"></A>                              + <FONT ID="StringLiteral">"\t"</FONT> + (tValue.line + <FONT ID="IntegerLiteral">1</FONT>) + <FONT ID="StringLiteral">":"</FONT>
+<FONT ID="LN">528 </FONT><A NAME="528"></A>                              + tValue.byteOffset);
+<FONT ID="LN">529 </FONT><A NAME="529"></A>      }
+<FONT ID="LN">530 </FONT><A NAME="530"></A>    }
+<FONT ID="LN">531 </FONT><A NAME="531"></A>  }
+<FONT ID="LN">532 </FONT><A NAME="532"></A>
+<FONT ID="LN">533 </FONT><A NAME="533"></A>
+<FONT ID="LN">534 </FONT><A NAME="534"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">535 </FONT><A NAME="535"></A>    * Print a usage message.  This method is called when the user's command
+<FONT ID="LN">536 </FONT><A NAME="536"></A>    * line cannot be interpreted.
+<FONT ID="LN">537 </FONT><A NAME="537"></A>   **/</FONT>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> PrintUsage()
+<FONT ID="LN">539 </FONT><A NAME="539"></A>  {
+<FONT ID="LN">540 </FONT><A NAME="540"></A>    System.err.print(
+<FONT ID="LN">541 </FONT><A NAME="541"></A>  <FONT ID="StringLiteral">"Usage: java LBJ2.Main [options] &lt;filename.lbj&gt;\n"</FONT>
+<FONT ID="LN">542 </FONT><A NAME="542"></A>+ <FONT ID="StringLiteral">"  where [options] is one or more of the following:\n"</FONT>
+<FONT ID="LN">543 </FONT><A NAME="543"></A>+ <FONT ID="StringLiteral">"    -c               Compile to Java only\n"</FONT>
+<FONT ID="LN">544 </FONT><A NAME="544"></A>+ <FONT ID="StringLiteral">"    -d &lt;dir&gt;         Write generated class files to &lt;dir&gt;\n"</FONT>
+<FONT ID="LN">545 </FONT><A NAME="545"></A>+ <FONT ID="StringLiteral">"    -j &lt;a&gt;           Send the specified arguments to javac\n"</FONT>
+<FONT ID="LN">546 </FONT><A NAME="546"></A><FONT ID="SingleLineComment">// + "    -p               Train in parallel\n"
+<FONT ID="LN">547 </FONT><A NAME="547"></A></FONT>+ <FONT ID="StringLiteral">"    -s               Print the names of all declarations and quit\n"</FONT>
+<FONT ID="LN">548 </FONT><A NAME="548"></A>+ <FONT ID="StringLiteral">"    -t &lt;n&gt;           Enables default progress output during training\n"</FONT>
+<FONT ID="LN">549 </FONT><A NAME="549"></A>+ <FONT ID="StringLiteral">"    -v               Print the version number and quit\n"</FONT>
+<FONT ID="LN">550 </FONT><A NAME="550"></A>+ <FONT ID="StringLiteral">"    -w               Disables the output of warning messages\n"</FONT>
+<FONT ID="LN">551 </FONT><A NAME="551"></A>+ <FONT ID="StringLiteral">"    -x               Delete all files that would have been generated\n\n"</FONT>
+<FONT ID="LN">552 </FONT><A NAME="552"></A>
+<FONT ID="LN">553 </FONT><A NAME="553"></A>+ <FONT ID="StringLiteral">"    -generatedsourcepath &lt;dir&gt;\n"</FONT>
+<FONT ID="LN">554 </FONT><A NAME="554"></A>+ <FONT ID="StringLiteral">"    -gsp &lt;dir&gt;\n"</FONT>
+<FONT ID="LN">555 </FONT><A NAME="555"></A>+ <FONT ID="StringLiteral">"                     Write generated Java source files to &lt;dir&gt;\n"</FONT>
+<FONT ID="LN">556 </FONT><A NAME="556"></A>+ <FONT ID="StringLiteral">"    -sourcepath &lt;path&gt;\n"</FONT>
+<FONT ID="LN">557 </FONT><A NAME="557"></A>+ <FONT ID="StringLiteral">"                     Search for Java source files in &lt;path&gt;\n\n"</FONT>
+<FONT ID="LN">558 </FONT><A NAME="558"></A>
+<FONT ID="LN">559 </FONT><A NAME="559"></A>+ <FONT ID="StringLiteral">"    --parserDebug    Debug output for parse phase only\n"</FONT>
+<FONT ID="LN">560 </FONT><A NAME="560"></A>+ <FONT ID="StringLiteral">"    --lexerOutput    Print lexical token stream and quit\n"</FONT>
+<FONT ID="LN">561 </FONT><A NAME="561"></A>+ <FONT ID="StringLiteral">"    --parserOutput   Print the parsed AST and quit\n"</FONT>
+<FONT ID="LN">562 </FONT><A NAME="562"></A>+ <FONT ID="StringLiteral">"    --semanticOutput Print semantic analysis information and quit\n"</FONT>);
+<FONT ID="LN">563 </FONT><A NAME="563"></A>  }
+<FONT ID="LN">564 </FONT><A NAME="564"></A>}
+<FONT ID="LN">565 </FONT><A NAME="565"></A>
+<FONT ID="LN">566 </FONT><A NAME="566"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Main.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

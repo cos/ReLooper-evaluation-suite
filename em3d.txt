@@ -1,0 +1,515 @@
+Buildfile: ../compare/chord/main/build.xml
+
+run:
+     [java] Chord run initiated at: Jul 13, 2011 5:22:54 PM
+     [java] ENTER: datarace-java at Wed Jul 13 17:22:55 CDT 2011
+     [java] ENTER: P at Wed Jul 13 17:22:55 CDT 2011
+     [java] ENTER: M at Wed Jul 13 17:22:55 CDT 2011
+     [java] ENTER: RTA
+     [java] Iteration: 0
+     [java] Iteration: 1
+     [java] Iteration: 2
+     [java] Iteration: 3
+     [java] Iteration: 4
+     [java] LEAVE: RTA
+     [java] Time: 00:00:06:451 hh:mm:ss:ms
+     [java] SAVING dom M size: 5497
+     [java] LEAVE: M
+     [java] Exclusive time: 00:00:06:583 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:06:583 hh:mm:ss:ms
+     [java] SAVING dom P size: 117428
+     [java] LEAVE: P
+     [java] Exclusive time: 00:00:02:269 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:08:852 hh:mm:ss:ms
+     [java] ENTER: ctxts-java at Wed Jul 13 17:23:04 CDT 2011
+     [java] ENTER: cipa-0cfa-dlog at Wed Jul 13 17:23:04 CDT 2011
+     [java] ENTER: T at Wed Jul 13 17:23:04 CDT 2011
+     [java] SAVING dom T size: 1397
+     [java] LEAVE: T
+     [java] Exclusive time: 00:00:00:002 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:002 hh:mm:ss:ms
+     [java] ENTER: F at Wed Jul 13 17:23:04 CDT 2011
+     [java] SAVING dom F size: 4139
+     [java] LEAVE: F
+     [java] Exclusive time: 00:00:00:016 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:016 hh:mm:ss:ms
+     [java] ENTER: V at Wed Jul 13 17:23:04 CDT 2011
+     [java] SAVING dom V size: 42854
+     [java] LEAVE: V
+     [java] Exclusive time: 00:00:00:179 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:179 hh:mm:ss:ms
+     [java] ENTER: H at Wed Jul 13 17:23:04 CDT 2011
+     [java] SAVING dom H size: 4150
+     [java] LEAVE: H
+     [java] Exclusive time: 00:00:00:070 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:070 hh:mm:ss:ms
+     [java] ENTER: I at Wed Jul 13 17:23:05 CDT 2011
+     [java] SAVING dom I size: 18511
+     [java] LEAVE: I
+     [java] Exclusive time: 00:00:00:647 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:647 hh:mm:ss:ms
+     [java] ENTER: Z at Wed Jul 13 17:23:05 CDT 2011
+     [java] SAVING dom Z size: 14
+     [java] LEAVE: Z
+     [java] Exclusive time: 00:00:00:059 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:059 hh:mm:ss:ms
+     [java] ENTER: MmethArg at Wed Jul 13 17:23:05 CDT 2011
+     [java] SAVING rel MmethArg size: 7141
+     [java] LEAVE: MmethArg
+     [java] Exclusive time: 00:00:00:802 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:802 hh:mm:ss:ms
+     [java] ENTER: VT at Wed Jul 13 17:23:06 CDT 2011
+     [java] SAVING rel VT size: 42860
+     [java] LEAVE: VT
+     [java] Exclusive time: 00:00:01:699 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:699 hh:mm:ss:ms
+     [java] ENTER: virtIM at Wed Jul 13 17:23:08 CDT 2011
+     [java] SAVING rel virtIM size: 10059
+     [java] LEAVE: virtIM
+     [java] Exclusive time: 00:00:00:300 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:300 hh:mm:ss:ms
+     [java] ENTER: sub at Wed Jul 13 17:23:08 CDT 2011
+     [java] SAVING rel sub size: 3790
+     [java] LEAVE: sub
+     [java] Exclusive time: 00:00:00:164 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:164 hh:mm:ss:ms
+     [java] ENTER: IinvkRet at Wed Jul 13 17:23:08 CDT 2011
+     [java] SAVING rel IinvkRet size: 6929
+     [java] LEAVE: IinvkRet
+     [java] Exclusive time: 00:00:00:265 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:265 hh:mm:ss:ms
+     [java] ENTER: objNewInst-java at Wed Jul 13 17:23:08 CDT 2011
+     [java] SAVING rel objNewInstIH size: 0
+     [java] SAVING rel objNewInstIM size: 0
+     [java] LEAVE: objNewInst-java
+     [java] Exclusive time: 00:00:00:116 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:116 hh:mm:ss:ms
+     [java] ENTER: aryNewInstIH at Wed Jul 13 17:23:09 CDT 2011
+     [java] SAVING rel aryNewInstIH size: 0
+     [java] LEAVE: aryNewInstIH
+     [java] Exclusive time: 00:00:00:060 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:060 hh:mm:ss:ms
+     [java] ENTER: staticTM at Wed Jul 13 17:23:09 CDT 2011
+     [java] SAVING rel staticTM size: 1288
+     [java] LEAVE: staticTM
+     [java] Exclusive time: 00:00:00:092 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:092 hh:mm:ss:ms
+     [java] ENTER: staticTF at Wed Jul 13 17:23:09 CDT 2011
+     [java] SAVING rel staticTF size: 2360
+     [java] LEAVE: staticTF
+     [java] Exclusive time: 00:00:00:117 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:117 hh:mm:ss:ms
+     [java] ENTER: MgetStatFldInst at Wed Jul 13 17:23:09 CDT 2011
+     [java] SAVING rel MgetStatFldInst size: 1816
+     [java] LEAVE: MgetStatFldInst
+     [java] Exclusive time: 00:00:00:213 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:213 hh:mm:ss:ms
+     [java] ENTER: cha at Wed Jul 13 17:23:09 CDT 2011
+     [java] SAVING rel cha size: 13043
+     [java] LEAVE: cha
+     [java] Exclusive time: 00:00:00:667 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:667 hh:mm:ss:ms
+     [java] ENTER: HT at Wed Jul 13 17:23:10 CDT 2011
+     [java] SAVING rel HT size: 4149
+     [java] LEAVE: HT
+     [java] Exclusive time: 00:00:00:126 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:126 hh:mm:ss:ms
+     [java] ENTER: MgetInstFldInst at Wed Jul 13 17:23:10 CDT 2011
+     [java] SAVING rel MgetInstFldInst size: 5598
+     [java] LEAVE: MgetInstFldInst
+     [java] Exclusive time: 00:00:00:512 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:512 hh:mm:ss:ms
+     [java] ENTER: specIM at Wed Jul 13 17:23:10 CDT 2011
+     [java] SAVING rel specIM size: 5085
+     [java] LEAVE: specIM
+     [java] Exclusive time: 00:00:00:173 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:173 hh:mm:ss:ms
+     [java] ENTER: classT at Wed Jul 13 17:23:11 CDT 2011
+     [java] SAVING rel classT size: 816
+     [java] LEAVE: classT
+     [java] Exclusive time: 00:00:00:071 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:071 hh:mm:ss:ms
+     [java] ENTER: MI at Wed Jul 13 17:23:11 CDT 2011
+     [java] SAVING rel MI size: 18511
+     [java] LEAVE: MI
+     [java] Exclusive time: 00:00:00:462 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:462 hh:mm:ss:ms
+     [java] ENTER: MobjValAsgnInst at Wed Jul 13 17:23:11 CDT 2011
+     [java] SAVING rel MobjValAsgnInst size: 4149
+     [java] LEAVE: MobjValAsgnInst
+     [java] Exclusive time: 00:00:00:222 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:222 hh:mm:ss:ms
+     [java] ENTER: clinitTM at Wed Jul 13 17:23:11 CDT 2011
+     [java] SAVING rel clinitTM size: 224
+     [java] LEAVE: clinitTM
+     [java] Exclusive time: 00:00:00:067 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:067 hh:mm:ss:ms
+     [java] ENTER: MobjVarAsgnInst at Wed Jul 13 17:23:11 CDT 2011
+     [java] SAVING rel MobjVarAsgnInst size: 15062
+     [java] LEAVE: MobjVarAsgnInst
+     [java] Exclusive time: 00:00:00:816 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:816 hh:mm:ss:ms
+     [java] ENTER: conNewInst-java at Wed Jul 13 17:23:12 CDT 2011
+     [java] SAVING rel conNewInstIH size: 0
+     [java] SAVING rel conNewInstIM size: 0
+     [java] LEAVE: conNewInst-java
+     [java] Exclusive time: 00:00:00:109 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:109 hh:mm:ss:ms
+     [java] ENTER: IinvkArg0 at Wed Jul 13 17:23:12 CDT 2011
+     [java] SAVING rel IinvkArg0 size: 16828
+     [java] LEAVE: IinvkArg0
+     [java] Exclusive time: 00:00:00:518 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:518 hh:mm:ss:ms
+     [java] ENTER: IinvkArg at Wed Jul 13 17:23:13 CDT 2011
+     [java] SAVING rel IinvkArg size: 24671
+     [java] LEAVE: IinvkArg
+     [java] Exclusive time: 00:00:00:815 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:815 hh:mm:ss:ms
+     [java] ENTER: MmethRet at Wed Jul 13 17:23:14 CDT 2011
+     [java] SAVING rel MmethRet size: 1907
+     [java] LEAVE: MmethRet
+     [java] Exclusive time: 00:00:00:139 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:139 hh:mm:ss:ms
+     [java] ENTER: clsForNameIT at Wed Jul 13 17:23:14 CDT 2011
+     [java] SAVING rel clsForNameIT size: 0
+     [java] LEAVE: clsForNameIT
+     [java] Exclusive time: 00:00:00:056 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:056 hh:mm:ss:ms
+     [java] ENTER: MputInstFldInst at Wed Jul 13 17:23:14 CDT 2011
+     [java] SAVING rel MputInstFldInst size: 2515
+     [java] LEAVE: MputInstFldInst
+     [java] Exclusive time: 00:00:00:263 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:263 hh:mm:ss:ms
+     [java] ENTER: MputStatFldInst at Wed Jul 13 17:23:14 CDT 2011
+     [java] SAVING rel MputStatFldInst size: 743
+     [java] LEAVE: MputStatFldInst
+     [java] Exclusive time: 00:00:00:122 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:122 hh:mm:ss:ms
+     [java] ENTER: statIM at Wed Jul 13 17:23:14 CDT 2011
+     [java] SAVING rel statIM size: 3367
+     [java] LEAVE: statIM
+     [java] Exclusive time: 00:00:00:156 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:156 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_cipa_0cfa.dlog '
+     [java] Relation IHM: 126316 nodes, 2330392.0 elements (I0,M0,H0)
+     [java] Relation reachableT: 126 nodes, 99.0 elements (T0)
+     [java] Relation VHfilter: 28749 nodes, 1.4019739E7 elements (V0,H0)
+     [java] Relation VH: 3216 nodes, 2964.0 elements (V0,H0)
+     [java] Relation FH: 514 nodes, 47.0 elements (H0,F0)
+     [java] Relation HFH: 1238 nodes, 1384.0 elements (H0,F0,H1)
+     [java] Relation rootM: 124 nodes, 38.0 elements (M0)
+     [java] Relation reachableI: 352 nodes, 594.0 elements (I0)
+     [java] Relation reachableM: 273 nodes, 308.0 elements (M0)
+     [java] Relation IM: 2579 nodes, 539.0 elements (I0,M0)
+     [java] Relation MM: 1991 nodes, 460.0 elements (M0,M1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_cipa_0cfa.dlog '
+     [java] LEAVE: cipa-0cfa-dlog
+     [java] Exclusive time: 00:00:04:501 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:14:604 hh:mm:ss:ms
+     [java] SAVING dom C size: 22661
+     [java] SAVING rel CI size: 18511
+     [java] SAVING rel CH size: 4149
+     [java] SAVING rel CC size: 22660
+     [java] SAVING rel epsilonM size: 5497
+     [java] SAVING rel kcfaSenM size: 0
+     [java] SAVING rel kobjSenM size: 0
+     [java] SAVING rel ctxtCpyM size: 0
+     [java] SAVING rel epsilonV size: 42854
+     [java] SAVING rel refinableV size: 0
+     [java] SAVING rel refinableM size: 0
+     [java] LEAVE: ctxts-java
+     [java] Exclusive time: 00:00:02:628 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:17:232 hh:mm:ss:ms
+     [java] ENTER: cspa-0cfa-dlog at Wed Jul 13 17:23:21 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_cspa_0cfa.dlog '
+     [java] Relation CVC: 6890 nodes, 2964.0 elements (C0,C1,V0)
+     [java] Relation FC: 526 nodes, 47.0 elements (C0,F0)
+     [java] Relation CFC: 1341 nodes, 1384.0 elements (C0,F0,C1)
+     [java] Relation rootCM: 139 nodes, 38.0 elements (C0,M0)
+     [java] Relation reachableCI: 367 nodes, 594.0 elements (C0,I0)
+     [java] Relation reachableCM: 288 nodes, 308.0 elements (C0,M0)
+     [java] Relation CICM: 2609 nodes, 539.0 elements (C0,M0,I0,C1)
+     [java] Relation CMCM: 2021 nodes, 460.0 elements (C0,M0,C1,M1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_cspa_0cfa.dlog '
+     [java] LEAVE: cspa-0cfa-dlog
+     [java] Exclusive time: 00:00:01:000 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:000 hh:mm:ss:ms
+     [java] ENTER: datarace-prologue-dlog at Wed Jul 13 17:23:22 CDT 2011
+     [java] ENTER: E at Wed Jul 13 17:23:22 CDT 2011
+     [java] SAVING dom E size: 21698
+     [java] LEAVE: E
+     [java] Exclusive time: 00:00:00:157 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:157 hh:mm:ss:ms
+     [java] ENTER: threads-java at Wed Jul 13 17:23:23 CDT 2011
+     [java] ENTER: threads-dlog at Wed Jul 13 17:23:23 CDT 2011
+     [java] ENTER: thrOblAbbrCSCG-dlog at Wed Jul 13 17:23:23 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_thrOblAbbrCSCG.dlog '
+     [java] Relation thrOblAbbrRootCM: 28 nodes, 1.0 elements (C0,M0)
+     [java] Relation thrOblAbbrReachableCM: 217 nodes, 184.0 elements (C0,M0)
+     [java] Relation thrOblAbbrCICM: 1714 nodes, 347.0 elements (C0,M0,I0,C1)
+     [java] Relation thrOblAbbrCMCM: 1355 nodes, 293.0 elements (C0,M0,C1,M1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_thrOblAbbrCSCG.dlog '
+     [java] LEAVE: thrOblAbbrCSCG-dlog
+     [java] Exclusive time: 00:00:00:779 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:779 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_thread_threads.dlog '
+     [java] Relation threadOC: 49 nodes, 3.0 elements (C0,C1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_thread_threads.dlog '
+     [java] LEAVE: threads-dlog
+     [java] Exclusive time: 00:00:00:860 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:639 hh:mm:ss:ms
+     [java] SAVING dom A size: 5
+     [java] SAVING rel threadAOCM size: 4
+     [java] LEAVE: threads-java
+     [java] Exclusive time: 00:00:00:126 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:765 hh:mm:ss:ms
+     [java] ENTER: ME at Wed Jul 13 17:23:24 CDT 2011
+     [java] SAVING rel ME size: 21698
+     [java] LEAVE: ME
+     [java] Exclusive time: 00:00:00:437 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:437 hh:mm:ss:ms
+     [java] ENTER: checkExcludedT at Wed Jul 13 17:23:25 CDT 2011
+     [java] SAVING rel checkExcludedT size: 243
+     [java] LEAVE: checkExcludedT
+     [java] Exclusive time: 00:00:00:060 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:060 hh:mm:ss:ms
+     [java] ENTER: thrSenAbbrCSCG-dlog at Wed Jul 13 17:23:25 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_thrSenAbbrCSCG.dlog '
+     [java] Relation thrSenAbbrRootCM: 27 nodes, 2.0 elements (C0,M0)
+     [java] Relation thrSenAbbrReachableCM: 217 nodes, 184.0 elements (C0,M0)
+     [java] Relation thrSenAbbrCICM: 1711 nodes, 345.0 elements (C0,M0,I0,C1)
+     [java] Relation thrSenAbbrCMCM: 1353 nodes, 292.0 elements (C0,M0,M1,C1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_alias_thrSenAbbrCSCG.dlog '
+     [java] LEAVE: thrSenAbbrCSCG-dlog
+     [java] Exclusive time: 00:00:00:799 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:799 hh:mm:ss:ms
+     [java] ENTER: TM at Wed Jul 13 17:23:26 CDT 2011
+     [java] SAVING rel TM size: 5497
+     [java] LEAVE: TM
+     [java] Exclusive time: 00:00:00:150 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:150 hh:mm:ss:ms
+     [java] ENTER: EF at Wed Jul 13 17:23:26 CDT 2011
+     [java] SAVING rel EF size: 21698
+     [java] LEAVE: EF
+     [java] Exclusive time: 00:00:00:528 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:528 hh:mm:ss:ms
+     [java] ENTER: writeE at Wed Jul 13 17:23:26 CDT 2011
+     [java] SAVING rel writeE size: 9435
+     [java] LEAVE: writeE
+     [java] Exclusive time: 00:00:00:126 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:126 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace_prologue.dlog '
+     [java] Relation reachableTCM: 250 nodes, 207.0 elements (A0,C0,M0)
+     [java] Relation relevantTCE: 220 nodes, 369.0 elements (A0,C0,E0)
+     [java] Relation rdOrWrTCEF: 1408 nodes, 369.0 elements (A0,C0,E0,F0)
+     [java] Relation onlyWrTCEF: 900 nodes, 120.0 elements (A0,C0,E0,F0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace_prologue.dlog '
+     [java] LEAVE: datarace-prologue-dlog
+     [java] Exclusive time: 00:00:00:984 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:05:006 hh:mm:ss:ms
+     [java] ENTER: datarace-parallel-include-dlog at Wed Jul 13 17:23:27 CDT 2011
+     [java] ENTER: mhp-dlog at Wed Jul 13 17:23:27 CDT 2011
+     [java] ENTER: MPhead at Wed Jul 13 17:23:27 CDT 2011
+     [java] SAVING rel MPhead size: 5262
+     [java] LEAVE: MPhead
+     [java] Exclusive time: 00:00:00:192 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:192 hh:mm:ss:ms
+     [java] ENTER: PP at Wed Jul 13 17:23:28 CDT 2011
+     [java] SAVING rel PP size: 122604
+     [java] LEAVE: PP
+     [java] Exclusive time: 00:00:04:684 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:04:684 hh:mm:ss:ms
+     [java] ENTER: PI at Wed Jul 13 17:23:32 CDT 2011
+     [java] SAVING rel PI size: 18511
+     [java] LEAVE: PI
+     [java] Exclusive time: 00:00:00:785 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:785 hh:mm:ss:ms
+     [java] ENTER: MPtail at Wed Jul 13 17:23:33 CDT 2011
+     [java] SAVING rel MPtail size: 5262
+     [java] LEAVE: MPtail
+     [java] Exclusive time: 00:00:00:193 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:193 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_mhp_mhp.dlog '
+     [java] Relation ForkPMcs: 66 nodes, 3.0 elements (P0,C0,C1)
+     [java] Relation ForkPHcs: 102 nodes, 3.0 elements (P0,C0,C1,P1)
+     [java] Relation NonForkPMcs: 3353 nodes, 536.0 elements (M0,P0,C0,C1)
+     [java] Relation NonForkPHcs: 4567 nodes, 536.0 elements (P0,C0,C1,P1)
+     [java] Relation NonForkPTcs: 4562 nodes, 536.0 elements (P0,C0,C1,P1)
+     [java] Relation PathEdge: 689 nodes, 15851.0 elements (P0,C0,A0,A1,A2)
+     [java] Relation SummEdge: 807 nodes, 1713.0 elements (P0,C0,A0,A1,A2)
+     [java] Relation mhp: 569 nodes, 11325.0 elements (P0,C0,A0,A1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_mhp_mhp.dlog '
+     [java] LEAVE: mhp-dlog
+     [java] Exclusive time: 00:00:01:793 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:07:648 hh:mm:ss:ms
+     [java] ENTER: PE at Wed Jul 13 17:23:35 CDT 2011
+     [java] SAVING rel PE size: 21698
+     [java] LEAVE: PE
+     [java] Exclusive time: 00:00:00:849 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:849 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_parallel_include.dlog '
+     [java] Relation mhe: 285 nodes, 2034.0 elements (C0,A0,A1,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_parallel_include.dlog '
+     [java] LEAVE: datarace-parallel-include-dlog
+     [java] Exclusive time: 00:00:01:130 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:09:627 hh:mm:ss:ms
+     [java] ENTER: datarace-escaping-include-dlog at Wed Jul 13 17:23:37 CDT 2011
+     [java] ENTER: flowins-thresc-dlog at Wed Jul 13 17:23:37 CDT 2011
+     [java] ENTER: MV at Wed Jul 13 17:23:37 CDT 2011
+     [java] SAVING rel MV size: 42854
+     [java] LEAVE: MV
+     [java] Exclusive time: 00:00:01:030 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:030 hh:mm:ss:ms
+     [java] ENTER: MP at Wed Jul 13 17:23:38 CDT 2011
+     [java] SAVING rel MP size: 106904
+     [java] LEAVE: MP
+     [java] Exclusive time: 00:00:03:675 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:03:675 hh:mm:ss:ms
+     [java] ENTER: EV at Wed Jul 13 17:23:42 CDT 2011
+     [java] SAVING rel EV size: 18591
+     [java] LEAVE: EV
+     [java] Exclusive time: 00:00:00:498 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:498 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_escape_flowins_thresc.dlog '
+     [java] Relation escO: 147 nodes, 92.0 elements (C0)
+     [java] Relation escCPVO: 8270 nodes, 251875.0 elements (V0,C0,P0,C1)
+     [java] Relation flowinsVisitedE: 246 nodes, 595.0 elements (E0)
+     [java] Relation flowinsEscE: 229 nodes, 523.0 elements (E0)
+     [java] Relation flowinsLocE: 1111 nodes, 12514.0 elements (E0)
+     [java] Relation queryE: 1089 nodes, 13037.0 elements (E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_escape_flowins_thresc.dlog '
+     [java] LEAVE: flowins-thresc-dlog
+     [java] Exclusive time: 00:00:01:790 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:06:994 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_escaping_include.dlog '
+     [java] Relation CEC: 2441 nodes, 1347.0 elements (C0,C1,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_escaping_include.dlog '
+     [java] LEAVE: datarace-escaping-include-dlog
+     [java] Exclusive time: 00:00:01:708 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:08:702 hh:mm:ss:ms
+     [java] ENTER: datarace-nongrded-include-dlog at Wed Jul 13 17:23:46 CDT 2011
+     [java] ENTER: L at Wed Jul 13 17:23:46 CDT 2011
+     [java] SAVING dom L size: 284
+     [java] LEAVE: L
+     [java] Exclusive time: 00:00:00:026 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:026 hh:mm:ss:ms
+     [java] ENTER: syncCLC-dlog at Wed Jul 13 17:23:46 CDT 2011
+     [java] ENTER: thisMV at Wed Jul 13 17:23:46 CDT 2011
+     [java] SAVING rel thisMV size: 3974
+     [java] LEAVE: thisMV
+     [java] Exclusive time: 00:00:00:150 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:150 hh:mm:ss:ms
+     [java] ENTER: syncLV at Wed Jul 13 17:23:46 CDT 2011
+     [java] SAVING rel syncLV size: 142
+     [java] LEAVE: syncLV
+     [java] Exclusive time: 00:00:00:059 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:059 hh:mm:ss:ms
+     [java] ENTER: syncLM at Wed Jul 13 17:23:46 CDT 2011
+     [java] SAVING rel syncLM size: 133
+     [java] LEAVE: syncLM
+     [java] Exclusive time: 00:00:00:060 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:060 hh:mm:ss:ms
+     [java] ENTER: statM at Wed Jul 13 17:23:46 CDT 2011
+     [java] SAVING rel statM size: 1288
+     [java] LEAVE: statM
+     [java] Exclusive time: 00:00:00:069 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:069 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_lock_syncCLC.dlog '
+     [java] Relation syncCLC: 386 nodes, 48.0 elements (C0,L0,C1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_lock_syncCLC.dlog '
+     [java] LEAVE: syncCLC-dlog
+     [java] Exclusive time: 00:00:00:753 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:092 hh:mm:ss:ms
+     [java] ENTER: transLI-dlog at Wed Jul 13 17:23:47 CDT 2011
+     [java] ENTER: LI at Wed Jul 13 17:23:47 CDT 2011
+     [java] SAVING rel LI size: 815
+     [java] LEAVE: LI
+     [java] Exclusive time: 00:00:00:188 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:188 hh:mm:ss:ms
+     [java] ENTER: LL at Wed Jul 13 17:23:47 CDT 2011
+     [java] SAVING rel LL size: 4
+     [java] LEAVE: LL
+     [java] Exclusive time: 00:00:00:164 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:164 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_lock_transLI.dlog '
+     [java] Relation transLI: 2941 nodes, 844.0 elements (L0,I0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_lock_transLI.dlog '
+     [java] LEAVE: transLI-dlog
+     [java] Exclusive time: 00:00:00:573 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:926 hh:mm:ss:ms
+     [java] ENTER: transLE-dlog at Wed Jul 13 17:23:48 CDT 2011
+     [java] ENTER: LE at Wed Jul 13 17:23:48 CDT 2011
+     [java] SAVING rel LE size: 933
+     [java] LEAVE: LE
+     [java] Exclusive time: 00:00:00:186 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:186 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_lock_transLE.dlog '
+     [java] Relation transLE: 2849 nodes, 952.0 elements (L0,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_lock_transLE.dlog '
+     [java] LEAVE: transLE-dlog
+     [java] Exclusive time: 00:00:00:584 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:770 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_nongrded_include.dlog '
+     [java] Relation guardedE: 316 nodes, 190.0 elements (C0,C1,A0,E0)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_nongrded_include.dlog '
+     [java] LEAVE: datarace-nongrded-include-dlog
+     [java] Exclusive time: 00:00:01:013 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:03:828 hh:mm:ss:ms
+     [java] ENTER: datarace-dlog at Wed Jul 13 17:23:50 CDT 2011
+     [java] ENTER: statF at Wed Jul 13 17:23:50 CDT 2011
+     [java] SAVING rel statF size: 2360
+     [java] LEAVE: statF
+     [java] Exclusive time: 00:00:00:083 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:083 hh:mm:ss:ms
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace.dlog '
+     [java] Relation ctxtInsStartingRace: 2125 nodes, 1526.0 elements (E0,E1)
+     [java] Relation datarace: 209 nodes, 36.0 elements (A0,C0,E0,A1,C1,E1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace.dlog '
+     [java] LEAVE: datarace-dlog
+     [java] Exclusive time: 00:00:01:361 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:01:444 hh:mm:ss:ms
+     [java] ENTER: datarace-stats-dlog at Wed Jul 13 17:23:51 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace_stats.dlog '
+     [java] Relation ctxtInsDatarace: 135 nodes, 10.0 elements (E0,E1)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace_stats.dlog '
+     [java] LEAVE: datarace-stats-dlog
+     [java] Exclusive time: 00:00:00:518 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:518 hh:mm:ss:ms
+     [java] ENTER: cs-alias-java at Wed Jul 13 17:23:52 CDT 2011
+     [java] LEAVE: cs-alias-java
+     [java] Exclusive time: 00:00:00:000 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:000 hh:mm:ss:ms
+     [java] ENTER: thrsen-abbr-cscg-java at Wed Jul 13 17:23:52 CDT 2011
+     [java] LEAVE: thrsen-abbr-cscg-java
+     [java] Exclusive time: 00:00:00:001 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:001 hh:mm:ss:ms
+     [java] ENTER: datarace-epilogue-dlog at Wed Jul 13 17:23:52 CDT 2011
+     [java] Starting command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace_epilogue.dlog '
+     [java] Relation raceCEC: 323 nodes, 14.0 elements (C0,E0,C1,E1,C2)
+     [java] Finished command: 'nice -n10 java -ea -Xmx1024m -cp /home/cos/workspace/compare/chord/main/chord.jar -Dverbose=1 -Dbdd=j -Dbasedir=/home/cos/workspace/evaluation/em3d/chord_output/bddbddb net.sf.bddbddb.Solver /home/cos/workspace/evaluation/em3d/chord_output/chord_analyses_datarace_datarace_epilogue.dlog '
+     [java] LEAVE: datarace-epilogue-dlog
+     [java] Exclusive time: 00:00:00:603 hh:mm:ss:ms
+     [java] Inclusive time: 00:00:00:603 hh:mm:ss:ms
+     [java] TASK LI ALREADY DONE.
+     [java] TASK LE ALREADY DONE.
+     [java] TASK syncCLC-dlog ALREADY DONE.
+     [java] Created /home/cos/workspace/evaluation/em3d/chord_output/stylesheet.css
+     [java] Created /home/cos/workspace/evaluation/em3d/chord_output/front.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/parallelArray/BiGraph.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/parallelArray/MathI.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/parallelArray/ENode.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/threads/ENode.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/threads/MathI.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/threads/MathFP.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/parallelArray/MathFP.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/parallelArray/Em3d.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/threads/BiGraph.java.html
+     [java] Created: /home/cos/workspace/evaluation/em3d/chord_output/em3d/threads/Em3d.java.html
+     [java] LEAVE: datarace-java
+     [java] Exclusive time: 00:00:52:996 hh:mm:ss:ms
+     [java] Inclusive time: 00:01:01:848 hh:mm:ss:ms
+     [java] Chord run completed at: Jul 13, 2011 5:23:57 PM
+     [java] Total time: 00:01:03:196 hh:mm:ss:ms
+
+BUILD SUCCESSFUL
+Total time: 1 minute 3 seconds

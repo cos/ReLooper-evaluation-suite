@@ -1,0 +1,139 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.MergeDocIDRemapper (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">MergeDocIDRemapper.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="FormalComment">/** Remaps docIDs after a merge has completed, where the
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *  merged segments had at least one deletion.  This is used
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *  to renumber the buffered deletes in IndexWriter when a
+<FONT ID="LN">23  </FONT><A NAME="23"></A> *  merge of segments with deletions commits. */</FONT>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> MergeDocIDRemapper {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  <FONT ID="Int">int</FONT>[] starts;                                 <FONT ID="SingleLineComment">// used for binary search of mapped docID
+<FONT ID="LN">27  </FONT><A NAME="27"></A></FONT>  <FONT ID="Int">int</FONT>[] newStarts;                              <FONT ID="SingleLineComment">// starts, minus the deletes
+<FONT ID="LN">28  </FONT><A NAME="28"></A></FONT>  <FONT ID="Int">int</FONT>[][] docMaps;                              <FONT ID="SingleLineComment">// maps docIDs in the merged set
+<FONT ID="LN">29  </FONT><A NAME="29"></A></FONT>  <FONT ID="Int">int</FONT> minDocID;                                 <FONT ID="SingleLineComment">// minimum docID that needs renumbering
+<FONT ID="LN">30  </FONT><A NAME="30"></A></FONT>  <FONT ID="Int">int</FONT> maxDocID;                                 <FONT ID="SingleLineComment">// 1+ the max docID that needs renumbering
+<FONT ID="LN">31  </FONT><A NAME="31"></A></FONT>  <FONT ID="Int">int</FONT> docShift;                                 <FONT ID="SingleLineComment">// total # deleted docs that were compacted by this merge
+<FONT ID="LN">32  </FONT><A NAME="32"></A></FONT>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  <FONT ID="Public">public</FONT> MergeDocIDRemapper(<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> infos, <FONT ID="Int">int</FONT>[][] docMaps, <FONT ID="Int">int</FONT>[] delCounts, <A HREF="../../../../org/apache/lucene/index/MergePolicy.java.html">MergePolicy.OneMerge</A> merge, <FONT ID="Int">int</FONT> mergedDocCount) {
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="This">this</FONT>.docMaps = docMaps;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    <A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> firstSegment = merge.segments.info(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="While">while</FONT>(<FONT ID="True">true</FONT>) {
+<FONT ID="LN">38  </FONT><A NAME="38"></A>      <A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> info = infos.info(i);
+<FONT ID="LN">39  </FONT><A NAME="39"></A>      <FONT ID="If">if</FONT> (info.equals(firstSegment))
+<FONT ID="LN">40  </FONT><A NAME="40"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">41  </FONT><A NAME="41"></A>      minDocID += info.docCount;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>      i++;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    }
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="Int">int</FONT> numDocs = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> j=<FONT ID="IntegerLiteral">0</FONT>;j&lt;docMaps.length;i++,j++) {
+<FONT ID="LN">47  </FONT><A NAME="47"></A>      numDocs += infos.info(i).docCount;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>      assert infos.info(i).equals(merge.segments.info(j));
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    }
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    maxDocID = minDocID + numDocs;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    starts = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[docMaps.length];
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    newStarts = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[docMaps.length];
+<FONT ID="LN">54  </FONT><A NAME="54"></A>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    starts[<FONT ID="IntegerLiteral">0</FONT>] = minDocID;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    newStarts[<FONT ID="IntegerLiteral">0</FONT>] = minDocID;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="For">for</FONT>(i=<FONT ID="IntegerLiteral">1</FONT>;i&lt;docMaps.length;i++) {
+<FONT ID="LN">58  </FONT><A NAME="58"></A>      <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> lastDocCount = merge.segments.info(i-<FONT ID="IntegerLiteral">1</FONT>).docCount;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>      starts[i] = starts[i-<FONT ID="IntegerLiteral">1</FONT>] + lastDocCount;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>      newStarts[i] = newStarts[i-<FONT ID="IntegerLiteral">1</FONT>] + lastDocCount - delCounts[i-<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    }
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    docShift = numDocs - mergedDocCount;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="SingleLineComment">// There are rare cases when docShift is 0.  It happens
+<FONT ID="LN">65  </FONT><A NAME="65"></A></FONT>    <FONT ID="SingleLineComment">// if you try to delete a docID that's out of bounds,
+<FONT ID="LN">66  </FONT><A NAME="66"></A></FONT>    <FONT ID="SingleLineComment">// because the SegmentReader still allocates deletedDocs
+<FONT ID="LN">67  </FONT><A NAME="67"></A></FONT>    <FONT ID="SingleLineComment">// and pretends it has deletions ... so we can't make
+<FONT ID="LN">68  </FONT><A NAME="68"></A></FONT>    <FONT ID="SingleLineComment">// this assert here
+<FONT ID="LN">69  </FONT><A NAME="69"></A></FONT>    <FONT ID="SingleLineComment">// assert docShift &gt; 0;
+<FONT ID="LN">70  </FONT><A NAME="70"></A></FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="SingleLineComment">// Make sure it all adds up:
+<FONT ID="LN">72  </FONT><A NAME="72"></A></FONT>    assert docShift == maxDocID - (newStarts[docMaps.length-<FONT ID="IntegerLiteral">1</FONT>] + merge.segments.info(docMaps.length-<FONT ID="IntegerLiteral">1</FONT>).docCount - delCounts[docMaps.length-<FONT ID="IntegerLiteral">1</FONT>]);
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  }
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> remap(<FONT ID="Int">int</FONT> oldDocID) {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="If">if</FONT> (oldDocID &lt; minDocID)
+<FONT ID="LN">77  </FONT><A NAME="77"></A>      <FONT ID="SingleLineComment">// Unaffected by merge
+<FONT ID="LN">78  </FONT><A NAME="78"></A></FONT>      <FONT ID="Return">return</FONT> oldDocID;
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (oldDocID &gt;= maxDocID)
+<FONT ID="LN">80  </FONT><A NAME="80"></A>      <FONT ID="SingleLineComment">// This doc was "after" the merge, so simple shift
+<FONT ID="LN">81  </FONT><A NAME="81"></A></FONT>      <FONT ID="Return">return</FONT> oldDocID - docShift;
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>      <FONT ID="SingleLineComment">// Binary search to locate this document &amp; find its new docID
+<FONT ID="LN">84  </FONT><A NAME="84"></A></FONT>      <FONT ID="Int">int</FONT> lo = <FONT ID="IntegerLiteral">0</FONT>;                                      <FONT ID="SingleLineComment">// search starts array
+<FONT ID="LN">85  </FONT><A NAME="85"></A></FONT>      <FONT ID="Int">int</FONT> hi = docMaps.length - <FONT ID="IntegerLiteral">1</FONT>;                  <FONT ID="SingleLineComment">// for first element less
+<FONT ID="LN">86  </FONT><A NAME="86"></A></FONT>
+<FONT ID="LN">87  </FONT><A NAME="87"></A>      <FONT ID="While">while</FONT> (hi &gt;= lo) {
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        <FONT ID="Int">int</FONT> mid = (lo + hi) &gt;&gt;&gt; <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>        <FONT ID="Int">int</FONT> midValue = starts[mid];
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        <FONT ID="If">if</FONT> (oldDocID &lt; midValue)
+<FONT ID="LN">91  </FONT><A NAME="91"></A>          hi = mid - <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>        <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (oldDocID &gt; midValue)
+<FONT ID="LN">93  </FONT><A NAME="93"></A>          lo = mid + <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>        <FONT ID="Else">else</FONT> {                                      <FONT ID="SingleLineComment">// found a match
+<FONT ID="LN">95  </FONT><A NAME="95"></A></FONT>          <FONT ID="While">while</FONT> (mid+<FONT ID="IntegerLiteral">1</FONT> &lt; docMaps.length &amp;&amp; starts[mid+<FONT ID="IntegerLiteral">1</FONT>] == midValue) {
+<FONT ID="LN">96  </FONT><A NAME="96"></A>            mid++;                                  <FONT ID="SingleLineComment">// scan to last match
+<FONT ID="LN">97  </FONT><A NAME="97"></A></FONT>          }
+<FONT ID="LN">98  </FONT><A NAME="98"></A>          <FONT ID="If">if</FONT> (docMaps[mid] != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">99  </FONT><A NAME="99"></A>            <FONT ID="Return">return</FONT> newStarts[mid] + docMaps[mid][oldDocID-starts[mid]];
+<FONT ID="LN">100 </FONT><A NAME="100"></A>          <FONT ID="Else">else</FONT>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>            <FONT ID="Return">return</FONT> newStarts[mid] + oldDocID-starts[mid];
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        }
+<FONT ID="LN">103 </FONT><A NAME="103"></A>      }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>      <FONT ID="If">if</FONT> (docMaps[hi] != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">105 </FONT><A NAME="105"></A>        <FONT ID="Return">return</FONT> newStarts[hi] + docMaps[hi][oldDocID-starts[hi]];
+<FONT ID="LN">106 </FONT><A NAME="106"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>        <FONT ID="Return">return</FONT> newStarts[hi] + oldDocID-starts[hi];
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  }
+<FONT ID="LN">110 </FONT><A NAME="110"></A>}
+<FONT ID="LN">111 </FONT><A NAME="111"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">MergeDocIDRemapper.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

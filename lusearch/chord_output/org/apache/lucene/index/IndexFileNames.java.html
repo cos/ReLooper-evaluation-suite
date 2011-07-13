@@ -1,0 +1,231 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.IndexFileNames (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">IndexFileNames.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">21  </FONT><A NAME="21"></A> * Useful constants representing filenames and extensions used by lucene
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * @version $rcs = ' $Id: Exp $ ' ;
+<FONT ID="LN">24  </FONT><A NAME="24"></A> */</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> IndexFileNames {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  <FONT ID="FormalComment">/** Name of the index segment file */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String SEGMENTS = <FONT ID="StringLiteral">"segments"</FONT>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  <FONT ID="FormalComment">/** Name of the generation reference file name */</FONT>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String SEGMENTS_GEN = <FONT ID="StringLiteral">"segments.gen"</FONT>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  <FONT ID="FormalComment">/** Name of the index deletable file (only used in
+<FONT ID="LN">34  </FONT><A NAME="34"></A>   * pre-lockless indices) */</FONT>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String DELETABLE = <FONT ID="StringLiteral">"deletable"</FONT>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A>   
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="FormalComment">/** Extension of norms file */</FONT>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String NORMS_EXTENSION = <FONT ID="StringLiteral">"nrm"</FONT>;
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  <FONT ID="FormalComment">/** Extension of freq postings file */</FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String FREQ_EXTENSION = <FONT ID="StringLiteral">"frq"</FONT>;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="FormalComment">/** Extension of prox postings file */</FONT>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String PROX_EXTENSION = <FONT ID="StringLiteral">"prx"</FONT>;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="FormalComment">/** Extension of terms file */</FONT>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String TERMS_EXTENSION = <FONT ID="StringLiteral">"tis"</FONT>;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="FormalComment">/** Extension of terms index file */</FONT>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String TERMS_INDEX_EXTENSION = <FONT ID="StringLiteral">"tii"</FONT>;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  <FONT ID="FormalComment">/** Extension of stored fields index file */</FONT>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String FIELDS_INDEX_EXTENSION = <FONT ID="StringLiteral">"fdx"</FONT>;
+<FONT ID="LN">54  </FONT><A NAME="54"></A>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="FormalComment">/** Extension of stored fields file */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String FIELDS_EXTENSION = <FONT ID="StringLiteral">"fdt"</FONT>;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="FormalComment">/** Extension of vectors fields file */</FONT>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String VECTORS_FIELDS_EXTENSION = <FONT ID="StringLiteral">"tvf"</FONT>;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  <FONT ID="FormalComment">/** Extension of vectors documents file */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String VECTORS_DOCUMENTS_EXTENSION = <FONT ID="StringLiteral">"tvd"</FONT>;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="FormalComment">/** Extension of vectors index file */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String VECTORS_INDEX_EXTENSION = <FONT ID="StringLiteral">"tvx"</FONT>;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="FormalComment">/** Extension of compound file */</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String COMPOUND_FILE_EXTENSION = <FONT ID="StringLiteral">"cfs"</FONT>;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  <FONT ID="FormalComment">/** Extension of compound file for doc store files*/</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String COMPOUND_FILE_STORE_EXTENSION = <FONT ID="StringLiteral">"cfx"</FONT>;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  <FONT ID="FormalComment">/** Extension of deletes */</FONT>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String DELETES_EXTENSION = <FONT ID="StringLiteral">"del"</FONT>;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="FormalComment">/** Extension of field infos */</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String FIELD_INFOS_EXTENSION = <FONT ID="StringLiteral">"fnm"</FONT>;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="FormalComment">/** Extension of plain norms */</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String PLAIN_NORMS_EXTENSION = <FONT ID="StringLiteral">"f"</FONT>;
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="FormalComment">/** Extension of separate norms */</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String SEPARATE_NORMS_EXTENSION = <FONT ID="StringLiteral">"s"</FONT>;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="FormalComment">/** Extension of gen file */</FONT>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String GEN_EXTENSION = <FONT ID="StringLiteral">"gen"</FONT>;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * This array contains all filename extensions used by
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   * Lucene's index files, with two exceptions, namely the
+<FONT ID="LN">91  </FONT><A NAME="91"></A>   * extension made up from &lt;code&gt;.f&lt;/code&gt; + a number and
+<FONT ID="LN">92  </FONT><A NAME="92"></A>   * from &lt;code&gt;.s&lt;/code&gt; + a number.  Also note that
+<FONT ID="LN">93  </FONT><A NAME="93"></A>   * Lucene's &lt;code&gt;segments_N&lt;/code&gt; files do not have any
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * filename extension.
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   */</FONT>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String INDEX_EXTENSIONS[] = <FONT ID="New">new</FONT> String[] {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    COMPOUND_FILE_EXTENSION,
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    FIELD_INFOS_EXTENSION,
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    FIELDS_INDEX_EXTENSION,
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    FIELDS_EXTENSION,
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    TERMS_INDEX_EXTENSION,
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    TERMS_EXTENSION,
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    FREQ_EXTENSION,
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    PROX_EXTENSION,
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    DELETES_EXTENSION,
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    VECTORS_INDEX_EXTENSION,
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    VECTORS_DOCUMENTS_EXTENSION,
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    VECTORS_FIELDS_EXTENSION,
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    GEN_EXTENSION,
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    NORMS_EXTENSION,
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    COMPOUND_FILE_STORE_EXTENSION,
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  };
+<FONT ID="LN">113 </FONT><A NAME="113"></A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <FONT ID="FormalComment">/** File extensions that are added to a compound file
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   * (same as above, minus "del", "gen", "cfs"). */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String[] INDEX_EXTENSIONS_IN_COMPOUND_FILE = <FONT ID="New">new</FONT> String[] {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    FIELD_INFOS_EXTENSION,
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    FIELDS_INDEX_EXTENSION,
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    FIELDS_EXTENSION,
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    TERMS_INDEX_EXTENSION,
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    TERMS_EXTENSION,
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    FREQ_EXTENSION,
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    PROX_EXTENSION,
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    VECTORS_INDEX_EXTENSION,
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    VECTORS_DOCUMENTS_EXTENSION,
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    VECTORS_FIELDS_EXTENSION,
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    NORMS_EXTENSION
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  };
+<FONT ID="LN">129 </FONT><A NAME="129"></A>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String[] STORE_INDEX_EXTENSIONS = <FONT ID="New">new</FONT> String[] {
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    VECTORS_INDEX_EXTENSION,
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    VECTORS_FIELDS_EXTENSION,
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    VECTORS_DOCUMENTS_EXTENSION,
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    FIELDS_INDEX_EXTENSION,
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    FIELDS_EXTENSION
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  };
+<FONT ID="LN">137 </FONT><A NAME="137"></A>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String[] NON_STORE_INDEX_EXTENSIONS = <FONT ID="New">new</FONT> String[] {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    FIELD_INFOS_EXTENSION,
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    FREQ_EXTENSION,
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    PROX_EXTENSION,
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    TERMS_EXTENSION,
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    TERMS_INDEX_EXTENSION,
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    NORMS_EXTENSION
+<FONT ID="LN">145 </FONT><A NAME="145"></A>  };
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  <FONT ID="FormalComment">/** File extensions of old-style index files */</FONT>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String COMPOUND_EXTENSIONS[] = <FONT ID="New">new</FONT> String[] {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    FIELD_INFOS_EXTENSION,
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    FREQ_EXTENSION,
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    PROX_EXTENSION,
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    FIELDS_INDEX_EXTENSION,
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    FIELDS_EXTENSION,
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    TERMS_INDEX_EXTENSION,
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    TERMS_EXTENSION
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  };
+<FONT ID="LN">157 </FONT><A NAME="157"></A>  
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="FormalComment">/** File extensions for term vector support */</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String VECTOR_EXTENSIONS[] = <FONT ID="New">new</FONT> String[] {
+<FONT ID="LN">160 </FONT><A NAME="160"></A>    VECTORS_INDEX_EXTENSION,
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    VECTORS_DOCUMENTS_EXTENSION,
+<FONT ID="LN">162 </FONT><A NAME="162"></A>    VECTORS_FIELDS_EXTENSION
+<FONT ID="LN">163 </FONT><A NAME="163"></A>  };
+<FONT ID="LN">164 </FONT><A NAME="164"></A>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * Computes the full file name from base, extension and
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * generation.  If the generation is -1, the file name is
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * null.  If it's 0, the file name is &lt;base&gt;&lt;extension&gt;.
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   * If it's &gt; 0, the file name is &lt;base&gt;_&lt;generation&gt;&lt;extension&gt;.
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   *
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   * @param base -- main part of the file name
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   * @param extension -- extension of the filename (including .)
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   * @param gen -- generation
+<FONT ID="LN">174 </FONT><A NAME="174"></A>   */</FONT>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String fileNameFromGeneration(String base, String extension, <FONT ID="Long">long</FONT> gen) {
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    <FONT ID="If">if</FONT> (gen == SegmentInfo.NO) {
+<FONT ID="LN">177 </FONT><A NAME="177"></A>      <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (gen == SegmentInfo.WITHOUT_GEN) {
+<FONT ID="LN">179 </FONT><A NAME="179"></A>      <FONT ID="Return">return</FONT> base + extension;
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">181 </FONT><A NAME="181"></A>      <FONT ID="Return">return</FONT> base + <FONT ID="StringLiteral">"_"</FONT> + Long.toString(gen, Character.MAX_RADIX) + extension;
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    }
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  }
+<FONT ID="LN">184 </FONT><A NAME="184"></A>
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   * Returns true if the provided filename is one of the doc
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   * store files (ends with an extension in
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   * STORE_INDEX_EXTENSIONS).
+<FONT ID="LN">189 </FONT><A NAME="189"></A>   */</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Boolean">boolean</FONT> isDocStoreFile(String fileName) {
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="If">if</FONT> (fileName.endsWith(COMPOUND_FILE_STORE_EXTENSION))
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;STORE_INDEX_EXTENSIONS.length;i++)
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      <FONT ID="If">if</FONT> (fileName.endsWith(STORE_INDEX_EXTENSIONS[i]))
+<FONT ID="LN">195 </FONT><A NAME="195"></A>        <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  }
+<FONT ID="LN">198 </FONT><A NAME="198"></A>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="Static">static</FONT> String segmentFileName(String segmentName, String ext) {
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    <FONT ID="Return">return</FONT> segmentName + <FONT ID="StringLiteral">"."</FONT> + ext;
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  }
+<FONT ID="LN">202 </FONT><A NAME="202"></A>}
+<FONT ID="LN">203 </FONT><A NAME="203"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">IndexFileNames.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

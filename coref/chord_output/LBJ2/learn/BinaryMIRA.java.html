@@ -1,0 +1,338 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.learn.BinaryMIRA (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BinaryMIRA.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.learn;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.*;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.util.*;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> LBJ2.classify.*;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * The Binary MIRA learning algorithm implementation.  This algorithm
+<FONT ID="LN">10  </FONT><A NAME="10"></A>  * operates very similarly to {@link SparsePerceptron} with a thick
+<FONT ID="LN">11  </FONT><A NAME="11"></A>  * separator, except the learning rate is a function of each training
+<FONT ID="LN">12  </FONT><A NAME="12"></A>  * example's margin.  When the weight vector has made a mistake, the full
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  * {@link SparsePerceptron#learningRate} will be used.  When the weight
+<FONT ID="LN">14  </FONT><A NAME="14"></A>  * vector did not make a mistake, {@link SparsePerceptron#learningRate} is
+<FONT ID="LN">15  </FONT><A NAME="15"></A>  * multiplied by the following value before the update takes place.
+<FONT ID="LN">16  </FONT><A NAME="16"></A>  *
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  * &lt;p&gt;
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  * &lt;blockquote&gt;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>  * &lt;i&gt;(beta/2 - y(w*x)) / ||x||&lt;sup&gt;2&lt;/sup&gt;&lt;/i&gt;
+<FONT ID="LN">20  </FONT><A NAME="20"></A>  * &lt;/blockquote&gt;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>  *
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  * &lt;p&gt; In the expression above, &lt;i&gt;w&lt;/i&gt; is the weight vector, &lt;i&gt;y&lt;/i&gt;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  * represents the label of the example vector &lt;i&gt;x&lt;/i&gt;, &lt;i&gt;*&lt;/i&gt; stands for
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  * inner product, and &lt;i&gt;beta&lt;/i&gt; is a user supplied parameter.  If this
+<FONT ID="LN">25  </FONT><A NAME="25"></A>  * expression turns out to be non-positive (i.e., if &lt;i&gt;y(w*x) &gt;=
+<FONT ID="LN">26  </FONT><A NAME="26"></A>  * beta/2&lt;/i&gt;), no update is made for that example.
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  *
+<FONT ID="LN">28  </FONT><A NAME="28"></A>  * &lt;p&gt; It is assumed that {@link Learner#labeler} is a single discrete
+<FONT ID="LN">29  </FONT><A NAME="29"></A>  * classifier that produces the same feature for every example object and
+<FONT ID="LN">30  </FONT><A NAME="30"></A>  * that the values that feature may take are available through the
+<FONT ID="LN">31  </FONT><A NAME="31"></A>  * {@link Classifier#allowableValues()} method.  The second value returned
+<FONT ID="LN">32  </FONT><A NAME="32"></A>  * from {@link Classifier#allowableValues()} is treated as "positive", and it
+<FONT ID="LN">33  </FONT><A NAME="33"></A>  * is assumed there are exactly 2 allowable values.  Assertions will produce
+<FONT ID="LN">34  </FONT><A NAME="34"></A>  * error messages if these assumptions do not hold.
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  *
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  * &lt;p&gt; This algorithm's user-configurable parameters are stored in member
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  * fields of this class.  They may be set via either a constructor that names
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  * each parameter explicitly or a constructor that takes an instance of
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  * {@link LBJ2.learn.SparsePerceptron.Parameters Parameters} as input.
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  * The documentation in each member field in this class indicates the default
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  * value of the associated parameter when using the former type of
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  * constructor.  The documentation of the associated member field in the
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  * {@link LBJ2.learn.SparsePerceptron.Parameters Parameters} class
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  * indicates the default value of the parameter when using the latter type of
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  * constructor.
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  *
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  * @author Arindam Saha
+<FONT ID="LN">48  </FONT><A NAME="48"></A> **/</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> BinaryMIRA <FONT ID="Extends">extends</FONT> <A HREF="../../LBJ2/learn/SparsePerceptron.java.html">SparsePerceptron</A> {
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    * Used to decide if two values are nearly equal to each other.
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    * @see #nearlyEqualTo(double,double)
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   **/</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Double">double</FONT> TOLERANCE = <FONT ID="FloatPointLiteral">0.000000001</FONT>;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="FormalComment">/** Default value for {@link #beta}. */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Double">double</FONT> defaultBeta = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A>     * The user supplied learning algorithm parameter; default
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * {@link #defaultBeta}. The learning rate changes as a function of
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * &lt;code&gt;beta&lt;/code&gt;.
+<FONT ID="LN">63  </FONT><A NAME="63"></A>     */</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT> beta;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    * A copy of the original learning rate value is stored here so that
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    * {@link SparsePerceptron#learningRate} can be modified without losing it.
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   **/</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT> saveLearningRate;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">73  </FONT><A NAME="73"></A>     * The learning rate and beta take default values while the name of
+<FONT ID="LN">74  </FONT><A NAME="74"></A>     * the classifier takes the empty string.
+<FONT ID="LN">75  </FONT><A NAME="75"></A>     */</FONT>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="Public">public</FONT> BinaryMIRA() { <FONT ID="This">this</FONT>(<FONT ID="StringLiteral">""</FONT>); }
+<FONT ID="LN">77  </FONT><A NAME="77"></A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">79  </FONT><A NAME="79"></A>     * Sets the learning rate to the specified value, and beta to the
+<FONT ID="LN">80  </FONT><A NAME="80"></A>     * default, while the name of the classifier takes the empty string.
+<FONT ID="LN">81  </FONT><A NAME="81"></A>     *
+<FONT ID="LN">82  </FONT><A NAME="82"></A>     * @param r The desired learning rate value.
+<FONT ID="LN">83  </FONT><A NAME="83"></A>     */</FONT>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="Public">public</FONT> BinaryMIRA(<FONT ID="Double">double</FONT> r) { <FONT ID="This">this</FONT>(<FONT ID="StringLiteral">""</FONT>, r); }
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">87  </FONT><A NAME="87"></A>     * Sets the learning rate and beta to the specified values, while
+<FONT ID="LN">88  </FONT><A NAME="88"></A>     * the name of the classifier takes the empty string.
+<FONT ID="LN">89  </FONT><A NAME="89"></A>     *
+<FONT ID="LN">90  </FONT><A NAME="90"></A>     * @param r The desired learning rate value.
+<FONT ID="LN">91  </FONT><A NAME="91"></A>     * @param B the desired beta value.
+<FONT ID="LN">92  </FONT><A NAME="92"></A>     */</FONT>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="Public">public</FONT> BinaryMIRA(<FONT ID="Double">double</FONT> r, <FONT ID="Double">double</FONT> B) { <FONT ID="This">this</FONT>(<FONT ID="StringLiteral">""</FONT>, r, B); }
+<FONT ID="LN">94  </FONT><A NAME="94"></A>
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">96  </FONT><A NAME="96"></A>     * Sets the learning rate, beta and the weight vector to the specified
+<FONT ID="LN">97  </FONT><A NAME="97"></A>     * values.
+<FONT ID="LN">98  </FONT><A NAME="98"></A>     *
+<FONT ID="LN">99  </FONT><A NAME="99"></A>     * @param r The desired learning rate.
+<FONT ID="LN">100 </FONT><A NAME="100"></A>     * @param B The desired beta value.
+<FONT ID="LN">101 </FONT><A NAME="101"></A>     * @param v The desired weight vector.
+<FONT ID="LN">102 </FONT><A NAME="102"></A>     */</FONT>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="Public">public</FONT> BinaryMIRA(<FONT ID="Double">double</FONT> r, <FONT ID="Double">double</FONT> B, <A HREF="../../LBJ2/learn/SparseWeightVector.java.html">SparseWeightVector</A> v) {
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="This">this</FONT>(<FONT ID="StringLiteral">""</FONT>, r, B, v);
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  }
+<FONT ID="LN">106 </FONT><A NAME="106"></A>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    * Initializing constructor.  Sets all member variables to their associated
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    * settings in the {@link BinaryMIRA.Parameters} object.
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    *
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    * @param p  The settings of all parameters.
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   **/</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Public">public</FONT> BinaryMIRA(<A HREF="../../LBJ2/learn/Parameters.java.html">Parameters</A> p) { <FONT ID="This">this</FONT>(<FONT ID="StringLiteral">""</FONT>, p); }
+<FONT ID="LN">114 </FONT><A NAME="114"></A>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">117 </FONT><A NAME="117"></A>     * Sets the name of the classifier to the specified value, while the
+<FONT ID="LN">118 </FONT><A NAME="118"></A>     * learning rate and beta take default values.
+<FONT ID="LN">119 </FONT><A NAME="119"></A>     *
+<FONT ID="LN">120 </FONT><A NAME="120"></A>     * @param n The name of the classifier.
+<FONT ID="LN">121 </FONT><A NAME="121"></A>     */</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="Public">public</FONT> BinaryMIRA(String n) {
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="This">this</FONT>(n, SparsePerceptron.defaultLearningRate);
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  }
+<FONT ID="LN">125 </FONT><A NAME="125"></A>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">127 </FONT><A NAME="127"></A>     * Sets the name of the classifier and learning rate to the specified
+<FONT ID="LN">128 </FONT><A NAME="128"></A>     * values, while beta takes the default value.
+<FONT ID="LN">129 </FONT><A NAME="129"></A>     *
+<FONT ID="LN">130 </FONT><A NAME="130"></A>     * @param n The name of the classifier.
+<FONT ID="LN">131 </FONT><A NAME="131"></A>     * @param r The desired learning rate.
+<FONT ID="LN">132 </FONT><A NAME="132"></A>     */</FONT>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    <FONT ID="Public">public</FONT> BinaryMIRA(String n, <FONT ID="Double">double</FONT> r) { <FONT ID="This">this</FONT>(n, r, defaultBeta); }
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">136 </FONT><A NAME="136"></A>     * Sets the name of the classifier, the learning rate and beta to
+<FONT ID="LN">137 </FONT><A NAME="137"></A>     * the specified values.
+<FONT ID="LN">138 </FONT><A NAME="138"></A>     *
+<FONT ID="LN">139 </FONT><A NAME="139"></A>     * @param n The name of the classifier.
+<FONT ID="LN">140 </FONT><A NAME="140"></A>     * @param r The desired learning rate.
+<FONT ID="LN">141 </FONT><A NAME="141"></A>     * @param B The desired beta value.
+<FONT ID="LN">142 </FONT><A NAME="142"></A>     */</FONT>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    <FONT ID="Public">public</FONT> BinaryMIRA(String n, <FONT ID="Double">double</FONT> r, <FONT ID="Double">double</FONT> B) {
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    <FONT ID="This">this</FONT>(n, r, B,
+<FONT ID="LN">145 </FONT><A NAME="145"></A>         (<A HREF="../../LBJ2/learn/SparseWeightVector.java.html">SparseWeightVector</A>)
+<FONT ID="LN">146 </FONT><A NAME="146"></A>         LinearThresholdUnit.defaultWeightVector.clone());
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  }
+<FONT ID="LN">148 </FONT><A NAME="148"></A>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">150 </FONT><A NAME="150"></A>     * Sets the name of the classifier, the learning rate, beta and the
+<FONT ID="LN">151 </FONT><A NAME="151"></A>   * weight vector to the specified values.  Use this constructor to specify
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * an alternative subclass of {@link SparseWeightVector}.
+<FONT ID="LN">153 </FONT><A NAME="153"></A>     *
+<FONT ID="LN">154 </FONT><A NAME="154"></A>     * @param n The name of the classifier.
+<FONT ID="LN">155 </FONT><A NAME="155"></A>     * @param r The desired learning rate.
+<FONT ID="LN">156 </FONT><A NAME="156"></A>     * @param B The desired beta value.
+<FONT ID="LN">157 </FONT><A NAME="157"></A>     * @param v The desired weight vector.
+<FONT ID="LN">158 </FONT><A NAME="158"></A>     */</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    <FONT ID="Public">public</FONT> BinaryMIRA(String n, <FONT ID="Double">double</FONT> r, <FONT ID="Double">double</FONT> B, <A HREF="../../LBJ2/learn/SparseWeightVector.java.html">SparseWeightVector</A> v) {
+<FONT ID="LN">160 </FONT><A NAME="160"></A>        <FONT ID="Super">super</FONT>(n, r, LinearThresholdUnit.defaultThreshold,
+<FONT ID="LN">161 </FONT><A NAME="161"></A>          LinearThresholdUnit.defaultThickness,
+<FONT ID="LN">162 </FONT><A NAME="162"></A>          LinearThresholdUnit.defaultThickness, v);
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        beta = B;
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    saveLearningRate = r;
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    }
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    * Initializing constructor.  Sets all member variables to their associated
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    * settings in the {@link BinaryMIRA.Parameters} object.
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    *
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    * @param n  The name of the classifier.
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    * @param p  The settings of all parameters.
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   **/</FONT>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="Public">public</FONT> BinaryMIRA(String n, <A HREF="../../LBJ2/learn/Parameters.java.html">Parameters</A> p) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    <FONT ID="Super">super</FONT>(n, p);
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    beta = p.beta;
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    saveLearningRate = learningRate;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  }
+<FONT ID="LN">179 </FONT><A NAME="179"></A>
+<FONT ID="LN">180 </FONT><A NAME="180"></A>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">182 </FONT><A NAME="182"></A>      * Returns the current value of the {@link #beta} member variable.
+<FONT ID="LN">183 </FONT><A NAME="183"></A>      *
+<FONT ID="LN">184 </FONT><A NAME="184"></A>      * @return The value of the {@link #beta} variable.
+<FONT ID="LN">185 </FONT><A NAME="185"></A>     **/</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getBeta() { <FONT ID="Return">return</FONT> beta; }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">190 </FONT><A NAME="190"></A>      * Sets the {@link #beta} member variable to the specified value.
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      *
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    * @param B The new value for {@link #beta}.
+<FONT ID="LN">193 </FONT><A NAME="193"></A>     **/</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setBeta(<FONT ID="Double">double</FONT> B) { beta = B; }
+<FONT ID="LN">195 </FONT><A NAME="195"></A>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">198 </FONT><A NAME="198"></A>     * Evaluates the example object with the
+<FONT ID="LN">199 </FONT><A NAME="199"></A>   * {@link LinearThresholdUnit#score(Object)}, updates the
+<FONT ID="LN">200 </FONT><A NAME="200"></A>     * learning rate, and finally updates
+<FONT ID="LN">201 </FONT><A NAME="201"></A>   * {@link LinearThresholdUnit#weightVector} as described above.
+<FONT ID="LN">202 </FONT><A NAME="202"></A>   *
+<FONT ID="LN">203 </FONT><A NAME="203"></A>     * @param example The example object
+<FONT ID="LN">204 </FONT><A NAME="204"></A>     */</FONT>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> learn(Object example) {
+<FONT ID="LN">206 </FONT><A NAME="206"></A>        Feature l = labeler.classify(example).firstFeature();
+<FONT ID="LN">207 </FONT><A NAME="207"></A>        assert l != <FONT ID="Null">null</FONT>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>          : <FONT ID="StringLiteral">"An LTU's label classifier must always produce the same feature."</FONT>;
+<FONT ID="LN">209 </FONT><A NAME="209"></A>        assert l <FONT ID="InstanceOf">instanceof</FONT> DiscreteFeature
+<FONT ID="LN">210 </FONT><A NAME="210"></A>          : <FONT ID="StringLiteral">"An LTU's label classifier must always produce a single discrete "</FONT>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>            + <FONT ID="StringLiteral">"feature."</FONT>;
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>        DiscreteFeature labelFeature = (DiscreteFeature) l;
+<FONT ID="LN">214 </FONT><A NAME="214"></A>        assert labelFeature.valueEquals(allowableValues[<FONT ID="IntegerLiteral">0</FONT>])
+<FONT ID="LN">215 </FONT><A NAME="215"></A>               || labelFeature.valueEquals(allowableValues[<FONT ID="IntegerLiteral">1</FONT>])
+<FONT ID="LN">216 </FONT><A NAME="216"></A>          : <FONT ID="StringLiteral">"Example has unallowed label value."</FONT>;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>        <FONT ID="Boolean">boolean</FONT> label = labelFeature.getValueIndex() == <FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>                        || labelFeature.getValueIndex() == -<FONT ID="IntegerLiteral">1</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>                           &amp;&amp; labelFeature.valueEquals(allowableValues[<FONT ID="IntegerLiteral">1</FONT>]);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>        <FONT ID="Double">double</FONT> s = score(example);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>        updateLearningRate(example, s, label);
+<FONT ID="LN">224 </FONT><A NAME="224"></A>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>        <FONT ID="If">if</FONT> (!nearlyEqualTo(learningRate, <FONT ID="FloatPointLiteral">0.0</FONT>)) {
+<FONT ID="LN">226 </FONT><A NAME="226"></A>            <FONT ID="If">if</FONT> (label) promote(example);
+<FONT ID="LN">227 </FONT><A NAME="227"></A>            <FONT ID="Else">else</FONT> demote(example);
+<FONT ID="LN">228 </FONT><A NAME="228"></A>        }
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    }
+<FONT ID="LN">230 </FONT><A NAME="230"></A>
+<FONT ID="LN">231 </FONT><A NAME="231"></A>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">233 </FONT><A NAME="233"></A>     * Determines if &lt;code&gt;a&lt;/code&gt; is nearly equal to &lt;code&gt;b&lt;/code&gt; based on
+<FONT ID="LN">234 </FONT><A NAME="234"></A>     * the value of the &lt;code&gt;TOLERANCE&lt;/code&gt; member variable.
+<FONT ID="LN">235 </FONT><A NAME="235"></A>     *
+<FONT ID="LN">236 </FONT><A NAME="236"></A>     * @param a The first value
+<FONT ID="LN">237 </FONT><A NAME="237"></A>     * @param b The second value
+<FONT ID="LN">238 </FONT><A NAME="238"></A>     * @return  True if they are nearly equal, false otherwise.
+<FONT ID="LN">239 </FONT><A NAME="239"></A>     */</FONT>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> nearlyEqualTo(<FONT ID="Double">double</FONT> a, <FONT ID="Double">double</FONT> b) {
+<FONT ID="LN">241 </FONT><A NAME="241"></A>        <FONT ID="Return">return</FONT> -TOLERANCE &lt; a - b &amp;&amp; a - b &lt; TOLERANCE;
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    }
+<FONT ID="LN">243 </FONT><A NAME="243"></A>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">246 </FONT><A NAME="246"></A>     * Updates the {@link #learningRate} member variable.
+<FONT ID="LN">247 </FONT><A NAME="247"></A>     *
+<FONT ID="LN">248 </FONT><A NAME="248"></A>     * @param example The example object
+<FONT ID="LN">249 </FONT><A NAME="249"></A>     * @param s       The score for the example object
+<FONT ID="LN">250 </FONT><A NAME="250"></A>     * @param label   The label
+<FONT ID="LN">251 </FONT><A NAME="251"></A>     */</FONT>
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> updateLearningRate(Object example, <FONT ID="Double">double</FONT> s, <FONT ID="Boolean">boolean</FONT> label) {
+<FONT ID="LN">253 </FONT><A NAME="253"></A>        <FONT ID="Double">double</FONT> labelVal = label? <FONT ID="IntegerLiteral">1</FONT>: -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">254 </FONT><A NAME="254"></A>
+<FONT ID="LN">255 </FONT><A NAME="255"></A>        <FONT ID="Double">double</FONT> x = (beta / <FONT ID="IntegerLiteral">2</FONT> - labelVal * s)
+<FONT ID="LN">256 </FONT><A NAME="256"></A>               / (extractor.classify(example).L2NormSquared() + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>
+<FONT ID="LN">258 </FONT><A NAME="258"></A>        <FONT ID="If">if</FONT> (x &lt; <FONT ID="IntegerLiteral">0</FONT>) learningRate = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">259 </FONT><A NAME="259"></A>        <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (x &lt; <FONT ID="IntegerLiteral">1</FONT> || nearlyEqualTo(x, <FONT ID="FloatPointLiteral">1.0</FONT>)) learningRate = x;
+<FONT ID="LN">260 </FONT><A NAME="260"></A>        <FONT ID="Else">else</FONT> learningRate = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    learningRate *= saveLearningRate;
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    }
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">266 </FONT><A NAME="266"></A>      * Writes the algorithm's internal representation as text.  In the first
+<FONT ID="LN">267 </FONT><A NAME="267"></A>      * line of output, the name of the classifier is printed, followed by
+<FONT ID="LN">268 </FONT><A NAME="268"></A>      * {@link SparsePerceptron#learningRate}, {@link #beta},
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    * {@link LinearThresholdUnit#initialWeight},
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    * {@link LinearThresholdUnit#threshold},
+<FONT ID="LN">271 </FONT><A NAME="271"></A>      * {@link LinearThresholdUnit#positiveThickness},
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    * {@link LinearThresholdUnit#negativeThickness},
+<FONT ID="LN">273 </FONT><A NAME="273"></A>      * and finally {@link LinearThresholdUnit#bias}.
+<FONT ID="LN">274 </FONT><A NAME="274"></A>      *
+<FONT ID="LN">275 </FONT><A NAME="275"></A>      * @param out  The output stream.
+<FONT ID="LN">276 </FONT><A NAME="276"></A>     **/</FONT>
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(PrintStream out) {
+<FONT ID="LN">278 </FONT><A NAME="278"></A>        out.println(name + <FONT ID="StringLiteral">": "</FONT> + learningRate + <FONT ID="StringLiteral">", "</FONT> + beta + <FONT ID="StringLiteral">", "</FONT>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>                + initialWeight + <FONT ID="StringLiteral">", "</FONT> + threshold + <FONT ID="StringLiteral">", "</FONT> + positiveThickness
+<FONT ID="LN">280 </FONT><A NAME="280"></A>                + <FONT ID="StringLiteral">", "</FONT> + negativeThickness + <FONT ID="StringLiteral">", "</FONT> + bias);
+<FONT ID="LN">281 </FONT><A NAME="281"></A>        weightVector.write(out);
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    }
+<FONT ID="LN">283 </FONT><A NAME="283"></A>
+<FONT ID="LN">284 </FONT><A NAME="284"></A>
+<FONT ID="LN">285 </FONT><A NAME="285"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    * Simply a container for all of {@link BinaryMIRA}'s configurable
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    * parameters.  Using instances of this class should make code more
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    * readable and constructors less complicated.
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    *
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    * @author Nick Rizzolo
+<FONT ID="LN">291 </FONT><A NAME="291"></A>   **/</FONT>
+<FONT ID="LN">292 </FONT><A NAME="292"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Parameters <FONT ID="Extends">extends</FONT> <A HREF="../../LBJ2/learn/SparsePerceptron.java.html">SparsePerceptron.Parameters</A> {
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">294 </FONT><A NAME="294"></A>     * The user supplied learning algorithm parameter; default
+<FONT ID="LN">295 </FONT><A NAME="295"></A>     * {@link #defaultBeta}. The learning rate changes as a function of
+<FONT ID="LN">296 </FONT><A NAME="296"></A>     * &lt;code&gt;beta&lt;/code&gt;.
+<FONT ID="LN">297 </FONT><A NAME="297"></A>     */</FONT>
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> beta;
+<FONT ID="LN">299 </FONT><A NAME="299"></A>
+<FONT ID="LN">300 </FONT><A NAME="300"></A>
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    <FONT ID="FormalComment">/** Sets all the default values. */</FONT>
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    <FONT ID="Public">public</FONT> Parameters() {
+<FONT ID="LN">303 </FONT><A NAME="303"></A>      beta = defaultBeta;
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    }
+<FONT ID="LN">305 </FONT><A NAME="305"></A>  }
+<FONT ID="LN">306 </FONT><A NAME="306"></A>}
+<FONT ID="LN">307 </FONT><A NAME="307"></A>
+<FONT ID="LN">308 </FONT><A NAME="308"></A>
+<FONT ID="LN">309 </FONT><A NAME="309"></A>
+<FONT ID="LN">310 </FONT><A NAME="310"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BinaryMIRA.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

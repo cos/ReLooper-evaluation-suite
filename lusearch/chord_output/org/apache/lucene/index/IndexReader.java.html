@@ -1,0 +1,1564 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.IndexReader (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">IndexReader.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/Document.java.html">org.apache.lucene.document.Document</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/FieldSelector.java.html">org.apache.lucene.document.FieldSelector</A>;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/Similarity.java.html">org.apache.lucene.search.Similarity</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> org.apache.lucene.store.*;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.io.FileOutputStream;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.util.Arrays;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.util.Collection;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.util.Map;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="FormalComment">/** IndexReader is an abstract class, providing an interface for accessing an
+<FONT ID="LN">33  </FONT><A NAME="33"></A> index.  Search of an index is done entirely through this abstract interface,
+<FONT ID="LN">34  </FONT><A NAME="34"></A> so that any subclass which implements it is searchable.
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A> &lt;p&gt; Concrete subclasses of IndexReader are usually constructed with a call to
+<FONT ID="LN">37  </FONT><A NAME="37"></A> one of the static &lt;code&gt;open()&lt;/code&gt; methods, e.g. {@link
+<FONT ID="LN">38  </FONT><A NAME="38"></A> #open(String, boolean)}.
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A> &lt;p&gt; For efficiency, in this API documents are often referred to via
+<FONT ID="LN">41  </FONT><A NAME="41"></A> &lt;i&gt;document numbers&lt;/i&gt;, non-negative integers which each name a unique
+<FONT ID="LN">42  </FONT><A NAME="42"></A> document in the index.  These document numbers are ephemeral--they may change
+<FONT ID="LN">43  </FONT><A NAME="43"></A> as documents are added to and deleted from an index.  Clients should thus not
+<FONT ID="LN">44  </FONT><A NAME="44"></A> rely on a given document having the same number between sessions.
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A> &lt;p&gt; An IndexReader can be opened on a directory for which an IndexWriter is
+<FONT ID="LN">47  </FONT><A NAME="47"></A> opened already, but it cannot be used to delete documents from the index then.
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A> &lt;p&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A> &lt;b&gt;NOTE&lt;/b&gt;: for backwards API compatibility, several methods are not listed 
+<FONT ID="LN">51  </FONT><A NAME="51"></A> as abstract, but have no useful implementations in this base class and 
+<FONT ID="LN">52  </FONT><A NAME="52"></A> instead always throw UnsupportedOperationException.  Subclasses are 
+<FONT ID="LN">53  </FONT><A NAME="53"></A> strongly encouraged to override these methods, but in many cases may not 
+<FONT ID="LN">54  </FONT><A NAME="54"></A> need to.
+<FONT ID="LN">55  </FONT><A NAME="55"></A> &lt;/p&gt;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A> &lt;p&gt;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A> &lt;b&gt;NOTE&lt;/b&gt;: as of 2.4, it's possible to open a read-only
+<FONT ID="LN">60  </FONT><A NAME="60"></A> IndexReader using one of the static open methods that
+<FONT ID="LN">61  </FONT><A NAME="61"></A> accepts the boolean readOnly parameter.  Such a reader has
+<FONT ID="LN">62  </FONT><A NAME="62"></A> better concurrency as it's not necessary to synchronize on
+<FONT ID="LN">63  </FONT><A NAME="63"></A> the isDeleted method.  Currently the default for readOnly
+<FONT ID="LN">64  </FONT><A NAME="64"></A> is false, meaning if not specified you will get a
+<FONT ID="LN">65  </FONT><A NAME="65"></A> read/write IndexReader.  But in 3.0 this default will
+<FONT ID="LN">66  </FONT><A NAME="66"></A> change to true, meaning you must explicitly specify false
+<FONT ID="LN">67  </FONT><A NAME="67"></A> if you want to make changes with the resulting IndexReader.
+<FONT ID="LN">68  </FONT><A NAME="68"></A> &lt;/p&gt;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>
+<FONT ID="LN">70  </FONT><A NAME="70"></A> &lt;a name="thread-safety"&gt;&lt;/a&gt;&lt;p&gt;&lt;b&gt;NOTE&lt;/b&gt;: {@link
+<FONT ID="LN">71  </FONT><A NAME="71"></A> &lt;code&gt;IndexReader&lt;/code&gt;} instances are completely thread
+<FONT ID="LN">72  </FONT><A NAME="72"></A> safe, meaning multiple threads can call any of its methods,
+<FONT ID="LN">73  </FONT><A NAME="73"></A> concurrently.  If your application requires external
+<FONT ID="LN">74  </FONT><A NAME="74"></A> synchronization, you should &lt;b&gt;not&lt;/b&gt; synchronize on the
+<FONT ID="LN">75  </FONT><A NAME="75"></A> &lt;code&gt;IndexReader&lt;/code&gt; instance; use your own
+<FONT ID="LN">76  </FONT><A NAME="76"></A> (non-Lucene) objects instead.
+<FONT ID="LN">77  </FONT><A NAME="77"></A> 
+<FONT ID="LN">78  </FONT><A NAME="78"></A> @version $Id: IndexReader.java 826049 2009-10-16 19:28:55Z mikemccand $
+<FONT ID="LN">79  </FONT><A NAME="79"></A>*/</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> IndexReader <FONT ID="Implements">implements</FONT> Cloneable {
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   * Constants describing field properties, for example used for
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   * {@link IndexReader#getFieldNames(FieldOption)}.
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   */</FONT>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> FieldOption {
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="Private">private</FONT> String option;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="Private">private</FONT> FieldOption() { }
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Private">private</FONT> FieldOption(String option) {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>      <FONT ID="This">this</FONT>.option = option;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">93  </FONT><A NAME="93"></A>      <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.option;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    }
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    <FONT ID="FormalComment">/** All fields */</FONT>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption ALL = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"ALL"</FONT>);
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    <FONT ID="FormalComment">/** All indexed fields */</FONT>
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption INDEXED = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"INDEXED"</FONT>);
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    <FONT ID="FormalComment">/** All fields that store payloads */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption STORES_PAYLOADS = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"STORES_PAYLOADS"</FONT>);
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="FormalComment">/** All fields that omit tf */</FONT>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption OMIT_TERM_FREQ_AND_POSITIONS = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"OMIT_TERM_FREQ_AND_POSITIONS"</FONT>);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="FormalComment">/** @deprecated Renamed to {@link #OMIT_TERM_FREQ_AND_POSITIONS} */</FONT>
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption OMIT_TF = OMIT_TERM_FREQ_AND_POSITIONS;
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    <FONT ID="FormalComment">/** All fields which are not indexed */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption UNINDEXED = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"UNINDEXED"</FONT>);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    <FONT ID="FormalComment">/** All fields which are indexed with termvectors enabled */</FONT>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption INDEXED_WITH_TERMVECTOR = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"INDEXED_WITH_TERMVECTOR"</FONT>);
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="FormalComment">/** All fields which are indexed but don't have termvectors enabled */</FONT>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption INDEXED_NO_TERMVECTOR = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"INDEXED_NO_TERMVECTOR"</FONT>);
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    <FONT ID="FormalComment">/** All fields with termvectors enabled. Please note that only standard termvector fields are returned */</FONT>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption TERMVECTOR = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"TERMVECTOR"</FONT>);
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="FormalComment">/** All fields with termvectors with position values enabled */</FONT>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption TERMVECTOR_WITH_POSITION = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"TERMVECTOR_WITH_POSITION"</FONT>);
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="FormalComment">/** All fields with termvectors with offset values enabled */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption TERMVECTOR_WITH_OFFSET = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"TERMVECTOR_WITH_OFFSET"</FONT>);
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="FormalComment">/** All fields with termvectors with offset values and position values enabled */</FONT>
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> FieldOption TERMVECTOR_WITH_POSITION_OFFSET = <FONT ID="New">new</FONT> FieldOption (<FONT ID="StringLiteral">"TERMVECTOR_WITH_POSITION_OFFSET"</FONT>);
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  }
+<FONT ID="LN">120 </FONT><A NAME="120"></A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> closed;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> hasChanges;
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> refCount;
+<FONT ID="LN">125 </FONT><A NAME="125"></A>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> DEFAULT_TERMS_INDEX_DIVISOR = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> disableFakeNorms = <FONT ID="False">false</FONT>;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  <FONT ID="FormalComment">/** Expert: returns the current refCount for this reader */</FONT>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Int">int</FONT> getRefCount() {
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    <FONT ID="Return">return</FONT> refCount;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  }
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * Expert: increments the refCount of this IndexReader
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * instance.  RefCounts are used to determine when a
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   * reader can be closed safely, i.e. as soon as there are
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   * no more references.  Be sure to always call a
+<FONT ID="LN">140 </FONT><A NAME="140"></A>   * corresponding {@link #decRef}, in a finally clause;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * otherwise the reader may never be closed.  Note that
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   * {@link #close} simply calls decRef(), which means that
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * the IndexReader will not really be closed until {@link
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * #decRef} has been called for all outstanding
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * references.
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   *
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   * @see #decRef
+<FONT ID="LN">148 </FONT><A NAME="148"></A>   */</FONT>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> incRef() {
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    assert refCount &gt; <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    ensureOpen();
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    refCount++;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * Expert: decreases the refCount of this IndexReader
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * instance.  If the refCount drops to 0, then pending
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   * changes (if any) are committed to the index and this
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   * reader is closed.
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   * 
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   * @throws IOException in case an IOException occurs in commit() or doClose()
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   *
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * @see #incRef
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   */</FONT>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> decRef() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    assert refCount &gt; <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    ensureOpen();
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    <FONT ID="If">if</FONT> (refCount == <FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">169 </FONT><A NAME="169"></A>      commit();
+<FONT ID="LN">170 </FONT><A NAME="170"></A>      doClose();
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    }
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    refCount--;
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  }
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">176 </FONT><A NAME="176"></A>   * @deprecated will be deleted when IndexReader(Directory) is deleted
+<FONT ID="LN">177 </FONT><A NAME="177"></A>   * @see #directory()
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   */</FONT>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="Private">private</FONT> Directory directory;
+<FONT ID="LN">180 </FONT><A NAME="180"></A>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * Legacy Constructor for backwards compatibility.
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   *
+<FONT ID="LN">184 </FONT><A NAME="184"></A>   * &lt;p&gt;
+<FONT ID="LN">185 </FONT><A NAME="185"></A>   * This Constructor should not be used, it exists for backwards 
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   * compatibility only to support legacy subclasses that did not "own" 
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   * a specific directory, but needed to specify something to be returned 
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   * by the directory() method.  Future subclasses should delegate to the 
+<FONT ID="LN">189 </FONT><A NAME="189"></A>   * no arg constructor and implement the directory() method as appropriate.
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   * 
+<FONT ID="LN">191 </FONT><A NAME="191"></A>   * @param directory Directory to be returned by the directory() method
+<FONT ID="LN">192 </FONT><A NAME="192"></A>   * @see #directory()
+<FONT ID="LN">193 </FONT><A NAME="193"></A>   * @deprecated - use IndexReader()
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   */</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  <FONT ID="Protected">protected</FONT> IndexReader(Directory directory) {
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    <FONT ID="This">this</FONT>();
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    <FONT ID="This">this</FONT>.directory = directory;
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  }
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  <FONT ID="Protected">protected</FONT> IndexReader() { 
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    refCount = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  }
+<FONT ID="LN">203 </FONT><A NAME="203"></A>  
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   * @throws AlreadyClosedException if this IndexReader is closed
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   */</FONT>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Final">final</FONT> <FONT ID="Void">void</FONT> ensureOpen() <FONT ID="Throws">throws</FONT> AlreadyClosedException {
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    <FONT ID="If">if</FONT> (refCount &lt;= <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">209 </FONT><A NAME="209"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> AlreadyClosedException(<FONT ID="StringLiteral">"this IndexReader is closed"</FONT>);
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    }
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  }
+<FONT ID="LN">212 </FONT><A NAME="212"></A>  
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  <FONT ID="FormalComment">/** Returns a read/write IndexReader reading the index in an FSDirectory in the named
+<FONT ID="LN">214 </FONT><A NAME="214"></A>   *  path.
+<FONT ID="LN">215 </FONT><A NAME="215"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">217 </FONT><A NAME="217"></A>   * @deprecated Use {@link #open(Directory, boolean)} instead. 
+<FONT ID="LN">218 </FONT><A NAME="218"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">219 </FONT><A NAME="219"></A>   * 
+<FONT ID="LN">220 </FONT><A NAME="220"></A>   * @param path the path to the index directory */</FONT>
+<FONT ID="LN">221 </FONT><A NAME="221"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(String path) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    <FONT ID="Return">return</FONT> open(path, <FONT ID="False">false</FONT>);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>  }
+<FONT ID="LN">224 </FONT><A NAME="224"></A>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  <FONT ID="FormalComment">/** Returns an IndexReader reading the index in an
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   *  FSDirectory in the named path.  You should pass
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   *  readOnly=true, since it gives much better concurrent
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   *  performance, unless you intend to do write operations
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   *  (delete documents or change norms) with the reader.
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">232 </FONT><A NAME="232"></A>   * @param path the path to the index directory
+<FONT ID="LN">233 </FONT><A NAME="233"></A>   * @param readOnly true if this should be a readOnly
+<FONT ID="LN">234 </FONT><A NAME="234"></A>   * reader
+<FONT ID="LN">235 </FONT><A NAME="235"></A>   * @deprecated Use {@link #open(Directory, boolean)} instead.
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * 
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   */</FONT>
+<FONT ID="LN">239 </FONT><A NAME="239"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(String path, <FONT ID="Boolean">boolean</FONT> readOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    <FONT ID="Final">final</FONT> Directory dir = FSDirectory.getDirectory(path);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> r = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">243 </FONT><A NAME="243"></A>      r = open(dir, <FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>, readOnly, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">245 </FONT><A NAME="245"></A>      <FONT ID="If">if</FONT> (r == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">246 </FONT><A NAME="246"></A>        dir.close();
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    }
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/DirectoryOwningReader.java.html">DirectoryOwningReader</A>(r);
+<FONT ID="LN">249 </FONT><A NAME="249"></A>  }
+<FONT ID="LN">250 </FONT><A NAME="250"></A>
+<FONT ID="LN">251 </FONT><A NAME="251"></A>  <FONT ID="FormalComment">/** Returns a read/write IndexReader reading the index in an FSDirectory in the named
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   *  path.
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   * @param path the path to the index directory
+<FONT ID="LN">254 </FONT><A NAME="254"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">255 </FONT><A NAME="255"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">256 </FONT><A NAME="256"></A>   * @deprecated Use {@link #open(Directory, boolean)} instead.
+<FONT ID="LN">257 </FONT><A NAME="257"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">258 </FONT><A NAME="258"></A>   * 
+<FONT ID="LN">259 </FONT><A NAME="259"></A>   */</FONT>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(File path) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    <FONT ID="Return">return</FONT> open(path, <FONT ID="False">false</FONT>);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>  }
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>  <FONT ID="FormalComment">/** Returns an IndexReader reading the index in an
+<FONT ID="LN">265 </FONT><A NAME="265"></A>   *  FSDirectory in the named path.  You should pass
+<FONT ID="LN">266 </FONT><A NAME="266"></A>   *  readOnly=true, since it gives much better concurrent
+<FONT ID="LN">267 </FONT><A NAME="267"></A>   *  performance, unless you intend to do write operations
+<FONT ID="LN">268 </FONT><A NAME="268"></A>   *  (delete documents or change norms) with the reader.
+<FONT ID="LN">269 </FONT><A NAME="269"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">270 </FONT><A NAME="270"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   * @param path the path to the index directory
+<FONT ID="LN">272 </FONT><A NAME="272"></A>   * @param readOnly true if this should be a readOnly
+<FONT ID="LN">273 </FONT><A NAME="273"></A>   * reader
+<FONT ID="LN">274 </FONT><A NAME="274"></A>   * @deprecated Use {@link #open(Directory, boolean)} instead.
+<FONT ID="LN">275 </FONT><A NAME="275"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">276 </FONT><A NAME="276"></A>   * 
+<FONT ID="LN">277 </FONT><A NAME="277"></A>   */</FONT>
+<FONT ID="LN">278 </FONT><A NAME="278"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(File path, <FONT ID="Boolean">boolean</FONT> readOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    <FONT ID="Final">final</FONT> Directory dir = FSDirectory.getDirectory(path);
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> r = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">282 </FONT><A NAME="282"></A>      r = open(dir, <FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>, readOnly, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">284 </FONT><A NAME="284"></A>      <FONT ID="If">if</FONT> (r == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">285 </FONT><A NAME="285"></A>        dir.close();
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    }
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/DirectoryOwningReader.java.html">DirectoryOwningReader</A>(r);
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  }
+<FONT ID="LN">289 </FONT><A NAME="289"></A>
+<FONT ID="LN">290 </FONT><A NAME="290"></A>  <FONT ID="FormalComment">/** Returns a read/write IndexReader reading the index in
+<FONT ID="LN">291 </FONT><A NAME="291"></A>   *  the given Directory.
+<FONT ID="LN">292 </FONT><A NAME="292"></A>   * @param directory the index directory
+<FONT ID="LN">293 </FONT><A NAME="293"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">294 </FONT><A NAME="294"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">295 </FONT><A NAME="295"></A>   * @deprecated Use {@link #open(Directory, boolean)} instead
+<FONT ID="LN">296 </FONT><A NAME="296"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">297 </FONT><A NAME="297"></A>   * 
+<FONT ID="LN">298 </FONT><A NAME="298"></A>   */</FONT>
+<FONT ID="LN">299 </FONT><A NAME="299"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> Directory directory) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    <FONT ID="Return">return</FONT> open(directory, <FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>, <FONT ID="False">false</FONT>, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">301 </FONT><A NAME="301"></A>  }
+<FONT ID="LN">302 </FONT><A NAME="302"></A>
+<FONT ID="LN">303 </FONT><A NAME="303"></A>  <FONT ID="FormalComment">/** Returns an IndexReader reading the index in the given
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   *  Directory.  You should pass readOnly=true, since it
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   *  gives much better concurrent performance, unless you
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   *  intend to do write operations (delete documents or
+<FONT ID="LN">307 </FONT><A NAME="307"></A>   *  change norms) with the reader.
+<FONT ID="LN">308 </FONT><A NAME="308"></A>   * @param directory the index directory
+<FONT ID="LN">309 </FONT><A NAME="309"></A>   * @param readOnly true if no changes (deletions, norms) will be made with this IndexReader
+<FONT ID="LN">310 </FONT><A NAME="310"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">311 </FONT><A NAME="311"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">312 </FONT><A NAME="312"></A>   */</FONT>
+<FONT ID="LN">313 </FONT><A NAME="313"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> Directory directory, <FONT ID="Boolean">boolean</FONT> readOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    <FONT ID="Return">return</FONT> open(directory, <FONT ID="Null">null</FONT>, <FONT ID="Null">null</FONT>, readOnly, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">315 </FONT><A NAME="315"></A>  }
+<FONT ID="LN">316 </FONT><A NAME="316"></A>
+<FONT ID="LN">317 </FONT><A NAME="317"></A>  <FONT ID="FormalComment">/** Expert: returns a read/write IndexReader reading the index in the given
+<FONT ID="LN">318 </FONT><A NAME="318"></A>   * {@link IndexCommit}.
+<FONT ID="LN">319 </FONT><A NAME="319"></A>   * @param commit the commit point to open
+<FONT ID="LN">320 </FONT><A NAME="320"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">321 </FONT><A NAME="321"></A>   * @deprecated Use {@link #open(IndexCommit, boolean)} instead.
+<FONT ID="LN">322 </FONT><A NAME="322"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">323 </FONT><A NAME="323"></A>   * 
+<FONT ID="LN">324 </FONT><A NAME="324"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">325 </FONT><A NAME="325"></A>   */</FONT>
+<FONT ID="LN">326 </FONT><A NAME="326"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> commit) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    <FONT ID="Return">return</FONT> open(commit.getDirectory(), <FONT ID="Null">null</FONT>, commit, <FONT ID="False">false</FONT>, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">328 </FONT><A NAME="328"></A>  }
+<FONT ID="LN">329 </FONT><A NAME="329"></A>
+<FONT ID="LN">330 </FONT><A NAME="330"></A>  <FONT ID="FormalComment">/** Expert: returns an IndexReader reading the index in the given
+<FONT ID="LN">331 </FONT><A NAME="331"></A>   *  {@link IndexCommit}.  You should pass readOnly=true, since it
+<FONT ID="LN">332 </FONT><A NAME="332"></A>   *  gives much better concurrent performance, unless you
+<FONT ID="LN">333 </FONT><A NAME="333"></A>   *  intend to do write operations (delete documents or
+<FONT ID="LN">334 </FONT><A NAME="334"></A>   *  change norms) with the reader.
+<FONT ID="LN">335 </FONT><A NAME="335"></A>   * @param commit the commit point to open
+<FONT ID="LN">336 </FONT><A NAME="336"></A>   * @param readOnly true if no changes (deletions, norms) will be made with this IndexReader
+<FONT ID="LN">337 </FONT><A NAME="337"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">338 </FONT><A NAME="338"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">339 </FONT><A NAME="339"></A>   */</FONT>
+<FONT ID="LN">340 </FONT><A NAME="340"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> commit, <FONT ID="Boolean">boolean</FONT> readOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    <FONT ID="Return">return</FONT> open(commit.getDirectory(), <FONT ID="Null">null</FONT>, commit, readOnly, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">342 </FONT><A NAME="342"></A>  }
+<FONT ID="LN">343 </FONT><A NAME="343"></A>
+<FONT ID="LN">344 </FONT><A NAME="344"></A>  <FONT ID="FormalComment">/** Expert: returns a read/write IndexReader reading the index in the given
+<FONT ID="LN">345 </FONT><A NAME="345"></A>   *  Directory, with a custom {@link IndexDeletionPolicy}.
+<FONT ID="LN">346 </FONT><A NAME="346"></A>   * @param directory the index directory
+<FONT ID="LN">347 </FONT><A NAME="347"></A>   * @param deletionPolicy a custom deletion policy (only used
+<FONT ID="LN">348 </FONT><A NAME="348"></A>   *  if you use this reader to perform deletes or to set
+<FONT ID="LN">349 </FONT><A NAME="349"></A>   *  norms); see {@link IndexWriter} for details.
+<FONT ID="LN">350 </FONT><A NAME="350"></A>   * @deprecated Use {@link #open(Directory, IndexDeletionPolicy, boolean)} instead.
+<FONT ID="LN">351 </FONT><A NAME="351"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">352 </FONT><A NAME="352"></A>   * 
+<FONT ID="LN">353 </FONT><A NAME="353"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">354 </FONT><A NAME="354"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">355 </FONT><A NAME="355"></A>   */</FONT>
+<FONT ID="LN">356 </FONT><A NAME="356"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> Directory directory, <A HREF="../../../../org/apache/lucene/index/IndexDeletionPolicy.java.html">IndexDeletionPolicy</A> deletionPolicy) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    <FONT ID="Return">return</FONT> open(directory, deletionPolicy, <FONT ID="Null">null</FONT>, <FONT ID="False">false</FONT>, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">358 </FONT><A NAME="358"></A>  }
+<FONT ID="LN">359 </FONT><A NAME="359"></A>
+<FONT ID="LN">360 </FONT><A NAME="360"></A>  <FONT ID="FormalComment">/** Expert: returns an IndexReader reading the index in
+<FONT ID="LN">361 </FONT><A NAME="361"></A>   *  the given Directory, with a custom {@link
+<FONT ID="LN">362 </FONT><A NAME="362"></A>   *  IndexDeletionPolicy}.  You should pass readOnly=true,
+<FONT ID="LN">363 </FONT><A NAME="363"></A>   *  since it gives much better concurrent performance,
+<FONT ID="LN">364 </FONT><A NAME="364"></A>   *  unless you intend to do write operations (delete
+<FONT ID="LN">365 </FONT><A NAME="365"></A>   *  documents or change norms) with the reader.
+<FONT ID="LN">366 </FONT><A NAME="366"></A>   * @param directory the index directory
+<FONT ID="LN">367 </FONT><A NAME="367"></A>   * @param deletionPolicy a custom deletion policy (only used
+<FONT ID="LN">368 </FONT><A NAME="368"></A>   *  if you use this reader to perform deletes or to set
+<FONT ID="LN">369 </FONT><A NAME="369"></A>   *  norms); see {@link IndexWriter} for details.
+<FONT ID="LN">370 </FONT><A NAME="370"></A>   * @param readOnly true if no changes (deletions, norms) will be made with this IndexReader
+<FONT ID="LN">371 </FONT><A NAME="371"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">372 </FONT><A NAME="372"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">373 </FONT><A NAME="373"></A>   */</FONT>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> Directory directory, <A HREF="../../../../org/apache/lucene/index/IndexDeletionPolicy.java.html">IndexDeletionPolicy</A> deletionPolicy, <FONT ID="Boolean">boolean</FONT> readOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    <FONT ID="Return">return</FONT> open(directory, deletionPolicy, <FONT ID="Null">null</FONT>, readOnly, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">376 </FONT><A NAME="376"></A>  }
+<FONT ID="LN">377 </FONT><A NAME="377"></A>
+<FONT ID="LN">378 </FONT><A NAME="378"></A>  <FONT ID="FormalComment">/** Expert: returns an IndexReader reading the index in
+<FONT ID="LN">379 </FONT><A NAME="379"></A>   *  the given Directory, with a custom {@link
+<FONT ID="LN">380 </FONT><A NAME="380"></A>   *  IndexDeletionPolicy}.  You should pass readOnly=true,
+<FONT ID="LN">381 </FONT><A NAME="381"></A>   *  since it gives much better concurrent performance,
+<FONT ID="LN">382 </FONT><A NAME="382"></A>   *  unless you intend to do write operations (delete
+<FONT ID="LN">383 </FONT><A NAME="383"></A>   *  documents or change norms) with the reader.
+<FONT ID="LN">384 </FONT><A NAME="384"></A>   * @param directory the index directory
+<FONT ID="LN">385 </FONT><A NAME="385"></A>   * @param deletionPolicy a custom deletion policy (only used
+<FONT ID="LN">386 </FONT><A NAME="386"></A>   *  if you use this reader to perform deletes or to set
+<FONT ID="LN">387 </FONT><A NAME="387"></A>   *  norms); see {@link IndexWriter} for details.
+<FONT ID="LN">388 </FONT><A NAME="388"></A>   * @param readOnly true if no changes (deletions, norms) will be made with this IndexReader
+<FONT ID="LN">389 </FONT><A NAME="389"></A>   * @param termInfosIndexDivisor Subsamples which indexed
+<FONT ID="LN">390 </FONT><A NAME="390"></A>   *  terms are loaded into RAM. This has the same effect as {@link
+<FONT ID="LN">391 </FONT><A NAME="391"></A>   *  IndexWriter#setTermIndexInterval} except that setting
+<FONT ID="LN">392 </FONT><A NAME="392"></A>   *  must be done at indexing time while this setting can be
+<FONT ID="LN">393 </FONT><A NAME="393"></A>   *  set per reader.  When set to N, then one in every
+<FONT ID="LN">394 </FONT><A NAME="394"></A>   *  N*termIndexInterval terms in the index is loaded into
+<FONT ID="LN">395 </FONT><A NAME="395"></A>   *  memory.  By setting this to a value &gt; 1 you can reduce
+<FONT ID="LN">396 </FONT><A NAME="396"></A>   *  memory usage, at the expense of higher latency when
+<FONT ID="LN">397 </FONT><A NAME="397"></A>   *  loading a TermInfo.  The default value is 1.  Set this
+<FONT ID="LN">398 </FONT><A NAME="398"></A>   *  to -1 to skip loading the terms index entirely.
+<FONT ID="LN">399 </FONT><A NAME="399"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">400 </FONT><A NAME="400"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">401 </FONT><A NAME="401"></A>   */</FONT>
+<FONT ID="LN">402 </FONT><A NAME="402"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> Directory directory, <A HREF="../../../../org/apache/lucene/index/IndexDeletionPolicy.java.html">IndexDeletionPolicy</A> deletionPolicy, <FONT ID="Boolean">boolean</FONT> readOnly, <FONT ID="Int">int</FONT> termInfosIndexDivisor) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    <FONT ID="Return">return</FONT> open(directory, deletionPolicy, <FONT ID="Null">null</FONT>, readOnly, termInfosIndexDivisor);
+<FONT ID="LN">404 </FONT><A NAME="404"></A>  }
+<FONT ID="LN">405 </FONT><A NAME="405"></A>
+<FONT ID="LN">406 </FONT><A NAME="406"></A>  <FONT ID="FormalComment">/** Expert: returns a read/write IndexReader reading the index in the given
+<FONT ID="LN">407 </FONT><A NAME="407"></A>   * Directory, using a specific commit and with a custom
+<FONT ID="LN">408 </FONT><A NAME="408"></A>   * {@link IndexDeletionPolicy}.
+<FONT ID="LN">409 </FONT><A NAME="409"></A>   * @param commit the specific {@link IndexCommit} to open;
+<FONT ID="LN">410 </FONT><A NAME="410"></A>   * see {@link IndexReader#listCommits} to list all commits
+<FONT ID="LN">411 </FONT><A NAME="411"></A>   * in a directory
+<FONT ID="LN">412 </FONT><A NAME="412"></A>   * @param deletionPolicy a custom deletion policy (only used
+<FONT ID="LN">413 </FONT><A NAME="413"></A>   *  if you use this reader to perform deletes or to set
+<FONT ID="LN">414 </FONT><A NAME="414"></A>   *  norms); see {@link IndexWriter} for details.
+<FONT ID="LN">415 </FONT><A NAME="415"></A>   * @deprecated Use {@link #open(IndexCommit, IndexDeletionPolicy, boolean)} instead.
+<FONT ID="LN">416 </FONT><A NAME="416"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">417 </FONT><A NAME="417"></A>   * 
+<FONT ID="LN">418 </FONT><A NAME="418"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">419 </FONT><A NAME="419"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">420 </FONT><A NAME="420"></A>   */</FONT>
+<FONT ID="LN">421 </FONT><A NAME="421"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> commit, <A HREF="../../../../org/apache/lucene/index/IndexDeletionPolicy.java.html">IndexDeletionPolicy</A> deletionPolicy) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    <FONT ID="Return">return</FONT> open(commit.getDirectory(), deletionPolicy, commit, <FONT ID="False">false</FONT>, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">423 </FONT><A NAME="423"></A>  }
+<FONT ID="LN">424 </FONT><A NAME="424"></A>
+<FONT ID="LN">425 </FONT><A NAME="425"></A>  <FONT ID="FormalComment">/** Expert: returns an IndexReader reading the index in
+<FONT ID="LN">426 </FONT><A NAME="426"></A>   *  the given Directory, using a specific commit and with
+<FONT ID="LN">427 </FONT><A NAME="427"></A>   *  a custom {@link IndexDeletionPolicy}.  You should pass
+<FONT ID="LN">428 </FONT><A NAME="428"></A>   *  readOnly=true, since it gives much better concurrent
+<FONT ID="LN">429 </FONT><A NAME="429"></A>   *  performance, unless you intend to do write operations
+<FONT ID="LN">430 </FONT><A NAME="430"></A>   *  (delete documents or change norms) with the reader.
+<FONT ID="LN">431 </FONT><A NAME="431"></A>   * @param commit the specific {@link IndexCommit} to open;
+<FONT ID="LN">432 </FONT><A NAME="432"></A>   * see {@link IndexReader#listCommits} to list all commits
+<FONT ID="LN">433 </FONT><A NAME="433"></A>   * in a directory
+<FONT ID="LN">434 </FONT><A NAME="434"></A>   * @param deletionPolicy a custom deletion policy (only used
+<FONT ID="LN">435 </FONT><A NAME="435"></A>   *  if you use this reader to perform deletes or to set
+<FONT ID="LN">436 </FONT><A NAME="436"></A>   *  norms); see {@link IndexWriter} for details.
+<FONT ID="LN">437 </FONT><A NAME="437"></A>   * @param readOnly true if no changes (deletions, norms) will be made with this IndexReader
+<FONT ID="LN">438 </FONT><A NAME="438"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">439 </FONT><A NAME="439"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">440 </FONT><A NAME="440"></A>   */</FONT>
+<FONT ID="LN">441 </FONT><A NAME="441"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> commit, <A HREF="../../../../org/apache/lucene/index/IndexDeletionPolicy.java.html">IndexDeletionPolicy</A> deletionPolicy, <FONT ID="Boolean">boolean</FONT> readOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    <FONT ID="Return">return</FONT> open(commit.getDirectory(), deletionPolicy, commit, readOnly, DEFAULT_TERMS_INDEX_DIVISOR);
+<FONT ID="LN">443 </FONT><A NAME="443"></A>  }
+<FONT ID="LN">444 </FONT><A NAME="444"></A>
+<FONT ID="LN">445 </FONT><A NAME="445"></A>  <FONT ID="FormalComment">/** Expert: returns an IndexReader reading the index in
+<FONT ID="LN">446 </FONT><A NAME="446"></A>   *  the given Directory, using a specific commit and with
+<FONT ID="LN">447 </FONT><A NAME="447"></A>   *  a custom {@link IndexDeletionPolicy}.  You should pass
+<FONT ID="LN">448 </FONT><A NAME="448"></A>   *  readOnly=true, since it gives much better concurrent
+<FONT ID="LN">449 </FONT><A NAME="449"></A>   *  performance, unless you intend to do write operations
+<FONT ID="LN">450 </FONT><A NAME="450"></A>   *  (delete documents or change norms) with the reader.
+<FONT ID="LN">451 </FONT><A NAME="451"></A>   * @param commit the specific {@link IndexCommit} to open;
+<FONT ID="LN">452 </FONT><A NAME="452"></A>   * see {@link IndexReader#listCommits} to list all commits
+<FONT ID="LN">453 </FONT><A NAME="453"></A>   * in a directory
+<FONT ID="LN">454 </FONT><A NAME="454"></A>   * @param deletionPolicy a custom deletion policy (only used
+<FONT ID="LN">455 </FONT><A NAME="455"></A>   *  if you use this reader to perform deletes or to set
+<FONT ID="LN">456 </FONT><A NAME="456"></A>   *  norms); see {@link IndexWriter} for details.
+<FONT ID="LN">457 </FONT><A NAME="457"></A>   * @param readOnly true if no changes (deletions, norms) will be made with this IndexReader
+<FONT ID="LN">458 </FONT><A NAME="458"></A>   * @param termInfosIndexDivisor Subsamples which indexed
+<FONT ID="LN">459 </FONT><A NAME="459"></A>   *  terms are loaded into RAM. This has the same effect as {@link
+<FONT ID="LN">460 </FONT><A NAME="460"></A>   *  IndexWriter#setTermIndexInterval} except that setting
+<FONT ID="LN">461 </FONT><A NAME="461"></A>   *  must be done at indexing time while this setting can be
+<FONT ID="LN">462 </FONT><A NAME="462"></A>   *  set per reader.  When set to N, then one in every
+<FONT ID="LN">463 </FONT><A NAME="463"></A>   *  N*termIndexInterval terms in the index is loaded into
+<FONT ID="LN">464 </FONT><A NAME="464"></A>   *  memory.  By setting this to a value &gt; 1 you can reduce
+<FONT ID="LN">465 </FONT><A NAME="465"></A>   *  memory usage, at the expense of higher latency when
+<FONT ID="LN">466 </FONT><A NAME="466"></A>   *  loading a TermInfo.  The default value is 1.  Set this
+<FONT ID="LN">467 </FONT><A NAME="467"></A>   *  to -1 to skip loading the terms index entirely.
+<FONT ID="LN">468 </FONT><A NAME="468"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">469 </FONT><A NAME="469"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">470 </FONT><A NAME="470"></A>   */</FONT>
+<FONT ID="LN">471 </FONT><A NAME="471"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> commit, <A HREF="../../../../org/apache/lucene/index/IndexDeletionPolicy.java.html">IndexDeletionPolicy</A> deletionPolicy, <FONT ID="Boolean">boolean</FONT> readOnly, <FONT ID="Int">int</FONT> termInfosIndexDivisor) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    <FONT ID="Return">return</FONT> open(commit.getDirectory(), deletionPolicy, commit, readOnly, termInfosIndexDivisor);
+<FONT ID="LN">473 </FONT><A NAME="473"></A>  }
+<FONT ID="LN">474 </FONT><A NAME="474"></A>
+<FONT ID="LN">475 </FONT><A NAME="475"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> open(<FONT ID="Final">final</FONT> Directory directory, <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexDeletionPolicy.java.html">IndexDeletionPolicy</A> deletionPolicy, <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> commit, <FONT ID="Final">final</FONT> <FONT ID="Boolean">boolean</FONT> readOnly, <FONT ID="Int">int</FONT> termInfosIndexDivisor) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    <FONT ID="Return">return</FONT> DirectoryReader.open(directory, deletionPolicy, commit, readOnly, termInfosIndexDivisor);
+<FONT ID="LN">477 </FONT><A NAME="477"></A>  }
+<FONT ID="LN">478 </FONT><A NAME="478"></A>
+<FONT ID="LN">479 </FONT><A NAME="479"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">480 </FONT><A NAME="480"></A>   * Refreshes an IndexReader if the index has changed since this instance 
+<FONT ID="LN">481 </FONT><A NAME="481"></A>   * was (re)opened. 
+<FONT ID="LN">482 </FONT><A NAME="482"></A>   * &lt;p&gt;
+<FONT ID="LN">483 </FONT><A NAME="483"></A>   * Opening an IndexReader is an expensive operation. This method can be used
+<FONT ID="LN">484 </FONT><A NAME="484"></A>   * to refresh an existing IndexReader to reduce these costs. This method 
+<FONT ID="LN">485 </FONT><A NAME="485"></A>   * tries to only load segments that have changed or were created after the 
+<FONT ID="LN">486 </FONT><A NAME="486"></A>   * IndexReader was (re)opened.
+<FONT ID="LN">487 </FONT><A NAME="487"></A>   * &lt;p&gt;
+<FONT ID="LN">488 </FONT><A NAME="488"></A>   * If the index has not changed since this instance was (re)opened, then this
+<FONT ID="LN">489 </FONT><A NAME="489"></A>   * call is a NOOP and returns this instance. Otherwise, a new instance is 
+<FONT ID="LN">490 </FONT><A NAME="490"></A>   * returned. The old instance is &lt;b&gt;not&lt;/b&gt; closed and remains usable.&lt;br&gt;
+<FONT ID="LN">491 </FONT><A NAME="491"></A>   * &lt;p&gt;   
+<FONT ID="LN">492 </FONT><A NAME="492"></A>   * If the reader is reopened, even though they share
+<FONT ID="LN">493 </FONT><A NAME="493"></A>   * resources internally, it's safe to make changes
+<FONT ID="LN">494 </FONT><A NAME="494"></A>   * (deletions, norms) with the new reader.  All shared
+<FONT ID="LN">495 </FONT><A NAME="495"></A>   * mutable state obeys "copy on write" semantics to ensure
+<FONT ID="LN">496 </FONT><A NAME="496"></A>   * the changes are not seen by other readers.
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   * &lt;p&gt;
+<FONT ID="LN">498 </FONT><A NAME="498"></A>   * You can determine whether a reader was actually reopened by comparing the
+<FONT ID="LN">499 </FONT><A NAME="499"></A>   * old instance with the instance returned by this method: 
+<FONT ID="LN">500 </FONT><A NAME="500"></A>   * &lt;pre&gt;
+<FONT ID="LN">501 </FONT><A NAME="501"></A>   * IndexReader reader = ... 
+<FONT ID="LN">502 </FONT><A NAME="502"></A>   * ...
+<FONT ID="LN">503 </FONT><A NAME="503"></A>   * IndexReader newReader = r.reopen();
+<FONT ID="LN">504 </FONT><A NAME="504"></A>   * if (newReader != reader) {
+<FONT ID="LN">505 </FONT><A NAME="505"></A>   * ...     // reader was reopened
+<FONT ID="LN">506 </FONT><A NAME="506"></A>   *   reader.close(); 
+<FONT ID="LN">507 </FONT><A NAME="507"></A>   * }
+<FONT ID="LN">508 </FONT><A NAME="508"></A>   * reader = newReader;
+<FONT ID="LN">509 </FONT><A NAME="509"></A>   * ...
+<FONT ID="LN">510 </FONT><A NAME="510"></A>   * &lt;/pre&gt;
+<FONT ID="LN">511 </FONT><A NAME="511"></A>   *
+<FONT ID="LN">512 </FONT><A NAME="512"></A>   * Be sure to synchronize that code so that other threads,
+<FONT ID="LN">513 </FONT><A NAME="513"></A>   * if present, can never use reader after it has been
+<FONT ID="LN">514 </FONT><A NAME="514"></A>   * closed and before it's switched to newReader.
+<FONT ID="LN">515 </FONT><A NAME="515"></A>   *
+<FONT ID="LN">516 </FONT><A NAME="516"></A>   * &lt;p&gt;&lt;b&gt;NOTE&lt;/b&gt;: If this reader is a near real-time
+<FONT ID="LN">517 </FONT><A NAME="517"></A>   * reader (obtained from {@link IndexWriter#getReader()},
+<FONT ID="LN">518 </FONT><A NAME="518"></A>   * reopen() will simply call writer.getReader() again for
+<FONT ID="LN">519 </FONT><A NAME="519"></A>   * you, though this may change in the future.
+<FONT ID="LN">520 </FONT><A NAME="520"></A>   * 
+<FONT ID="LN">521 </FONT><A NAME="521"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">522 </FONT><A NAME="522"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">523 </FONT><A NAME="523"></A>   */</FONT>  
+<FONT ID="LN">524 </FONT><A NAME="524"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> reopen() <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">525 </FONT><A NAME="525"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support reopen()."</FONT>);
+<FONT ID="LN">526 </FONT><A NAME="526"></A>  }
+<FONT ID="LN">527 </FONT><A NAME="527"></A>  
+<FONT ID="LN">528 </FONT><A NAME="528"></A>
+<FONT ID="LN">529 </FONT><A NAME="529"></A>  <FONT ID="FormalComment">/** Just like {@link #reopen()}, except you can change the
+<FONT ID="LN">530 </FONT><A NAME="530"></A>   *  readOnly of the original reader.  If the index is
+<FONT ID="LN">531 </FONT><A NAME="531"></A>   *  unchanged but readOnly is different then a new reader
+<FONT ID="LN">532 </FONT><A NAME="532"></A>   *  will be returned. */</FONT>
+<FONT ID="LN">533 </FONT><A NAME="533"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> reopen(<FONT ID="Boolean">boolean</FONT> openReadOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support reopen()."</FONT>);
+<FONT ID="LN">535 </FONT><A NAME="535"></A>  }
+<FONT ID="LN">536 </FONT><A NAME="536"></A>  
+<FONT ID="LN">537 </FONT><A NAME="537"></A>  <FONT ID="FormalComment">/** Expert: reopen this reader on a specific commit point.
+<FONT ID="LN">538 </FONT><A NAME="538"></A>   *  This always returns a readOnly reader.  If the
+<FONT ID="LN">539 </FONT><A NAME="539"></A>   *  specified commit point matches what this reader is
+<FONT ID="LN">540 </FONT><A NAME="540"></A>   *  already on, and this reader is already readOnly, then
+<FONT ID="LN">541 </FONT><A NAME="541"></A>   *  this same instance is returned; if it is not already
+<FONT ID="LN">542 </FONT><A NAME="542"></A>   *  readOnly, a readOnly clone is returned. */</FONT>
+<FONT ID="LN">543 </FONT><A NAME="543"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> reopen(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> commit) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">544 </FONT><A NAME="544"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support reopen(IndexCommit)."</FONT>);
+<FONT ID="LN">545 </FONT><A NAME="545"></A>  }
+<FONT ID="LN">546 </FONT><A NAME="546"></A>
+<FONT ID="LN">547 </FONT><A NAME="547"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">548 </FONT><A NAME="548"></A>   * Efficiently clones the IndexReader (sharing most
+<FONT ID="LN">549 </FONT><A NAME="549"></A>   * internal state).
+<FONT ID="LN">550 </FONT><A NAME="550"></A>   * &lt;p&gt;
+<FONT ID="LN">551 </FONT><A NAME="551"></A>   * On cloning a reader with pending changes (deletions,
+<FONT ID="LN">552 </FONT><A NAME="552"></A>   * norms), the original reader transfers its write lock to
+<FONT ID="LN">553 </FONT><A NAME="553"></A>   * the cloned reader.  This means only the cloned reader
+<FONT ID="LN">554 </FONT><A NAME="554"></A>   * may make further changes to the index, and commit the
+<FONT ID="LN">555 </FONT><A NAME="555"></A>   * changes to the index on close, but the old reader still
+<FONT ID="LN">556 </FONT><A NAME="556"></A>   * reflects all changes made up until it was cloned.
+<FONT ID="LN">557 </FONT><A NAME="557"></A>   * &lt;p&gt;
+<FONT ID="LN">558 </FONT><A NAME="558"></A>   * Like {@link #reopen()}, it's safe to make changes to
+<FONT ID="LN">559 </FONT><A NAME="559"></A>   * either the original or the cloned reader: all shared
+<FONT ID="LN">560 </FONT><A NAME="560"></A>   * mutable state obeys "copy on write" semantics to ensure
+<FONT ID="LN">561 </FONT><A NAME="561"></A>   * the changes are not seen by other readers.
+<FONT ID="LN">562 </FONT><A NAME="562"></A>   * &lt;p&gt;
+<FONT ID="LN">563 </FONT><A NAME="563"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">564 </FONT><A NAME="564"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">565 </FONT><A NAME="565"></A>   */</FONT>
+<FONT ID="LN">566 </FONT><A NAME="566"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> Object clone() {
+<FONT ID="LN">567 </FONT><A NAME="567"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not implement clone()"</FONT>);
+<FONT ID="LN">568 </FONT><A NAME="568"></A>  }
+<FONT ID="LN">569 </FONT><A NAME="569"></A>  
+<FONT ID="LN">570 </FONT><A NAME="570"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">571 </FONT><A NAME="571"></A>   * Clones the IndexReader and optionally changes readOnly.  A readOnly 
+<FONT ID="LN">572 </FONT><A NAME="572"></A>   * reader cannot open a writeable reader.  
+<FONT ID="LN">573 </FONT><A NAME="573"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">574 </FONT><A NAME="574"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">575 </FONT><A NAME="575"></A>   */</FONT>
+<FONT ID="LN">576 </FONT><A NAME="576"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A> clone(<FONT ID="Boolean">boolean</FONT> openReadOnly) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">577 </FONT><A NAME="577"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not implement clone()"</FONT>);
+<FONT ID="LN">578 </FONT><A NAME="578"></A>  }
+<FONT ID="LN">579 </FONT><A NAME="579"></A>
+<FONT ID="LN">580 </FONT><A NAME="580"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">581 </FONT><A NAME="581"></A>   * Returns the directory associated with this index.  The Default 
+<FONT ID="LN">582 </FONT><A NAME="582"></A>   * implementation returns the directory specified by subclasses when 
+<FONT ID="LN">583 </FONT><A NAME="583"></A>   * delegating to the IndexReader(Directory) constructor, or throws an 
+<FONT ID="LN">584 </FONT><A NAME="584"></A>   * UnsupportedOperationException if one was not specified.
+<FONT ID="LN">585 </FONT><A NAME="585"></A>   * @throws UnsupportedOperationException if no directory
+<FONT ID="LN">586 </FONT><A NAME="586"></A>   */</FONT>
+<FONT ID="LN">587 </FONT><A NAME="587"></A>  <FONT ID="Public">public</FONT> Directory directory() {
+<FONT ID="LN">588 </FONT><A NAME="588"></A>    ensureOpen();
+<FONT ID="LN">589 </FONT><A NAME="589"></A>    <FONT ID="If">if</FONT> (<FONT ID="Null">null</FONT> != directory) {
+<FONT ID="LN">590 </FONT><A NAME="590"></A>      <FONT ID="Return">return</FONT> directory;
+<FONT ID="LN">591 </FONT><A NAME="591"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">592 </FONT><A NAME="592"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support this method."</FONT>);  
+<FONT ID="LN">593 </FONT><A NAME="593"></A>    }
+<FONT ID="LN">594 </FONT><A NAME="594"></A>  }
+<FONT ID="LN">595 </FONT><A NAME="595"></A>
+<FONT ID="LN">596 </FONT><A NAME="596"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">597 </FONT><A NAME="597"></A>   * Returns the time the index in the named directory was last modified.
+<FONT ID="LN">598 </FONT><A NAME="598"></A>   * Do not use this to check whether the reader is still up-to-date, use
+<FONT ID="LN">599 </FONT><A NAME="599"></A>   * {@link #isCurrent()} instead. 
+<FONT ID="LN">600 </FONT><A NAME="600"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">601 </FONT><A NAME="601"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">602 </FONT><A NAME="602"></A>   * @deprecated Use {@link #lastModified(Directory)} instead.
+<FONT ID="LN">603 </FONT><A NAME="603"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">604 </FONT><A NAME="604"></A>   */</FONT>
+<FONT ID="LN">605 </FONT><A NAME="605"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> lastModified(String directory) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">606 </FONT><A NAME="606"></A>    <FONT ID="Return">return</FONT> lastModified(<FONT ID="New">new</FONT> File(directory));
+<FONT ID="LN">607 </FONT><A NAME="607"></A>  }
+<FONT ID="LN">608 </FONT><A NAME="608"></A>
+<FONT ID="LN">609 </FONT><A NAME="609"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">610 </FONT><A NAME="610"></A>   * Returns the time the index in the named directory was last modified. 
+<FONT ID="LN">611 </FONT><A NAME="611"></A>   * Do not use this to check whether the reader is still up-to-date, use
+<FONT ID="LN">612 </FONT><A NAME="612"></A>   * {@link #isCurrent()} instead. 
+<FONT ID="LN">613 </FONT><A NAME="613"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">614 </FONT><A NAME="614"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">615 </FONT><A NAME="615"></A>   * @deprecated Use {@link #lastModified(Directory)} instead.
+<FONT ID="LN">616 </FONT><A NAME="616"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">617 </FONT><A NAME="617"></A>   * 
+<FONT ID="LN">618 </FONT><A NAME="618"></A>   */</FONT>
+<FONT ID="LN">619 </FONT><A NAME="619"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> lastModified(File fileDirectory) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">620 </FONT><A NAME="620"></A>    Directory dir = FSDirectory.getDirectory(fileDirectory); <FONT ID="SingleLineComment">// use new static method here
+<FONT ID="LN">621 </FONT><A NAME="621"></A></FONT>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">622 </FONT><A NAME="622"></A>      <FONT ID="Return">return</FONT> lastModified(dir);
+<FONT ID="LN">623 </FONT><A NAME="623"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">624 </FONT><A NAME="624"></A>      dir.close();
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    }
+<FONT ID="LN">626 </FONT><A NAME="626"></A>  }
+<FONT ID="LN">627 </FONT><A NAME="627"></A>
+<FONT ID="LN">628 </FONT><A NAME="628"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">629 </FONT><A NAME="629"></A>   * Returns the time the index in the named directory was last modified. 
+<FONT ID="LN">630 </FONT><A NAME="630"></A>   * Do not use this to check whether the reader is still up-to-date, use
+<FONT ID="LN">631 </FONT><A NAME="631"></A>   * {@link #isCurrent()} instead. 
+<FONT ID="LN">632 </FONT><A NAME="632"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">633 </FONT><A NAME="633"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">634 </FONT><A NAME="634"></A>   */</FONT>
+<FONT ID="LN">635 </FONT><A NAME="635"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> lastModified(<FONT ID="Final">final</FONT> Directory directory2) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">636 </FONT><A NAME="636"></A>    <FONT ID="Return">return</FONT> ((Long) <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos.FindSegmentsFile</A>(directory2) {
+<FONT ID="LN">637 </FONT><A NAME="637"></A>        <FONT ID="Public">public</FONT> Object doBody(String segmentFileName) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">638 </FONT><A NAME="638"></A>          <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Long(directory2.fileModified(segmentFileName));
+<FONT ID="LN">639 </FONT><A NAME="639"></A>        }
+<FONT ID="LN">640 </FONT><A NAME="640"></A>      }.run()).longValue();
+<FONT ID="LN">641 </FONT><A NAME="641"></A>  }
+<FONT ID="LN">642 </FONT><A NAME="642"></A>
+<FONT ID="LN">643 </FONT><A NAME="643"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">644 </FONT><A NAME="644"></A>   * Reads version number from segments files. The version number is
+<FONT ID="LN">645 </FONT><A NAME="645"></A>   * initialized with a timestamp and then increased by one for each change of
+<FONT ID="LN">646 </FONT><A NAME="646"></A>   * the index.
+<FONT ID="LN">647 </FONT><A NAME="647"></A>   * 
+<FONT ID="LN">648 </FONT><A NAME="648"></A>   * @param directory where the index resides.
+<FONT ID="LN">649 </FONT><A NAME="649"></A>   * @return version number.
+<FONT ID="LN">650 </FONT><A NAME="650"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">651 </FONT><A NAME="651"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">652 </FONT><A NAME="652"></A>   * @deprecated Use {@link #getCurrentVersion(Directory)} instead.
+<FONT ID="LN">653 </FONT><A NAME="653"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">654 </FONT><A NAME="654"></A>   */</FONT>
+<FONT ID="LN">655 </FONT><A NAME="655"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> getCurrentVersion(String directory) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">656 </FONT><A NAME="656"></A>    <FONT ID="Return">return</FONT> getCurrentVersion(<FONT ID="New">new</FONT> File(directory));
+<FONT ID="LN">657 </FONT><A NAME="657"></A>  }
+<FONT ID="LN">658 </FONT><A NAME="658"></A>
+<FONT ID="LN">659 </FONT><A NAME="659"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">660 </FONT><A NAME="660"></A>   * Reads version number from segments files. The version number is
+<FONT ID="LN">661 </FONT><A NAME="661"></A>   * initialized with a timestamp and then increased by one for each change of
+<FONT ID="LN">662 </FONT><A NAME="662"></A>   * the index.
+<FONT ID="LN">663 </FONT><A NAME="663"></A>   * 
+<FONT ID="LN">664 </FONT><A NAME="664"></A>   * @param directory where the index resides.
+<FONT ID="LN">665 </FONT><A NAME="665"></A>   * @return version number.
+<FONT ID="LN">666 </FONT><A NAME="666"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">667 </FONT><A NAME="667"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">668 </FONT><A NAME="668"></A>   * @deprecated Use {@link #getCurrentVersion(Directory)} instead.
+<FONT ID="LN">669 </FONT><A NAME="669"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">670 </FONT><A NAME="670"></A>   */</FONT>
+<FONT ID="LN">671 </FONT><A NAME="671"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> getCurrentVersion(File directory) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">672 </FONT><A NAME="672"></A>    Directory dir = FSDirectory.getDirectory(directory);
+<FONT ID="LN">673 </FONT><A NAME="673"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">674 </FONT><A NAME="674"></A>      <FONT ID="Return">return</FONT> getCurrentVersion(dir);
+<FONT ID="LN">675 </FONT><A NAME="675"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">676 </FONT><A NAME="676"></A>      dir.close();
+<FONT ID="LN">677 </FONT><A NAME="677"></A>    }
+<FONT ID="LN">678 </FONT><A NAME="678"></A>  }
+<FONT ID="LN">679 </FONT><A NAME="679"></A>
+<FONT ID="LN">680 </FONT><A NAME="680"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">681 </FONT><A NAME="681"></A>   * Reads version number from segments files. The version number is
+<FONT ID="LN">682 </FONT><A NAME="682"></A>   * initialized with a timestamp and then increased by one for each change of
+<FONT ID="LN">683 </FONT><A NAME="683"></A>   * the index.
+<FONT ID="LN">684 </FONT><A NAME="684"></A>   * 
+<FONT ID="LN">685 </FONT><A NAME="685"></A>   * @param directory where the index resides.
+<FONT ID="LN">686 </FONT><A NAME="686"></A>   * @return version number.
+<FONT ID="LN">687 </FONT><A NAME="687"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">688 </FONT><A NAME="688"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">689 </FONT><A NAME="689"></A>   */</FONT>
+<FONT ID="LN">690 </FONT><A NAME="690"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> getCurrentVersion(Directory directory) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">691 </FONT><A NAME="691"></A>    <FONT ID="Return">return</FONT> SegmentInfos.readCurrentVersion(directory);
+<FONT ID="LN">692 </FONT><A NAME="692"></A>  }
+<FONT ID="LN">693 </FONT><A NAME="693"></A>
+<FONT ID="LN">694 </FONT><A NAME="694"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   * Reads commitUserData, previously passed to {@link
+<FONT ID="LN">696 </FONT><A NAME="696"></A>   * IndexWriter#commit(Map)}, from current index
+<FONT ID="LN">697 </FONT><A NAME="697"></A>   * segments file.  This will return null if {@link
+<FONT ID="LN">698 </FONT><A NAME="698"></A>   * IndexWriter#commit(Map)} has never been called for
+<FONT ID="LN">699 </FONT><A NAME="699"></A>   * this index.
+<FONT ID="LN">700 </FONT><A NAME="700"></A>   * 
+<FONT ID="LN">701 </FONT><A NAME="701"></A>   * @param directory where the index resides.
+<FONT ID="LN">702 </FONT><A NAME="702"></A>   * @return commit userData.
+<FONT ID="LN">703 </FONT><A NAME="703"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">704 </FONT><A NAME="704"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">705 </FONT><A NAME="705"></A>   *
+<FONT ID="LN">706 </FONT><A NAME="706"></A>   * @see #getCommitUserData()
+<FONT ID="LN">707 </FONT><A NAME="707"></A>   */</FONT>
+<FONT ID="LN">708 </FONT><A NAME="708"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Map getCommitUserData(Directory directory) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">709 </FONT><A NAME="709"></A>    <FONT ID="Return">return</FONT> SegmentInfos.readCurrentUserData(directory);
+<FONT ID="LN">710 </FONT><A NAME="710"></A>  }
+<FONT ID="LN">711 </FONT><A NAME="711"></A>
+<FONT ID="LN">712 </FONT><A NAME="712"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">713 </FONT><A NAME="713"></A>   * Version number when this IndexReader was opened. Not
+<FONT ID="LN">714 </FONT><A NAME="714"></A>   * implemented in the IndexReader base class.
+<FONT ID="LN">715 </FONT><A NAME="715"></A>   *
+<FONT ID="LN">716 </FONT><A NAME="716"></A>   * &lt;p&gt;If this reader is based on a Directory (ie, was
+<FONT ID="LN">717 </FONT><A NAME="717"></A>   * created by calling {@link #open}, or {@link #reopen} on
+<FONT ID="LN">718 </FONT><A NAME="718"></A>   * a reader based on a Directory), then this method
+<FONT ID="LN">719 </FONT><A NAME="719"></A>   * returns the version recorded in the commit that the
+<FONT ID="LN">720 </FONT><A NAME="720"></A>   * reader opened.  This version is advanced every time
+<FONT ID="LN">721 </FONT><A NAME="721"></A>   * {@link IndexWriter#commit} is called.&lt;/p&gt;
+<FONT ID="LN">722 </FONT><A NAME="722"></A>   *
+<FONT ID="LN">723 </FONT><A NAME="723"></A>   * &lt;p&gt;If instead this reader is a near real-time reader
+<FONT ID="LN">724 </FONT><A NAME="724"></A>   * (ie, obtained by a call to {@link
+<FONT ID="LN">725 </FONT><A NAME="725"></A>   * IndexWriter#getReader}, or by calling {@link #reopen}
+<FONT ID="LN">726 </FONT><A NAME="726"></A>   * on a near real-time reader), then this method returns
+<FONT ID="LN">727 </FONT><A NAME="727"></A>   * the version of the last commit done by the writer.
+<FONT ID="LN">728 </FONT><A NAME="728"></A>   * Note that even as further changes are made with the
+<FONT ID="LN">729 </FONT><A NAME="729"></A>   * writer, the version will not changed until a commit is
+<FONT ID="LN">730 </FONT><A NAME="730"></A>   * completed.  Thus, you should not rely on this method to
+<FONT ID="LN">731 </FONT><A NAME="731"></A>   * determine when a near real-time reader should be
+<FONT ID="LN">732 </FONT><A NAME="732"></A>   * opened.  Use {@link #isCurrent} instead.&lt;/p&gt;
+<FONT ID="LN">733 </FONT><A NAME="733"></A>   *
+<FONT ID="LN">734 </FONT><A NAME="734"></A>   * @throws UnsupportedOperationException unless overridden in subclass
+<FONT ID="LN">735 </FONT><A NAME="735"></A>   */</FONT>
+<FONT ID="LN">736 </FONT><A NAME="736"></A>  <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> getVersion() {
+<FONT ID="LN">737 </FONT><A NAME="737"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support this method."</FONT>);
+<FONT ID="LN">738 </FONT><A NAME="738"></A>  }
+<FONT ID="LN">739 </FONT><A NAME="739"></A>
+<FONT ID="LN">740 </FONT><A NAME="740"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">741 </FONT><A NAME="741"></A>   * Retrieve the String userData optionally passed to
+<FONT ID="LN">742 </FONT><A NAME="742"></A>   * IndexWriter#commit.  This will return null if {@link
+<FONT ID="LN">743 </FONT><A NAME="743"></A>   * IndexWriter#commit(Map)} has never been called for
+<FONT ID="LN">744 </FONT><A NAME="744"></A>   * this index.
+<FONT ID="LN">745 </FONT><A NAME="745"></A>   *
+<FONT ID="LN">746 </FONT><A NAME="746"></A>   * @see #getCommitUserData(Directory)
+<FONT ID="LN">747 </FONT><A NAME="747"></A>   */</FONT>
+<FONT ID="LN">748 </FONT><A NAME="748"></A>  <FONT ID="Public">public</FONT> Map getCommitUserData() {
+<FONT ID="LN">749 </FONT><A NAME="749"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support this method."</FONT>);
+<FONT ID="LN">750 </FONT><A NAME="750"></A>  }
+<FONT ID="LN">751 </FONT><A NAME="751"></A>
+<FONT ID="LN">752 </FONT><A NAME="752"></A>  <FONT ID="FormalComment">/**&lt;p&gt;For IndexReader implementations that use
+<FONT ID="LN">753 </FONT><A NAME="753"></A>   * TermInfosReader to read terms, this sets the
+<FONT ID="LN">754 </FONT><A NAME="754"></A>   * indexDivisor to subsample the number of indexed terms
+<FONT ID="LN">755 </FONT><A NAME="755"></A>   * loaded into memory.  This has the same effect as {@link
+<FONT ID="LN">756 </FONT><A NAME="756"></A>   * IndexWriter#setTermIndexInterval} except that setting
+<FONT ID="LN">757 </FONT><A NAME="757"></A>   * must be done at indexing time while this setting can be
+<FONT ID="LN">758 </FONT><A NAME="758"></A>   * set per reader.  When set to N, then one in every
+<FONT ID="LN">759 </FONT><A NAME="759"></A>   * N*termIndexInterval terms in the index is loaded into
+<FONT ID="LN">760 </FONT><A NAME="760"></A>   * memory.  By setting this to a value &gt; 1 you can reduce
+<FONT ID="LN">761 </FONT><A NAME="761"></A>   * memory usage, at the expense of higher latency when
+<FONT ID="LN">762 </FONT><A NAME="762"></A>   * loading a TermInfo.  The default value is 1.&lt;/p&gt;
+<FONT ID="LN">763 </FONT><A NAME="763"></A>   *
+<FONT ID="LN">764 </FONT><A NAME="764"></A>   * &lt;b&gt;NOTE:&lt;/b&gt; you must call this before the term
+<FONT ID="LN">765 </FONT><A NAME="765"></A>   * index is loaded.  If the index is already loaded, 
+<FONT ID="LN">766 </FONT><A NAME="766"></A>   * an IllegalStateException is thrown.
+<FONT ID="LN">767 </FONT><A NAME="767"></A>   * @throws IllegalStateException if the term index has already been loaded into memory
+<FONT ID="LN">768 </FONT><A NAME="768"></A>   * @deprecated Please use {@link IndexReader#open(Directory, IndexDeletionPolicy, boolean, int)} to specify the required TermInfos index divisor instead.
+<FONT ID="LN">769 </FONT><A NAME="769"></A>   */</FONT>
+<FONT ID="LN">770 </FONT><A NAME="770"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setTermInfosIndexDivisor(<FONT ID="Int">int</FONT> indexDivisor) <FONT ID="Throws">throws</FONT> IllegalStateException {
+<FONT ID="LN">771 </FONT><A NAME="771"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"Please pass termInfosIndexDivisor up-front when opening IndexReader"</FONT>);
+<FONT ID="LN">772 </FONT><A NAME="772"></A>  }
+<FONT ID="LN">773 </FONT><A NAME="773"></A>
+<FONT ID="LN">774 </FONT><A NAME="774"></A>  <FONT ID="FormalComment">/** &lt;p&gt;For IndexReader implementations that use
+<FONT ID="LN">775 </FONT><A NAME="775"></A>   *  TermInfosReader to read terms, this returns the
+<FONT ID="LN">776 </FONT><A NAME="776"></A>   *  current indexDivisor as specified when the reader was
+<FONT ID="LN">777 </FONT><A NAME="777"></A>   *  opened.
+<FONT ID="LN">778 </FONT><A NAME="778"></A>   */</FONT>
+<FONT ID="LN">779 </FONT><A NAME="779"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getTermInfosIndexDivisor() {
+<FONT ID="LN">780 </FONT><A NAME="780"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support this method."</FONT>);
+<FONT ID="LN">781 </FONT><A NAME="781"></A>  }
+<FONT ID="LN">782 </FONT><A NAME="782"></A>
+<FONT ID="LN">783 </FONT><A NAME="783"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">784 </FONT><A NAME="784"></A>   * Check whether any new changes have occurred to the
+<FONT ID="LN">785 </FONT><A NAME="785"></A>   * index since this reader was opened.
+<FONT ID="LN">786 </FONT><A NAME="786"></A>   *
+<FONT ID="LN">787 </FONT><A NAME="787"></A>   * &lt;p&gt;If this reader is based on a Directory (ie, was
+<FONT ID="LN">788 </FONT><A NAME="788"></A>   * created by calling {@link #open}, or {@link #reopen} on
+<FONT ID="LN">789 </FONT><A NAME="789"></A>   * a reader based on a Directory), then this method checks
+<FONT ID="LN">790 </FONT><A NAME="790"></A>   * if any further commits (see {@link IndexWriter#commit}
+<FONT ID="LN">791 </FONT><A NAME="791"></A>   * have occurred in that directory).&lt;/p&gt;
+<FONT ID="LN">792 </FONT><A NAME="792"></A>   *
+<FONT ID="LN">793 </FONT><A NAME="793"></A>   * &lt;p&gt;If instead this reader is a near real-time reader
+<FONT ID="LN">794 </FONT><A NAME="794"></A>   * (ie, obtained by a call to {@link
+<FONT ID="LN">795 </FONT><A NAME="795"></A>   * IndexWriter#getReader}, or by calling {@link #reopen}
+<FONT ID="LN">796 </FONT><A NAME="796"></A>   * on a near real-time reader), then this method checks if
+<FONT ID="LN">797 </FONT><A NAME="797"></A>   * either a new commmit has occurred, or any new
+<FONT ID="LN">798 </FONT><A NAME="798"></A>   * uncommitted changes have taken place via the writer.
+<FONT ID="LN">799 </FONT><A NAME="799"></A>   * Note that even if the writer has only performed
+<FONT ID="LN">800 </FONT><A NAME="800"></A>   * merging, this method will still return false.&lt;/p&gt;
+<FONT ID="LN">801 </FONT><A NAME="801"></A>   *
+<FONT ID="LN">802 </FONT><A NAME="802"></A>   * &lt;p&gt;In any event, if this returns false, you should call
+<FONT ID="LN">803 </FONT><A NAME="803"></A>   * {@link #reopen} to get a new reader that sees the
+<FONT ID="LN">804 </FONT><A NAME="804"></A>   * changes.&lt;/p&gt;
+<FONT ID="LN">805 </FONT><A NAME="805"></A>   *
+<FONT ID="LN">806 </FONT><A NAME="806"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">807 </FONT><A NAME="807"></A>   * @throws IOException           if there is a low-level IO error
+<FONT ID="LN">808 </FONT><A NAME="808"></A>   * @throws UnsupportedOperationException unless overridden in subclass
+<FONT ID="LN">809 </FONT><A NAME="809"></A>   */</FONT>
+<FONT ID="LN">810 </FONT><A NAME="810"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isCurrent() <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">811 </FONT><A NAME="811"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support this method."</FONT>);
+<FONT ID="LN">812 </FONT><A NAME="812"></A>  }
+<FONT ID="LN">813 </FONT><A NAME="813"></A>
+<FONT ID="LN">814 </FONT><A NAME="814"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">815 </FONT><A NAME="815"></A>   * Checks is the index is optimized (if it has a single segment and 
+<FONT ID="LN">816 </FONT><A NAME="816"></A>   * no deletions).  Not implemented in the IndexReader base class.
+<FONT ID="LN">817 </FONT><A NAME="817"></A>   * @return &lt;code&gt;true&lt;/code&gt; if the index is optimized; &lt;code&gt;false&lt;/code&gt; otherwise
+<FONT ID="LN">818 </FONT><A NAME="818"></A>   * @throws UnsupportedOperationException unless overridden in subclass
+<FONT ID="LN">819 </FONT><A NAME="819"></A>   */</FONT>
+<FONT ID="LN">820 </FONT><A NAME="820"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isOptimized() {
+<FONT ID="LN">821 </FONT><A NAME="821"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support this method."</FONT>);
+<FONT ID="LN">822 </FONT><A NAME="822"></A>  }
+<FONT ID="LN">823 </FONT><A NAME="823"></A>  
+<FONT ID="LN">824 </FONT><A NAME="824"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">825 </FONT><A NAME="825"></A>   * Return an array of term frequency vectors for the specified document.
+<FONT ID="LN">826 </FONT><A NAME="826"></A>   * The array contains a vector for each vectorized field in the document.
+<FONT ID="LN">827 </FONT><A NAME="827"></A>   * Each vector contains terms and frequencies for all terms in a given vectorized field.
+<FONT ID="LN">828 </FONT><A NAME="828"></A>   * If no such fields existed, the method returns null. The term vectors that are
+<FONT ID="LN">829 </FONT><A NAME="829"></A>   * returned may either be of type {@link TermFreqVector}
+<FONT ID="LN">830 </FONT><A NAME="830"></A>   * or of type {@link TermPositionVector} if
+<FONT ID="LN">831 </FONT><A NAME="831"></A>   * positions or offsets have been stored.
+<FONT ID="LN">832 </FONT><A NAME="832"></A>   * 
+<FONT ID="LN">833 </FONT><A NAME="833"></A>   * @param docNumber document for which term frequency vectors are returned
+<FONT ID="LN">834 </FONT><A NAME="834"></A>   * @return array of term frequency vectors. May be null if no term vectors have been
+<FONT ID="LN">835 </FONT><A NAME="835"></A>   *  stored for the specified document.
+<FONT ID="LN">836 </FONT><A NAME="836"></A>   * @throws IOException if index cannot be accessed
+<FONT ID="LN">837 </FONT><A NAME="837"></A>   * @see org.apache.lucene.document.Field.TermVector
+<FONT ID="LN">838 </FONT><A NAME="838"></A>   */</FONT>
+<FONT ID="LN">839 </FONT><A NAME="839"></A>  <FONT ID="Abstract">abstract</FONT> <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/TermFreqVector.java.html">TermFreqVector</A>[] getTermFreqVectors(<FONT ID="Int">int</FONT> docNumber)
+<FONT ID="LN">840 </FONT><A NAME="840"></A>          <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">841 </FONT><A NAME="841"></A>
+<FONT ID="LN">842 </FONT><A NAME="842"></A>
+<FONT ID="LN">843 </FONT><A NAME="843"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">844 </FONT><A NAME="844"></A>   * Return a term frequency vector for the specified document and field. The
+<FONT ID="LN">845 </FONT><A NAME="845"></A>   * returned vector contains terms and frequencies for the terms in
+<FONT ID="LN">846 </FONT><A NAME="846"></A>   * the specified field of this document, if the field had the storeTermVector
+<FONT ID="LN">847 </FONT><A NAME="847"></A>   * flag set. If termvectors had been stored with positions or offsets, a 
+<FONT ID="LN">848 </FONT><A NAME="848"></A>   * {@link TermPositionVector} is returned.
+<FONT ID="LN">849 </FONT><A NAME="849"></A>   * 
+<FONT ID="LN">850 </FONT><A NAME="850"></A>   * @param docNumber document for which the term frequency vector is returned
+<FONT ID="LN">851 </FONT><A NAME="851"></A>   * @param field field for which the term frequency vector is returned.
+<FONT ID="LN">852 </FONT><A NAME="852"></A>   * @return term frequency vector May be null if field does not exist in the specified
+<FONT ID="LN">853 </FONT><A NAME="853"></A>   * document or term vector was not stored.
+<FONT ID="LN">854 </FONT><A NAME="854"></A>   * @throws IOException if index cannot be accessed
+<FONT ID="LN">855 </FONT><A NAME="855"></A>   * @see org.apache.lucene.document.Field.TermVector
+<FONT ID="LN">856 </FONT><A NAME="856"></A>   */</FONT>
+<FONT ID="LN">857 </FONT><A NAME="857"></A>  <FONT ID="Abstract">abstract</FONT> <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/TermFreqVector.java.html">TermFreqVector</A> getTermFreqVector(<FONT ID="Int">int</FONT> docNumber, String field)
+<FONT ID="LN">858 </FONT><A NAME="858"></A>          <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">859 </FONT><A NAME="859"></A>
+<FONT ID="LN">860 </FONT><A NAME="860"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">861 </FONT><A NAME="861"></A>   * Load the Term Vector into a user-defined data structure instead of relying on the parallel arrays of
+<FONT ID="LN">862 </FONT><A NAME="862"></A>   * the {@link TermFreqVector}.
+<FONT ID="LN">863 </FONT><A NAME="863"></A>   * @param docNumber The number of the document to load the vector for
+<FONT ID="LN">864 </FONT><A NAME="864"></A>   * @param field The name of the field to load
+<FONT ID="LN">865 </FONT><A NAME="865"></A>   * @param mapper The {@link TermVectorMapper} to process the vector.  Must not be null
+<FONT ID="LN">866 </FONT><A NAME="866"></A>   * @throws IOException if term vectors cannot be accessed or if they do not exist on the field and doc. specified.
+<FONT ID="LN">867 </FONT><A NAME="867"></A>   * 
+<FONT ID="LN">868 </FONT><A NAME="868"></A>   */</FONT>
+<FONT ID="LN">869 </FONT><A NAME="869"></A>  <FONT ID="Abstract">abstract</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> getTermFreqVector(<FONT ID="Int">int</FONT> docNumber, String field, <A HREF="../../../../org/apache/lucene/index/TermVectorMapper.java.html">TermVectorMapper</A> mapper) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">870 </FONT><A NAME="870"></A>
+<FONT ID="LN">871 </FONT><A NAME="871"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">872 </FONT><A NAME="872"></A>   * Map all the term vectors for all fields in a Document
+<FONT ID="LN">873 </FONT><A NAME="873"></A>   * @param docNumber The number of the document to load the vector for
+<FONT ID="LN">874 </FONT><A NAME="874"></A>   * @param mapper The {@link TermVectorMapper} to process the vector.  Must not be null
+<FONT ID="LN">875 </FONT><A NAME="875"></A>   * @throws IOException if term vectors cannot be accessed or if they do not exist on the field and doc. specified.
+<FONT ID="LN">876 </FONT><A NAME="876"></A>   */</FONT>
+<FONT ID="LN">877 </FONT><A NAME="877"></A>  <FONT ID="Abstract">abstract</FONT> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> getTermFreqVector(<FONT ID="Int">int</FONT> docNumber, <A HREF="../../../../org/apache/lucene/index/TermVectorMapper.java.html">TermVectorMapper</A> mapper) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">878 </FONT><A NAME="878"></A>
+<FONT ID="LN">879 </FONT><A NAME="879"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">880 </FONT><A NAME="880"></A>   * Returns &lt;code&gt;true&lt;/code&gt; if an index exists at the specified directory.
+<FONT ID="LN">881 </FONT><A NAME="881"></A>   * If the directory does not exist or if there is no index in it.
+<FONT ID="LN">882 </FONT><A NAME="882"></A>   * &lt;code&gt;false&lt;/code&gt; is returned.
+<FONT ID="LN">883 </FONT><A NAME="883"></A>   * @param  directory the directory to check for an index
+<FONT ID="LN">884 </FONT><A NAME="884"></A>   * @return &lt;code&gt;true&lt;/code&gt; if an index exists; &lt;code&gt;false&lt;/code&gt; otherwise
+<FONT ID="LN">885 </FONT><A NAME="885"></A>   * @deprecated Use {@link #indexExists(Directory)} instead
+<FONT ID="LN">886 </FONT><A NAME="886"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">887 </FONT><A NAME="887"></A>   * 
+<FONT ID="LN">888 </FONT><A NAME="888"></A>   */</FONT>
+<FONT ID="LN">889 </FONT><A NAME="889"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> indexExists(String directory) {
+<FONT ID="LN">890 </FONT><A NAME="890"></A>    <FONT ID="Return">return</FONT> indexExists(<FONT ID="New">new</FONT> File(directory));
+<FONT ID="LN">891 </FONT><A NAME="891"></A>  }
+<FONT ID="LN">892 </FONT><A NAME="892"></A>
+<FONT ID="LN">893 </FONT><A NAME="893"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">894 </FONT><A NAME="894"></A>   * Returns &lt;code&gt;true&lt;/code&gt; if an index exists at the specified directory.
+<FONT ID="LN">895 </FONT><A NAME="895"></A>   * If the directory does not exist or if there is no index in it.
+<FONT ID="LN">896 </FONT><A NAME="896"></A>   * @param  directory the directory to check for an index
+<FONT ID="LN">897 </FONT><A NAME="897"></A>   * @return &lt;code&gt;true&lt;/code&gt; if an index exists; &lt;code&gt;false&lt;/code&gt; otherwise
+<FONT ID="LN">898 </FONT><A NAME="898"></A>   * @deprecated Use {@link #indexExists(Directory)} instead.
+<FONT ID="LN">899 </FONT><A NAME="899"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">900 </FONT><A NAME="900"></A>   * 
+<FONT ID="LN">901 </FONT><A NAME="901"></A>   */</FONT>
+<FONT ID="LN">902 </FONT><A NAME="902"></A>
+<FONT ID="LN">903 </FONT><A NAME="903"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> indexExists(File directory) {
+<FONT ID="LN">904 </FONT><A NAME="904"></A>    <FONT ID="Return">return</FONT> SegmentInfos.getCurrentSegmentGeneration(directory.list()) != -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">905 </FONT><A NAME="905"></A>  }
+<FONT ID="LN">906 </FONT><A NAME="906"></A>
+<FONT ID="LN">907 </FONT><A NAME="907"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">908 </FONT><A NAME="908"></A>   * Returns &lt;code&gt;true&lt;/code&gt; if an index exists at the specified directory.
+<FONT ID="LN">909 </FONT><A NAME="909"></A>   * If the directory does not exist or if there is no index in it.
+<FONT ID="LN">910 </FONT><A NAME="910"></A>   * @param  directory the directory to check for an index
+<FONT ID="LN">911 </FONT><A NAME="911"></A>   * @return &lt;code&gt;true&lt;/code&gt; if an index exists; &lt;code&gt;false&lt;/code&gt; otherwise
+<FONT ID="LN">912 </FONT><A NAME="912"></A>   * @throws IOException if there is a problem with accessing the index
+<FONT ID="LN">913 </FONT><A NAME="913"></A>   */</FONT>
+<FONT ID="LN">914 </FONT><A NAME="914"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> indexExists(Directory directory) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">915 </FONT><A NAME="915"></A>    <FONT ID="Return">return</FONT> SegmentInfos.getCurrentSegmentGeneration(directory) != -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">916 </FONT><A NAME="916"></A>  }
+<FONT ID="LN">917 </FONT><A NAME="917"></A>
+<FONT ID="LN">918 </FONT><A NAME="918"></A>  <FONT ID="FormalComment">/** Returns the number of documents in this index. */</FONT>
+<FONT ID="LN">919 </FONT><A NAME="919"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Int">int</FONT> numDocs();
+<FONT ID="LN">920 </FONT><A NAME="920"></A>
+<FONT ID="LN">921 </FONT><A NAME="921"></A>  <FONT ID="FormalComment">/** Returns one greater than the largest possible document number.
+<FONT ID="LN">922 </FONT><A NAME="922"></A>   * This may be used to, e.g., determine how big to allocate an array which
+<FONT ID="LN">923 </FONT><A NAME="923"></A>   * will have an element for every document number in an index.
+<FONT ID="LN">924 </FONT><A NAME="924"></A>   */</FONT>
+<FONT ID="LN">925 </FONT><A NAME="925"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Int">int</FONT> maxDoc();
+<FONT ID="LN">926 </FONT><A NAME="926"></A>
+<FONT ID="LN">927 </FONT><A NAME="927"></A>  <FONT ID="FormalComment">/** Returns the number of deleted documents. */</FONT>
+<FONT ID="LN">928 </FONT><A NAME="928"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> numDeletedDocs() {
+<FONT ID="LN">929 </FONT><A NAME="929"></A>    <FONT ID="Return">return</FONT> maxDoc() - numDocs();
+<FONT ID="LN">930 </FONT><A NAME="930"></A>  }
+<FONT ID="LN">931 </FONT><A NAME="931"></A>
+<FONT ID="LN">932 </FONT><A NAME="932"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">933 </FONT><A NAME="933"></A>   * Returns the stored fields of the &lt;code&gt;n&lt;/code&gt;&lt;sup&gt;th&lt;/sup&gt;
+<FONT ID="LN">934 </FONT><A NAME="934"></A>   * &lt;code&gt;Document&lt;/code&gt; in this index.
+<FONT ID="LN">935 </FONT><A NAME="935"></A>   * &lt;p&gt;
+<FONT ID="LN">936 </FONT><A NAME="936"></A>   * &lt;b&gt;NOTE:&lt;/b&gt; for performance reasons, this method does not check if the
+<FONT ID="LN">937 </FONT><A NAME="937"></A>   * requested document is deleted, and therefore asking for a deleted document
+<FONT ID="LN">938 </FONT><A NAME="938"></A>   * may yield unspecified results. Usually this is not required, however you
+<FONT ID="LN">939 </FONT><A NAME="939"></A>   * can call {@link #isDeleted(int)} with the requested document ID to verify
+<FONT ID="LN">940 </FONT><A NAME="940"></A>   * the document is not deleted.
+<FONT ID="LN">941 </FONT><A NAME="941"></A>   * 
+<FONT ID="LN">942 </FONT><A NAME="942"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">943 </FONT><A NAME="943"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">944 </FONT><A NAME="944"></A>   */</FONT>
+<FONT ID="LN">945 </FONT><A NAME="945"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> document(<FONT ID="Int">int</FONT> n) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException {
+<FONT ID="LN">946 </FONT><A NAME="946"></A>    ensureOpen();
+<FONT ID="LN">947 </FONT><A NAME="947"></A>    <FONT ID="Return">return</FONT> document(n, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">948 </FONT><A NAME="948"></A>  }
+<FONT ID="LN">949 </FONT><A NAME="949"></A>
+<FONT ID="LN">950 </FONT><A NAME="950"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">951 </FONT><A NAME="951"></A>   * Get the {@link org.apache.lucene.document.Document} at the &lt;code&gt;n&lt;/code&gt;
+<FONT ID="LN">952 </FONT><A NAME="952"></A>   * &lt;sup&gt;th&lt;/sup&gt; position. The {@link FieldSelector} may be used to determine
+<FONT ID="LN">953 </FONT><A NAME="953"></A>   * what {@link org.apache.lucene.document.Field}s to load and how they should
+<FONT ID="LN">954 </FONT><A NAME="954"></A>   * be loaded. &lt;b&gt;NOTE:&lt;/b&gt; If this Reader (more specifically, the underlying
+<FONT ID="LN">955 </FONT><A NAME="955"></A>   * &lt;code&gt;FieldsReader&lt;/code&gt;) is closed before the lazy
+<FONT ID="LN">956 </FONT><A NAME="956"></A>   * {@link org.apache.lucene.document.Field} is loaded an exception may be
+<FONT ID="LN">957 </FONT><A NAME="957"></A>   * thrown. If you want the value of a lazy
+<FONT ID="LN">958 </FONT><A NAME="958"></A>   * {@link org.apache.lucene.document.Field} to be available after closing you
+<FONT ID="LN">959 </FONT><A NAME="959"></A>   * must explicitly load it or fetch the Document again with a new loader.
+<FONT ID="LN">960 </FONT><A NAME="960"></A>   * &lt;p&gt;
+<FONT ID="LN">961 </FONT><A NAME="961"></A>   * &lt;b&gt;NOTE:&lt;/b&gt; for performance reasons, this method does not check if the
+<FONT ID="LN">962 </FONT><A NAME="962"></A>   * requested document is deleted, and therefore asking for a deleted document
+<FONT ID="LN">963 </FONT><A NAME="963"></A>   * may yield unspecified results. Usually this is not required, however you
+<FONT ID="LN">964 </FONT><A NAME="964"></A>   * can call {@link #isDeleted(int)} with the requested document ID to verify
+<FONT ID="LN">965 </FONT><A NAME="965"></A>   * the document is not deleted.
+<FONT ID="LN">966 </FONT><A NAME="966"></A>   * 
+<FONT ID="LN">967 </FONT><A NAME="967"></A>   * @param n Get the document at the &lt;code&gt;n&lt;/code&gt;&lt;sup&gt;th&lt;/sup&gt; position
+<FONT ID="LN">968 </FONT><A NAME="968"></A>   * @param fieldSelector The {@link FieldSelector} to use to determine what
+<FONT ID="LN">969 </FONT><A NAME="969"></A>   *        Fields should be loaded on the Document. May be null, in which case
+<FONT ID="LN">970 </FONT><A NAME="970"></A>   *        all Fields will be loaded.
+<FONT ID="LN">971 </FONT><A NAME="971"></A>   * @return The stored fields of the
+<FONT ID="LN">972 </FONT><A NAME="972"></A>   *         {@link org.apache.lucene.document.Document} at the nth position
+<FONT ID="LN">973 </FONT><A NAME="973"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">974 </FONT><A NAME="974"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">975 </FONT><A NAME="975"></A>   * @see org.apache.lucene.document.Fieldable
+<FONT ID="LN">976 </FONT><A NAME="976"></A>   * @see org.apache.lucene.document.FieldSelector
+<FONT ID="LN">977 </FONT><A NAME="977"></A>   * @see org.apache.lucene.document.SetBasedFieldSelector
+<FONT ID="LN">978 </FONT><A NAME="978"></A>   * @see org.apache.lucene.document.LoadFirstFieldSelector
+<FONT ID="LN">979 </FONT><A NAME="979"></A>   */</FONT>
+<FONT ID="LN">980 </FONT><A NAME="980"></A>  <FONT ID="SingleLineComment">// TODO (1.5): When we convert to JDK 1.5 make this Set&lt;String&gt;
+<FONT ID="LN">981 </FONT><A NAME="981"></A></FONT>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> document(<FONT ID="Int">int</FONT> n, <A HREF="../../../../org/apache/lucene/document/FieldSelector.java.html">FieldSelector</A> fieldSelector) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">982 </FONT><A NAME="982"></A>  
+<FONT ID="LN">983 </FONT><A NAME="983"></A>  <FONT ID="FormalComment">/** Returns true if document &lt;i&gt;n&lt;/i&gt; has been deleted */</FONT>
+<FONT ID="LN">984 </FONT><A NAME="984"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Boolean">boolean</FONT> isDeleted(<FONT ID="Int">int</FONT> n);
+<FONT ID="LN">985 </FONT><A NAME="985"></A>
+<FONT ID="LN">986 </FONT><A NAME="986"></A>  <FONT ID="FormalComment">/** Returns true if any documents have been deleted */</FONT>
+<FONT ID="LN">987 </FONT><A NAME="987"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Boolean">boolean</FONT> hasDeletions();
+<FONT ID="LN">988 </FONT><A NAME="988"></A>
+<FONT ID="LN">989 </FONT><A NAME="989"></A>  <FONT ID="FormalComment">/** Returns true if there are norms stored for this field. */</FONT>
+<FONT ID="LN">990 </FONT><A NAME="990"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasNorms(String field) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">991 </FONT><A NAME="991"></A>    <FONT ID="SingleLineComment">// backward compatible implementation.
+<FONT ID="LN">992 </FONT><A NAME="992"></A></FONT>    <FONT ID="SingleLineComment">// SegmentReader has an efficient implementation.
+<FONT ID="LN">993 </FONT><A NAME="993"></A></FONT>    ensureOpen();
+<FONT ID="LN">994 </FONT><A NAME="994"></A>    <FONT ID="Return">return</FONT> norms(field) != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">995 </FONT><A NAME="995"></A>  }
+<FONT ID="LN">996 </FONT><A NAME="996"></A>
+<FONT ID="LN">997 </FONT><A NAME="997"></A>  <FONT ID="FormalComment">/** Returns the byte-encoded normalization factor for the named field of
+<FONT ID="LN">998 </FONT><A NAME="998"></A>   * every document.  This is used by the search code to score documents.
+<FONT ID="LN">999 </FONT><A NAME="999"></A>   *
+<FONT ID="LN">1000</FONT><A NAME="1000"></A>   * @see org.apache.lucene.document.Field#setBoost(float)
+<FONT ID="LN">1001</FONT><A NAME="1001"></A>   */</FONT>
+<FONT ID="LN">1002</FONT><A NAME="1002"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Byte">byte</FONT>[] norms(String field) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1003</FONT><A NAME="1003"></A>
+<FONT ID="LN">1004</FONT><A NAME="1004"></A>  <FONT ID="FormalComment">/** Reads the byte-encoded normalization factor for the named field of every
+<FONT ID="LN">1005</FONT><A NAME="1005"></A>   *  document.  This is used by the search code to score documents.
+<FONT ID="LN">1006</FONT><A NAME="1006"></A>   *
+<FONT ID="LN">1007</FONT><A NAME="1007"></A>   * @see org.apache.lucene.document.Field#setBoost(float)
+<FONT ID="LN">1008</FONT><A NAME="1008"></A>   */</FONT>
+<FONT ID="LN">1009</FONT><A NAME="1009"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> norms(String field, <FONT ID="Byte">byte</FONT>[] bytes, <FONT ID="Int">int</FONT> offset)
+<FONT ID="LN">1010</FONT><A NAME="1010"></A>    <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1011</FONT><A NAME="1011"></A>
+<FONT ID="LN">1012</FONT><A NAME="1012"></A>  <FONT ID="FormalComment">/** Expert: Resets the normalization factor for the named field of the named
+<FONT ID="LN">1013</FONT><A NAME="1013"></A>   * document.  The norm represents the product of the field's {@link
+<FONT ID="LN">1014</FONT><A NAME="1014"></A>   * org.apache.lucene.document.Fieldable#setBoost(float) boost} and its {@link Similarity#lengthNorm(String,
+<FONT ID="LN">1015</FONT><A NAME="1015"></A>   * int) length normalization}.  Thus, to preserve the length normalization
+<FONT ID="LN">1016</FONT><A NAME="1016"></A>   * values when resetting this, one should base the new value upon the old.
+<FONT ID="LN">1017</FONT><A NAME="1017"></A>   *
+<FONT ID="LN">1018</FONT><A NAME="1018"></A>   * &lt;b&gt;NOTE:&lt;/b&gt; If this field does not store norms, then
+<FONT ID="LN">1019</FONT><A NAME="1019"></A>   * this method call will silently do nothing.
+<FONT ID="LN">1020</FONT><A NAME="1020"></A>   *
+<FONT ID="LN">1021</FONT><A NAME="1021"></A>   * @see #norms(String)
+<FONT ID="LN">1022</FONT><A NAME="1022"></A>   * @see Similarity#decodeNorm(byte)
+<FONT ID="LN">1023</FONT><A NAME="1023"></A>   * @throws StaleReaderException if the index has changed
+<FONT ID="LN">1024</FONT><A NAME="1024"></A>   *  since this reader was opened
+<FONT ID="LN">1025</FONT><A NAME="1025"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">1026</FONT><A NAME="1026"></A>   * @throws LockObtainFailedException if another writer
+<FONT ID="LN">1027</FONT><A NAME="1027"></A>   *  has this index open (&lt;code&gt;write.lock&lt;/code&gt; could not
+<FONT ID="LN">1028</FONT><A NAME="1028"></A>   *  be obtained)
+<FONT ID="LN">1029</FONT><A NAME="1029"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1030</FONT><A NAME="1030"></A>   */</FONT>
+<FONT ID="LN">1031</FONT><A NAME="1031"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT>  <FONT ID="Void">void</FONT> setNorm(<FONT ID="Int">int</FONT> doc, String field, <FONT ID="Byte">byte</FONT> value)
+<FONT ID="LN">1032</FONT><A NAME="1032"></A>          <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/StaleReaderException.java.html">StaleReaderException</A>, <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, LockObtainFailedException, IOException {
+<FONT ID="LN">1033</FONT><A NAME="1033"></A>    ensureOpen();
+<FONT ID="LN">1034</FONT><A NAME="1034"></A>    acquireWriteLock();
+<FONT ID="LN">1035</FONT><A NAME="1035"></A>    hasChanges = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1036</FONT><A NAME="1036"></A>    doSetNorm(doc, field, value);
+<FONT ID="LN">1037</FONT><A NAME="1037"></A>  }
+<FONT ID="LN">1038</FONT><A NAME="1038"></A>
+<FONT ID="LN">1039</FONT><A NAME="1039"></A>  <FONT ID="FormalComment">/** Implements setNorm in subclass.*/</FONT>
+<FONT ID="LN">1040</FONT><A NAME="1040"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> doSetNorm(<FONT ID="Int">int</FONT> doc, String field, <FONT ID="Byte">byte</FONT> value)
+<FONT ID="LN">1041</FONT><A NAME="1041"></A>          <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">1042</FONT><A NAME="1042"></A>
+<FONT ID="LN">1043</FONT><A NAME="1043"></A>  <FONT ID="FormalComment">/** Expert: Resets the normalization factor for the named field of the named
+<FONT ID="LN">1044</FONT><A NAME="1044"></A>   * document.
+<FONT ID="LN">1045</FONT><A NAME="1045"></A>   *
+<FONT ID="LN">1046</FONT><A NAME="1046"></A>   * @see #norms(String)
+<FONT ID="LN">1047</FONT><A NAME="1047"></A>   * @see Similarity#decodeNorm(byte)
+<FONT ID="LN">1048</FONT><A NAME="1048"></A>   * 
+<FONT ID="LN">1049</FONT><A NAME="1049"></A>   * @throws StaleReaderException if the index has changed
+<FONT ID="LN">1050</FONT><A NAME="1050"></A>   *  since this reader was opened
+<FONT ID="LN">1051</FONT><A NAME="1051"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">1052</FONT><A NAME="1052"></A>   * @throws LockObtainFailedException if another writer
+<FONT ID="LN">1053</FONT><A NAME="1053"></A>   *  has this index open (&lt;code&gt;write.lock&lt;/code&gt; could not
+<FONT ID="LN">1054</FONT><A NAME="1054"></A>   *  be obtained)
+<FONT ID="LN">1055</FONT><A NAME="1055"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1056</FONT><A NAME="1056"></A>   */</FONT>
+<FONT ID="LN">1057</FONT><A NAME="1057"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setNorm(<FONT ID="Int">int</FONT> doc, String field, <FONT ID="Float">float</FONT> value)
+<FONT ID="LN">1058</FONT><A NAME="1058"></A>          <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/StaleReaderException.java.html">StaleReaderException</A>, <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, LockObtainFailedException, IOException {
+<FONT ID="LN">1059</FONT><A NAME="1059"></A>    ensureOpen();
+<FONT ID="LN">1060</FONT><A NAME="1060"></A>    setNorm(doc, field, Similarity.encodeNorm(value));
+<FONT ID="LN">1061</FONT><A NAME="1061"></A>  }
+<FONT ID="LN">1062</FONT><A NAME="1062"></A>
+<FONT ID="LN">1063</FONT><A NAME="1063"></A>  <FONT ID="FormalComment">/** Returns an enumeration of all the terms in the index. The
+<FONT ID="LN">1064</FONT><A NAME="1064"></A>   * enumeration is ordered by Term.compareTo(). Each term is greater
+<FONT ID="LN">1065</FONT><A NAME="1065"></A>   * than all that precede it in the enumeration. Note that after
+<FONT ID="LN">1066</FONT><A NAME="1066"></A>   * calling terms(), {@link TermEnum#next()} must be called
+<FONT ID="LN">1067</FONT><A NAME="1067"></A>   * on the resulting enumeration before calling other methods such as
+<FONT ID="LN">1068</FONT><A NAME="1068"></A>   * {@link TermEnum#term()}.
+<FONT ID="LN">1069</FONT><A NAME="1069"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1070</FONT><A NAME="1070"></A>   */</FONT>
+<FONT ID="LN">1071</FONT><A NAME="1071"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/index/TermEnum.java.html">TermEnum</A> terms() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1072</FONT><A NAME="1072"></A>
+<FONT ID="LN">1073</FONT><A NAME="1073"></A>  <FONT ID="FormalComment">/** Returns an enumeration of all terms starting at a given term. If
+<FONT ID="LN">1074</FONT><A NAME="1074"></A>   * the given term does not exist, the enumeration is positioned at the
+<FONT ID="LN">1075</FONT><A NAME="1075"></A>   * first term greater than the supplied term. The enumeration is
+<FONT ID="LN">1076</FONT><A NAME="1076"></A>   * ordered by Term.compareTo(). Each term is greater than all that
+<FONT ID="LN">1077</FONT><A NAME="1077"></A>   * precede it in the enumeration.
+<FONT ID="LN">1078</FONT><A NAME="1078"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1079</FONT><A NAME="1079"></A>   */</FONT>
+<FONT ID="LN">1080</FONT><A NAME="1080"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/index/TermEnum.java.html">TermEnum</A> terms(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> t) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1081</FONT><A NAME="1081"></A>
+<FONT ID="LN">1082</FONT><A NAME="1082"></A>  <FONT ID="FormalComment">/** Returns the number of documents containing the term &lt;code&gt;t&lt;/code&gt;.
+<FONT ID="LN">1083</FONT><A NAME="1083"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1084</FONT><A NAME="1084"></A>   */</FONT>
+<FONT ID="LN">1085</FONT><A NAME="1085"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Int">int</FONT> docFreq(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> t) <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1086</FONT><A NAME="1086"></A>
+<FONT ID="LN">1087</FONT><A NAME="1087"></A>  <FONT ID="FormalComment">/** Returns an enumeration of all the documents which contain
+<FONT ID="LN">1088</FONT><A NAME="1088"></A>   * &lt;code&gt;term&lt;/code&gt;. For each document, the document number, the frequency of
+<FONT ID="LN">1089</FONT><A NAME="1089"></A>   * the term in that document is also provided, for use in
+<FONT ID="LN">1090</FONT><A NAME="1090"></A>   * search scoring.  If term is null, then all non-deleted
+<FONT ID="LN">1091</FONT><A NAME="1091"></A>   * docs are returned with freq=1.
+<FONT ID="LN">1092</FONT><A NAME="1092"></A>   * Thus, this method implements the mapping:
+<FONT ID="LN">1093</FONT><A NAME="1093"></A>   * &lt;p&gt;&lt;ul&gt;
+<FONT ID="LN">1094</FONT><A NAME="1094"></A>   * Term &amp;nbsp;&amp;nbsp; =&amp;gt; &amp;nbsp;&amp;nbsp; &amp;lt;docNum, freq&amp;gt;&lt;sup&gt;*&lt;/sup&gt;
+<FONT ID="LN">1095</FONT><A NAME="1095"></A>   * &lt;/ul&gt;
+<FONT ID="LN">1096</FONT><A NAME="1096"></A>   * &lt;p&gt;The enumeration is ordered by document number.  Each document number
+<FONT ID="LN">1097</FONT><A NAME="1097"></A>   * is greater than all that precede it in the enumeration.
+<FONT ID="LN">1098</FONT><A NAME="1098"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1099</FONT><A NAME="1099"></A>   */</FONT>
+<FONT ID="LN">1100</FONT><A NAME="1100"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/TermDocs.java.html">TermDocs</A> termDocs(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1101</FONT><A NAME="1101"></A>    ensureOpen();
+<FONT ID="LN">1102</FONT><A NAME="1102"></A>    <A HREF="../../../../org/apache/lucene/index/TermDocs.java.html">TermDocs</A> termDocs = termDocs();
+<FONT ID="LN">1103</FONT><A NAME="1103"></A>    termDocs.seek(term);
+<FONT ID="LN">1104</FONT><A NAME="1104"></A>    <FONT ID="Return">return</FONT> termDocs;
+<FONT ID="LN">1105</FONT><A NAME="1105"></A>  }
+<FONT ID="LN">1106</FONT><A NAME="1106"></A>
+<FONT ID="LN">1107</FONT><A NAME="1107"></A>  <FONT ID="FormalComment">/** Returns an unpositioned {@link TermDocs} enumerator.
+<FONT ID="LN">1108</FONT><A NAME="1108"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1109</FONT><A NAME="1109"></A>   */</FONT>
+<FONT ID="LN">1110</FONT><A NAME="1110"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/index/TermDocs.java.html">TermDocs</A> termDocs() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1111</FONT><A NAME="1111"></A>
+<FONT ID="LN">1112</FONT><A NAME="1112"></A>  <FONT ID="FormalComment">/** Returns an enumeration of all the documents which contain
+<FONT ID="LN">1113</FONT><A NAME="1113"></A>   * &lt;code&gt;term&lt;/code&gt;.  For each document, in addition to the document number
+<FONT ID="LN">1114</FONT><A NAME="1114"></A>   * and frequency of the term in that document, a list of all of the ordinal
+<FONT ID="LN">1115</FONT><A NAME="1115"></A>   * positions of the term in the document is available.  Thus, this method
+<FONT ID="LN">1116</FONT><A NAME="1116"></A>   * implements the mapping:
+<FONT ID="LN">1117</FONT><A NAME="1117"></A>   *
+<FONT ID="LN">1118</FONT><A NAME="1118"></A>   * &lt;p&gt;&lt;ul&gt;
+<FONT ID="LN">1119</FONT><A NAME="1119"></A>   * Term &amp;nbsp;&amp;nbsp; =&amp;gt; &amp;nbsp;&amp;nbsp; &amp;lt;docNum, freq,
+<FONT ID="LN">1120</FONT><A NAME="1120"></A>   * &amp;lt;pos&lt;sub&gt;1&lt;/sub&gt;, pos&lt;sub&gt;2&lt;/sub&gt;, ...
+<FONT ID="LN">1121</FONT><A NAME="1121"></A>   * pos&lt;sub&gt;freq-1&lt;/sub&gt;&amp;gt;
+<FONT ID="LN">1122</FONT><A NAME="1122"></A>   * &amp;gt;&lt;sup&gt;*&lt;/sup&gt;
+<FONT ID="LN">1123</FONT><A NAME="1123"></A>   * &lt;/ul&gt;
+<FONT ID="LN">1124</FONT><A NAME="1124"></A>   * &lt;p&gt; This positional information facilitates phrase and proximity searching.
+<FONT ID="LN">1125</FONT><A NAME="1125"></A>   * &lt;p&gt;The enumeration is ordered by document number.  Each document number is
+<FONT ID="LN">1126</FONT><A NAME="1126"></A>   * greater than all that precede it in the enumeration.
+<FONT ID="LN">1127</FONT><A NAME="1127"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1128</FONT><A NAME="1128"></A>   */</FONT>
+<FONT ID="LN">1129</FONT><A NAME="1129"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/TermPositions.java.html">TermPositions</A> termPositions(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1130</FONT><A NAME="1130"></A>    ensureOpen();
+<FONT ID="LN">1131</FONT><A NAME="1131"></A>    <A HREF="../../../../org/apache/lucene/index/TermPositions.java.html">TermPositions</A> termPositions = termPositions();
+<FONT ID="LN">1132</FONT><A NAME="1132"></A>    termPositions.seek(term);
+<FONT ID="LN">1133</FONT><A NAME="1133"></A>    <FONT ID="Return">return</FONT> termPositions;
+<FONT ID="LN">1134</FONT><A NAME="1134"></A>  }
+<FONT ID="LN">1135</FONT><A NAME="1135"></A>
+<FONT ID="LN">1136</FONT><A NAME="1136"></A>  <FONT ID="FormalComment">/** Returns an unpositioned {@link TermPositions} enumerator.
+<FONT ID="LN">1137</FONT><A NAME="1137"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1138</FONT><A NAME="1138"></A>   */</FONT>
+<FONT ID="LN">1139</FONT><A NAME="1139"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../org/apache/lucene/index/TermPositions.java.html">TermPositions</A> termPositions() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1140</FONT><A NAME="1140"></A>
+<FONT ID="LN">1141</FONT><A NAME="1141"></A>
+<FONT ID="LN">1142</FONT><A NAME="1142"></A>
+<FONT ID="LN">1143</FONT><A NAME="1143"></A>  <FONT ID="FormalComment">/** Deletes the document numbered &lt;code&gt;docNum&lt;/code&gt;.  Once a document is
+<FONT ID="LN">1144</FONT><A NAME="1144"></A>   * deleted it will not appear in TermDocs or TermPostitions enumerations.
+<FONT ID="LN">1145</FONT><A NAME="1145"></A>   * Attempts to read its field with the {@link #document}
+<FONT ID="LN">1146</FONT><A NAME="1146"></A>   * method will result in an error.  The presence of this document may still be
+<FONT ID="LN">1147</FONT><A NAME="1147"></A>   * reflected in the {@link #docFreq} statistic, though
+<FONT ID="LN">1148</FONT><A NAME="1148"></A>   * this will be corrected eventually as the index is further modified.
+<FONT ID="LN">1149</FONT><A NAME="1149"></A>   *
+<FONT ID="LN">1150</FONT><A NAME="1150"></A>   * @throws StaleReaderException if the index has changed
+<FONT ID="LN">1151</FONT><A NAME="1151"></A>   * since this reader was opened
+<FONT ID="LN">1152</FONT><A NAME="1152"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">1153</FONT><A NAME="1153"></A>   * @throws LockObtainFailedException if another writer
+<FONT ID="LN">1154</FONT><A NAME="1154"></A>   *  has this index open (&lt;code&gt;write.lock&lt;/code&gt; could not
+<FONT ID="LN">1155</FONT><A NAME="1155"></A>   *  be obtained)
+<FONT ID="LN">1156</FONT><A NAME="1156"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1157</FONT><A NAME="1157"></A>   */</FONT>
+<FONT ID="LN">1158</FONT><A NAME="1158"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> deleteDocument(<FONT ID="Int">int</FONT> docNum) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/StaleReaderException.java.html">StaleReaderException</A>, <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, LockObtainFailedException, IOException {
+<FONT ID="LN">1159</FONT><A NAME="1159"></A>    ensureOpen();
+<FONT ID="LN">1160</FONT><A NAME="1160"></A>    acquireWriteLock();
+<FONT ID="LN">1161</FONT><A NAME="1161"></A>    hasChanges = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1162</FONT><A NAME="1162"></A>    doDelete(docNum);
+<FONT ID="LN">1163</FONT><A NAME="1163"></A>  }
+<FONT ID="LN">1164</FONT><A NAME="1164"></A>
+<FONT ID="LN">1165</FONT><A NAME="1165"></A>
+<FONT ID="LN">1166</FONT><A NAME="1166"></A>  <FONT ID="FormalComment">/** Implements deletion of the document numbered &lt;code&gt;docNum&lt;/code&gt;.
+<FONT ID="LN">1167</FONT><A NAME="1167"></A>   * Applications should call {@link #deleteDocument(int)} or {@link #deleteDocuments(Term)}.
+<FONT ID="LN">1168</FONT><A NAME="1168"></A>   */</FONT>
+<FONT ID="LN">1169</FONT><A NAME="1169"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> doDelete(<FONT ID="Int">int</FONT> docNum) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">1170</FONT><A NAME="1170"></A>
+<FONT ID="LN">1171</FONT><A NAME="1171"></A>
+<FONT ID="LN">1172</FONT><A NAME="1172"></A>  <FONT ID="FormalComment">/** Deletes all documents that have a given &lt;code&gt;term&lt;/code&gt; indexed.
+<FONT ID="LN">1173</FONT><A NAME="1173"></A>   * This is useful if one uses a document field to hold a unique ID string for
+<FONT ID="LN">1174</FONT><A NAME="1174"></A>   * the document.  Then to delete such a document, one merely constructs a
+<FONT ID="LN">1175</FONT><A NAME="1175"></A>   * term with the appropriate field and the unique ID string as its text and
+<FONT ID="LN">1176</FONT><A NAME="1176"></A>   * passes it to this method.
+<FONT ID="LN">1177</FONT><A NAME="1177"></A>   * See {@link #deleteDocument(int)} for information about when this deletion will 
+<FONT ID="LN">1178</FONT><A NAME="1178"></A>   * become effective.
+<FONT ID="LN">1179</FONT><A NAME="1179"></A>   *
+<FONT ID="LN">1180</FONT><A NAME="1180"></A>   * @return the number of documents deleted
+<FONT ID="LN">1181</FONT><A NAME="1181"></A>   * @throws StaleReaderException if the index has changed
+<FONT ID="LN">1182</FONT><A NAME="1182"></A>   *  since this reader was opened
+<FONT ID="LN">1183</FONT><A NAME="1183"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">1184</FONT><A NAME="1184"></A>   * @throws LockObtainFailedException if another writer
+<FONT ID="LN">1185</FONT><A NAME="1185"></A>   *  has this index open (&lt;code&gt;write.lock&lt;/code&gt; could not
+<FONT ID="LN">1186</FONT><A NAME="1186"></A>   *  be obtained)
+<FONT ID="LN">1187</FONT><A NAME="1187"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1188</FONT><A NAME="1188"></A>   */</FONT>
+<FONT ID="LN">1189</FONT><A NAME="1189"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> deleteDocuments(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/StaleReaderException.java.html">StaleReaderException</A>, <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, LockObtainFailedException, IOException {
+<FONT ID="LN">1190</FONT><A NAME="1190"></A>    ensureOpen();
+<FONT ID="LN">1191</FONT><A NAME="1191"></A>    <A HREF="../../../../org/apache/lucene/index/TermDocs.java.html">TermDocs</A> docs = termDocs(term);
+<FONT ID="LN">1192</FONT><A NAME="1192"></A>    <FONT ID="If">if</FONT> (docs == <FONT ID="Null">null</FONT>) <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1193</FONT><A NAME="1193"></A>    <FONT ID="Int">int</FONT> n = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1194</FONT><A NAME="1194"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1195</FONT><A NAME="1195"></A>      <FONT ID="While">while</FONT> (docs.next()) {
+<FONT ID="LN">1196</FONT><A NAME="1196"></A>        deleteDocument(docs.doc());
+<FONT ID="LN">1197</FONT><A NAME="1197"></A>        n++;
+<FONT ID="LN">1198</FONT><A NAME="1198"></A>      }
+<FONT ID="LN">1199</FONT><A NAME="1199"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">1200</FONT><A NAME="1200"></A>      docs.close();
+<FONT ID="LN">1201</FONT><A NAME="1201"></A>    }
+<FONT ID="LN">1202</FONT><A NAME="1202"></A>    <FONT ID="Return">return</FONT> n;
+<FONT ID="LN">1203</FONT><A NAME="1203"></A>  }
+<FONT ID="LN">1204</FONT><A NAME="1204"></A>
+<FONT ID="LN">1205</FONT><A NAME="1205"></A>  <FONT ID="FormalComment">/** Undeletes all documents currently marked as deleted in this index.
+<FONT ID="LN">1206</FONT><A NAME="1206"></A>   *
+<FONT ID="LN">1207</FONT><A NAME="1207"></A>   * @throws StaleReaderException if the index has changed
+<FONT ID="LN">1208</FONT><A NAME="1208"></A>   *  since this reader was opened
+<FONT ID="LN">1209</FONT><A NAME="1209"></A>   * @throws LockObtainFailedException if another writer
+<FONT ID="LN">1210</FONT><A NAME="1210"></A>   *  has this index open (&lt;code&gt;write.lock&lt;/code&gt; could not
+<FONT ID="LN">1211</FONT><A NAME="1211"></A>   *  be obtained)
+<FONT ID="LN">1212</FONT><A NAME="1212"></A>   * @throws CorruptIndexException if the index is corrupt
+<FONT ID="LN">1213</FONT><A NAME="1213"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1214</FONT><A NAME="1214"></A>   */</FONT>
+<FONT ID="LN">1215</FONT><A NAME="1215"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> undeleteAll() <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/StaleReaderException.java.html">StaleReaderException</A>, <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, LockObtainFailedException, IOException {
+<FONT ID="LN">1216</FONT><A NAME="1216"></A>    ensureOpen();
+<FONT ID="LN">1217</FONT><A NAME="1217"></A>    acquireWriteLock();
+<FONT ID="LN">1218</FONT><A NAME="1218"></A>    hasChanges = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1219</FONT><A NAME="1219"></A>    doUndeleteAll();
+<FONT ID="LN">1220</FONT><A NAME="1220"></A>  }
+<FONT ID="LN">1221</FONT><A NAME="1221"></A>
+<FONT ID="LN">1222</FONT><A NAME="1222"></A>  <FONT ID="FormalComment">/** Implements actual undeleteAll() in subclass. */</FONT>
+<FONT ID="LN">1223</FONT><A NAME="1223"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> doUndeleteAll() <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">1224</FONT><A NAME="1224"></A>
+<FONT ID="LN">1225</FONT><A NAME="1225"></A>  <FONT ID="FormalComment">/** Does nothing by default. Subclasses that require a write lock for
+<FONT ID="LN">1226</FONT><A NAME="1226"></A>   *  index modifications must implement this method. */</FONT>
+<FONT ID="LN">1227</FONT><A NAME="1227"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> acquireWriteLock() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1228</FONT><A NAME="1228"></A>    <FONT ID="MultiLineComment">/* NOOP */</FONT>
+<FONT ID="LN">1229</FONT><A NAME="1229"></A>  }
+<FONT ID="LN">1230</FONT><A NAME="1230"></A>  
+<FONT ID="LN">1231</FONT><A NAME="1231"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1232</FONT><A NAME="1232"></A>   * 
+<FONT ID="LN">1233</FONT><A NAME="1233"></A>   * @throws IOException
+<FONT ID="LN">1234</FONT><A NAME="1234"></A>   */</FONT>
+<FONT ID="LN">1235</FONT><A NAME="1235"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> flush() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1236</FONT><A NAME="1236"></A>    ensureOpen();
+<FONT ID="LN">1237</FONT><A NAME="1237"></A>    commit();
+<FONT ID="LN">1238</FONT><A NAME="1238"></A>  }
+<FONT ID="LN">1239</FONT><A NAME="1239"></A>
+<FONT ID="LN">1240</FONT><A NAME="1240"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1241</FONT><A NAME="1241"></A>   * @param commitUserData Opaque Map (String -&gt; String)
+<FONT ID="LN">1242</FONT><A NAME="1242"></A>   *  that's recorded into the segments file in the index,
+<FONT ID="LN">1243</FONT><A NAME="1243"></A>   *  and retrievable by {@link
+<FONT ID="LN">1244</FONT><A NAME="1244"></A>   *  IndexReader#getCommitUserData}.
+<FONT ID="LN">1245</FONT><A NAME="1245"></A>   * @throws IOException
+<FONT ID="LN">1246</FONT><A NAME="1246"></A>   */</FONT>
+<FONT ID="LN">1247</FONT><A NAME="1247"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> flush(Map commitUserData) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1248</FONT><A NAME="1248"></A>    ensureOpen();
+<FONT ID="LN">1249</FONT><A NAME="1249"></A>    commit(commitUserData);
+<FONT ID="LN">1250</FONT><A NAME="1250"></A>  }
+<FONT ID="LN">1251</FONT><A NAME="1251"></A>  
+<FONT ID="LN">1252</FONT><A NAME="1252"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1253</FONT><A NAME="1253"></A>   * Commit changes resulting from delete, undeleteAll, or
+<FONT ID="LN">1254</FONT><A NAME="1254"></A>   * setNorm operations
+<FONT ID="LN">1255</FONT><A NAME="1255"></A>   *
+<FONT ID="LN">1256</FONT><A NAME="1256"></A>   * If an exception is hit, then either no changes or all
+<FONT ID="LN">1257</FONT><A NAME="1257"></A>   * changes will have been committed to the index
+<FONT ID="LN">1258</FONT><A NAME="1258"></A>   * (transactional semantics).
+<FONT ID="LN">1259</FONT><A NAME="1259"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1260</FONT><A NAME="1260"></A>   */</FONT>
+<FONT ID="LN">1261</FONT><A NAME="1261"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Final">final</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> commit() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1262</FONT><A NAME="1262"></A>    commit(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">1263</FONT><A NAME="1263"></A>  }
+<FONT ID="LN">1264</FONT><A NAME="1264"></A>  
+<FONT ID="LN">1265</FONT><A NAME="1265"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1266</FONT><A NAME="1266"></A>   * Commit changes resulting from delete, undeleteAll, or
+<FONT ID="LN">1267</FONT><A NAME="1267"></A>   * setNorm operations
+<FONT ID="LN">1268</FONT><A NAME="1268"></A>   *
+<FONT ID="LN">1269</FONT><A NAME="1269"></A>   * If an exception is hit, then either no changes or all
+<FONT ID="LN">1270</FONT><A NAME="1270"></A>   * changes will have been committed to the index
+<FONT ID="LN">1271</FONT><A NAME="1271"></A>   * (transactional semantics).
+<FONT ID="LN">1272</FONT><A NAME="1272"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1273</FONT><A NAME="1273"></A>   */</FONT>
+<FONT ID="LN">1274</FONT><A NAME="1274"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Final">final</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> commit(Map commitUserData) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1275</FONT><A NAME="1275"></A>    <FONT ID="If">if</FONT> (hasChanges) {
+<FONT ID="LN">1276</FONT><A NAME="1276"></A>      doCommit(commitUserData);
+<FONT ID="LN">1277</FONT><A NAME="1277"></A>    }
+<FONT ID="LN">1278</FONT><A NAME="1278"></A>    hasChanges = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1279</FONT><A NAME="1279"></A>  }
+<FONT ID="LN">1280</FONT><A NAME="1280"></A>
+<FONT ID="LN">1281</FONT><A NAME="1281"></A>  <FONT ID="FormalComment">/** Implements commit.
+<FONT ID="LN">1282</FONT><A NAME="1282"></A>   *  @deprecated Please implement {@link #doCommit(Map)
+<FONT ID="LN">1283</FONT><A NAME="1283"></A>   *  instead}. */</FONT>
+<FONT ID="LN">1284</FONT><A NAME="1284"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> doCommit() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1285</FONT><A NAME="1285"></A>
+<FONT ID="LN">1286</FONT><A NAME="1286"></A>  <FONT ID="FormalComment">/** Implements commit.  NOTE: subclasses should override
+<FONT ID="LN">1287</FONT><A NAME="1287"></A>   *  this.  In 3.0 this will become an abstract method. */</FONT>
+<FONT ID="LN">1288</FONT><A NAME="1288"></A>  <FONT ID="Void">void</FONT> doCommit(Map commitUserData) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1289</FONT><A NAME="1289"></A>    <FONT ID="SingleLineComment">// Default impl discards commitUserData; all Lucene
+<FONT ID="LN">1290</FONT><A NAME="1290"></A></FONT>    <FONT ID="SingleLineComment">// subclasses override this (do not discard it).
+<FONT ID="LN">1291</FONT><A NAME="1291"></A></FONT>    doCommit();
+<FONT ID="LN">1292</FONT><A NAME="1292"></A>  }
+<FONT ID="LN">1293</FONT><A NAME="1293"></A>
+<FONT ID="LN">1294</FONT><A NAME="1294"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1295</FONT><A NAME="1295"></A>   * Closes files associated with this index.
+<FONT ID="LN">1296</FONT><A NAME="1296"></A>   * Also saves any new deletions to disk.
+<FONT ID="LN">1297</FONT><A NAME="1297"></A>   * No other methods should be called after this has been called.
+<FONT ID="LN">1298</FONT><A NAME="1298"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1299</FONT><A NAME="1299"></A>   */</FONT>
+<FONT ID="LN">1300</FONT><A NAME="1300"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> close() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1301</FONT><A NAME="1301"></A>    <FONT ID="If">if</FONT> (!closed) {
+<FONT ID="LN">1302</FONT><A NAME="1302"></A>      decRef();
+<FONT ID="LN">1303</FONT><A NAME="1303"></A>      closed = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1304</FONT><A NAME="1304"></A>    }
+<FONT ID="LN">1305</FONT><A NAME="1305"></A>  }
+<FONT ID="LN">1306</FONT><A NAME="1306"></A>  
+<FONT ID="LN">1307</FONT><A NAME="1307"></A>  <FONT ID="FormalComment">/** Implements close. */</FONT>
+<FONT ID="LN">1308</FONT><A NAME="1308"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> doClose() <FONT ID="Throws">throws</FONT> IOException;
+<FONT ID="LN">1309</FONT><A NAME="1309"></A>
+<FONT ID="LN">1310</FONT><A NAME="1310"></A>
+<FONT ID="LN">1311</FONT><A NAME="1311"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1312</FONT><A NAME="1312"></A>   * Get a list of unique field names that exist in this index and have the specified
+<FONT ID="LN">1313</FONT><A NAME="1313"></A>   * field option information.
+<FONT ID="LN">1314</FONT><A NAME="1314"></A>   * @param fldOption specifies which field option should be available for the returned fields
+<FONT ID="LN">1315</FONT><A NAME="1315"></A>   * @return Collection of Strings indicating the names of the fields.
+<FONT ID="LN">1316</FONT><A NAME="1316"></A>   * @see IndexReader.FieldOption
+<FONT ID="LN">1317</FONT><A NAME="1317"></A>   */</FONT>
+<FONT ID="LN">1318</FONT><A NAME="1318"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> Collection getFieldNames(FieldOption fldOption);
+<FONT ID="LN">1319</FONT><A NAME="1319"></A>
+<FONT ID="LN">1320</FONT><A NAME="1320"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1321</FONT><A NAME="1321"></A>   * Returns &lt;code&gt;true&lt;/code&gt; iff the index in the named directory is
+<FONT ID="LN">1322</FONT><A NAME="1322"></A>   * currently locked.
+<FONT ID="LN">1323</FONT><A NAME="1323"></A>   * @param directory the directory to check for a lock
+<FONT ID="LN">1324</FONT><A NAME="1324"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1325</FONT><A NAME="1325"></A>   * @deprecated Please use {@link IndexWriter#isLocked(Directory)} instead.
+<FONT ID="LN">1326</FONT><A NAME="1326"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">1327</FONT><A NAME="1327"></A>   * 
+<FONT ID="LN">1328</FONT><A NAME="1328"></A>   */</FONT>
+<FONT ID="LN">1329</FONT><A NAME="1329"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isLocked(Directory directory) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1330</FONT><A NAME="1330"></A>    <FONT ID="Return">return</FONT>
+<FONT ID="LN">1331</FONT><A NAME="1331"></A>      directory.makeLock(IndexWriter.WRITE_LOCK_NAME).isLocked();
+<FONT ID="LN">1332</FONT><A NAME="1332"></A>  }
+<FONT ID="LN">1333</FONT><A NAME="1333"></A>
+<FONT ID="LN">1334</FONT><A NAME="1334"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1335</FONT><A NAME="1335"></A>   * Returns &lt;code&gt;true&lt;/code&gt; iff the index in the named directory is
+<FONT ID="LN">1336</FONT><A NAME="1336"></A>   * currently locked.
+<FONT ID="LN">1337</FONT><A NAME="1337"></A>   * @param directory the directory to check for a lock
+<FONT ID="LN">1338</FONT><A NAME="1338"></A>   * @throws IOException if there is a low-level IO error
+<FONT ID="LN">1339</FONT><A NAME="1339"></A>   * @deprecated Use {@link #isLocked(Directory)} instead.
+<FONT ID="LN">1340</FONT><A NAME="1340"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">1341</FONT><A NAME="1341"></A>   * 
+<FONT ID="LN">1342</FONT><A NAME="1342"></A>   */</FONT>
+<FONT ID="LN">1343</FONT><A NAME="1343"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isLocked(String directory) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1344</FONT><A NAME="1344"></A>    Directory dir = FSDirectory.getDirectory(directory);
+<FONT ID="LN">1345</FONT><A NAME="1345"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1346</FONT><A NAME="1346"></A>      <FONT ID="Return">return</FONT> isLocked(dir);
+<FONT ID="LN">1347</FONT><A NAME="1347"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">1348</FONT><A NAME="1348"></A>      dir.close();
+<FONT ID="LN">1349</FONT><A NAME="1349"></A>    }
+<FONT ID="LN">1350</FONT><A NAME="1350"></A>  }
+<FONT ID="LN">1351</FONT><A NAME="1351"></A>
+<FONT ID="LN">1352</FONT><A NAME="1352"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1353</FONT><A NAME="1353"></A>   * Forcibly unlocks the index in the named directory.
+<FONT ID="LN">1354</FONT><A NAME="1354"></A>   * &lt;P&gt;
+<FONT ID="LN">1355</FONT><A NAME="1355"></A>   * Caution: this should only be used by failure recovery code,
+<FONT ID="LN">1356</FONT><A NAME="1356"></A>   * when it is known that no other process nor thread is in fact
+<FONT ID="LN">1357</FONT><A NAME="1357"></A>   * currently accessing this index.
+<FONT ID="LN">1358</FONT><A NAME="1358"></A>   * @deprecated Please use {@link IndexWriter#unlock(Directory)} instead.
+<FONT ID="LN">1359</FONT><A NAME="1359"></A>   *             This method will be removed in the 3.0 release.
+<FONT ID="LN">1360</FONT><A NAME="1360"></A>   * 
+<FONT ID="LN">1361</FONT><A NAME="1361"></A>   */</FONT>
+<FONT ID="LN">1362</FONT><A NAME="1362"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> unlock(Directory directory) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1363</FONT><A NAME="1363"></A>    directory.makeLock(IndexWriter.WRITE_LOCK_NAME).release();
+<FONT ID="LN">1364</FONT><A NAME="1364"></A>  }
+<FONT ID="LN">1365</FONT><A NAME="1365"></A>
+<FONT ID="LN">1366</FONT><A NAME="1366"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1367</FONT><A NAME="1367"></A>   * Expert: return the IndexCommit that this reader has
+<FONT ID="LN">1368</FONT><A NAME="1368"></A>   * opened.  This method is only implemented by those
+<FONT ID="LN">1369</FONT><A NAME="1369"></A>   * readers that correspond to a Directory with its own
+<FONT ID="LN">1370</FONT><A NAME="1370"></A>   * segments_N file.
+<FONT ID="LN">1371</FONT><A NAME="1371"></A>   *
+<FONT ID="LN">1372</FONT><A NAME="1372"></A>   * &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: this API is new and experimental and
+<FONT ID="LN">1373</FONT><A NAME="1373"></A>   * may suddenly change.&lt;/p&gt;
+<FONT ID="LN">1374</FONT><A NAME="1374"></A>   */</FONT>
+<FONT ID="LN">1375</FONT><A NAME="1375"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/IndexCommit.java.html">IndexCommit</A> getIndexCommit() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1376</FONT><A NAME="1376"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"This reader does not support this method."</FONT>);
+<FONT ID="LN">1377</FONT><A NAME="1377"></A>  }
+<FONT ID="LN">1378</FONT><A NAME="1378"></A>  
+<FONT ID="LN">1379</FONT><A NAME="1379"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1380</FONT><A NAME="1380"></A>   * Prints the filename and size of each file within a given compound file.
+<FONT ID="LN">1381</FONT><A NAME="1381"></A>   * Add the -extract flag to extract files to the current working directory.
+<FONT ID="LN">1382</FONT><A NAME="1382"></A>   * In order to make the extracted version of the index work, you have to copy
+<FONT ID="LN">1383</FONT><A NAME="1383"></A>   * the segments file from the compound index into the directory where the extracted files are stored.
+<FONT ID="LN">1384</FONT><A NAME="1384"></A>   * @param args Usage: org.apache.lucene.index.IndexReader [-extract] &amp;lt;cfsfile&amp;gt;
+<FONT ID="LN">1385</FONT><A NAME="1385"></A>   */</FONT>
+<FONT ID="LN">1386</FONT><A NAME="1386"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String [] args) {
+<FONT ID="LN">1387</FONT><A NAME="1387"></A>    String filename = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1388</FONT><A NAME="1388"></A>    <FONT ID="Boolean">boolean</FONT> extract = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1389</FONT><A NAME="1389"></A>
+<FONT ID="LN">1390</FONT><A NAME="1390"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; args.length; ++i) {
+<FONT ID="LN">1391</FONT><A NAME="1391"></A>      <FONT ID="If">if</FONT> (args[i].equals(<FONT ID="StringLiteral">"-extract"</FONT>)) {
+<FONT ID="LN">1392</FONT><A NAME="1392"></A>        extract = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1393</FONT><A NAME="1393"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (filename == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1394</FONT><A NAME="1394"></A>        filename = args[i];
+<FONT ID="LN">1395</FONT><A NAME="1395"></A>      }
+<FONT ID="LN">1396</FONT><A NAME="1396"></A>    }
+<FONT ID="LN">1397</FONT><A NAME="1397"></A>
+<FONT ID="LN">1398</FONT><A NAME="1398"></A>    <FONT ID="If">if</FONT> (filename == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1399</FONT><A NAME="1399"></A>      System.out.println(<FONT ID="StringLiteral">"Usage: org.apache.lucene.index.IndexReader [-extract] &lt;cfsfile&gt;"</FONT>);
+<FONT ID="LN">1400</FONT><A NAME="1400"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">1401</FONT><A NAME="1401"></A>    }
+<FONT ID="LN">1402</FONT><A NAME="1402"></A>
+<FONT ID="LN">1403</FONT><A NAME="1403"></A>    Directory dir = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1404</FONT><A NAME="1404"></A>    <A HREF="../../../../org/apache/lucene/index/CompoundFileReader.java.html">CompoundFileReader</A> cfr = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1405</FONT><A NAME="1405"></A>
+<FONT ID="LN">1406</FONT><A NAME="1406"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1407</FONT><A NAME="1407"></A>      File file = <FONT ID="New">new</FONT> File(filename);
+<FONT ID="LN">1408</FONT><A NAME="1408"></A>      String dirname = file.getAbsoluteFile().getParent();
+<FONT ID="LN">1409</FONT><A NAME="1409"></A>      filename = file.getName();
+<FONT ID="LN">1410</FONT><A NAME="1410"></A>      dir = FSDirectory.open(<FONT ID="New">new</FONT> File(dirname));
+<FONT ID="LN">1411</FONT><A NAME="1411"></A>      cfr = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/CompoundFileReader.java.html">CompoundFileReader</A>(dir, filename);
+<FONT ID="LN">1412</FONT><A NAME="1412"></A>
+<FONT ID="LN">1413</FONT><A NAME="1413"></A>      String [] files = cfr.list();
+<FONT ID="LN">1414</FONT><A NAME="1414"></A>      Arrays.sort(files);   <FONT ID="SingleLineComment">// sort the array of filename so that the output is more readable
+<FONT ID="LN">1415</FONT><A NAME="1415"></A></FONT>
+<FONT ID="LN">1416</FONT><A NAME="1416"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; files.length; ++i) {
+<FONT ID="LN">1417</FONT><A NAME="1417"></A>        <FONT ID="Long">long</FONT> len = cfr.fileLength(files[i]);
+<FONT ID="LN">1418</FONT><A NAME="1418"></A>
+<FONT ID="LN">1419</FONT><A NAME="1419"></A>        <FONT ID="If">if</FONT> (extract) {
+<FONT ID="LN">1420</FONT><A NAME="1420"></A>          System.out.println(<FONT ID="StringLiteral">"extract "</FONT> + files[i] + <FONT ID="StringLiteral">" with "</FONT> + len + <FONT ID="StringLiteral">" bytes to local directory..."</FONT>);
+<FONT ID="LN">1421</FONT><A NAME="1421"></A>          IndexInput ii = cfr.openInput(files[i]);
+<FONT ID="LN">1422</FONT><A NAME="1422"></A>
+<FONT ID="LN">1423</FONT><A NAME="1423"></A>          FileOutputStream f = <FONT ID="New">new</FONT> FileOutputStream(files[i]);
+<FONT ID="LN">1424</FONT><A NAME="1424"></A>
+<FONT ID="LN">1425</FONT><A NAME="1425"></A>          <FONT ID="SingleLineComment">// read and write with a small buffer, which is more effective than reading byte by byte
+<FONT ID="LN">1426</FONT><A NAME="1426"></A></FONT>          <FONT ID="Byte">byte</FONT>[] buffer = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[<FONT ID="IntegerLiteral">1024</FONT>];
+<FONT ID="LN">1427</FONT><A NAME="1427"></A>          <FONT ID="Int">int</FONT> chunk = buffer.length;
+<FONT ID="LN">1428</FONT><A NAME="1428"></A>          <FONT ID="While">while</FONT>(len &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1429</FONT><A NAME="1429"></A>            <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> bufLen = (<FONT ID="Int">int</FONT>) Math.min(chunk, len);
+<FONT ID="LN">1430</FONT><A NAME="1430"></A>            ii.readBytes(buffer, <FONT ID="IntegerLiteral">0</FONT>, bufLen);
+<FONT ID="LN">1431</FONT><A NAME="1431"></A>            f.write(buffer, <FONT ID="IntegerLiteral">0</FONT>, bufLen);
+<FONT ID="LN">1432</FONT><A NAME="1432"></A>            len -= bufLen;
+<FONT ID="LN">1433</FONT><A NAME="1433"></A>          }
+<FONT ID="LN">1434</FONT><A NAME="1434"></A>
+<FONT ID="LN">1435</FONT><A NAME="1435"></A>          f.close();
+<FONT ID="LN">1436</FONT><A NAME="1436"></A>          ii.close();
+<FONT ID="LN">1437</FONT><A NAME="1437"></A>        }
+<FONT ID="LN">1438</FONT><A NAME="1438"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">1439</FONT><A NAME="1439"></A>          System.out.println(files[i] + <FONT ID="StringLiteral">": "</FONT> + len + <FONT ID="StringLiteral">" bytes"</FONT>);
+<FONT ID="LN">1440</FONT><A NAME="1440"></A>      }
+<FONT ID="LN">1441</FONT><A NAME="1441"></A>    } <FONT ID="Catch">catch</FONT> (IOException ioe) {
+<FONT ID="LN">1442</FONT><A NAME="1442"></A>      ioe.printStackTrace();
+<FONT ID="LN">1443</FONT><A NAME="1443"></A>    }
+<FONT ID="LN">1444</FONT><A NAME="1444"></A>    <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">1445</FONT><A NAME="1445"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1446</FONT><A NAME="1446"></A>        <FONT ID="If">if</FONT> (dir != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1447</FONT><A NAME="1447"></A>          dir.close();
+<FONT ID="LN">1448</FONT><A NAME="1448"></A>        <FONT ID="If">if</FONT> (cfr != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1449</FONT><A NAME="1449"></A>          cfr.close();
+<FONT ID="LN">1450</FONT><A NAME="1450"></A>      }
+<FONT ID="LN">1451</FONT><A NAME="1451"></A>      <FONT ID="Catch">catch</FONT> (IOException ioe) {
+<FONT ID="LN">1452</FONT><A NAME="1452"></A>        ioe.printStackTrace();
+<FONT ID="LN">1453</FONT><A NAME="1453"></A>      }
+<FONT ID="LN">1454</FONT><A NAME="1454"></A>    }
+<FONT ID="LN">1455</FONT><A NAME="1455"></A>  }
+<FONT ID="LN">1456</FONT><A NAME="1456"></A>
+<FONT ID="LN">1457</FONT><A NAME="1457"></A>  <FONT ID="FormalComment">/** Returns all commit points that exist in the Directory.
+<FONT ID="LN">1458</FONT><A NAME="1458"></A>   *  Normally, because the default is {@link
+<FONT ID="LN">1459</FONT><A NAME="1459"></A>   *  KeepOnlyLastCommitDeletionPolicy}, there would be only
+<FONT ID="LN">1460</FONT><A NAME="1460"></A>   *  one commit point.  But if you're using a custom {@link
+<FONT ID="LN">1461</FONT><A NAME="1461"></A>   *  IndexDeletionPolicy} then there could be many commits.
+<FONT ID="LN">1462</FONT><A NAME="1462"></A>   *  Once you have a given commit, you can open a reader on
+<FONT ID="LN">1463</FONT><A NAME="1463"></A>   *  it by calling {@link IndexReader#open(IndexCommit)}
+<FONT ID="LN">1464</FONT><A NAME="1464"></A>   *  There must be at least one commit in
+<FONT ID="LN">1465</FONT><A NAME="1465"></A>   *  the Directory, else this method throws {@link
+<FONT ID="LN">1466</FONT><A NAME="1466"></A>   *  java.io.IOException}.  Note that if a commit is in
+<FONT ID="LN">1467</FONT><A NAME="1467"></A>   *  progress while this method is running, that commit
+<FONT ID="LN">1468</FONT><A NAME="1468"></A>   *  may or may not be returned array.  */</FONT>
+<FONT ID="LN">1469</FONT><A NAME="1469"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Collection listCommits(Directory dir) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1470</FONT><A NAME="1470"></A>    <FONT ID="Return">return</FONT> DirectoryReader.listCommits(dir);
+<FONT ID="LN">1471</FONT><A NAME="1471"></A>  }
+<FONT ID="LN">1472</FONT><A NAME="1472"></A>
+<FONT ID="LN">1473</FONT><A NAME="1473"></A>  <FONT ID="FormalComment">/** Expert: returns the sequential sub readers that this
+<FONT ID="LN">1474</FONT><A NAME="1474"></A>   *  reader is logically composed of.  For example,
+<FONT ID="LN">1475</FONT><A NAME="1475"></A>   *  IndexSearcher uses this API to drive searching by one
+<FONT ID="LN">1476</FONT><A NAME="1476"></A>   *  sub reader at a time.  If this reader is not composed
+<FONT ID="LN">1477</FONT><A NAME="1477"></A>   *  of sequential child readers, it should return null.
+<FONT ID="LN">1478</FONT><A NAME="1478"></A>   *  If this method returns an empty array, that means this
+<FONT ID="LN">1479</FONT><A NAME="1479"></A>   *  reader is a null reader (for example a MultiReader
+<FONT ID="LN">1480</FONT><A NAME="1480"></A>   *  that has no sub readers).
+<FONT ID="LN">1481</FONT><A NAME="1481"></A>   *  &lt;p&gt;
+<FONT ID="LN">1482</FONT><A NAME="1482"></A>   *  NOTE: You should not try using sub-readers returned by
+<FONT ID="LN">1483</FONT><A NAME="1483"></A>   *  this method to make any changes (setNorm, deleteDocument,
+<FONT ID="LN">1484</FONT><A NAME="1484"></A>   *  etc.). While this might succeed for one composite reader
+<FONT ID="LN">1485</FONT><A NAME="1485"></A>   *  (like MultiReader), it will most likely lead to index
+<FONT ID="LN">1486</FONT><A NAME="1486"></A>   *  corruption for other readers (like DirectoryReader obtained
+<FONT ID="LN">1487</FONT><A NAME="1487"></A>   *  through {@link #open}. Use the parent reader directly. */</FONT>
+<FONT ID="LN">1488</FONT><A NAME="1488"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A>[] getSequentialSubReaders() {
+<FONT ID="LN">1489</FONT><A NAME="1489"></A>    <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1490</FONT><A NAME="1490"></A>  }
+<FONT ID="LN">1491</FONT><A NAME="1491"></A>
+<FONT ID="LN">1492</FONT><A NAME="1492"></A>  <FONT ID="FormalComment">/** Expert    
+<FONT ID="LN">1493</FONT><A NAME="1493"></A>   *  @deprecated */</FONT>
+<FONT ID="LN">1494</FONT><A NAME="1494"></A>  <FONT ID="Public">public</FONT> Object getFieldCacheKey() {
+<FONT ID="LN">1495</FONT><A NAME="1495"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">1496</FONT><A NAME="1496"></A>  }
+<FONT ID="LN">1497</FONT><A NAME="1497"></A>
+<FONT ID="LN">1498</FONT><A NAME="1498"></A>  <FONT ID="FormalComment">/** Returns the number of unique terms (across all fields)
+<FONT ID="LN">1499</FONT><A NAME="1499"></A>   *  in this reader.
+<FONT ID="LN">1500</FONT><A NAME="1500"></A>   *
+<FONT ID="LN">1501</FONT><A NAME="1501"></A>   *  This method returns long, even though internally
+<FONT ID="LN">1502</FONT><A NAME="1502"></A>   *  Lucene cannot handle more than 2^31 unique terms, for
+<FONT ID="LN">1503</FONT><A NAME="1503"></A>   *  a possible future when this limitation is removed.
+<FONT ID="LN">1504</FONT><A NAME="1504"></A>   *
+<FONT ID="LN">1505</FONT><A NAME="1505"></A>   *  @throws UnsupportedOperationException if this count
+<FONT ID="LN">1506</FONT><A NAME="1506"></A>   *  cannot be easily determined (eg Multi*Readers).
+<FONT ID="LN">1507</FONT><A NAME="1507"></A>   *  Instead, you should call {@link
+<FONT ID="LN">1508</FONT><A NAME="1508"></A>   *  #getSequentialSubReaders} and ask each sub reader for
+<FONT ID="LN">1509</FONT><A NAME="1509"></A>   *  its unique term count. */</FONT>
+<FONT ID="LN">1510</FONT><A NAME="1510"></A>  <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> getUniqueTermCount() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">1511</FONT><A NAME="1511"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException(<FONT ID="StringLiteral">"this reader does not implement getUniqueTermCount()"</FONT>);
+<FONT ID="LN">1512</FONT><A NAME="1512"></A>  }
+<FONT ID="LN">1513</FONT><A NAME="1513"></A>
+<FONT ID="LN">1514</FONT><A NAME="1514"></A>  <FONT ID="FormalComment">/** Expert: Return the state of the flag that disables fakes norms in favor of representing the absence of field norms with null.
+<FONT ID="LN">1515</FONT><A NAME="1515"></A>   * @return true if fake norms are disabled
+<FONT ID="LN">1516</FONT><A NAME="1516"></A>   * @deprecated This currently defaults to false (to remain
+<FONT ID="LN">1517</FONT><A NAME="1517"></A>   * back-compatible), but in 3.0 it will be hardwired to
+<FONT ID="LN">1518</FONT><A NAME="1518"></A>   * true, meaning the norms() methods will return null for
+<FONT ID="LN">1519</FONT><A NAME="1519"></A>   * fields that had disabled norms.
+<FONT ID="LN">1520</FONT><A NAME="1520"></A>   */</FONT>
+<FONT ID="LN">1521</FONT><A NAME="1521"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getDisableFakeNorms() {
+<FONT ID="LN">1522</FONT><A NAME="1522"></A>    <FONT ID="Return">return</FONT> disableFakeNorms;
+<FONT ID="LN">1523</FONT><A NAME="1523"></A>  }
+<FONT ID="LN">1524</FONT><A NAME="1524"></A>
+<FONT ID="LN">1525</FONT><A NAME="1525"></A>  <FONT ID="FormalComment">/** Expert: Set the state of the flag that disables fakes norms in favor of representing the absence of field norms with null.
+<FONT ID="LN">1526</FONT><A NAME="1526"></A>   * @param disableFakeNorms true to disable fake norms, false to preserve the legacy behavior
+<FONT ID="LN">1527</FONT><A NAME="1527"></A>   * @deprecated This currently defaults to false (to remain
+<FONT ID="LN">1528</FONT><A NAME="1528"></A>   * back-compatible), but in 3.0 it will be hardwired to
+<FONT ID="LN">1529</FONT><A NAME="1529"></A>   * true, meaning the norms() methods will return null for
+<FONT ID="LN">1530</FONT><A NAME="1530"></A>   * fields that had disabled norms.
+<FONT ID="LN">1531</FONT><A NAME="1531"></A>   */</FONT>
+<FONT ID="LN">1532</FONT><A NAME="1532"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDisableFakeNorms(<FONT ID="Boolean">boolean</FONT> disableFakeNorms) {
+<FONT ID="LN">1533</FONT><A NAME="1533"></A>    <FONT ID="This">this</FONT>.disableFakeNorms = disableFakeNorms;
+<FONT ID="LN">1534</FONT><A NAME="1534"></A> }
+<FONT ID="LN">1535</FONT><A NAME="1535"></A>}
+<FONT ID="LN">1536</FONT><A NAME="1536"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">IndexReader.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

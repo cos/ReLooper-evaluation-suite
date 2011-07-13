@@ -1,0 +1,303 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.MergePolicy (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">MergePolicy.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">org.apache.lucene.store.Directory</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.util.Set;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * &lt;p&gt;Expert: a MergePolicy determines the sequence of
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * primitive merge operations to be used for overall merge
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * and optimize operations.&lt;/p&gt;
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * 
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * &lt;p&gt;Whenever the segments in an index have been altered by
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * {@link IndexWriter}, either the addition of a newly
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * flushed segment, addition of many segments from
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * addIndexes* calls, or a previous merge that may now need
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * to cascade, {@link IndexWriter} invokes {@link
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * #findMerges} to give the MergePolicy a chance to pick
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * merges that are now required.  This method returns a
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * {@link MergeSpecification} instance describing the set of
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * merges that should be done, or null if no merges are
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * necessary.  When IndexWriter.optimize is called, it calls
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * {@link #findMergesForOptimize} and the MergePolicy should
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * then return the necessary merges.&lt;/p&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A> *
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * &lt;p&gt;Note that the policy can return more than one merge at
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * a time.  In this case, if the writer is using {@link
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * SerialMergeScheduler}, the merges will be run
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * sequentially but if it is using {@link
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * ConcurrentMergeScheduler} they will be run concurrently.&lt;/p&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * 
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * &lt;p&gt;The default MergePolicy is {@link
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * LogByteSizeMergePolicy}.&lt;/p&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> *
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * &lt;p&gt;&lt;b&gt;NOTE:&lt;/b&gt; This API is new and still experimental
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * (subject to change suddenly in the next release)&lt;/p&gt;
+<FONT ID="LN">56  </FONT><A NAME="56"></A> *
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * &lt;p&gt;&lt;b&gt;NOTE&lt;/b&gt;: This class typically requires access to
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * package-private APIs (e.g. &lt;code&gt;SegmentInfos&lt;/code&gt;) to do its job;
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * if you implement your own MergePolicy, you'll need to put
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * it in package org.apache.lucene.index in order to use
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * these APIs.
+<FONT ID="LN">62  </FONT><A NAME="62"></A> */</FONT>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> MergePolicy {
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="FormalComment">/** OneMerge provides the information necessary to perform
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   *  an individual primitive merge operation, resulting in
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   *  a single new segment.  The merge spec includes the
+<FONT ID="LN">69  </FONT><A NAME="69"></A>   *  subset of segments to be merged as well as whether the
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   *  new segment should use the compound file format. */</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> OneMerge {
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    <A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> info;               <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">75  </FONT><A NAME="75"></A></FONT>    <FONT ID="Boolean">boolean</FONT> mergeDocStores;         <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">76  </FONT><A NAME="76"></A></FONT>    <FONT ID="Boolean">boolean</FONT> optimize;               <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">77  </FONT><A NAME="77"></A></FONT>    <FONT ID="Boolean">boolean</FONT> increfDone;             <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">78  </FONT><A NAME="78"></A></FONT>    <FONT ID="Boolean">boolean</FONT> registerDone;           <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">79  </FONT><A NAME="79"></A></FONT>    <FONT ID="Long">long</FONT> mergeGen;                  <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">80  </FONT><A NAME="80"></A></FONT>    <FONT ID="Boolean">boolean</FONT> isExternal;             <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">81  </FONT><A NAME="81"></A></FONT>    <FONT ID="Int">int</FONT> maxNumSegmentsOptimize;     <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">82  </FONT><A NAME="82"></A></FONT>    <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A>[] readers;        <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">83  </FONT><A NAME="83"></A></FONT>    <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A>[] readersClone;   <FONT ID="SingleLineComment">// used by IndexWriter
+<FONT ID="LN">84  </FONT><A NAME="84"></A></FONT>    <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> segments;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    <FONT ID="Final">final</FONT> <FONT ID="Boolean">boolean</FONT> useCompoundFile;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="Boolean">boolean</FONT> aborted;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    Throwable error;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Public">public</FONT> OneMerge(<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> segments, <FONT ID="Boolean">boolean</FONT> useCompoundFile) {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>      <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">0</FONT> == segments.size())
+<FONT ID="LN">91  </FONT><A NAME="91"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"segments must include at least one segment"</FONT>);
+<FONT ID="LN">92  </FONT><A NAME="92"></A>      <FONT ID="This">this</FONT>.segments = segments;
+<FONT ID="LN">93  </FONT><A NAME="93"></A>      <FONT ID="This">this</FONT>.useCompoundFile = useCompoundFile;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    }
+<FONT ID="LN">95  </FONT><A NAME="95"></A>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="FormalComment">/** Record that an exception occurred while executing
+<FONT ID="LN">97  </FONT><A NAME="97"></A>     *  this merge */</FONT>
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> setException(Throwable error) {
+<FONT ID="LN">99  </FONT><A NAME="99"></A>      <FONT ID="This">this</FONT>.error = error;
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    }
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="FormalComment">/** Retrieve previous exception set by {@link
+<FONT ID="LN">103 </FONT><A NAME="103"></A>     *  #setException}. */</FONT>
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="Synchronized">synchronized</FONT> Throwable getException() {
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      <FONT ID="Return">return</FONT> error;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    <FONT ID="FormalComment">/** Mark this merge as aborted.  If this is called
+<FONT ID="LN">109 </FONT><A NAME="109"></A>     *  before the merge is committed then the merge will
+<FONT ID="LN">110 </FONT><A NAME="110"></A>     *  not be committed. */</FONT>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> abort() {
+<FONT ID="LN">112 </FONT><A NAME="112"></A>      aborted = <FONT ID="True">true</FONT>;
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    }
+<FONT ID="LN">114 </FONT><A NAME="114"></A>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="FormalComment">/** Returns true if this merge was aborted. */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Boolean">boolean</FONT> isAborted() {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>      <FONT ID="Return">return</FONT> aborted;
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    }
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> checkAborted(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir) <FONT ID="Throws">throws</FONT> MergeAbortedException {
+<FONT ID="LN">121 </FONT><A NAME="121"></A>      <FONT ID="If">if</FONT> (aborted)
+<FONT ID="LN">122 </FONT><A NAME="122"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> MergeAbortedException(<FONT ID="StringLiteral">"merge is aborted: "</FONT> + segString(dir));
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    }
+<FONT ID="LN">124 </FONT><A NAME="124"></A>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    String segString(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir) {
+<FONT ID="LN">126 </FONT><A NAME="126"></A>      StringBuffer b = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">127 </FONT><A NAME="127"></A>      <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> numSegments = segments.size();
+<FONT ID="LN">128 </FONT><A NAME="128"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;numSegments;i++) {
+<FONT ID="LN">129 </FONT><A NAME="129"></A>        <FONT ID="If">if</FONT> (i &gt; <FONT ID="IntegerLiteral">0</FONT>) b.append(<FONT ID="CharacerLiteral">' '</FONT>);
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        b.append(segments.info(i).segString(dir));
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>      <FONT ID="If">if</FONT> (info != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">133 </FONT><A NAME="133"></A>        b.append(<FONT ID="StringLiteral">" into "</FONT>).append(info.name);
+<FONT ID="LN">134 </FONT><A NAME="134"></A>      <FONT ID="If">if</FONT> (optimize)
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        b.append(<FONT ID="StringLiteral">" [optimize]"</FONT>);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>      <FONT ID="If">if</FONT> (mergeDocStores) {
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        b.append(<FONT ID="StringLiteral">" [mergeDocStores]"</FONT>);
+<FONT ID="LN">138 </FONT><A NAME="138"></A>      }
+<FONT ID="LN">139 </FONT><A NAME="139"></A>      <FONT ID="Return">return</FONT> b.toString();
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    }
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * A MergeSpecification instance provides the information
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * necessary to perform multiple merges.  It simply
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   * contains a list of {@link OneMerge} instances.
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   */</FONT>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> MergeSpecification {
+<FONT ID="LN">150 </FONT><A NAME="150"></A>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">152 </FONT><A NAME="152"></A>     * The subset of segments to be included in the primitive merge.
+<FONT ID="LN">153 </FONT><A NAME="153"></A>     */</FONT>
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    <FONT ID="Public">public</FONT> List merges = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">156 </FONT><A NAME="156"></A>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(OneMerge merge) {
+<FONT ID="LN">158 </FONT><A NAME="158"></A>      merges.add(merge);
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    }
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    <FONT ID="Public">public</FONT> String segString(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir) {
+<FONT ID="LN">162 </FONT><A NAME="162"></A>      StringBuffer b = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">163 </FONT><A NAME="163"></A>      b.append(<FONT ID="StringLiteral">"MergeSpec:\n"</FONT>);
+<FONT ID="LN">164 </FONT><A NAME="164"></A>      <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> count = merges.size();
+<FONT ID="LN">165 </FONT><A NAME="165"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;count;i++)
+<FONT ID="LN">166 </FONT><A NAME="166"></A>        b.append(<FONT ID="StringLiteral">"  "</FONT>).append(<FONT ID="IntegerLiteral">1</FONT> + i).append(<FONT ID="StringLiteral">": "</FONT>).append(((OneMerge) merges.get(i)).segString(dir));
+<FONT ID="LN">167 </FONT><A NAME="167"></A>      <FONT ID="Return">return</FONT> b.toString();
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    }
+<FONT ID="LN">169 </FONT><A NAME="169"></A>  }
+<FONT ID="LN">170 </FONT><A NAME="170"></A>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>  <FONT ID="FormalComment">/** Exception thrown if there are any problems while
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   *  executing a merge. */</FONT>
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> MergeException <FONT ID="Extends">extends</FONT> RuntimeException {
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir;
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    <FONT ID="FormalComment">/** @deprecated
+<FONT ID="LN">176 </FONT><A NAME="176"></A>     *  Use {@link #MergePolicy.MergeException(String,Directory)} instead */</FONT>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="Public">public</FONT> MergeException(String message) {
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      <FONT ID="Super">super</FONT>(message);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    }
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    <FONT ID="Public">public</FONT> MergeException(String message, <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir) {
+<FONT ID="LN">181 </FONT><A NAME="181"></A>      <FONT ID="Super">super</FONT>(message);
+<FONT ID="LN">182 </FONT><A NAME="182"></A>      <FONT ID="This">this</FONT>.dir = dir;
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    }
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    <FONT ID="FormalComment">/** @deprecated
+<FONT ID="LN">185 </FONT><A NAME="185"></A>     *  Use {@link #MergePolicy.MergeException(Throwable,Directory)} instead */</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    <FONT ID="Public">public</FONT> MergeException(Throwable exc) {
+<FONT ID="LN">187 </FONT><A NAME="187"></A>      <FONT ID="Super">super</FONT>(exc);
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    }
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    <FONT ID="Public">public</FONT> MergeException(Throwable exc, <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir) {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>      <FONT ID="Super">super</FONT>(exc);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      <FONT ID="This">this</FONT>.dir = dir;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    }
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    <FONT ID="FormalComment">/** Returns the {@link Directory} of the index that hit
+<FONT ID="LN">194 </FONT><A NAME="194"></A>     *  the exception. */</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> getDirectory() {
+<FONT ID="LN">196 </FONT><A NAME="196"></A>      <FONT ID="Return">return</FONT> dir;
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    }
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  }
+<FONT ID="LN">199 </FONT><A NAME="199"></A>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> MergeAbortedException <FONT ID="Extends">extends</FONT> IOException {
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    <FONT ID="Public">public</FONT> MergeAbortedException() {
+<FONT ID="LN">202 </FONT><A NAME="202"></A>      <FONT ID="Super">super</FONT>(<FONT ID="StringLiteral">"merge is aborted"</FONT>);
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    }
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    <FONT ID="Public">public</FONT> MergeAbortedException(String message) {
+<FONT ID="LN">205 </FONT><A NAME="205"></A>      <FONT ID="Super">super</FONT>(message);
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  }
+<FONT ID="LN">208 </FONT><A NAME="208"></A>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="Final">final</FONT> <FONT ID="Protected">protected</FONT> <A HREF="../../../../org/apache/lucene/index/IndexWriter.java.html">IndexWriter</A> writer;
+<FONT ID="LN">210 </FONT><A NAME="210"></A>  
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="Public">public</FONT> MergePolicy(<A HREF="../../../../org/apache/lucene/index/IndexWriter.java.html">IndexWriter</A> writer) {
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    <FONT ID="This">this</FONT>.writer = writer;
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  }
+<FONT ID="LN">214 </FONT><A NAME="214"></A>
+<FONT ID="LN">215 </FONT><A NAME="215"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   * Determine what set of merge operations are now necessary on the index.
+<FONT ID="LN">217 </FONT><A NAME="217"></A>   * {@link IndexWriter} calls this whenever there is a change to the segments.
+<FONT ID="LN">218 </FONT><A NAME="218"></A>   * This call is always synchronized on the {@link IndexWriter} instance so
+<FONT ID="LN">219 </FONT><A NAME="219"></A>   * only one thread at a time will call this method.
+<FONT ID="LN">220 </FONT><A NAME="220"></A>   * 
+<FONT ID="LN">221 </FONT><A NAME="221"></A>   * @param segmentInfos
+<FONT ID="LN">222 </FONT><A NAME="222"></A>   *          the total set of segments in the index
+<FONT ID="LN">223 </FONT><A NAME="223"></A>   */</FONT>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> MergeSpecification findMerges(<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> segmentInfos)
+<FONT ID="LN">225 </FONT><A NAME="225"></A>      <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">226 </FONT><A NAME="226"></A>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * Determine what set of merge operations is necessary in order to optimize
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * the index. {@link IndexWriter} calls this when its
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   * {@link IndexWriter#optimize()} method is called. This call is always
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   * synchronized on the {@link IndexWriter} instance so only one thread at a
+<FONT ID="LN">232 </FONT><A NAME="232"></A>   * time will call this method.
+<FONT ID="LN">233 </FONT><A NAME="233"></A>   * 
+<FONT ID="LN">234 </FONT><A NAME="234"></A>   * @param segmentInfos
+<FONT ID="LN">235 </FONT><A NAME="235"></A>   *          the total set of segments in the index
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   * @param maxSegmentCount
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   *          requested maximum number of segments in the index (currently this
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   *          is always 1)
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   * @param segmentsToOptimize
+<FONT ID="LN">240 </FONT><A NAME="240"></A>   *          contains the specific SegmentInfo instances that must be merged
+<FONT ID="LN">241 </FONT><A NAME="241"></A>   *          away. This may be a subset of all SegmentInfos.
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   */</FONT>
+<FONT ID="LN">243 </FONT><A NAME="243"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> MergeSpecification findMergesForOptimize(
+<FONT ID="LN">244 </FONT><A NAME="244"></A>      <A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> segmentInfos, <FONT ID="Int">int</FONT> maxSegmentCount, Set segmentsToOptimize)
+<FONT ID="LN">245 </FONT><A NAME="245"></A>      <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">246 </FONT><A NAME="246"></A>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   * Determine what set of merge operations is necessary in order to expunge all
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   * deletes from the index.
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * 
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   * @param segmentInfos
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   *          the total set of segments in the index
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> MergeSpecification findMergesToExpungeDeletes(
+<FONT ID="LN">255 </FONT><A NAME="255"></A>      <A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> segmentInfos) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/apache/lucene/index/CorruptIndexException.java.html">CorruptIndexException</A>, IOException;
+<FONT ID="LN">256 </FONT><A NAME="256"></A>
+<FONT ID="LN">257 </FONT><A NAME="257"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">258 </FONT><A NAME="258"></A>   * Release all resources for the policy.
+<FONT ID="LN">259 </FONT><A NAME="259"></A>   */</FONT>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> close();
+<FONT ID="LN">261 </FONT><A NAME="261"></A>
+<FONT ID="LN">262 </FONT><A NAME="262"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">263 </FONT><A NAME="263"></A>   * Returns true if a newly flushed (not from merge)
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   * segment should use the compound file format.
+<FONT ID="LN">265 </FONT><A NAME="265"></A>   */</FONT>
+<FONT ID="LN">266 </FONT><A NAME="266"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Boolean">boolean</FONT> useCompoundFile(<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> segments, <A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> newSegment);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">269 </FONT><A NAME="269"></A>   * Returns true if the doc store files should use the
+<FONT ID="LN">270 </FONT><A NAME="270"></A>   * compound file format.
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   */</FONT>
+<FONT ID="LN">272 </FONT><A NAME="272"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Boolean">boolean</FONT> useCompoundDocStore(<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> segments);
+<FONT ID="LN">273 </FONT><A NAME="273"></A>  
+<FONT ID="LN">274 </FONT><A NAME="274"></A>}
+<FONT ID="LN">275 </FONT><A NAME="275"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">MergePolicy.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

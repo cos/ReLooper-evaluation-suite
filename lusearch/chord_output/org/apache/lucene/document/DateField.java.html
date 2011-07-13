@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.document.DateField (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">DateField.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.document;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/PrefixQuery.java.html">org.apache.lucene.search.PrefixQuery</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/TermRangeQuery.java.html">org.apache.lucene.search.TermRangeQuery</A>;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/NumericRangeQuery.java.html">org.apache.lucene.search.NumericRangeQuery</A>; <FONT ID="SingleLineComment">// for javadocs
+<FONT ID="LN">23  </FONT><A NAME="23"></A></FONT><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/NumericUtils.java.html">org.apache.lucene.util.NumericUtils</A>; <FONT ID="SingleLineComment">// for javadocs
+<FONT ID="LN">24  </FONT><A NAME="24"></A></FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.util.Date;   <FONT ID="SingleLineComment">// for javadoc
+<FONT ID="LN">26  </FONT><A NAME="26"></A></FONT><FONT ID="Import">import</FONT> java.util.Calendar;   <FONT ID="SingleLineComment">// for javadoc
+<FONT ID="LN">27  </FONT><A NAME="27"></A></FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="SingleLineComment">// do not remove in 3.0, needed for reading old indexes!
+<FONT ID="LN">29  </FONT><A NAME="29"></A></FONT>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * Provides support for converting dates to strings and vice-versa.
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * The strings are structured so that lexicographic sorting orders by date,
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * which makes them suitable for use as field values and search terms.
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * &lt;P&gt;Note that this class saves dates with millisecond granularity,
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * which is bad for {@link TermRangeQuery} and {@link PrefixQuery}, as those
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * queries are expanded to a BooleanQuery with a potentially large number
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * of terms when searching. Thus you might want to use
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * {@link DateTools} instead.
+<FONT ID="LN">40  </FONT><A NAME="40"></A> *
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * &lt;P&gt;
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * Note: dates before 1970 cannot be used, and therefore cannot be
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * indexed when using this class. See {@link DateTools} for an
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * alternative without such a limitation.
+<FONT ID="LN">45  </FONT><A NAME="45"></A> *
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * &lt;P&gt;
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * Another approach is {@link NumericUtils}, which provides
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * a sortable binary representation (prefix encoded) of numeric values, which
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * date/time are.
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * For indexing a {@link Date} or {@link Calendar}, just get the unix timestamp as
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * &lt;code&gt;long&lt;/code&gt; using {@link Date#getTime} or {@link Calendar#getTimeInMillis} and
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * index this as a numeric value with {@link NumericField}
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * and use {@link NumericRangeQuery} to query it.
+<FONT ID="LN">54  </FONT><A NAME="54"></A> *
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * @deprecated If you build a new index, use {@link DateTools} or 
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * {@link NumericField} instead.
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * This class is included for use with existing
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * indices and will be removed in a future release.
+<FONT ID="LN">59  </FONT><A NAME="59"></A> */</FONT>
+<FONT ID="LN">60  </FONT><A NAME="60"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> DateField {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="Private">private</FONT> DateField() {}
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="SingleLineComment">// make date strings long enough to last a millenium
+<FONT ID="LN">65  </FONT><A NAME="65"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> DATE_LEN = Long.toString(<FONT ID="IntegerLiteral">1000L</FONT>*<FONT ID="IntegerLiteral">365</FONT>*<FONT ID="IntegerLiteral">24</FONT>*<FONT ID="IntegerLiteral">60</FONT>*<FONT ID="IntegerLiteral">60</FONT>*<FONT ID="IntegerLiteral">1000</FONT>,
+<FONT ID="LN">66  </FONT><A NAME="66"></A>                           Character.MAX_RADIX).length();
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String MIN_DATE_STRING() {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="Return">return</FONT> timeToString(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  }
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String MAX_DATE_STRING() {
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    <FONT ID="Char">char</FONT>[] buffer = <FONT ID="New">new</FONT> <FONT ID="Char">char</FONT>[DATE_LEN];
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    <FONT ID="Char">char</FONT> c = Character.forDigit(Character.MAX_RADIX-<FONT ID="IntegerLiteral">1</FONT>, Character.MAX_RADIX);
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT> ; i &lt; DATE_LEN; i++)
+<FONT ID="LN">76  </FONT><A NAME="76"></A>      buffer[i] = c;
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> String(buffer);
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  }
+<FONT ID="LN">79  </FONT><A NAME="79"></A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   * Converts a Date to a string suitable for indexing.
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   * @throws RuntimeException if the date specified in the
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   * method argument is before 1970
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   */</FONT>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String dateToString(Date date) {
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="Return">return</FONT> timeToString(date.getTime());
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  }
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * Converts a millisecond time to a string suitable for indexing.
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   * @throws RuntimeException if the time specified in the
+<FONT ID="LN">91  </FONT><A NAME="91"></A>   * method argument is negative, that is, before 1970
+<FONT ID="LN">92  </FONT><A NAME="92"></A>   */</FONT>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String timeToString(<FONT ID="Long">long</FONT> time) {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="If">if</FONT> (time &lt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">95  </FONT><A NAME="95"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"time '"</FONT> + time + <FONT ID="StringLiteral">"' is too early, must be &gt;= 0"</FONT>);
+<FONT ID="LN">96  </FONT><A NAME="96"></A>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    String s = Long.toString(time, Character.MAX_RADIX);
+<FONT ID="LN">98  </FONT><A NAME="98"></A>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    <FONT ID="If">if</FONT> (s.length() &gt; DATE_LEN)
+<FONT ID="LN">100 </FONT><A NAME="100"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"time '"</FONT> + time + <FONT ID="StringLiteral">"' is too late, length of string "</FONT> +
+<FONT ID="LN">101 </FONT><A NAME="101"></A>          <FONT ID="StringLiteral">"representation must be &lt;= "</FONT> + DATE_LEN);
+<FONT ID="LN">102 </FONT><A NAME="102"></A>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="SingleLineComment">// Pad with leading zeros
+<FONT ID="LN">104 </FONT><A NAME="104"></A></FONT>    <FONT ID="If">if</FONT> (s.length() &lt; DATE_LEN) {
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      StringBuffer sb = <FONT ID="New">new</FONT> StringBuffer(s);
+<FONT ID="LN">106 </FONT><A NAME="106"></A>      <FONT ID="While">while</FONT> (sb.length() &lt; DATE_LEN)
+<FONT ID="LN">107 </FONT><A NAME="107"></A>        sb.insert(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>      s = sb.toString();
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    }
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    <FONT ID="Return">return</FONT> s;
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  }
+<FONT ID="LN">113 </FONT><A NAME="113"></A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <FONT ID="FormalComment">/** Converts a string-encoded date into a millisecond time. */</FONT>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> stringToTime(String s) {
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="Return">return</FONT> Long.parseLong(s, Character.MAX_RADIX);
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  }
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  <FONT ID="FormalComment">/** Converts a string-encoded date into a Date object. */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Date stringToDate(String s) {
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Date(stringToTime(s));
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>}
+<FONT ID="LN">123 </FONT><A NAME="123"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">DateField.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

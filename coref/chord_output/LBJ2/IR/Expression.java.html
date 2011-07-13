@@ -1,0 +1,116 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.IR.Expression (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Expression.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.IR;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.util.HashSet;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A>  * Abstract expression class.
+<FONT ID="LN">8   </FONT><A NAME="8"></A>  *
+<FONT ID="LN">9   </FONT><A NAME="9"></A>  * @author Nick Rizzolo
+<FONT ID="LN">10  </FONT><A NAME="10"></A> **/</FONT>
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> Expression <FONT ID="Extends">extends</FONT> <A HREF="../../LBJ2/IR/ASTNode.java.html">ASTNode</A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A>{
+<FONT ID="LN">13  </FONT><A NAME="13"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    * The &lt;code&gt;SemanticAnalysis&lt;/code&gt; pass will store the type of this
+<FONT ID="LN">15  </FONT><A NAME="15"></A>    * expression here.
+<FONT ID="LN">16  </FONT><A NAME="16"></A>   **/</FONT>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>  <FONT ID="Public">public</FONT> <A HREF="../../LBJ2/IR/Type.java.html">Type</A> typeCache = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">18  </FONT><A NAME="18"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    * Indicates whether the &lt;code&gt;typeCache&lt;/code&gt; variable contains usable
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    * information.
+<FONT ID="LN">21  </FONT><A NAME="21"></A>   **/</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> typeCacheFilled = <FONT ID="False">false</FONT>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>  <FONT ID="FormalComment">/** Indicates whether this expression was parenthesized in the source. */</FONT>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> parenthesized = <FONT ID="False">false</FONT>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    * Default constructor.
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    *
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    * @param line       The line on which the source code represented by this
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    *                   node is found.
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    * @param byteOffset The byte offset from the beginning of the source file
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    *                   at which the source code represented by this node is
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    *                   found.
+<FONT ID="LN">35  </FONT><A NAME="35"></A>   **/</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  Expression(<FONT ID="Int">int</FONT> line, <FONT ID="Int">int</FONT> byteOffset) { <FONT ID="Super">super</FONT>(line, byteOffset); }
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    * Supports the &lt;code&gt;SemanticAnalysis&lt;/code&gt; pass which needs to notify
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    * &lt;code&gt;MethodInvocation&lt;/code&gt;s that are the immediate &lt;code&gt;value&lt;/code&gt;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    * child of a &lt;code&gt;SenseStatement&lt;/code&gt; that it's allowable to invoke an
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    * array or generator classifier.  Only &lt;code&gt;MethodInvocation&lt;/code&gt; will
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    * need to override this method which does nothing by default.
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    *
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    * @see LBJ2.SemanticAnalysis
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   **/</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> senseValueChild() { }
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    * Returns a set of &lt;code&gt;Argument&lt;/code&gt;s storing the name and type of
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    * each variable that is a subexpression of this expression.  This method
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    * cannot be run before &lt;code&gt;SemanticAnalysis&lt;/code&gt; runs.
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   **/</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Public">public</FONT> HashSet getVariableTypes()
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  {
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    HashSet result = <FONT ID="New">new</FONT> HashSet();
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="For">for</FONT> (<A HREF="../../LBJ2/IR/ASTNodeIterator.java.html">ASTNodeIterator</A> I = iterator(); I.hasNext(); )
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>      <A HREF="../../LBJ2/IR/ASTNode.java.html">ASTNode</A> node = I.next();
+<FONT ID="LN">62  </FONT><A NAME="62"></A>      <FONT ID="If">if</FONT> (node <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../LBJ2/IR/Expression.java.html">Expression</A>)
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        result.addAll(((<A HREF="../../LBJ2/IR/Expression.java.html">Expression</A>) node).getVariableTypes());
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    }
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  }
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    * Determines if there are any quantified variables in this expression.
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    * This method cannot be run before &lt;code&gt;SemanticAnalysis&lt;/code&gt; runs.
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   **/</FONT>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> containsQuantifiedVariable()
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="For">for</FONT> (<A HREF="../../LBJ2/IR/ASTNodeIterator.java.html">ASTNodeIterator</A> I = iterator(); I.hasNext(); )
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    {
+<FONT ID="LN">78  </FONT><A NAME="78"></A>      <A HREF="../../LBJ2/IR/ASTNode.java.html">ASTNode</A> node = I.next();
+<FONT ID="LN">79  </FONT><A NAME="79"></A>      <FONT ID="If">if</FONT> (node <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../LBJ2/IR/Expression.java.html">Expression</A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>          &amp;&amp; ((<A HREF="../../LBJ2/IR/Expression.java.html">Expression</A>) node).containsQuantifiedVariable())
+<FONT ID="LN">81  </FONT><A NAME="81"></A>        <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    }
+<FONT ID="LN">83  </FONT><A NAME="83"></A>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>}
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Expression.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

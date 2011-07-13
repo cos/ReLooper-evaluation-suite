@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>LBJ2.nlp.coref.CorefAction (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CorefAction.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> LBJ2.nlp.coref;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.PrintStream;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.util.Date;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.util.LinkedList;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.util.Random;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/classify/Classifier.java.html">LBJ2.classify.Classifier</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/classify/TestDiscrete.java.html">LBJ2.classify.TestDiscrete</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/learn/Learner.java.html">LBJ2.learn.Learner</A>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> <A HREF="../../../LBJ2/nlp/coref/ClusterMerger.java.html">LBJ2.nlp.coref.ClusterMerger.Filter</A>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> CorefAction {
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">1072536969137444539L</FONT>;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>    
+<FONT ID="LN">18  </FONT><A NAME="18"></A>    <FONT ID="Static">static</FONT> <A HREF="../../../LBJ2/classify/Classifier.java.html">Classifier</A> corefClassifier;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    <FONT ID="Static">static</FONT> <A HREF="../../../LBJ2/learn/Learner.java.html">Learner</A> coherenceClassifier;
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    <FONT ID="Static">static</FONT> Filter filter;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> initialDoc; <FONT ID="SingleLineComment">// pre-computed to get around blocking IO
+<FONT ID="LN">22  </FONT><A NAME="22"></A></FONT>    <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/nlp/coref/ClusterMergerParser.java.html">ClusterMergerParser</A> parser;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    <FONT ID="Static">static</FONT> <A HREF="../../../LBJ2/classify/Classifier.java.html">Classifier</A> coherenceLabeler;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> verbosity;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> base;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> DEBUG;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="Static">static</FONT> PrintStream out;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    <FONT ID="Static">static</FONT> PrintStream performanceOutput;
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> totalP = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> totalR = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> totalMentions = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="Private">private</FONT> LinkedList&lt;<FONT ID="Double">double</FONT>[]&gt; results = <FONT ID="New">new</FONT> LinkedList&lt;<FONT ID="Double">double</FONT>[]&gt;();
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="Static">static</FONT> <A HREF="../../../LBJ2/classify/TestDiscrete.java.html">TestDiscrete</A> tester;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> indexOfDocument;
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../LBJ2/nlp/coref/StatisticsUtility.java.html">StatisticsUtility</A> statistics;
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="Public">public</FONT> LinkedList&lt;<FONT ID="Double">double</FONT>[]&gt; getResults() {
+<FONT ID="LN">41  </FONT><A NAME="41"></A>        <FONT ID="Return">return</FONT> results;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    }
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getTotalMentions() {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>        <FONT ID="Return">return</FONT> totalMentions;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    }
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getTotalP() {
+<FONT ID="LN">49  </FONT><A NAME="49"></A>        <FONT ID="Return">return</FONT> totalP;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    }
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getTotalR() {
+<FONT ID="LN">53  </FONT><A NAME="53"></A>        <FONT ID="Return">return</FONT> totalR;
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    }
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="Public">public</FONT> CorefAction(<A HREF="../../../LBJ2/nlp/coref/ClusterMergerParser.java.html">ClusterMergerParser</A> parser, <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> initialDoc, <FONT ID="Int">int</FONT> i) {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>        <FONT ID="This">this</FONT>.parser = parser;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>        <FONT ID="This">this</FONT>.initialDoc = initialDoc;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>        <FONT ID="This">this</FONT>.indexOfDocument = i;
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    }
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> compute() {
+<FONT ID="LN">65  </FONT><A NAME="65"></A>        <FONT ID="Int">int</FONT> counter = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> currentPredicted = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>        <FONT ID="Double">double</FONT> currentF1 = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        <FONT ID="Double">double</FONT> bestScore = -Double.MAX_VALUE, bestP = <FONT ID="IntegerLiteral">0</FONT>, bestR = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>        <FONT ID="Long">long</FONT> startDoc = System.nanoTime();
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>        <FONT ID="Boolean">boolean</FONT> firstIteration = <FONT ID="True">true</FONT>;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>        <FONT ID="Boolean">boolean</FONT> secondParsing = <FONT ID="True">true</FONT>;
+<FONT ID="LN">74  </FONT><A NAME="74"></A>        <FONT ID="Double">double</FONT> firstIterationTime = <FONT ID="IntegerLiteral">0</FONT>; <FONT ID="SingleLineComment">// to record the IO time
+<FONT ID="LN">75  </FONT><A NAME="75"></A></FONT>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>        <FONT ID="Int">int</FONT> iterationCount = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">77  </FONT><A NAME="77"></A>        <FONT ID="For">for</FONT> (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A> d = initialDoc; d != <FONT ID="Null">null</FONT>;) {
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>            <FONT ID="SingleLineComment">// The branch is taken on every brand new document, not on another
+<FONT ID="LN">80  </FONT><A NAME="80"></A></FONT>            <FONT ID="SingleLineComment">// partitioning of the same document
+<FONT ID="LN">81  </FONT><A NAME="81"></A></FONT>            <FONT ID="If">if</FONT> (currentPredicted == <FONT ID="Null">null</FONT>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>                    || currentPredicted.getLabeled() != d.getLabeled()) {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>                <FONT ID="If">if</FONT> (currentPredicted != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">85  </FONT><A NAME="85"></A>                    totalP += bestP;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>                    totalR += bestR;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>                    totalMentions += currentPredicted.totalMentions();
+<FONT ID="LN">88  </FONT><A NAME="88"></A>                    bestScore = -Double.MAX_VALUE;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>                    bestP = bestR = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">90  </FONT><A NAME="90"></A>                }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A><FONT ID="SingleLineComment">//              System.out.println("Processing document " + indexOfDocument
+<FONT ID="LN">93  </FONT><A NAME="93"></A></FONT><FONT ID="SingleLineComment">//                      + ": " + d.getName() + " on thread " + Thread.currentThread());
+<FONT ID="LN">94  </FONT><A NAME="94"></A></FONT>
+<FONT ID="LN">95  </FONT><A NAME="95"></A>                currentPredicted = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>(d.getLabeled());
+<FONT ID="LN">96  </FONT><A NAME="96"></A>                currentPredicted.fillInPredictions(corefClassifier, <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">97  </FONT><A NAME="97"></A>                currentF1 = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/CoreferenceTester.java.html">CoreferenceTester</A>(verbosity).getF1(
+<FONT ID="LN">98  </FONT><A NAME="98"></A>                        currentPredicted, d.getLabeled());
+<FONT ID="LN">99  </FONT><A NAME="99"></A>            }
+<FONT ID="LN">100 </FONT><A NAME="100"></A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>            <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>[] pair = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">102 </FONT><A NAME="102"></A>            <FONT ID="Boolean">boolean</FONT> predictedFirst = <FONT ID="New">new</FONT> Random(d.getName().hashCode())
+<FONT ID="LN">103 </FONT><A NAME="103"></A>                    .nextBoolean();
+<FONT ID="LN">104 </FONT><A NAME="104"></A>            <FONT ID="If">if</FONT> (predictedFirst)
+<FONT ID="LN">105 </FONT><A NAME="105"></A>                pair = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>[] { currentPredicted, d };
+<FONT ID="LN">106 </FONT><A NAME="106"></A>            <FONT ID="Else">else</FONT>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>                pair = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>[] { d, currentPredicted };
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>            <FONT ID="Double">double</FONT> score = coherenceClassifier.scores(pair).get(
+<FONT ID="LN">110 </FONT><A NAME="110"></A>                    <FONT ID="StringLiteral">""</FONT> + !predictedFirst);
+<FONT ID="LN">111 </FONT><A NAME="111"></A>            <FONT ID="If">if</FONT> (base &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">112 </FONT><A NAME="112"></A>                score = <FONT ID="FloatPointLiteral">1.0</FONT> / (<FONT ID="FloatPointLiteral">1.0</FONT> + Math.pow(base, -score));
+<FONT ID="LN">113 </FONT><A NAME="113"></A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>            <FONT ID="Double">double</FONT>[] dB3 = <FONT ID="New">new</FONT> <A HREF="../../../LBJ2/nlp/coref/CoreferenceTester.java.html">CoreferenceTester</A>(verbosity).test(d, d
+<FONT ID="LN">115 </FONT><A NAME="115"></A>                    .getLabeled()); <FONT ID="SingleLineComment">// an array of size 3
+<FONT ID="LN">116 </FONT><A NAME="116"></A></FONT>            <FONT ID="Double">double</FONT> dF1 = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>            <FONT ID="If">if</FONT> (dB3[<FONT ID="IntegerLiteral">0</FONT>] + dB3[<FONT ID="IntegerLiteral">1</FONT>] != <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">118 </FONT><A NAME="118"></A>                dF1 = F1(dB3[<FONT ID="IntegerLiteral">0</FONT>], dB3[<FONT ID="IntegerLiteral">1</FONT>]) / d.totalMentions();
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>            <FONT ID="Double">double</FONT> difference = dF1 - currentF1;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>            <FONT ID="If">if</FONT> (Double.doubleToLongBits(score) != Double
+<FONT ID="LN">122 </FONT><A NAME="122"></A>                    .doubleToLongBits(Double.NaN))
+<FONT ID="LN">123 </FONT><A NAME="123"></A>                results.add(<FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[] { score, difference,
+<FONT ID="LN">124 </FONT><A NAME="124"></A>                        parser.getLastDepth() });
+<FONT ID="LN">125 </FONT><A NAME="125"></A>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>            <FONT ID="If">if</FONT> (score &gt; bestScore) {
+<FONT ID="LN">127 </FONT><A NAME="127"></A>                bestScore = score;
+<FONT ID="LN">128 </FONT><A NAME="128"></A>                bestP = dB3[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">129 </FONT><A NAME="129"></A>                bestR = dB3[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">130 </FONT><A NAME="130"></A>            }
+<FONT ID="LN">131 </FONT><A NAME="131"></A>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>            String label = coherenceLabeler.discreteValue(pair).equals(
+<FONT ID="LN">133 </FONT><A NAME="133"></A>                    <FONT ID="StringLiteral">""</FONT> + !predictedFirst) ? <FONT ID="StringLiteral">"higher"</FONT> : <FONT ID="StringLiteral">"lower"</FONT>;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>            String prediction = score &gt; <FONT ID="IntegerLiteral">0</FONT> ? <FONT ID="StringLiteral">"higher"</FONT> : <FONT ID="StringLiteral">"lower"</FONT>;
+<FONT ID="LN">135 </FONT><A NAME="135"></A>            tester.reportPrediction(prediction, label);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>            <FONT ID="If">if</FONT> (DEBUG) {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>                String number = <FONT ID="StringLiteral">""</FONT> + counter++;
+<FONT ID="LN">139 </FONT><A NAME="139"></A>                <FONT ID="While">while</FONT> (number.length() &lt; <FONT ID="IntegerLiteral">3</FONT>)
+<FONT ID="LN">140 </FONT><A NAME="140"></A>                    number = <FONT ID="StringLiteral">"0"</FONT> + number;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>                number += <FONT ID="StringLiteral">"."</FONT> + parser.getLastDepth();
+<FONT ID="LN">142 </FONT><A NAME="142"></A>                d.writeHTML(<FONT ID="StringLiteral">"debug/"</FONT> + number);
+<FONT ID="LN">143 </FONT><A NAME="143"></A>                out.println(<FONT ID="StringLiteral">"&lt;li&gt; &lt;a href=\""</FONT> + number + <FONT ID="StringLiteral">"/"</FONT> + d.getName()
+<FONT ID="LN">144 </FONT><A NAME="144"></A>                        + <FONT ID="StringLiteral">"/all.html\"&gt;"</FONT> + number + <FONT ID="StringLiteral">"&lt;/a&gt;"</FONT>);
+<FONT ID="LN">145 </FONT><A NAME="145"></A>            }
+<FONT ID="LN">146 </FONT><A NAME="146"></A>            <FONT ID="If">if</FONT> (firstIteration) {
+<FONT ID="LN">147 </FONT><A NAME="147"></A>                firstIteration = <FONT ID="False">false</FONT>;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>                firstIterationTime = (System.nanoTime() - startDoc) / <FONT ID="FloatPointLiteral">1000000.00</FONT>;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>                statistics.setTimeForFirstIteration(indexOfDocument,
+<FONT ID="LN">150 </FONT><A NAME="150"></A>                        firstIterationTime);
+<FONT ID="LN">151 </FONT><A NAME="151"></A>            }
+<FONT ID="LN">152 </FONT><A NAME="152"></A>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>            <FONT ID="If">if</FONT> (secondParsing) {
+<FONT ID="LN">154 </FONT><A NAME="154"></A>                secondParsing = <FONT ID="False">false</FONT>;
+<FONT ID="LN">155 </FONT><A NAME="155"></A>                <FONT ID="Long">long</FONT> startSecondParsing = System.nanoTime();
+<FONT ID="LN">156 </FONT><A NAME="156"></A>                d = (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>) parser.next();
+<FONT ID="LN">157 </FONT><A NAME="157"></A>                statistics.setTimeForSecondParsing(indexOfDocument, (System
+<FONT ID="LN">158 </FONT><A NAME="158"></A>                        .nanoTime() - startSecondParsing) / <FONT ID="FloatPointLiteral">1000000.00</FONT>);
+<FONT ID="LN">159 </FONT><A NAME="159"></A>            } <FONT ID="Else">else</FONT>
+<FONT ID="LN">160 </FONT><A NAME="160"></A>                d = (<A HREF="../../../LBJ2/nlp/coref/Document.java.html">Document</A>) parser.next();
+<FONT ID="LN">161 </FONT><A NAME="161"></A>            iterationCount++;
+<FONT ID="LN">162 </FONT><A NAME="162"></A>
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        } <FONT ID="SingleLineComment">// end of the loop
+<FONT ID="LN">164 </FONT><A NAME="164"></A></FONT>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>        totalP += bestP;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>        totalR += bestR;
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        totalMentions += currentPredicted.totalMentions();
+<FONT ID="LN">168 </FONT><A NAME="168"></A>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        <FONT ID="Long">long</FONT> endDoc = System.nanoTime();
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        <FONT ID="Double">double</FONT> timeForThisDoc = (endDoc - startDoc) / <FONT ID="FloatPointLiteral">1000000.00</FONT>;
+<FONT ID="LN">171 </FONT><A NAME="171"></A>        statistics.setTimeForDocument(indexOfDocument, timeForThisDoc);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>        statistics.setIterationPerDocument(indexOfDocument, iterationCount);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    }
+<FONT ID="LN">174 </FONT><A NAME="174"></A>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> F1(<FONT ID="Double">double</FONT> p, <FONT ID="Double">double</FONT> r) {
+<FONT ID="LN">176 </FONT><A NAME="176"></A>        <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">2</FONT> * p * r / (p + r);
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    }
+<FONT ID="LN">178 </FONT><A NAME="178"></A>}
+<FONT ID="LN">179 </FONT><A NAME="179"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CorefAction.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

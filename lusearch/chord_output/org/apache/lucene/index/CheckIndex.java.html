@@ -1,0 +1,962 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.CheckIndex (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CheckIndex.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">org.apache.lucene.store.FSDirectory</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">org.apache.lucene.store.Directory</A>;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">org.apache.lucene.store.IndexInput</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/AbstractField.java.html">org.apache.lucene.document.AbstractField</A>;  <FONT ID="SingleLineComment">// for javadocs
+<FONT ID="LN">24  </FONT><A NAME="24"></A></FONT><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/document/Document.java.html">org.apache.lucene.document.Document</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.text.NumberFormat;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.io.PrintStream;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.util.Collection;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.util.Map;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * Basic tool and API to check the health of an index and
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * write a new segments file that removes reference to
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * problematic segments.
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * 
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * &lt;p&gt;As this tool checks every byte in the index, on a large
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * index it can take quite a long time to run.
+<FONT ID="LN">43  </FONT><A NAME="43"></A> *
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: this tool and API is new and
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * experimental and is subject to suddenly change in the
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * next release.  Please make a complete backup of your
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * index before using this to fix your index!
+<FONT ID="LN">48  </FONT><A NAME="48"></A> */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> CheckIndex {
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="FormalComment">/** Default PrintStream for all CheckIndex instances.
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   *  @deprecated Use {@link #setInfoStream} per instance,
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   *  instead. */</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> PrintStream out = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Private">private</FONT> PrintStream infoStream;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">Directory</A> dir;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   * Returned from {@link #checkIndex()} detailing the health and status of the index.
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   *
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: this API is new and experimental and is
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * subject to suddenly change in the next release.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   **/</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Status {
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="FormalComment">/** True if no problems were found with the index. */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> clean;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="FormalComment">/** True if we were unable to locate and load the segments_N file. */</FONT>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> missingSegments;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    <FONT ID="FormalComment">/** True if we were unable to open the segments_N file. */</FONT>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> cantOpenSegments;
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="FormalComment">/** True if we were unable to read the version number from segments_N file. */</FONT>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> missingSegmentVersion;
+<FONT ID="LN">79  </FONT><A NAME="79"></A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    <FONT ID="FormalComment">/** Name of latest segments_N file in the index. */</FONT>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    <FONT ID="Public">public</FONT> String segmentsFileName;
+<FONT ID="LN">82  </FONT><A NAME="82"></A>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="FormalComment">/** Number of segments in the index. */</FONT>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> numSegments;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="FormalComment">/** String description of the version of the index. */</FONT>
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="Public">public</FONT> String segmentFormat;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="FormalComment">/** Empty unless you passed specific segments list to check as optional 3rd argument.
+<FONT ID="LN">90  </FONT><A NAME="90"></A>     *  @see CheckIndex#checkIndex(List) */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    <FONT ID="Public">public</FONT> List<FONT ID="MultiLineComment">/*&lt;String&gt;*/</FONT> segmentsChecked = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="FormalComment">/** True if the index was created with a newer version of Lucene than the CheckIndex tool. */</FONT>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> toolOutOfDate;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="FormalComment">/** List of {@link SegmentInfoStatus} instances, detailing status of each segment. */</FONT>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    <FONT ID="Public">public</FONT> List<FONT ID="MultiLineComment">/*&lt;SegmentInfoStatus*/</FONT> segmentInfos = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    <FONT ID="FormalComment">/** Directory index is in. */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">Directory</A> dir;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">103 </FONT><A NAME="103"></A>     * SegmentInfos instance containing only segments that
+<FONT ID="LN">104 </FONT><A NAME="104"></A>     * had no problems (this is used with the {@link CheckIndex#fixIndex} 
+<FONT ID="LN">105 </FONT><A NAME="105"></A>     * method to repair the index. 
+<FONT ID="LN">106 </FONT><A NAME="106"></A>     */</FONT>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    <A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> newSegments;
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="FormalComment">/** How many documents will be lost to bad segments. */</FONT>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> totLoseDocCount;
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    <FONT ID="FormalComment">/** How many bad segments were found. */</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> numBadSegments;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="FormalComment">/** True if we checked only specific segments ({@link
+<FONT ID="LN">116 </FONT><A NAME="116"></A>     * #checkIndex(List)}) was called with non-null
+<FONT ID="LN">117 </FONT><A NAME="117"></A>     * argument). */</FONT>
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> partial;
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="FormalComment">/** Holds the userData of the last commit in the index */</FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="Public">public</FONT> Map userData;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="FormalComment">/** Holds the status of each segment in the index.
+<FONT ID="LN">124 </FONT><A NAME="124"></A>     *  See {@link #segmentInfos}.
+<FONT ID="LN">125 </FONT><A NAME="125"></A>     *
+<FONT ID="LN">126 </FONT><A NAME="126"></A>     * &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: this API is new and experimental and is
+<FONT ID="LN">127 </FONT><A NAME="127"></A>     * subject to suddenly change in the next release.
+<FONT ID="LN">128 </FONT><A NAME="128"></A>     */</FONT>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> SegmentInfoStatus {
+<FONT ID="LN">130 </FONT><A NAME="130"></A>      <FONT ID="FormalComment">/** Name of the segment. */</FONT>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      <FONT ID="Public">public</FONT> String name;
+<FONT ID="LN">132 </FONT><A NAME="132"></A>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      <FONT ID="FormalComment">/** Document count (does not take deletions into account). */</FONT>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>      <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> docCount;
+<FONT ID="LN">135 </FONT><A NAME="135"></A>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>      <FONT ID="FormalComment">/** True if segment is compound file format. */</FONT>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>      <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> compound;
+<FONT ID="LN">138 </FONT><A NAME="138"></A>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>      <FONT ID="FormalComment">/** Number of files referenced by this segment. */</FONT>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>      <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> numFiles;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>      <FONT ID="FormalComment">/** Net size (MB) of the files referenced by this
+<FONT ID="LN">143 </FONT><A NAME="143"></A>       *  segment. */</FONT>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>      <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> sizeMB;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>      <FONT ID="FormalComment">/** Doc store offset, if this segment shares the doc
+<FONT ID="LN">147 </FONT><A NAME="147"></A>       *  store files (stored fields and term vectors) with
+<FONT ID="LN">148 </FONT><A NAME="148"></A>       *  other segments.  This is -1 if it does not share. */</FONT>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>      <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> docStoreOffset = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    
+<FONT ID="LN">151 </FONT><A NAME="151"></A>      <FONT ID="FormalComment">/** String of the shared doc store segment, or null if
+<FONT ID="LN">152 </FONT><A NAME="152"></A>       *  this segment does not share the doc store files. */</FONT>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>      <FONT ID="Public">public</FONT> String docStoreSegment;
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>      <FONT ID="FormalComment">/** True if the shared doc store files are compound file
+<FONT ID="LN">156 </FONT><A NAME="156"></A>       *  format. */</FONT>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>      <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> docStoreCompoundFile;
+<FONT ID="LN">158 </FONT><A NAME="158"></A>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>      <FONT ID="FormalComment">/** True if this segment has pending deletions. */</FONT>
+<FONT ID="LN">160 </FONT><A NAME="160"></A>      <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasDeletions;
+<FONT ID="LN">161 </FONT><A NAME="161"></A>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>      <FONT ID="FormalComment">/** Name of the current deletions file name. */</FONT>
+<FONT ID="LN">163 </FONT><A NAME="163"></A>      <FONT ID="Public">public</FONT> String deletionsFileName;
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    
+<FONT ID="LN">165 </FONT><A NAME="165"></A>      <FONT ID="FormalComment">/** Number of deleted documents. */</FONT>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>      <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> numDeleted;
+<FONT ID="LN">167 </FONT><A NAME="167"></A>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>      <FONT ID="FormalComment">/** True if we were able to open a SegmentReader on this
+<FONT ID="LN">169 </FONT><A NAME="169"></A>       *  segment. */</FONT>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>      <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> openReaderPassed;
+<FONT ID="LN">171 </FONT><A NAME="171"></A>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      <FONT ID="FormalComment">/** Number of fields in this segment. */</FONT>
+<FONT ID="LN">173 </FONT><A NAME="173"></A>      <FONT ID="Int">int</FONT> numFields;
+<FONT ID="LN">174 </FONT><A NAME="174"></A>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>      <FONT ID="FormalComment">/** True if at least one of the fields in this segment
+<FONT ID="LN">176 </FONT><A NAME="176"></A>       *  does not omitTermFreqAndPositions.
+<FONT ID="LN">177 </FONT><A NAME="177"></A>       *  @see AbstractField#setOmitTermFreqAndPositions */</FONT>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasProx;
+<FONT ID="LN">179 </FONT><A NAME="179"></A>
+<FONT ID="LN">180 </FONT><A NAME="180"></A>      <FONT ID="FormalComment">/** Map&lt;String, String&gt; that includes certain
+<FONT ID="LN">181 </FONT><A NAME="181"></A>       *  debugging details that IndexWriter records into
+<FONT ID="LN">182 </FONT><A NAME="182"></A>       *  each segment it creates */</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>      <FONT ID="Public">public</FONT> Map diagnostics;
+<FONT ID="LN">184 </FONT><A NAME="184"></A>
+<FONT ID="LN">185 </FONT><A NAME="185"></A>      <FONT ID="FormalComment">/** Status for testing of field norms (null if field norms could not be tested). */</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>      <FONT ID="Public">public</FONT> FieldNormStatus fieldNormStatus;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>      <FONT ID="FormalComment">/** Status for testing of indexed terms (null if indexed terms could not be tested). */</FONT>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>      <FONT ID="Public">public</FONT> TermIndexStatus termIndexStatus;
+<FONT ID="LN">190 </FONT><A NAME="190"></A>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      <FONT ID="FormalComment">/** Status for testing of stored fields (null if stored fields could not be tested). */</FONT>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      <FONT ID="Public">public</FONT> StoredFieldStatus storedFieldStatus;
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      <FONT ID="FormalComment">/** Status for testing of term vectors (null if term vectors could not be tested). */</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>      <FONT ID="Public">public</FONT> TermVectorStatus termVectorStatus;
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    }
+<FONT ID="LN">197 </FONT><A NAME="197"></A>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">199 </FONT><A NAME="199"></A>     * Status from testing field norms.
+<FONT ID="LN">200 </FONT><A NAME="200"></A>     */</FONT>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> FieldNormStatus {
+<FONT ID="LN">202 </FONT><A NAME="202"></A>      <FONT ID="FormalComment">/** Number of fields successfully tested */</FONT>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>      <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> totFields = <FONT ID="IntegerLiteral">0L</FONT>;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>      <FONT ID="FormalComment">/** Exception thrown during term index test (null on success) */</FONT>
+<FONT ID="LN">206 </FONT><A NAME="206"></A>      <FONT ID="Public">public</FONT> Throwable error = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    }
+<FONT ID="LN">208 </FONT><A NAME="208"></A>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">210 </FONT><A NAME="210"></A>     * Status from testing term index.
+<FONT ID="LN">211 </FONT><A NAME="211"></A>     */</FONT>
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> TermIndexStatus {
+<FONT ID="LN">213 </FONT><A NAME="213"></A>      <FONT ID="FormalComment">/** Total term count */</FONT>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>      <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> termCount = <FONT ID="IntegerLiteral">0L</FONT>;
+<FONT ID="LN">215 </FONT><A NAME="215"></A>
+<FONT ID="LN">216 </FONT><A NAME="216"></A>      <FONT ID="FormalComment">/** Total frequency across all terms. */</FONT>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>      <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> totFreq = <FONT ID="IntegerLiteral">0L</FONT>;
+<FONT ID="LN">218 </FONT><A NAME="218"></A>      
+<FONT ID="LN">219 </FONT><A NAME="219"></A>      <FONT ID="FormalComment">/** Total number of positions. */</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>      <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> totPos = <FONT ID="IntegerLiteral">0L</FONT>;
+<FONT ID="LN">221 </FONT><A NAME="221"></A>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>      <FONT ID="FormalComment">/** Exception thrown during term index test (null on success) */</FONT>
+<FONT ID="LN">223 </FONT><A NAME="223"></A>      <FONT ID="Public">public</FONT> Throwable error = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    }
+<FONT ID="LN">225 </FONT><A NAME="225"></A>
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">227 </FONT><A NAME="227"></A>     * Status from testing stored fields.
+<FONT ID="LN">228 </FONT><A NAME="228"></A>     */</FONT>
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> StoredFieldStatus {
+<FONT ID="LN">230 </FONT><A NAME="230"></A>      
+<FONT ID="LN">231 </FONT><A NAME="231"></A>      <FONT ID="FormalComment">/** Number of documents tested. */</FONT>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>      <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> docCount = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">233 </FONT><A NAME="233"></A>      
+<FONT ID="LN">234 </FONT><A NAME="234"></A>      <FONT ID="FormalComment">/** Total number of stored fields tested. */</FONT>
+<FONT ID="LN">235 </FONT><A NAME="235"></A>      <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> totFields = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">236 </FONT><A NAME="236"></A>      
+<FONT ID="LN">237 </FONT><A NAME="237"></A>      <FONT ID="FormalComment">/** Exception thrown during stored fields test (null on success) */</FONT>
+<FONT ID="LN">238 </FONT><A NAME="238"></A>      <FONT ID="Public">public</FONT> Throwable error = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     * Status from testing stored fields.
+<FONT ID="LN">243 </FONT><A NAME="243"></A>     */</FONT>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> TermVectorStatus {
+<FONT ID="LN">245 </FONT><A NAME="245"></A>      
+<FONT ID="LN">246 </FONT><A NAME="246"></A>      <FONT ID="FormalComment">/** Number of documents tested. */</FONT>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>      <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> docCount = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">248 </FONT><A NAME="248"></A>      
+<FONT ID="LN">249 </FONT><A NAME="249"></A>      <FONT ID="FormalComment">/** Total number of term vectors tested. */</FONT>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>      <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> totVectors = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">251 </FONT><A NAME="251"></A>      
+<FONT ID="LN">252 </FONT><A NAME="252"></A>      <FONT ID="FormalComment">/** Exception thrown during term vector test (null on success) */</FONT>
+<FONT ID="LN">253 </FONT><A NAME="253"></A>      <FONT ID="Public">public</FONT> Throwable error = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    }
+<FONT ID="LN">255 </FONT><A NAME="255"></A>  }
+<FONT ID="LN">256 </FONT><A NAME="256"></A>
+<FONT ID="LN">257 </FONT><A NAME="257"></A>  <FONT ID="FormalComment">/** Create a new CheckIndex on the directory. */</FONT>
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  <FONT ID="Public">public</FONT> CheckIndex(<A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">Directory</A> dir) {
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    <FONT ID="This">this</FONT>.dir = dir;
+<FONT ID="LN">260 </FONT><A NAME="260"></A>    infoStream = out;
+<FONT ID="LN">261 </FONT><A NAME="261"></A>  }
+<FONT ID="LN">262 </FONT><A NAME="262"></A>
+<FONT ID="LN">263 </FONT><A NAME="263"></A>  <FONT ID="FormalComment">/** Set infoStream where messages should go.  If null, no
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   *  messages are printed */</FONT>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setInfoStream(PrintStream out) {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    infoStream = out;
+<FONT ID="LN">267 </FONT><A NAME="267"></A>  }
+<FONT ID="LN">268 </FONT><A NAME="268"></A>
+<FONT ID="LN">269 </FONT><A NAME="269"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> msg(String msg) {
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">271 </FONT><A NAME="271"></A>      infoStream.println(msg);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>  }
+<FONT ID="LN">273 </FONT><A NAME="273"></A>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> MySegmentTermDocs <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentTermDocs.java.html">SegmentTermDocs</A> {
+<FONT ID="LN">275 </FONT><A NAME="275"></A>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <FONT ID="Int">int</FONT> delCount;
+<FONT ID="LN">277 </FONT><A NAME="277"></A>
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    MySegmentTermDocs(<A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A> p) {    
+<FONT ID="LN">279 </FONT><A NAME="279"></A>      <FONT ID="Super">super</FONT>(p);
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    }
+<FONT ID="LN">281 </FONT><A NAME="281"></A>
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> seek(<A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">283 </FONT><A NAME="283"></A>      <FONT ID="Super">super</FONT>.seek(term);
+<FONT ID="LN">284 </FONT><A NAME="284"></A>      delCount = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    }
+<FONT ID="LN">286 </FONT><A NAME="286"></A>
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> skippingDoc() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">288 </FONT><A NAME="288"></A>      delCount++;
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    }
+<FONT ID="LN">290 </FONT><A NAME="290"></A>  }
+<FONT ID="LN">291 </FONT><A NAME="291"></A>
+<FONT ID="LN">292 </FONT><A NAME="292"></A>  <FONT ID="FormalComment">/** Returns true if index is clean, else false. 
+<FONT ID="LN">293 </FONT><A NAME="293"></A>   *  @deprecated Please instantiate a CheckIndex and then use {@link #checkIndex()} instead */</FONT>
+<FONT ID="LN">294 </FONT><A NAME="294"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> check(<A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">Directory</A> dir, <FONT ID="Boolean">boolean</FONT> doFix) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    <FONT ID="Return">return</FONT> check(dir, doFix, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">296 </FONT><A NAME="296"></A>  }
+<FONT ID="LN">297 </FONT><A NAME="297"></A>
+<FONT ID="LN">298 </FONT><A NAME="298"></A>  <FONT ID="FormalComment">/** Returns true if index is clean, else false.
+<FONT ID="LN">299 </FONT><A NAME="299"></A>   *  @deprecated Please instantiate a CheckIndex and then use {@link #checkIndex(List)} instead */</FONT>
+<FONT ID="LN">300 </FONT><A NAME="300"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> check(<A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">Directory</A> dir, <FONT ID="Boolean">boolean</FONT> doFix, List onlySegments) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    <A HREF="../../../../org/apache/lucene/index/CheckIndex.java.html">CheckIndex</A> checker = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/CheckIndex.java.html">CheckIndex</A>(dir);
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    Status status = checker.checkIndex(onlySegments);
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    <FONT ID="If">if</FONT> (doFix &amp;&amp; !status.clean)
+<FONT ID="LN">304 </FONT><A NAME="304"></A>      checker.fixIndex(status);
+<FONT ID="LN">305 </FONT><A NAME="305"></A>
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    <FONT ID="Return">return</FONT> status.clean;
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  }
+<FONT ID="LN">308 </FONT><A NAME="308"></A>
+<FONT ID="LN">309 </FONT><A NAME="309"></A>  <FONT ID="FormalComment">/** Returns a {@link Status} instance detailing
+<FONT ID="LN">310 </FONT><A NAME="310"></A>   *  the state of the index.
+<FONT ID="LN">311 </FONT><A NAME="311"></A>   *
+<FONT ID="LN">312 </FONT><A NAME="312"></A>   *  &lt;p&gt;As this method checks every byte in the index, on a large
+<FONT ID="LN">313 </FONT><A NAME="313"></A>   *  index it can take quite a long time to run.
+<FONT ID="LN">314 </FONT><A NAME="314"></A>   *
+<FONT ID="LN">315 </FONT><A NAME="315"></A>   *  &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: make sure
+<FONT ID="LN">316 </FONT><A NAME="316"></A>   *  you only call this when the index is not opened by any
+<FONT ID="LN">317 </FONT><A NAME="317"></A>   *  writer. */</FONT>
+<FONT ID="LN">318 </FONT><A NAME="318"></A>  <FONT ID="Public">public</FONT> Status checkIndex() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    <FONT ID="Return">return</FONT> checkIndex(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>  }
+<FONT ID="LN">321 </FONT><A NAME="321"></A>
+<FONT ID="LN">322 </FONT><A NAME="322"></A>  <FONT ID="FormalComment">/** Returns a {@link Status} instance detailing
+<FONT ID="LN">323 </FONT><A NAME="323"></A>   *  the state of the index.
+<FONT ID="LN">324 </FONT><A NAME="324"></A>   * 
+<FONT ID="LN">325 </FONT><A NAME="325"></A>   *  @param onlySegments list of specific segment names to check
+<FONT ID="LN">326 </FONT><A NAME="326"></A>   *
+<FONT ID="LN">327 </FONT><A NAME="327"></A>   *  &lt;p&gt;As this method checks every byte in the specified
+<FONT ID="LN">328 </FONT><A NAME="328"></A>   *  segments, on a large index it can take quite a long
+<FONT ID="LN">329 </FONT><A NAME="329"></A>   *  time to run.
+<FONT ID="LN">330 </FONT><A NAME="330"></A>   *
+<FONT ID="LN">331 </FONT><A NAME="331"></A>   *  &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: make sure
+<FONT ID="LN">332 </FONT><A NAME="332"></A>   *  you only call this when the index is not opened by any
+<FONT ID="LN">333 </FONT><A NAME="333"></A>   *  writer. */</FONT>
+<FONT ID="LN">334 </FONT><A NAME="334"></A>  <FONT ID="Public">public</FONT> Status checkIndex(List onlySegments) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    NumberFormat nf = NumberFormat.getInstance();
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    <A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A> sis = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A>();
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    Status result = <FONT ID="New">new</FONT> Status();
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    result.dir = dir;
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">340 </FONT><A NAME="340"></A>      sis.read(dir);
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">342 </FONT><A NAME="342"></A>      msg(<FONT ID="StringLiteral">"ERROR: could not read any segments file in directory"</FONT>);
+<FONT ID="LN">343 </FONT><A NAME="343"></A>      result.missingSegments = <FONT ID="True">true</FONT>;
+<FONT ID="LN">344 </FONT><A NAME="344"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">345 </FONT><A NAME="345"></A>        t.printStackTrace(infoStream);
+<FONT ID="LN">346 </FONT><A NAME="346"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">347 </FONT><A NAME="347"></A>    }
+<FONT ID="LN">348 </FONT><A NAME="348"></A>
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> numSegments = sis.size();
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    <FONT ID="Final">final</FONT> String segmentsFileName = sis.getCurrentSegmentFileName();
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> input = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">353 </FONT><A NAME="353"></A>      input = dir.openInput(segmentsFileName);
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">355 </FONT><A NAME="355"></A>      msg(<FONT ID="StringLiteral">"ERROR: could not open segments file in directory"</FONT>);
+<FONT ID="LN">356 </FONT><A NAME="356"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">357 </FONT><A NAME="357"></A>        t.printStackTrace(infoStream);
+<FONT ID="LN">358 </FONT><A NAME="358"></A>      result.cantOpenSegments = <FONT ID="True">true</FONT>;
+<FONT ID="LN">359 </FONT><A NAME="359"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    }
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    <FONT ID="Int">int</FONT> format = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">363 </FONT><A NAME="363"></A>      format = input.readInt();
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">365 </FONT><A NAME="365"></A>      msg(<FONT ID="StringLiteral">"ERROR: could not read segment file version in directory"</FONT>);
+<FONT ID="LN">366 </FONT><A NAME="366"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">367 </FONT><A NAME="367"></A>        t.printStackTrace(infoStream);
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      result.missingSegmentVersion = <FONT ID="True">true</FONT>;
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">371 </FONT><A NAME="371"></A>      <FONT ID="If">if</FONT> (input != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">372 </FONT><A NAME="372"></A>        input.close();
+<FONT ID="LN">373 </FONT><A NAME="373"></A>    }
+<FONT ID="LN">374 </FONT><A NAME="374"></A>
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    String sFormat = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    <FONT ID="Boolean">boolean</FONT> skip = <FONT ID="False">false</FONT>;
+<FONT ID="LN">377 </FONT><A NAME="377"></A>
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT)
+<FONT ID="LN">379 </FONT><A NAME="379"></A>      sFormat = <FONT ID="StringLiteral">"FORMAT [Lucene Pre-2.1]"</FONT>;
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_LOCKLESS)
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      sFormat = <FONT ID="StringLiteral">"FORMAT_LOCKLESS [Lucene 2.1]"</FONT>;
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_SINGLE_NORM_FILE)
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      sFormat = <FONT ID="StringLiteral">"FORMAT_SINGLE_NORM_FILE [Lucene 2.2]"</FONT>;
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_SHARED_DOC_STORE)
+<FONT ID="LN">385 </FONT><A NAME="385"></A>      sFormat = <FONT ID="StringLiteral">"FORMAT_SHARED_DOC_STORE [Lucene 2.3]"</FONT>;
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">387 </FONT><A NAME="387"></A>      <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_CHECKSUM)
+<FONT ID="LN">388 </FONT><A NAME="388"></A>        sFormat = <FONT ID="StringLiteral">"FORMAT_CHECKSUM [Lucene 2.4]"</FONT>;
+<FONT ID="LN">389 </FONT><A NAME="389"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_DEL_COUNT)
+<FONT ID="LN">390 </FONT><A NAME="390"></A>        sFormat = <FONT ID="StringLiteral">"FORMAT_DEL_COUNT [Lucene 2.4]"</FONT>;
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_HAS_PROX)
+<FONT ID="LN">392 </FONT><A NAME="392"></A>        sFormat = <FONT ID="StringLiteral">"FORMAT_HAS_PROX [Lucene 2.4]"</FONT>;
+<FONT ID="LN">393 </FONT><A NAME="393"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_USER_DATA)
+<FONT ID="LN">394 </FONT><A NAME="394"></A>        sFormat = <FONT ID="StringLiteral">"FORMAT_USER_DATA [Lucene 2.9]"</FONT>;
+<FONT ID="LN">395 </FONT><A NAME="395"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (format == SegmentInfos.FORMAT_DIAGNOSTICS)
+<FONT ID="LN">396 </FONT><A NAME="396"></A>        sFormat = <FONT ID="StringLiteral">"FORMAT_DIAGNOSTICS [Lucene 2.9]"</FONT>;
+<FONT ID="LN">397 </FONT><A NAME="397"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (format &lt; SegmentInfos.CURRENT_FORMAT) {
+<FONT ID="LN">398 </FONT><A NAME="398"></A>        sFormat = <FONT ID="StringLiteral">"int="</FONT> + format + <FONT ID="StringLiteral">" [newer version of Lucene than this tool]"</FONT>;
+<FONT ID="LN">399 </FONT><A NAME="399"></A>        skip = <FONT ID="True">true</FONT>;
+<FONT ID="LN">400 </FONT><A NAME="400"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">401 </FONT><A NAME="401"></A>        sFormat = format + <FONT ID="StringLiteral">" [Lucene 1.3 or prior]"</FONT>;
+<FONT ID="LN">402 </FONT><A NAME="402"></A>      }
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    }
+<FONT ID="LN">404 </FONT><A NAME="404"></A>
+<FONT ID="LN">405 </FONT><A NAME="405"></A>    result.segmentsFileName = segmentsFileName;
+<FONT ID="LN">406 </FONT><A NAME="406"></A>    result.numSegments = numSegments;
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    result.segmentFormat = sFormat;
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    result.userData = sis.getUserData();
+<FONT ID="LN">409 </FONT><A NAME="409"></A>    String userDataString;
+<FONT ID="LN">410 </FONT><A NAME="410"></A>    <FONT ID="If">if</FONT> (sis.getUserData().size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">411 </FONT><A NAME="411"></A>      userDataString = <FONT ID="StringLiteral">" userData="</FONT> + sis.getUserData();
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">413 </FONT><A NAME="413"></A>      userDataString = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">414 </FONT><A NAME="414"></A>    }
+<FONT ID="LN">415 </FONT><A NAME="415"></A>
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    msg(<FONT ID="StringLiteral">"Segments file="</FONT> + segmentsFileName + <FONT ID="StringLiteral">" numSegments="</FONT> + numSegments + <FONT ID="StringLiteral">" version="</FONT> + sFormat + userDataString);
+<FONT ID="LN">417 </FONT><A NAME="417"></A>
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    <FONT ID="If">if</FONT> (onlySegments != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">419 </FONT><A NAME="419"></A>      result.partial = <FONT ID="True">true</FONT>;
+<FONT ID="LN">420 </FONT><A NAME="420"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">421 </FONT><A NAME="421"></A>        infoStream.print(<FONT ID="StringLiteral">"\nChecking only these segments:"</FONT>);
+<FONT ID="LN">422 </FONT><A NAME="422"></A>      Iterator it = onlySegments.iterator();
+<FONT ID="LN">423 </FONT><A NAME="423"></A>      <FONT ID="While">while</FONT> (it.hasNext()) {
+<FONT ID="LN">424 </FONT><A NAME="424"></A>        <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">425 </FONT><A NAME="425"></A>          infoStream.print(<FONT ID="StringLiteral">" "</FONT> + it.next());
+<FONT ID="LN">426 </FONT><A NAME="426"></A>      }
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      result.segmentsChecked.addAll(onlySegments);
+<FONT ID="LN">428 </FONT><A NAME="428"></A>      msg(<FONT ID="StringLiteral">":"</FONT>);
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    }
+<FONT ID="LN">430 </FONT><A NAME="430"></A>
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    <FONT ID="If">if</FONT> (skip) {
+<FONT ID="LN">432 </FONT><A NAME="432"></A>      msg(<FONT ID="StringLiteral">"\nERROR: this index appears to be created by a newer version of Lucene than this tool was compiled on; please re-compile this tool on the matching version of Lucene; exiting"</FONT>);
+<FONT ID="LN">433 </FONT><A NAME="433"></A>      result.toolOutOfDate = <FONT ID="True">true</FONT>;
+<FONT ID="LN">434 </FONT><A NAME="434"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    }
+<FONT ID="LN">436 </FONT><A NAME="436"></A>
+<FONT ID="LN">437 </FONT><A NAME="437"></A>
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    result.newSegments = (<A HREF="../../../../org/apache/lucene/index/SegmentInfos.java.html">SegmentInfos</A>) sis.clone();
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    result.newSegments.clear();
+<FONT ID="LN">440 </FONT><A NAME="440"></A>
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;numSegments;i++) {
+<FONT ID="LN">442 </FONT><A NAME="442"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> info = sis.info(i);
+<FONT ID="LN">443 </FONT><A NAME="443"></A>      <FONT ID="If">if</FONT> (onlySegments != <FONT ID="Null">null</FONT> &amp;&amp; !onlySegments.contains(info.name))
+<FONT ID="LN">444 </FONT><A NAME="444"></A>        <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">445 </FONT><A NAME="445"></A>      Status.SegmentInfoStatus segInfoStat = <FONT ID="New">new</FONT> Status.SegmentInfoStatus();
+<FONT ID="LN">446 </FONT><A NAME="446"></A>      result.segmentInfos.add(segInfoStat);
+<FONT ID="LN">447 </FONT><A NAME="447"></A>      msg(<FONT ID="StringLiteral">"  "</FONT> + (<FONT ID="IntegerLiteral">1</FONT>+i) + <FONT ID="StringLiteral">" of "</FONT> + numSegments + <FONT ID="StringLiteral">": name="</FONT> + info.name + <FONT ID="StringLiteral">" docCount="</FONT> + info.docCount);
+<FONT ID="LN">448 </FONT><A NAME="448"></A>      segInfoStat.name = info.name;
+<FONT ID="LN">449 </FONT><A NAME="449"></A>      segInfoStat.docCount = info.docCount;
+<FONT ID="LN">450 </FONT><A NAME="450"></A>
+<FONT ID="LN">451 </FONT><A NAME="451"></A>      <FONT ID="Int">int</FONT> toLoseDocCount = info.docCount;
+<FONT ID="LN">452 </FONT><A NAME="452"></A>
+<FONT ID="LN">453 </FONT><A NAME="453"></A>      <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A> reader = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">454 </FONT><A NAME="454"></A>
+<FONT ID="LN">455 </FONT><A NAME="455"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">456 </FONT><A NAME="456"></A>        msg(<FONT ID="StringLiteral">"    compound="</FONT> + info.getUseCompoundFile());
+<FONT ID="LN">457 </FONT><A NAME="457"></A>        segInfoStat.compound = info.getUseCompoundFile();
+<FONT ID="LN">458 </FONT><A NAME="458"></A>        msg(<FONT ID="StringLiteral">"    hasProx="</FONT> + info.getHasProx());
+<FONT ID="LN">459 </FONT><A NAME="459"></A>        segInfoStat.hasProx = info.getHasProx();
+<FONT ID="LN">460 </FONT><A NAME="460"></A>        msg(<FONT ID="StringLiteral">"    numFiles="</FONT> + info.files().size());
+<FONT ID="LN">461 </FONT><A NAME="461"></A>        segInfoStat.numFiles = info.files().size();
+<FONT ID="LN">462 </FONT><A NAME="462"></A>        msg(<FONT ID="StringLiteral">"    size (MB)="</FONT> + nf.format(info.sizeInBytes()/(<FONT ID="FloatPointLiteral">1024.</FONT>*<FONT ID="FloatPointLiteral">1024.</FONT>)));
+<FONT ID="LN">463 </FONT><A NAME="463"></A>        segInfoStat.sizeMB = info.sizeInBytes()/(<FONT ID="FloatPointLiteral">1024.</FONT>*<FONT ID="FloatPointLiteral">1024.</FONT>);
+<FONT ID="LN">464 </FONT><A NAME="464"></A>        Map diagnostics = info.getDiagnostics();
+<FONT ID="LN">465 </FONT><A NAME="465"></A>        segInfoStat.diagnostics = diagnostics;
+<FONT ID="LN">466 </FONT><A NAME="466"></A>        <FONT ID="If">if</FONT> (diagnostics.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">467 </FONT><A NAME="467"></A>          msg(<FONT ID="StringLiteral">"    diagnostics = "</FONT> + diagnostics);
+<FONT ID="LN">468 </FONT><A NAME="468"></A>        }
+<FONT ID="LN">469 </FONT><A NAME="469"></A>
+<FONT ID="LN">470 </FONT><A NAME="470"></A>        <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> docStoreOffset = info.getDocStoreOffset();
+<FONT ID="LN">471 </FONT><A NAME="471"></A>        <FONT ID="If">if</FONT> (docStoreOffset != -<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">472 </FONT><A NAME="472"></A>          msg(<FONT ID="StringLiteral">"    docStoreOffset="</FONT> + docStoreOffset);
+<FONT ID="LN">473 </FONT><A NAME="473"></A>          segInfoStat.docStoreOffset = docStoreOffset;
+<FONT ID="LN">474 </FONT><A NAME="474"></A>          msg(<FONT ID="StringLiteral">"    docStoreSegment="</FONT> + info.getDocStoreSegment());
+<FONT ID="LN">475 </FONT><A NAME="475"></A>          segInfoStat.docStoreSegment = info.getDocStoreSegment();
+<FONT ID="LN">476 </FONT><A NAME="476"></A>          msg(<FONT ID="StringLiteral">"    docStoreIsCompoundFile="</FONT> + info.getDocStoreIsCompoundFile());
+<FONT ID="LN">477 </FONT><A NAME="477"></A>          segInfoStat.docStoreCompoundFile = info.getDocStoreIsCompoundFile();
+<FONT ID="LN">478 </FONT><A NAME="478"></A>        }
+<FONT ID="LN">479 </FONT><A NAME="479"></A>        <FONT ID="Final">final</FONT> String delFileName = info.getDelFileName();
+<FONT ID="LN">480 </FONT><A NAME="480"></A>        <FONT ID="If">if</FONT> (delFileName == <FONT ID="Null">null</FONT>){
+<FONT ID="LN">481 </FONT><A NAME="481"></A>          msg(<FONT ID="StringLiteral">"    no deletions"</FONT>);
+<FONT ID="LN">482 </FONT><A NAME="482"></A>          segInfoStat.hasDeletions = <FONT ID="False">false</FONT>;
+<FONT ID="LN">483 </FONT><A NAME="483"></A>        }
+<FONT ID="LN">484 </FONT><A NAME="484"></A>        <FONT ID="Else">else</FONT>{
+<FONT ID="LN">485 </FONT><A NAME="485"></A>          msg(<FONT ID="StringLiteral">"    has deletions [delFileName="</FONT> + delFileName + <FONT ID="StringLiteral">"]"</FONT>);
+<FONT ID="LN">486 </FONT><A NAME="486"></A>          segInfoStat.hasDeletions = <FONT ID="True">true</FONT>;
+<FONT ID="LN">487 </FONT><A NAME="487"></A>          segInfoStat.deletionsFileName = delFileName;
+<FONT ID="LN">488 </FONT><A NAME="488"></A>        }
+<FONT ID="LN">489 </FONT><A NAME="489"></A>        <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">490 </FONT><A NAME="490"></A>          infoStream.print(<FONT ID="StringLiteral">"    test: open reader........."</FONT>);
+<FONT ID="LN">491 </FONT><A NAME="491"></A>        reader = SegmentReader.get(info);
+<FONT ID="LN">492 </FONT><A NAME="492"></A>
+<FONT ID="LN">493 </FONT><A NAME="493"></A>        segInfoStat.openReaderPassed = <FONT ID="True">true</FONT>;
+<FONT ID="LN">494 </FONT><A NAME="494"></A>
+<FONT ID="LN">495 </FONT><A NAME="495"></A>        <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> numDocs = reader.numDocs();
+<FONT ID="LN">496 </FONT><A NAME="496"></A>        toLoseDocCount = numDocs;
+<FONT ID="LN">497 </FONT><A NAME="497"></A>        <FONT ID="If">if</FONT> (reader.hasDeletions()) {
+<FONT ID="LN">498 </FONT><A NAME="498"></A>          <FONT ID="If">if</FONT> (reader.deletedDocs.count() != info.getDelCount()) {
+<FONT ID="LN">499 </FONT><A NAME="499"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"delete count mismatch: info="</FONT> + info.getDelCount() + <FONT ID="StringLiteral">" vs deletedDocs.count()="</FONT> + reader.deletedDocs.count());
+<FONT ID="LN">500 </FONT><A NAME="500"></A>          }
+<FONT ID="LN">501 </FONT><A NAME="501"></A>          <FONT ID="If">if</FONT> (reader.deletedDocs.count() &gt; reader.maxDoc()) {
+<FONT ID="LN">502 </FONT><A NAME="502"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"too many deleted docs: maxDoc()="</FONT> + reader.maxDoc() + <FONT ID="StringLiteral">" vs deletedDocs.count()="</FONT> + reader.deletedDocs.count());
+<FONT ID="LN">503 </FONT><A NAME="503"></A>          }
+<FONT ID="LN">504 </FONT><A NAME="504"></A>          <FONT ID="If">if</FONT> (info.docCount - numDocs != info.getDelCount()){
+<FONT ID="LN">505 </FONT><A NAME="505"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"delete count mismatch: info="</FONT> + info.getDelCount() + <FONT ID="StringLiteral">" vs reader="</FONT> + (info.docCount - numDocs));
+<FONT ID="LN">506 </FONT><A NAME="506"></A>          }
+<FONT ID="LN">507 </FONT><A NAME="507"></A>          segInfoStat.numDeleted = info.docCount - numDocs;
+<FONT ID="LN">508 </FONT><A NAME="508"></A>          msg(<FONT ID="StringLiteral">"OK ["</FONT> + (segInfoStat.numDeleted) + <FONT ID="StringLiteral">" deleted docs]"</FONT>);
+<FONT ID="LN">509 </FONT><A NAME="509"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">510 </FONT><A NAME="510"></A>          <FONT ID="If">if</FONT> (info.getDelCount() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">511 </FONT><A NAME="511"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"delete count mismatch: info="</FONT> + info.getDelCount() + <FONT ID="StringLiteral">" vs reader="</FONT> + (info.docCount - numDocs));
+<FONT ID="LN">512 </FONT><A NAME="512"></A>          }
+<FONT ID="LN">513 </FONT><A NAME="513"></A>          msg(<FONT ID="StringLiteral">"OK"</FONT>);
+<FONT ID="LN">514 </FONT><A NAME="514"></A>        }
+<FONT ID="LN">515 </FONT><A NAME="515"></A>        <FONT ID="If">if</FONT> (reader.maxDoc() != info.docCount)
+<FONT ID="LN">516 </FONT><A NAME="516"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"SegmentReader.maxDoc() "</FONT> + reader.maxDoc() + <FONT ID="StringLiteral">" != SegmentInfos.docCount "</FONT> + info.docCount);
+<FONT ID="LN">517 </FONT><A NAME="517"></A>
+<FONT ID="LN">518 </FONT><A NAME="518"></A>        <FONT ID="SingleLineComment">// Test getFieldNames()
+<FONT ID="LN">519 </FONT><A NAME="519"></A></FONT>        <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">520 </FONT><A NAME="520"></A>          infoStream.print(<FONT ID="StringLiteral">"    test: fields.............."</FONT>);
+<FONT ID="LN">521 </FONT><A NAME="521"></A>        }         
+<FONT ID="LN">522 </FONT><A NAME="522"></A>        Collection fieldNames = reader.getFieldNames(IndexReader.FieldOption.ALL);
+<FONT ID="LN">523 </FONT><A NAME="523"></A>        msg(<FONT ID="StringLiteral">"OK ["</FONT> + fieldNames.size() + <FONT ID="StringLiteral">" fields]"</FONT>);
+<FONT ID="LN">524 </FONT><A NAME="524"></A>        segInfoStat.numFields = fieldNames.size();
+<FONT ID="LN">525 </FONT><A NAME="525"></A>        
+<FONT ID="LN">526 </FONT><A NAME="526"></A>        <FONT ID="SingleLineComment">// Test Field Norms
+<FONT ID="LN">527 </FONT><A NAME="527"></A></FONT>        segInfoStat.fieldNormStatus = testFieldNorms(fieldNames, reader);
+<FONT ID="LN">528 </FONT><A NAME="528"></A>
+<FONT ID="LN">529 </FONT><A NAME="529"></A>        <FONT ID="SingleLineComment">// Test the Term Index
+<FONT ID="LN">530 </FONT><A NAME="530"></A></FONT>        segInfoStat.termIndexStatus = testTermIndex(info, reader);
+<FONT ID="LN">531 </FONT><A NAME="531"></A>
+<FONT ID="LN">532 </FONT><A NAME="532"></A>        <FONT ID="SingleLineComment">// Test Stored Fields
+<FONT ID="LN">533 </FONT><A NAME="533"></A></FONT>        segInfoStat.storedFieldStatus = testStoredFields(info, reader, nf);
+<FONT ID="LN">534 </FONT><A NAME="534"></A>
+<FONT ID="LN">535 </FONT><A NAME="535"></A>        <FONT ID="SingleLineComment">// Test Term Vectors
+<FONT ID="LN">536 </FONT><A NAME="536"></A></FONT>        segInfoStat.termVectorStatus = testTermVectors(info, reader, nf);
+<FONT ID="LN">537 </FONT><A NAME="537"></A>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>        <FONT ID="SingleLineComment">// Rethrow the first exception we encountered
+<FONT ID="LN">539 </FONT><A NAME="539"></A></FONT>        <FONT ID="SingleLineComment">//  This will cause stats for failed segments to be incremented properly
+<FONT ID="LN">540 </FONT><A NAME="540"></A></FONT>        <FONT ID="If">if</FONT> (segInfoStat.fieldNormStatus.error != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">541 </FONT><A NAME="541"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"Field Norm test failed"</FONT>);
+<FONT ID="LN">542 </FONT><A NAME="542"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (segInfoStat.termIndexStatus.error != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">543 </FONT><A NAME="543"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"Term Index test failed"</FONT>);
+<FONT ID="LN">544 </FONT><A NAME="544"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (segInfoStat.storedFieldStatus.error != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">545 </FONT><A NAME="545"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"Stored Field test failed"</FONT>);
+<FONT ID="LN">546 </FONT><A NAME="546"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (segInfoStat.termVectorStatus.error != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">547 </FONT><A NAME="547"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"Term Vector test failed"</FONT>);
+<FONT ID="LN">548 </FONT><A NAME="548"></A>        }
+<FONT ID="LN">549 </FONT><A NAME="549"></A>
+<FONT ID="LN">550 </FONT><A NAME="550"></A>        msg(<FONT ID="StringLiteral">""</FONT>);
+<FONT ID="LN">551 </FONT><A NAME="551"></A>
+<FONT ID="LN">552 </FONT><A NAME="552"></A>      } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">553 </FONT><A NAME="553"></A>        msg(<FONT ID="StringLiteral">"FAILED"</FONT>);
+<FONT ID="LN">554 </FONT><A NAME="554"></A>        String comment;
+<FONT ID="LN">555 </FONT><A NAME="555"></A>        comment = <FONT ID="StringLiteral">"fixIndex() would remove reference to this segment"</FONT>;
+<FONT ID="LN">556 </FONT><A NAME="556"></A>        msg(<FONT ID="StringLiteral">"    WARNING: "</FONT> + comment + <FONT ID="StringLiteral">"; full exception:"</FONT>);
+<FONT ID="LN">557 </FONT><A NAME="557"></A>        <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">558 </FONT><A NAME="558"></A>          t.printStackTrace(infoStream);
+<FONT ID="LN">559 </FONT><A NAME="559"></A>        msg(<FONT ID="StringLiteral">""</FONT>);
+<FONT ID="LN">560 </FONT><A NAME="560"></A>        result.totLoseDocCount += toLoseDocCount;
+<FONT ID="LN">561 </FONT><A NAME="561"></A>        result.numBadSegments++;
+<FONT ID="LN">562 </FONT><A NAME="562"></A>        <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">563 </FONT><A NAME="563"></A>      } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">564 </FONT><A NAME="564"></A>        <FONT ID="If">if</FONT> (reader != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">565 </FONT><A NAME="565"></A>          reader.close();
+<FONT ID="LN">566 </FONT><A NAME="566"></A>      }
+<FONT ID="LN">567 </FONT><A NAME="567"></A>
+<FONT ID="LN">568 </FONT><A NAME="568"></A>      <FONT ID="SingleLineComment">// Keeper
+<FONT ID="LN">569 </FONT><A NAME="569"></A></FONT>      result.newSegments.add(info.clone());
+<FONT ID="LN">570 </FONT><A NAME="570"></A>    }
+<FONT ID="LN">571 </FONT><A NAME="571"></A>
+<FONT ID="LN">572 </FONT><A NAME="572"></A>    <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">0</FONT> == result.numBadSegments) {
+<FONT ID="LN">573 </FONT><A NAME="573"></A>      result.clean = <FONT ID="True">true</FONT>;
+<FONT ID="LN">574 </FONT><A NAME="574"></A>      msg(<FONT ID="StringLiteral">"No problems were detected with this index.\n"</FONT>);
+<FONT ID="LN">575 </FONT><A NAME="575"></A>    } <FONT ID="Else">else</FONT>
+<FONT ID="LN">576 </FONT><A NAME="576"></A>      msg(<FONT ID="StringLiteral">"WARNING: "</FONT> + result.numBadSegments + <FONT ID="StringLiteral">" broken segments (containing "</FONT> + result.totLoseDocCount + <FONT ID="StringLiteral">" documents) detected"</FONT>);
+<FONT ID="LN">577 </FONT><A NAME="577"></A>
+<FONT ID="LN">578 </FONT><A NAME="578"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">579 </FONT><A NAME="579"></A>  }
+<FONT ID="LN">580 </FONT><A NAME="580"></A>
+<FONT ID="LN">581 </FONT><A NAME="581"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">582 </FONT><A NAME="582"></A>   * Test field norms.
+<FONT ID="LN">583 </FONT><A NAME="583"></A>   */</FONT>
+<FONT ID="LN">584 </FONT><A NAME="584"></A>  <FONT ID="Private">private</FONT> Status.FieldNormStatus testFieldNorms(Collection fieldNames, <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A> reader) {
+<FONT ID="LN">585 </FONT><A NAME="585"></A>    <FONT ID="Final">final</FONT> Status.FieldNormStatus status = <FONT ID="New">new</FONT> Status.FieldNormStatus();
+<FONT ID="LN">586 </FONT><A NAME="586"></A>
+<FONT ID="LN">587 </FONT><A NAME="587"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">588 </FONT><A NAME="588"></A>      <FONT ID="SingleLineComment">// Test Field Norms
+<FONT ID="LN">589 </FONT><A NAME="589"></A></FONT>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">590 </FONT><A NAME="590"></A>        infoStream.print(<FONT ID="StringLiteral">"    test: field norms........."</FONT>);
+<FONT ID="LN">591 </FONT><A NAME="591"></A>      }
+<FONT ID="LN">592 </FONT><A NAME="592"></A>      Iterator it = fieldNames.iterator();
+<FONT ID="LN">593 </FONT><A NAME="593"></A>      <FONT ID="Final">final</FONT> <FONT ID="Byte">byte</FONT>[] b = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[reader.maxDoc()];
+<FONT ID="LN">594 </FONT><A NAME="594"></A>      <FONT ID="While">while</FONT> (it.hasNext()) {
+<FONT ID="LN">595 </FONT><A NAME="595"></A>        <FONT ID="Final">final</FONT> String fieldName = (String) it.next();
+<FONT ID="LN">596 </FONT><A NAME="596"></A>        reader.norms(fieldName, b, <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">597 </FONT><A NAME="597"></A>        ++status.totFields;
+<FONT ID="LN">598 </FONT><A NAME="598"></A>      }
+<FONT ID="LN">599 </FONT><A NAME="599"></A>
+<FONT ID="LN">600 </FONT><A NAME="600"></A>      msg(<FONT ID="StringLiteral">"OK ["</FONT> + status.totFields + <FONT ID="StringLiteral">" fields]"</FONT>);
+<FONT ID="LN">601 </FONT><A NAME="601"></A>    } <FONT ID="Catch">catch</FONT> (Throwable e) {
+<FONT ID="LN">602 </FONT><A NAME="602"></A>      msg(<FONT ID="StringLiteral">"ERROR ["</FONT> + String.valueOf(e.getMessage()) + <FONT ID="StringLiteral">"]"</FONT>);
+<FONT ID="LN">603 </FONT><A NAME="603"></A>      status.error = e;
+<FONT ID="LN">604 </FONT><A NAME="604"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">605 </FONT><A NAME="605"></A>        e.printStackTrace(infoStream);
+<FONT ID="LN">606 </FONT><A NAME="606"></A>      }
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    }
+<FONT ID="LN">608 </FONT><A NAME="608"></A>
+<FONT ID="LN">609 </FONT><A NAME="609"></A>    <FONT ID="Return">return</FONT> status;
+<FONT ID="LN">610 </FONT><A NAME="610"></A>  }
+<FONT ID="LN">611 </FONT><A NAME="611"></A>
+<FONT ID="LN">612 </FONT><A NAME="612"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">613 </FONT><A NAME="613"></A>   * Test the term index.
+<FONT ID="LN">614 </FONT><A NAME="614"></A>   */</FONT>
+<FONT ID="LN">615 </FONT><A NAME="615"></A>  <FONT ID="Private">private</FONT> Status.TermIndexStatus testTermIndex(<A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> info, <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A> reader) {
+<FONT ID="LN">616 </FONT><A NAME="616"></A>    <FONT ID="Final">final</FONT> Status.TermIndexStatus status = <FONT ID="New">new</FONT> Status.TermIndexStatus();
+<FONT ID="LN">617 </FONT><A NAME="617"></A>
+<FONT ID="LN">618 </FONT><A NAME="618"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">619 </FONT><A NAME="619"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">620 </FONT><A NAME="620"></A>        infoStream.print(<FONT ID="StringLiteral">"    test: terms, freq, prox..."</FONT>);
+<FONT ID="LN">621 </FONT><A NAME="621"></A>      }
+<FONT ID="LN">622 </FONT><A NAME="622"></A>
+<FONT ID="LN">623 </FONT><A NAME="623"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/TermEnum.java.html">TermEnum</A> termEnum = reader.terms();
+<FONT ID="LN">624 </FONT><A NAME="624"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/TermPositions.java.html">TermPositions</A> termPositions = reader.termPositions();
+<FONT ID="LN">625 </FONT><A NAME="625"></A>
+<FONT ID="LN">626 </FONT><A NAME="626"></A>      <FONT ID="SingleLineComment">// Used only to count up # deleted docs for this term
+<FONT ID="LN">627 </FONT><A NAME="627"></A></FONT>      <FONT ID="Final">final</FONT> MySegmentTermDocs myTermDocs = <FONT ID="New">new</FONT> MySegmentTermDocs(reader);
+<FONT ID="LN">628 </FONT><A NAME="628"></A>
+<FONT ID="LN">629 </FONT><A NAME="629"></A>      <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> maxDoc = reader.maxDoc();
+<FONT ID="LN">630 </FONT><A NAME="630"></A>
+<FONT ID="LN">631 </FONT><A NAME="631"></A>      <FONT ID="While">while</FONT> (termEnum.next()) {
+<FONT ID="LN">632 </FONT><A NAME="632"></A>        status.termCount++;
+<FONT ID="LN">633 </FONT><A NAME="633"></A>        <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/index/Term.java.html">Term</A> term = termEnum.term();
+<FONT ID="LN">634 </FONT><A NAME="634"></A>        <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> docFreq = termEnum.docFreq();
+<FONT ID="LN">635 </FONT><A NAME="635"></A>        termPositions.seek(term);
+<FONT ID="LN">636 </FONT><A NAME="636"></A>        <FONT ID="Int">int</FONT> lastDoc = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">637 </FONT><A NAME="637"></A>        <FONT ID="Int">int</FONT> freq0 = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">638 </FONT><A NAME="638"></A>        status.totFreq += docFreq;
+<FONT ID="LN">639 </FONT><A NAME="639"></A>        <FONT ID="While">while</FONT> (termPositions.next()) {
+<FONT ID="LN">640 </FONT><A NAME="640"></A>          freq0++;
+<FONT ID="LN">641 </FONT><A NAME="641"></A>          <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> doc = termPositions.doc();
+<FONT ID="LN">642 </FONT><A NAME="642"></A>          <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> freq = termPositions.freq();
+<FONT ID="LN">643 </FONT><A NAME="643"></A>          <FONT ID="If">if</FONT> (doc &lt;= lastDoc)
+<FONT ID="LN">644 </FONT><A NAME="644"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"term "</FONT> + term + <FONT ID="StringLiteral">": doc "</FONT> + doc + <FONT ID="StringLiteral">" &lt;= lastDoc "</FONT> + lastDoc);
+<FONT ID="LN">645 </FONT><A NAME="645"></A>          <FONT ID="If">if</FONT> (doc &gt;= maxDoc)
+<FONT ID="LN">646 </FONT><A NAME="646"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"term "</FONT> + term + <FONT ID="StringLiteral">": doc "</FONT> + doc + <FONT ID="StringLiteral">" &gt;= maxDoc "</FONT> + maxDoc);
+<FONT ID="LN">647 </FONT><A NAME="647"></A>
+<FONT ID="LN">648 </FONT><A NAME="648"></A>          lastDoc = doc;
+<FONT ID="LN">649 </FONT><A NAME="649"></A>          <FONT ID="If">if</FONT> (freq &lt;= <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">650 </FONT><A NAME="650"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"term "</FONT> + term + <FONT ID="StringLiteral">": doc "</FONT> + doc + <FONT ID="StringLiteral">": freq "</FONT> + freq + <FONT ID="StringLiteral">" is out of bounds"</FONT>);
+<FONT ID="LN">651 </FONT><A NAME="651"></A>            
+<FONT ID="LN">652 </FONT><A NAME="652"></A>          <FONT ID="Int">int</FONT> lastPos = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">653 </FONT><A NAME="653"></A>          status.totPos += freq;
+<FONT ID="LN">654 </FONT><A NAME="654"></A>          <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> j=<FONT ID="IntegerLiteral">0</FONT>;j&lt;freq;j++) {
+<FONT ID="LN">655 </FONT><A NAME="655"></A>            <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> pos = termPositions.nextPosition();
+<FONT ID="LN">656 </FONT><A NAME="656"></A>            <FONT ID="If">if</FONT> (pos &lt; -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">657 </FONT><A NAME="657"></A>              <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"term "</FONT> + term + <FONT ID="StringLiteral">": doc "</FONT> + doc + <FONT ID="StringLiteral">": pos "</FONT> + pos + <FONT ID="StringLiteral">" is out of bounds"</FONT>);
+<FONT ID="LN">658 </FONT><A NAME="658"></A>            <FONT ID="If">if</FONT> (pos &lt; lastPos)
+<FONT ID="LN">659 </FONT><A NAME="659"></A>              <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"term "</FONT> + term + <FONT ID="StringLiteral">": doc "</FONT> + doc + <FONT ID="StringLiteral">": pos "</FONT> + pos + <FONT ID="StringLiteral">" &lt; lastPos "</FONT> + lastPos);
+<FONT ID="LN">660 </FONT><A NAME="660"></A>          }
+<FONT ID="LN">661 </FONT><A NAME="661"></A>        }
+<FONT ID="LN">662 </FONT><A NAME="662"></A>
+<FONT ID="LN">663 </FONT><A NAME="663"></A>        <FONT ID="SingleLineComment">// Now count how many deleted docs occurred in
+<FONT ID="LN">664 </FONT><A NAME="664"></A></FONT>        <FONT ID="SingleLineComment">// this term:
+<FONT ID="LN">665 </FONT><A NAME="665"></A></FONT>        <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> delCount;
+<FONT ID="LN">666 </FONT><A NAME="666"></A>        <FONT ID="If">if</FONT> (reader.hasDeletions()) {
+<FONT ID="LN">667 </FONT><A NAME="667"></A>          myTermDocs.seek(term);
+<FONT ID="LN">668 </FONT><A NAME="668"></A>          <FONT ID="While">while</FONT>(myTermDocs.next()) { }
+<FONT ID="LN">669 </FONT><A NAME="669"></A>          delCount = myTermDocs.delCount;
+<FONT ID="LN">670 </FONT><A NAME="670"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">671 </FONT><A NAME="671"></A>          delCount = <FONT ID="IntegerLiteral">0</FONT>; 
+<FONT ID="LN">672 </FONT><A NAME="672"></A>        }
+<FONT ID="LN">673 </FONT><A NAME="673"></A>
+<FONT ID="LN">674 </FONT><A NAME="674"></A>        <FONT ID="If">if</FONT> (freq0 + delCount != docFreq) {
+<FONT ID="LN">675 </FONT><A NAME="675"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"term "</FONT> + term + <FONT ID="StringLiteral">" docFreq="</FONT> + 
+<FONT ID="LN">676 </FONT><A NAME="676"></A>                                     docFreq + <FONT ID="StringLiteral">" != num docs seen "</FONT> + freq0 + <FONT ID="StringLiteral">" + num docs deleted "</FONT> + delCount);
+<FONT ID="LN">677 </FONT><A NAME="677"></A>        }
+<FONT ID="LN">678 </FONT><A NAME="678"></A>      }
+<FONT ID="LN">679 </FONT><A NAME="679"></A>
+<FONT ID="LN">680 </FONT><A NAME="680"></A>      msg(<FONT ID="StringLiteral">"OK ["</FONT> + status.termCount + <FONT ID="StringLiteral">" terms; "</FONT> + status.totFreq + <FONT ID="StringLiteral">" terms/docs pairs; "</FONT> + status.totPos + <FONT ID="StringLiteral">" tokens]"</FONT>);
+<FONT ID="LN">681 </FONT><A NAME="681"></A>
+<FONT ID="LN">682 </FONT><A NAME="682"></A>    } <FONT ID="Catch">catch</FONT> (Throwable e) {
+<FONT ID="LN">683 </FONT><A NAME="683"></A>      msg(<FONT ID="StringLiteral">"ERROR ["</FONT> + String.valueOf(e.getMessage()) + <FONT ID="StringLiteral">"]"</FONT>);
+<FONT ID="LN">684 </FONT><A NAME="684"></A>      status.error = e;
+<FONT ID="LN">685 </FONT><A NAME="685"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">686 </FONT><A NAME="686"></A>        e.printStackTrace(infoStream);
+<FONT ID="LN">687 </FONT><A NAME="687"></A>      }
+<FONT ID="LN">688 </FONT><A NAME="688"></A>    }
+<FONT ID="LN">689 </FONT><A NAME="689"></A>
+<FONT ID="LN">690 </FONT><A NAME="690"></A>    <FONT ID="Return">return</FONT> status;
+<FONT ID="LN">691 </FONT><A NAME="691"></A>  }
+<FONT ID="LN">692 </FONT><A NAME="692"></A>  
+<FONT ID="LN">693 </FONT><A NAME="693"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">694 </FONT><A NAME="694"></A>   * Test stored fields for a segment.
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   */</FONT>
+<FONT ID="LN">696 </FONT><A NAME="696"></A>  <FONT ID="Private">private</FONT> Status.StoredFieldStatus testStoredFields(<A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> info, <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A> reader, NumberFormat format) {
+<FONT ID="LN">697 </FONT><A NAME="697"></A>    <FONT ID="Final">final</FONT> Status.StoredFieldStatus status = <FONT ID="New">new</FONT> Status.StoredFieldStatus();
+<FONT ID="LN">698 </FONT><A NAME="698"></A>
+<FONT ID="LN">699 </FONT><A NAME="699"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">700 </FONT><A NAME="700"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">701 </FONT><A NAME="701"></A>        infoStream.print(<FONT ID="StringLiteral">"    test: stored fields......."</FONT>);
+<FONT ID="LN">702 </FONT><A NAME="702"></A>      }
+<FONT ID="LN">703 </FONT><A NAME="703"></A>
+<FONT ID="LN">704 </FONT><A NAME="704"></A>      <FONT ID="SingleLineComment">// Scan stored fields for all documents
+<FONT ID="LN">705 </FONT><A NAME="705"></A></FONT>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; info.docCount; ++j) {
+<FONT ID="LN">706 </FONT><A NAME="706"></A>        <FONT ID="If">if</FONT> (!reader.isDeleted(j)) {
+<FONT ID="LN">707 </FONT><A NAME="707"></A>          status.docCount++;
+<FONT ID="LN">708 </FONT><A NAME="708"></A>          <A HREF="../../../../org/apache/lucene/document/Document.java.html">Document</A> doc = reader.document(j);
+<FONT ID="LN">709 </FONT><A NAME="709"></A>          status.totFields += doc.getFields().size();
+<FONT ID="LN">710 </FONT><A NAME="710"></A>        }
+<FONT ID="LN">711 </FONT><A NAME="711"></A>      }      
+<FONT ID="LN">712 </FONT><A NAME="712"></A>
+<FONT ID="LN">713 </FONT><A NAME="713"></A>      <FONT ID="SingleLineComment">// Validate docCount
+<FONT ID="LN">714 </FONT><A NAME="714"></A></FONT>      <FONT ID="If">if</FONT> (status.docCount != reader.numDocs()) {
+<FONT ID="LN">715 </FONT><A NAME="715"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"docCount="</FONT> + status.docCount + <FONT ID="StringLiteral">" but saw "</FONT> + status.docCount + <FONT ID="StringLiteral">" undeleted docs"</FONT>);
+<FONT ID="LN">716 </FONT><A NAME="716"></A>      }
+<FONT ID="LN">717 </FONT><A NAME="717"></A>
+<FONT ID="LN">718 </FONT><A NAME="718"></A>      msg(<FONT ID="StringLiteral">"OK ["</FONT> + status.totFields + <FONT ID="StringLiteral">" total field count; avg "</FONT> + 
+<FONT ID="LN">719 </FONT><A NAME="719"></A>          format.format((((<FONT ID="Float">float</FONT>) status.totFields)/status.docCount)) + <FONT ID="StringLiteral">" fields per doc]"</FONT>);      
+<FONT ID="LN">720 </FONT><A NAME="720"></A>    } <FONT ID="Catch">catch</FONT> (Throwable e) {
+<FONT ID="LN">721 </FONT><A NAME="721"></A>      msg(<FONT ID="StringLiteral">"ERROR ["</FONT> + String.valueOf(e.getMessage()) + <FONT ID="StringLiteral">"]"</FONT>);
+<FONT ID="LN">722 </FONT><A NAME="722"></A>      status.error = e;
+<FONT ID="LN">723 </FONT><A NAME="723"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">724 </FONT><A NAME="724"></A>        e.printStackTrace(infoStream);
+<FONT ID="LN">725 </FONT><A NAME="725"></A>      }
+<FONT ID="LN">726 </FONT><A NAME="726"></A>    }
+<FONT ID="LN">727 </FONT><A NAME="727"></A>
+<FONT ID="LN">728 </FONT><A NAME="728"></A>    <FONT ID="Return">return</FONT> status;
+<FONT ID="LN">729 </FONT><A NAME="729"></A>  }
+<FONT ID="LN">730 </FONT><A NAME="730"></A>
+<FONT ID="LN">731 </FONT><A NAME="731"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">732 </FONT><A NAME="732"></A>   * Test term vectors for a segment.
+<FONT ID="LN">733 </FONT><A NAME="733"></A>   */</FONT>
+<FONT ID="LN">734 </FONT><A NAME="734"></A>  <FONT ID="Private">private</FONT> Status.TermVectorStatus testTermVectors(<A HREF="../../../../org/apache/lucene/index/SegmentInfo.java.html">SegmentInfo</A> info, <A HREF="../../../../org/apache/lucene/index/SegmentReader.java.html">SegmentReader</A> reader, NumberFormat format) {
+<FONT ID="LN">735 </FONT><A NAME="735"></A>    <FONT ID="Final">final</FONT> Status.TermVectorStatus status = <FONT ID="New">new</FONT> Status.TermVectorStatus();
+<FONT ID="LN">736 </FONT><A NAME="736"></A>    
+<FONT ID="LN">737 </FONT><A NAME="737"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">738 </FONT><A NAME="738"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">739 </FONT><A NAME="739"></A>        infoStream.print(<FONT ID="StringLiteral">"    test: term vectors........"</FONT>);
+<FONT ID="LN">740 </FONT><A NAME="740"></A>      }
+<FONT ID="LN">741 </FONT><A NAME="741"></A>
+<FONT ID="LN">742 </FONT><A NAME="742"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; info.docCount; ++j) {
+<FONT ID="LN">743 </FONT><A NAME="743"></A>        <FONT ID="If">if</FONT> (!reader.isDeleted(j)) {
+<FONT ID="LN">744 </FONT><A NAME="744"></A>          status.docCount++;
+<FONT ID="LN">745 </FONT><A NAME="745"></A>          <A HREF="../../../../org/apache/lucene/index/TermFreqVector.java.html">TermFreqVector</A>[] tfv = reader.getTermFreqVectors(j);
+<FONT ID="LN">746 </FONT><A NAME="746"></A>          <FONT ID="If">if</FONT> (tfv != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">747 </FONT><A NAME="747"></A>            status.totVectors += tfv.length;
+<FONT ID="LN">748 </FONT><A NAME="748"></A>          }
+<FONT ID="LN">749 </FONT><A NAME="749"></A>        }
+<FONT ID="LN">750 </FONT><A NAME="750"></A>      }
+<FONT ID="LN">751 </FONT><A NAME="751"></A>      
+<FONT ID="LN">752 </FONT><A NAME="752"></A>      msg(<FONT ID="StringLiteral">"OK ["</FONT> + status.totVectors + <FONT ID="StringLiteral">" total vector count; avg "</FONT> + 
+<FONT ID="LN">753 </FONT><A NAME="753"></A>          format.format((((<FONT ID="Float">float</FONT>) status.totVectors) / status.docCount)) + <FONT ID="StringLiteral">" term/freq vector fields per doc]"</FONT>);
+<FONT ID="LN">754 </FONT><A NAME="754"></A>    } <FONT ID="Catch">catch</FONT> (Throwable e) {
+<FONT ID="LN">755 </FONT><A NAME="755"></A>      msg(<FONT ID="StringLiteral">"ERROR ["</FONT> + String.valueOf(e.getMessage()) + <FONT ID="StringLiteral">"]"</FONT>);
+<FONT ID="LN">756 </FONT><A NAME="756"></A>      status.error = e;
+<FONT ID="LN">757 </FONT><A NAME="757"></A>      <FONT ID="If">if</FONT> (infoStream != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">758 </FONT><A NAME="758"></A>        e.printStackTrace(infoStream);
+<FONT ID="LN">759 </FONT><A NAME="759"></A>      }
+<FONT ID="LN">760 </FONT><A NAME="760"></A>    }
+<FONT ID="LN">761 </FONT><A NAME="761"></A>    
+<FONT ID="LN">762 </FONT><A NAME="762"></A>    <FONT ID="Return">return</FONT> status;
+<FONT ID="LN">763 </FONT><A NAME="763"></A>  }
+<FONT ID="LN">764 </FONT><A NAME="764"></A>
+<FONT ID="LN">765 </FONT><A NAME="765"></A>  <FONT ID="FormalComment">/** Repairs the index using previously returned result
+<FONT ID="LN">766 </FONT><A NAME="766"></A>   *  from {@link #checkIndex}.  Note that this does not
+<FONT ID="LN">767 </FONT><A NAME="767"></A>   *  remove any of the unreferenced files after it's done;
+<FONT ID="LN">768 </FONT><A NAME="768"></A>   *  you must separately open an {@link IndexWriter}, which
+<FONT ID="LN">769 </FONT><A NAME="769"></A>   *  deletes unreferenced files when it's created.
+<FONT ID="LN">770 </FONT><A NAME="770"></A>   *
+<FONT ID="LN">771 </FONT><A NAME="771"></A>   * &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: this writes a
+<FONT ID="LN">772 </FONT><A NAME="772"></A>   *  new segments file into the index, effectively removing
+<FONT ID="LN">773 </FONT><A NAME="773"></A>   *  all documents in broken segments from the index.
+<FONT ID="LN">774 </FONT><A NAME="774"></A>   *  BE CAREFUL.
+<FONT ID="LN">775 </FONT><A NAME="775"></A>   *
+<FONT ID="LN">776 </FONT><A NAME="776"></A>   * &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: Make sure you only call this when the
+<FONT ID="LN">777 </FONT><A NAME="777"></A>   *  index is not opened  by any writer. */</FONT>
+<FONT ID="LN">778 </FONT><A NAME="778"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> fixIndex(Status result) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">779 </FONT><A NAME="779"></A>    <FONT ID="If">if</FONT> (result.partial)
+<FONT ID="LN">780 </FONT><A NAME="780"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"can only fix an index that was fully checked (this status checked a subset of segments)"</FONT>);
+<FONT ID="LN">781 </FONT><A NAME="781"></A>    result.newSegments.commit(result.dir);
+<FONT ID="LN">782 </FONT><A NAME="782"></A>  }
+<FONT ID="LN">783 </FONT><A NAME="783"></A>
+<FONT ID="LN">784 </FONT><A NAME="784"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> assertsOn;
+<FONT ID="LN">785 </FONT><A NAME="785"></A>
+<FONT ID="LN">786 </FONT><A NAME="786"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> testAsserts() {
+<FONT ID="LN">787 </FONT><A NAME="787"></A>    assertsOn = <FONT ID="True">true</FONT>;
+<FONT ID="LN">788 </FONT><A NAME="788"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">789 </FONT><A NAME="789"></A>  }
+<FONT ID="LN">790 </FONT><A NAME="790"></A>
+<FONT ID="LN">791 </FONT><A NAME="791"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> assertsOn() {
+<FONT ID="LN">792 </FONT><A NAME="792"></A>    assert testAsserts();
+<FONT ID="LN">793 </FONT><A NAME="793"></A>    <FONT ID="Return">return</FONT> assertsOn;
+<FONT ID="LN">794 </FONT><A NAME="794"></A>  }
+<FONT ID="LN">795 </FONT><A NAME="795"></A>
+<FONT ID="LN">796 </FONT><A NAME="796"></A>  <FONT ID="FormalComment">/** Command-line interface to check and fix an index.
+<FONT ID="LN">797 </FONT><A NAME="797"></A>
+<FONT ID="LN">798 </FONT><A NAME="798"></A>    &lt;p&gt;
+<FONT ID="LN">799 </FONT><A NAME="799"></A>    Run it like this:
+<FONT ID="LN">800 </FONT><A NAME="800"></A>    &lt;pre&gt;
+<FONT ID="LN">801 </FONT><A NAME="801"></A>    java -ea:org.apache.lucene... org.apache.lucene.index.CheckIndex pathToIndex [-fix] [-segment X] [-segment Y]
+<FONT ID="LN">802 </FONT><A NAME="802"></A>    &lt;/pre&gt;
+<FONT ID="LN">803 </FONT><A NAME="803"></A>    &lt;ul&gt;
+<FONT ID="LN">804 </FONT><A NAME="804"></A>    &lt;li&gt;&lt;code&gt;-fix&lt;/code&gt;: actually write a new segments_N file, removing any problematic segments
+<FONT ID="LN">805 </FONT><A NAME="805"></A>
+<FONT ID="LN">806 </FONT><A NAME="806"></A>    &lt;li&gt;&lt;code&gt;-segment X&lt;/code&gt;: only check the specified
+<FONT ID="LN">807 </FONT><A NAME="807"></A>    segment(s).  This can be specified multiple times,
+<FONT ID="LN">808 </FONT><A NAME="808"></A>    to check more than one segment, eg &lt;code&gt;-segment _2
+<FONT ID="LN">809 </FONT><A NAME="809"></A>    -segment _a&lt;/code&gt;.  You can't use this with the -fix
+<FONT ID="LN">810 </FONT><A NAME="810"></A>    option.
+<FONT ID="LN">811 </FONT><A NAME="811"></A>    &lt;/ul&gt;
+<FONT ID="LN">812 </FONT><A NAME="812"></A>
+<FONT ID="LN">813 </FONT><A NAME="813"></A>    &lt;p&gt;&lt;b&gt;WARNING&lt;/b&gt;: &lt;code&gt;-fix&lt;/code&gt; should only be used on an emergency basis as it will cause
+<FONT ID="LN">814 </FONT><A NAME="814"></A>                       documents (perhaps many) to be permanently removed from the index.  Always make
+<FONT ID="LN">815 </FONT><A NAME="815"></A>                       a backup copy of your index before running this!  Do not run this tool on an index
+<FONT ID="LN">816 </FONT><A NAME="816"></A>                       that is actively being written to.  You have been warned!
+<FONT ID="LN">817 </FONT><A NAME="817"></A>
+<FONT ID="LN">818 </FONT><A NAME="818"></A>    &lt;p&gt;                Run without -fix, this tool will open the index, report version information
+<FONT ID="LN">819 </FONT><A NAME="819"></A>                       and report any exceptions it hits and what action it would take if -fix were
+<FONT ID="LN">820 </FONT><A NAME="820"></A>                       specified.  With -fix, this tool will remove any segments that have issues and
+<FONT ID="LN">821 </FONT><A NAME="821"></A>                       write a new segments_N file.  This means all documents contained in the affected
+<FONT ID="LN">822 </FONT><A NAME="822"></A>                       segments will be removed.
+<FONT ID="LN">823 </FONT><A NAME="823"></A>
+<FONT ID="LN">824 </FONT><A NAME="824"></A>    &lt;p&gt;
+<FONT ID="LN">825 </FONT><A NAME="825"></A>                       This tool exits with exit code 1 if the index cannot be opened or has any
+<FONT ID="LN">826 </FONT><A NAME="826"></A>                       corruption, else 0.
+<FONT ID="LN">827 </FONT><A NAME="827"></A>   */</FONT>
+<FONT ID="LN">828 </FONT><A NAME="828"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args) <FONT ID="Throws">throws</FONT> IOException, InterruptedException {
+<FONT ID="LN">829 </FONT><A NAME="829"></A>
+<FONT ID="LN">830 </FONT><A NAME="830"></A>    <FONT ID="Boolean">boolean</FONT> doFix = <FONT ID="False">false</FONT>;
+<FONT ID="LN">831 </FONT><A NAME="831"></A>    List onlySegments = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">832 </FONT><A NAME="832"></A>    String indexPath = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">833 </FONT><A NAME="833"></A>    <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">834 </FONT><A NAME="834"></A>    <FONT ID="While">while</FONT>(i &lt; args.length) {
+<FONT ID="LN">835 </FONT><A NAME="835"></A>      <FONT ID="If">if</FONT> (args[i].equals(<FONT ID="StringLiteral">"-fix"</FONT>)) {
+<FONT ID="LN">836 </FONT><A NAME="836"></A>        doFix = <FONT ID="True">true</FONT>;
+<FONT ID="LN">837 </FONT><A NAME="837"></A>        i++;
+<FONT ID="LN">838 </FONT><A NAME="838"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (args[i].equals(<FONT ID="StringLiteral">"-segment"</FONT>)) {
+<FONT ID="LN">839 </FONT><A NAME="839"></A>        <FONT ID="If">if</FONT> (i == args.length-<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">840 </FONT><A NAME="840"></A>          System.out.println(<FONT ID="StringLiteral">"ERROR: missing name for -segment option"</FONT>);
+<FONT ID="LN">841 </FONT><A NAME="841"></A>          System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">842 </FONT><A NAME="842"></A>        }
+<FONT ID="LN">843 </FONT><A NAME="843"></A>        onlySegments.add(args[i+<FONT ID="IntegerLiteral">1</FONT>]);
+<FONT ID="LN">844 </FONT><A NAME="844"></A>        i += <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">845 </FONT><A NAME="845"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">846 </FONT><A NAME="846"></A>        <FONT ID="If">if</FONT> (indexPath != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">847 </FONT><A NAME="847"></A>          System.out.println(<FONT ID="StringLiteral">"ERROR: unexpected extra argument '"</FONT> + args[i] + <FONT ID="StringLiteral">"'"</FONT>);
+<FONT ID="LN">848 </FONT><A NAME="848"></A>          System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">849 </FONT><A NAME="849"></A>        }
+<FONT ID="LN">850 </FONT><A NAME="850"></A>        indexPath = args[i];
+<FONT ID="LN">851 </FONT><A NAME="851"></A>        i++;
+<FONT ID="LN">852 </FONT><A NAME="852"></A>      }
+<FONT ID="LN">853 </FONT><A NAME="853"></A>    }
+<FONT ID="LN">854 </FONT><A NAME="854"></A>
+<FONT ID="LN">855 </FONT><A NAME="855"></A>    <FONT ID="If">if</FONT> (indexPath == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">856 </FONT><A NAME="856"></A>      System.out.println(<FONT ID="StringLiteral">"\nERROR: index path not specified"</FONT>);
+<FONT ID="LN">857 </FONT><A NAME="857"></A>      System.out.println(<FONT ID="StringLiteral">"\nUsage: java org.apache.lucene.index.CheckIndex pathToIndex [-fix] [-segment X] [-segment Y]\n"</FONT> +
+<FONT ID="LN">858 </FONT><A NAME="858"></A>                         <FONT ID="StringLiteral">"\n"</FONT> +
+<FONT ID="LN">859 </FONT><A NAME="859"></A>                         <FONT ID="StringLiteral">"  -fix: actually write a new segments_N file, removing any problematic segments\n"</FONT> +
+<FONT ID="LN">860 </FONT><A NAME="860"></A>                         <FONT ID="StringLiteral">"  -segment X: only check the specified segments.  This can be specified multiple\n"</FONT> + 
+<FONT ID="LN">861 </FONT><A NAME="861"></A>                         <FONT ID="StringLiteral">"              times, to check more than one segment, eg '-segment _2 -segment _a'.\n"</FONT> +
+<FONT ID="LN">862 </FONT><A NAME="862"></A>                         <FONT ID="StringLiteral">"              You can't use this with the -fix option\n"</FONT> +
+<FONT ID="LN">863 </FONT><A NAME="863"></A>                         <FONT ID="StringLiteral">"\n"</FONT> + 
+<FONT ID="LN">864 </FONT><A NAME="864"></A>                         <FONT ID="StringLiteral">"**WARNING**: -fix should only be used on an emergency basis as it will cause\n"</FONT> +
+<FONT ID="LN">865 </FONT><A NAME="865"></A>                         <FONT ID="StringLiteral">"documents (perhaps many) to be permanently removed from the index.  Always make\n"</FONT> +
+<FONT ID="LN">866 </FONT><A NAME="866"></A>                         <FONT ID="StringLiteral">"a backup copy of your index before running this!  Do not run this tool on an index\n"</FONT> +
+<FONT ID="LN">867 </FONT><A NAME="867"></A>                         <FONT ID="StringLiteral">"that is actively being written to.  You have been warned!\n"</FONT> +
+<FONT ID="LN">868 </FONT><A NAME="868"></A>                         <FONT ID="StringLiteral">"\n"</FONT> +
+<FONT ID="LN">869 </FONT><A NAME="869"></A>                         <FONT ID="StringLiteral">"Run without -fix, this tool will open the index, report version information\n"</FONT> +
+<FONT ID="LN">870 </FONT><A NAME="870"></A>                         <FONT ID="StringLiteral">"and report any exceptions it hits and what action it would take if -fix were\n"</FONT> +
+<FONT ID="LN">871 </FONT><A NAME="871"></A>                         <FONT ID="StringLiteral">"specified.  With -fix, this tool will remove any segments that have issues and\n"</FONT> + 
+<FONT ID="LN">872 </FONT><A NAME="872"></A>                         <FONT ID="StringLiteral">"write a new segments_N file.  This means all documents contained in the affected\n"</FONT> +
+<FONT ID="LN">873 </FONT><A NAME="873"></A>                         <FONT ID="StringLiteral">"segments will be removed.\n"</FONT> +
+<FONT ID="LN">874 </FONT><A NAME="874"></A>                         <FONT ID="StringLiteral">"\n"</FONT> +
+<FONT ID="LN">875 </FONT><A NAME="875"></A>                         <FONT ID="StringLiteral">"This tool exits with exit code 1 if the index cannot be opened or has any\n"</FONT> +
+<FONT ID="LN">876 </FONT><A NAME="876"></A>                         <FONT ID="StringLiteral">"corruption, else 0.\n"</FONT>);
+<FONT ID="LN">877 </FONT><A NAME="877"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">878 </FONT><A NAME="878"></A>    }
+<FONT ID="LN">879 </FONT><A NAME="879"></A>
+<FONT ID="LN">880 </FONT><A NAME="880"></A>    <FONT ID="If">if</FONT> (!assertsOn())
+<FONT ID="LN">881 </FONT><A NAME="881"></A>      System.out.println(<FONT ID="StringLiteral">"\nNOTE: testing will be more thorough if you run java with '-ea:org.apache.lucene...', so assertions are enabled"</FONT>);
+<FONT ID="LN">882 </FONT><A NAME="882"></A>
+<FONT ID="LN">883 </FONT><A NAME="883"></A>    <FONT ID="If">if</FONT> (onlySegments.size() == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">884 </FONT><A NAME="884"></A>      onlySegments = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">885 </FONT><A NAME="885"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (doFix) {
+<FONT ID="LN">886 </FONT><A NAME="886"></A>      System.out.println(<FONT ID="StringLiteral">"ERROR: cannot specify both -fix and -segment"</FONT>);
+<FONT ID="LN">887 </FONT><A NAME="887"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">888 </FONT><A NAME="888"></A>    }
+<FONT ID="LN">889 </FONT><A NAME="889"></A>
+<FONT ID="LN">890 </FONT><A NAME="890"></A>    System.out.println(<FONT ID="StringLiteral">"\nOpening index @ "</FONT> + indexPath + <FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">891 </FONT><A NAME="891"></A>    <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">Directory</A> dir = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">892 </FONT><A NAME="892"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">893 </FONT><A NAME="893"></A>      dir = FSDirectory.open(<FONT ID="New">new</FONT> File(indexPath));
+<FONT ID="LN">894 </FONT><A NAME="894"></A>    } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">895 </FONT><A NAME="895"></A>      System.out.println(<FONT ID="StringLiteral">"ERROR: could not open directory \""</FONT> + indexPath + <FONT ID="StringLiteral">"\"; exiting"</FONT>);
+<FONT ID="LN">896 </FONT><A NAME="896"></A>      t.printStackTrace(System.out);
+<FONT ID="LN">897 </FONT><A NAME="897"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">898 </FONT><A NAME="898"></A>    }
+<FONT ID="LN">899 </FONT><A NAME="899"></A>
+<FONT ID="LN">900 </FONT><A NAME="900"></A>    <A HREF="../../../../org/apache/lucene/index/CheckIndex.java.html">CheckIndex</A> checker = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/index/CheckIndex.java.html">CheckIndex</A>(dir);
+<FONT ID="LN">901 </FONT><A NAME="901"></A>    checker.setInfoStream(System.out);
+<FONT ID="LN">902 </FONT><A NAME="902"></A>
+<FONT ID="LN">903 </FONT><A NAME="903"></A>    Status result = checker.checkIndex(onlySegments);
+<FONT ID="LN">904 </FONT><A NAME="904"></A>    <FONT ID="If">if</FONT> (result.missingSegments) {
+<FONT ID="LN">905 </FONT><A NAME="905"></A>      System.exit(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">906 </FONT><A NAME="906"></A>    }
+<FONT ID="LN">907 </FONT><A NAME="907"></A>
+<FONT ID="LN">908 </FONT><A NAME="908"></A>    <FONT ID="If">if</FONT> (!result.clean) {
+<FONT ID="LN">909 </FONT><A NAME="909"></A>      <FONT ID="If">if</FONT> (!doFix) {
+<FONT ID="LN">910 </FONT><A NAME="910"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: would write new segments file, and "</FONT> + result.totLoseDocCount + <FONT ID="StringLiteral">" documents would be lost, if -fix were specified\n"</FONT>);
+<FONT ID="LN">911 </FONT><A NAME="911"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">912 </FONT><A NAME="912"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: "</FONT> + result.totLoseDocCount + <FONT ID="StringLiteral">" documents will be lost\n"</FONT>);
+<FONT ID="LN">913 </FONT><A NAME="913"></A>        System.out.println(<FONT ID="StringLiteral">"NOTE: will write new segments file in 5 seconds; this will remove "</FONT> + result.totLoseDocCount + <FONT ID="StringLiteral">" docs from the index. THIS IS YOUR LAST CHANCE TO CTRL+C!"</FONT>);
+<FONT ID="LN">914 </FONT><A NAME="914"></A>        <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> s=<FONT ID="IntegerLiteral">0</FONT>;s&lt;<FONT ID="IntegerLiteral">5</FONT>;s++) {
+<FONT ID="LN">915 </FONT><A NAME="915"></A>          Thread.sleep(<FONT ID="IntegerLiteral">1000</FONT>);
+<FONT ID="LN">916 </FONT><A NAME="916"></A>          System.out.println(<FONT ID="StringLiteral">"  "</FONT> + (<FONT ID="IntegerLiteral">5</FONT>-s) + <FONT ID="StringLiteral">"..."</FONT>);
+<FONT ID="LN">917 </FONT><A NAME="917"></A>        }
+<FONT ID="LN">918 </FONT><A NAME="918"></A>        System.out.println(<FONT ID="StringLiteral">"Writing..."</FONT>);
+<FONT ID="LN">919 </FONT><A NAME="919"></A>        checker.fixIndex(result);
+<FONT ID="LN">920 </FONT><A NAME="920"></A>        System.out.println(<FONT ID="StringLiteral">"OK"</FONT>);
+<FONT ID="LN">921 </FONT><A NAME="921"></A>        System.out.println(<FONT ID="StringLiteral">"Wrote new segments file \""</FONT> + result.newSegments.getCurrentSegmentFileName() + <FONT ID="StringLiteral">"\""</FONT>);
+<FONT ID="LN">922 </FONT><A NAME="922"></A>      }
+<FONT ID="LN">923 </FONT><A NAME="923"></A>    }
+<FONT ID="LN">924 </FONT><A NAME="924"></A>    System.out.println(<FONT ID="StringLiteral">""</FONT>);
+<FONT ID="LN">925 </FONT><A NAME="925"></A>
+<FONT ID="LN">926 </FONT><A NAME="926"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> exitCode;
+<FONT ID="LN">927 </FONT><A NAME="927"></A>    <FONT ID="If">if</FONT> (result != <FONT ID="Null">null</FONT> &amp;&amp; result.clean == <FONT ID="True">true</FONT>)
+<FONT ID="LN">928 </FONT><A NAME="928"></A>      exitCode = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">929 </FONT><A NAME="929"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">930 </FONT><A NAME="930"></A>      exitCode = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">931 </FONT><A NAME="931"></A>    System.exit(exitCode);
+<FONT ID="LN">932 </FONT><A NAME="932"></A>  }
+<FONT ID="LN">933 </FONT><A NAME="933"></A>}
+<FONT ID="LN">934 </FONT><A NAME="934"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CheckIndex.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

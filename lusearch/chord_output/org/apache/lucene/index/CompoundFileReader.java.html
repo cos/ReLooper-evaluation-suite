@@ -1,0 +1,297 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.index.CompoundFileReader (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CompoundFileReader.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.index;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">org.apache.lucene.store.Directory</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">org.apache.lucene.store.IndexInput</A>;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/BufferedIndexInput.java.html">org.apache.lucene.store.BufferedIndexInput</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">org.apache.lucene.store.IndexOutput</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/store/Lock.java.html">org.apache.lucene.store.Lock</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.util.HashMap;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * Class for accessing a compound stream.
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * This class implements a directory, but is limited to only read operations.
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * Directory methods that would normally modify data throw an exception.
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *
+<FONT ID="LN">35  </FONT><A NAME="35"></A> *
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * @version $Id: CompoundFileReader.java 673371 2008-07-02 11:57:27Z mikemccand $
+<FONT ID="LN">37  </FONT><A NAME="37"></A> */</FONT>
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Class">class</FONT> CompoundFileReader <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> readBufferSize;
+<FONT ID="LN">41  </FONT><A NAME="41"></A>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> FileEntry {
+<FONT ID="LN">43  </FONT><A NAME="43"></A>        <FONT ID="Long">long</FONT> offset;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>        <FONT ID="Long">long</FONT> length;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    }
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="SingleLineComment">// Base info
+<FONT ID="LN">49  </FONT><A NAME="49"></A></FONT>    <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> directory;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="Private">private</FONT> String fileName;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> stream;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="Private">private</FONT> HashMap entries = <FONT ID="New">new</FONT> HashMap();
+<FONT ID="LN">54  </FONT><A NAME="54"></A>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Public">public</FONT> CompoundFileReader(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir, String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="This">this</FONT>(dir, name, BufferedIndexInput.BUFFER_SIZE);
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  }
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="Public">public</FONT> CompoundFileReader(<A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> dir, String name, <FONT ID="Int">int</FONT> readBufferSize)
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    {
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        directory = dir;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>        fileName = name;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>        <FONT ID="This">this</FONT>.readBufferSize = readBufferSize;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>        <FONT ID="Boolean">boolean</FONT> success = <FONT ID="False">false</FONT>;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">70  </FONT><A NAME="70"></A>            stream = dir.openInput(name, readBufferSize);
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>            <FONT ID="SingleLineComment">// read the directory and init files
+<FONT ID="LN">73  </FONT><A NAME="73"></A></FONT>            <FONT ID="Int">int</FONT> count = stream.readVInt();
+<FONT ID="LN">74  </FONT><A NAME="74"></A>            FileEntry entry = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>            <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>; i&lt;count; i++) {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>                <FONT ID="Long">long</FONT> offset = stream.readLong();
+<FONT ID="LN">77  </FONT><A NAME="77"></A>                String id = stream.readString();
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>                <FONT ID="If">if</FONT> (entry != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">80  </FONT><A NAME="80"></A>                    <FONT ID="SingleLineComment">// set length of the previous entry
+<FONT ID="LN">81  </FONT><A NAME="81"></A></FONT>                    entry.length = offset - entry.offset;
+<FONT ID="LN">82  </FONT><A NAME="82"></A>                }
+<FONT ID="LN">83  </FONT><A NAME="83"></A>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>                entry = <FONT ID="New">new</FONT> FileEntry();
+<FONT ID="LN">85  </FONT><A NAME="85"></A>                entry.offset = offset;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>                entries.put(id, entry);
+<FONT ID="LN">87  </FONT><A NAME="87"></A>            }
+<FONT ID="LN">88  </FONT><A NAME="88"></A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>            <FONT ID="SingleLineComment">// set the length of the final entry
+<FONT ID="LN">90  </FONT><A NAME="90"></A></FONT>            <FONT ID="If">if</FONT> (entry != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">91  </FONT><A NAME="91"></A>                entry.length = stream.length() - entry.offset;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>            }
+<FONT ID="LN">93  </FONT><A NAME="93"></A>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>            success = <FONT ID="True">true</FONT>;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>        } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>            <FONT ID="If">if</FONT> (! success &amp;&amp; (stream != <FONT ID="Null">null</FONT>)) {
+<FONT ID="LN">98  </FONT><A NAME="98"></A>                <FONT ID="Try">try</FONT> {
+<FONT ID="LN">99  </FONT><A NAME="99"></A>                    stream.close();
+<FONT ID="LN">100 </FONT><A NAME="100"></A>                } <FONT ID="Catch">catch</FONT> (IOException e) { }
+<FONT ID="LN">101 </FONT><A NAME="101"></A>            }
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        }
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> getDirectory() {
+<FONT ID="LN">106 </FONT><A NAME="106"></A>        <FONT ID="Return">return</FONT> directory;
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="Public">public</FONT> String getName() {
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        <FONT ID="Return">return</FONT> fileName;
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    }
+<FONT ID="LN">112 </FONT><A NAME="112"></A>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> close() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">114 </FONT><A NAME="114"></A>        <FONT ID="If">if</FONT> (stream == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">115 </FONT><A NAME="115"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Already closed"</FONT>);
+<FONT ID="LN">116 </FONT><A NAME="116"></A>
+<FONT ID="LN">117 </FONT><A NAME="117"></A>        entries.clear();
+<FONT ID="LN">118 </FONT><A NAME="118"></A>        stream.close();
+<FONT ID="LN">119 </FONT><A NAME="119"></A>        stream = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> openInput(String id)
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    {
+<FONT ID="LN">125 </FONT><A NAME="125"></A>      <FONT ID="SingleLineComment">// Default to readBufferSize passed in when we were opened
+<FONT ID="LN">126 </FONT><A NAME="126"></A></FONT>      <FONT ID="Return">return</FONT> openInput(id, readBufferSize);
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    }
+<FONT ID="LN">128 </FONT><A NAME="128"></A>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> openInput(String id, <FONT ID="Int">int</FONT> readBufferSize)
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    {
+<FONT ID="LN">132 </FONT><A NAME="132"></A>        <FONT ID="If">if</FONT> (stream == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">133 </FONT><A NAME="133"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Stream closed"</FONT>);
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        FileEntry entry = (FileEntry) entries.get(id);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>        <FONT ID="If">if</FONT> (entry == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">137 </FONT><A NAME="137"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"No sub-file with id "</FONT> + id + <FONT ID="StringLiteral">" found"</FONT>);
+<FONT ID="LN">138 </FONT><A NAME="138"></A>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>        <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> CSIndexInput(stream, entry.offset, entry.length, readBufferSize);
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    }
+<FONT ID="LN">141 </FONT><A NAME="141"></A>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    <FONT ID="FormalComment">/** Returns an array of strings, one for each file in the directory. */</FONT>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    <FONT ID="Public">public</FONT> String[] list() {
+<FONT ID="LN">144 </FONT><A NAME="144"></A>        String res[] = <FONT ID="New">new</FONT> String[entries.size()];
+<FONT ID="LN">145 </FONT><A NAME="145"></A>        <FONT ID="Return">return</FONT> (String[]) entries.keySet().toArray(res);
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    }
+<FONT ID="LN">147 </FONT><A NAME="147"></A>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    <FONT ID="FormalComment">/** Returns true iff a file with the given name exists. */</FONT>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> fileExists(String name) {
+<FONT ID="LN">150 </FONT><A NAME="150"></A>        <FONT ID="Return">return</FONT> entries.containsKey(name);
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    }
+<FONT ID="LN">152 </FONT><A NAME="152"></A>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    <FONT ID="FormalComment">/** Returns the time the compound file was last modified. */</FONT>
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> fileModified(String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">155 </FONT><A NAME="155"></A>        <FONT ID="Return">return</FONT> directory.fileModified(fileName);
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    }
+<FONT ID="LN">157 </FONT><A NAME="157"></A>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="FormalComment">/** Set the modified time of the compound file to now. */</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> touchFile(String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">160 </FONT><A NAME="160"></A>        directory.touchFile(fileName);
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    }
+<FONT ID="LN">162 </FONT><A NAME="162"></A>
+<FONT ID="LN">163 </FONT><A NAME="163"></A>    <FONT ID="FormalComment">/** Not implemented
+<FONT ID="LN">164 </FONT><A NAME="164"></A>     * @throws UnsupportedOperationException */</FONT>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> deleteFile(String name)
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    {
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException();
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    }
+<FONT ID="LN">169 </FONT><A NAME="169"></A>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    <FONT ID="FormalComment">/** Not implemented
+<FONT ID="LN">171 </FONT><A NAME="171"></A>     * @throws UnsupportedOperationException */</FONT>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> renameFile(String from, String to)
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    {
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException();
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="FormalComment">/** Returns the length of a file in the directory.
+<FONT ID="LN">178 </FONT><A NAME="178"></A>     * @throws IOException if the file does not exist */</FONT>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> fileLength(String name)
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    {
+<FONT ID="LN">182 </FONT><A NAME="182"></A>        FileEntry e = (FileEntry) entries.get(name);
+<FONT ID="LN">183 </FONT><A NAME="183"></A>        <FONT ID="If">if</FONT> (e == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">184 </FONT><A NAME="184"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"File "</FONT> + name + <FONT ID="StringLiteral">" does not exist"</FONT>);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>        <FONT ID="Return">return</FONT> e.length;
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    <FONT ID="FormalComment">/** Not implemented
+<FONT ID="LN">189 </FONT><A NAME="189"></A>     * @throws UnsupportedOperationException */</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">IndexOutput</A> createOutput(String name)
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    {
+<FONT ID="LN">192 </FONT><A NAME="192"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException();
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    }
+<FONT ID="LN">194 </FONT><A NAME="194"></A>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    <FONT ID="FormalComment">/** Not implemented
+<FONT ID="LN">196 </FONT><A NAME="196"></A>     * @throws UnsupportedOperationException */</FONT>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/Lock.java.html">Lock</A> makeLock(String name)
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    {
+<FONT ID="LN">199 </FONT><A NAME="199"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> UnsupportedOperationException();
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    }
+<FONT ID="LN">201 </FONT><A NAME="201"></A>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    <FONT ID="FormalComment">/** Implementation of an IndexInput that reads from a portion of the
+<FONT ID="LN">203 </FONT><A NAME="203"></A>     *  compound file. The visibility is left as "package" *only* because
+<FONT ID="LN">204 </FONT><A NAME="204"></A>     *  this helps with testing since JUnit test cases in a different class
+<FONT ID="LN">205 </FONT><A NAME="205"></A>     *  can then access package fields of this class.
+<FONT ID="LN">206 </FONT><A NAME="206"></A>     */</FONT>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> CSIndexInput <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/store/BufferedIndexInput.java.html">BufferedIndexInput</A> {
+<FONT ID="LN">208 </FONT><A NAME="208"></A>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>        <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> base;
+<FONT ID="LN">210 </FONT><A NAME="210"></A>        <FONT ID="Long">long</FONT> fileOffset;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>        <FONT ID="Long">long</FONT> length;
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>        CSIndexInput(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> base, <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> fileOffset, <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> length)
+<FONT ID="LN">214 </FONT><A NAME="214"></A>        {
+<FONT ID="LN">215 </FONT><A NAME="215"></A>            <FONT ID="This">this</FONT>(base, fileOffset, length, BufferedIndexInput.BUFFER_SIZE);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>        }
+<FONT ID="LN">217 </FONT><A NAME="217"></A>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>        CSIndexInput(<FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> base, <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> fileOffset, <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> length, <FONT ID="Int">int</FONT> readBufferSize)
+<FONT ID="LN">219 </FONT><A NAME="219"></A>        {
+<FONT ID="LN">220 </FONT><A NAME="220"></A>            <FONT ID="Super">super</FONT>(readBufferSize);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>            <FONT ID="This">this</FONT>.base = (<A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A>)base.clone();
+<FONT ID="LN">222 </FONT><A NAME="222"></A>            <FONT ID="This">this</FONT>.fileOffset = fileOffset;
+<FONT ID="LN">223 </FONT><A NAME="223"></A>            <FONT ID="This">this</FONT>.length = length;
+<FONT ID="LN">224 </FONT><A NAME="224"></A>        }
+<FONT ID="LN">225 </FONT><A NAME="225"></A>        
+<FONT ID="LN">226 </FONT><A NAME="226"></A>        <FONT ID="Public">public</FONT> Object clone() {
+<FONT ID="LN">227 </FONT><A NAME="227"></A>          CSIndexInput clone = (CSIndexInput)<FONT ID="Super">super</FONT>.clone();
+<FONT ID="LN">228 </FONT><A NAME="228"></A>          clone.base = (<A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A>)base.clone();
+<FONT ID="LN">229 </FONT><A NAME="229"></A>          clone.fileOffset = fileOffset;
+<FONT ID="LN">230 </FONT><A NAME="230"></A>          clone.length = length;
+<FONT ID="LN">231 </FONT><A NAME="231"></A>          <FONT ID="Return">return</FONT> clone;
+<FONT ID="LN">232 </FONT><A NAME="232"></A>        }
+<FONT ID="LN">233 </FONT><A NAME="233"></A>        
+<FONT ID="LN">234 </FONT><A NAME="234"></A>        <FONT ID="FormalComment">/** Expert: implements buffer refill.  Reads bytes from the current
+<FONT ID="LN">235 </FONT><A NAME="235"></A>         *  position in the input.
+<FONT ID="LN">236 </FONT><A NAME="236"></A>         * @param b the array to read bytes into
+<FONT ID="LN">237 </FONT><A NAME="237"></A>         * @param offset the offset in the array to start storing bytes
+<FONT ID="LN">238 </FONT><A NAME="238"></A>         * @param len the number of bytes to read
+<FONT ID="LN">239 </FONT><A NAME="239"></A>         */</FONT>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>        <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> readInternal(<FONT ID="Byte">byte</FONT>[] b, <FONT ID="Int">int</FONT> offset, <FONT ID="Int">int</FONT> len)
+<FONT ID="LN">241 </FONT><A NAME="241"></A>        <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">242 </FONT><A NAME="242"></A>        {
+<FONT ID="LN">243 </FONT><A NAME="243"></A>          <FONT ID="Long">long</FONT> start = getFilePointer();
+<FONT ID="LN">244 </FONT><A NAME="244"></A>          <FONT ID="If">if</FONT>(start + len &gt; length)
+<FONT ID="LN">245 </FONT><A NAME="245"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"read past EOF"</FONT>);
+<FONT ID="LN">246 </FONT><A NAME="246"></A>          base.seek(fileOffset + start);
+<FONT ID="LN">247 </FONT><A NAME="247"></A>          base.readBytes(b, offset, len, <FONT ID="False">false</FONT>);
+<FONT ID="LN">248 </FONT><A NAME="248"></A>        }
+<FONT ID="LN">249 </FONT><A NAME="249"></A>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>        <FONT ID="FormalComment">/** Expert: implements seek.  Sets current position in this file, where
+<FONT ID="LN">251 </FONT><A NAME="251"></A>         *  the next {@link #readInternal(byte[],int,int)} will occur.
+<FONT ID="LN">252 </FONT><A NAME="252"></A>         * @see #readInternal(byte[],int,int)
+<FONT ID="LN">253 </FONT><A NAME="253"></A>         */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>        <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> seekInternal(<FONT ID="Long">long</FONT> pos) {}
+<FONT ID="LN">255 </FONT><A NAME="255"></A>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>        <FONT ID="FormalComment">/** Closes the stream to further operations. */</FONT>
+<FONT ID="LN">257 </FONT><A NAME="257"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> close() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">258 </FONT><A NAME="258"></A>          base.close();
+<FONT ID="LN">259 </FONT><A NAME="259"></A>        }
+<FONT ID="LN">260 </FONT><A NAME="260"></A>
+<FONT ID="LN">261 </FONT><A NAME="261"></A>        <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> length() {
+<FONT ID="LN">262 </FONT><A NAME="262"></A>          <FONT ID="Return">return</FONT> length;
+<FONT ID="LN">263 </FONT><A NAME="263"></A>        }
+<FONT ID="LN">264 </FONT><A NAME="264"></A>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    }
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    
+<FONT ID="LN">268 </FONT><A NAME="268"></A>}
+<FONT ID="LN">269 </FONT><A NAME="269"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CompoundFileReader.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

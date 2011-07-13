@@ -1,0 +1,867 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.store.FSDirectory (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FSDirectory.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.store;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Licensed to the Apache Software Foundation (ASF) under one or more
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * contributor license agreements.  See the NOTICE file distributed with
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * this work for additional information regarding copyright ownership.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The ASF licenses this file to You under the Apache License, Version 2.0
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * (the "License"); you may not use this file except in compliance with
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * the License.  You may obtain a copy of the License at
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * limitations under the License.
+<FONT ID="LN">18  </FONT><A NAME="18"></A> */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.io.FilenameFilter;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.io.FileInputStream;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> java.io.FileOutputStream;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.io.RandomAccessFile;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.security.MessageDigest;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.security.NoSuchAlgorithmException;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.util.HashMap;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.util.Map;
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/IndexFileNameFilter.java.html">org.apache.lucene.index.IndexFileNameFilter</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/util/Constants.java.html">org.apache.lucene.util.Constants</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="SingleLineComment">// Used only for WRITE_LOCK_NAME in deprecated create=true case:
+<FONT ID="LN">35  </FONT><A NAME="35"></A></FONT><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/IndexWriter.java.html">org.apache.lucene.index.IndexWriter</A>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * &lt;a name="subclasses"/&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * Base class for Directory implementations that store index
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * files in the file system.  There are currently three core
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * subclasses:
+<FONT ID="LN">42  </FONT><A NAME="42"></A> *
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * &lt;ul&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A> *
+<FONT ID="LN">45  </FONT><A NAME="45"></A> *  &lt;li&gt; {@link SimpleFSDirectory} is a straightforward
+<FONT ID="LN">46  </FONT><A NAME="46"></A> *       implementation using java.io.RandomAccessFile.
+<FONT ID="LN">47  </FONT><A NAME="47"></A> *       However, it has poor concurrent performance
+<FONT ID="LN">48  </FONT><A NAME="48"></A> *       (multiple threads will bottleneck) as it
+<FONT ID="LN">49  </FONT><A NAME="49"></A> *       synchronizes when multiple threads read from the
+<FONT ID="LN">50  </FONT><A NAME="50"></A> *       same file.
+<FONT ID="LN">51  </FONT><A NAME="51"></A> *
+<FONT ID="LN">52  </FONT><A NAME="52"></A> *  &lt;li&gt; {@link NIOFSDirectory} uses java.nio's
+<FONT ID="LN">53  </FONT><A NAME="53"></A> *       FileChannel's positional io when reading to avoid
+<FONT ID="LN">54  </FONT><A NAME="54"></A> *       synchronization when reading from the same file.
+<FONT ID="LN">55  </FONT><A NAME="55"></A> *       Unfortunately, due to a Windows-only &lt;a
+<FONT ID="LN">56  </FONT><A NAME="56"></A> *       href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6265734"&gt;Sun
+<FONT ID="LN">57  </FONT><A NAME="57"></A> *       JRE bug&lt;/a&gt; this is a poor choice for Windows, but
+<FONT ID="LN">58  </FONT><A NAME="58"></A> *       on all other platforms this is the preferred
+<FONT ID="LN">59  </FONT><A NAME="59"></A> *       choice.
+<FONT ID="LN">60  </FONT><A NAME="60"></A> *
+<FONT ID="LN">61  </FONT><A NAME="61"></A> *  &lt;li&gt; {@link MMapDirectory} uses memory-mapped IO when
+<FONT ID="LN">62  </FONT><A NAME="62"></A> *       reading. This is a good choice if you have plenty
+<FONT ID="LN">63  </FONT><A NAME="63"></A> *       of virtual memory relative to your index size, eg
+<FONT ID="LN">64  </FONT><A NAME="64"></A> *       if you are running on a 64 bit JRE, or you are
+<FONT ID="LN">65  </FONT><A NAME="65"></A> *       running on a 32 bit JRE but your index sizes are
+<FONT ID="LN">66  </FONT><A NAME="66"></A> *       small enough to fit into the virtual memory space.
+<FONT ID="LN">67  </FONT><A NAME="67"></A> *       Java has currently the limitation of not being able to
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *       unmap files from user code. The files are unmapped, when GC
+<FONT ID="LN">69  </FONT><A NAME="69"></A> *       releases the byte buffers. Due to
+<FONT ID="LN">70  </FONT><A NAME="70"></A> *       &lt;a href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4724038"&gt;
+<FONT ID="LN">71  </FONT><A NAME="71"></A> *       this bug&lt;/a&gt; in Sun's JRE, MMapDirectory's {@link IndexInput#close}
+<FONT ID="LN">72  </FONT><A NAME="72"></A> *       is unable to close the underlying OS file handle. Only when
+<FONT ID="LN">73  </FONT><A NAME="73"></A> *       GC finally collects the underlying objects, which could be
+<FONT ID="LN">74  </FONT><A NAME="74"></A> *       quite some time later, will the file handle be closed.
+<FONT ID="LN">75  </FONT><A NAME="75"></A> *       This will consume additional transient disk usage: on Windows,
+<FONT ID="LN">76  </FONT><A NAME="76"></A> *       attempts to delete or overwrite the files will result in an
+<FONT ID="LN">77  </FONT><A NAME="77"></A> *       exception; on other platforms, which typically have a &amp;quot;delete on
+<FONT ID="LN">78  </FONT><A NAME="78"></A> *       last close&amp;quot; semantics, while such operations will succeed, the bytes
+<FONT ID="LN">79  </FONT><A NAME="79"></A> *       are still consuming space on disk.  For many applications this
+<FONT ID="LN">80  </FONT><A NAME="80"></A> *       limitation is not a problem (e.g. if you have plenty of disk space,
+<FONT ID="LN">81  </FONT><A NAME="81"></A> *       and you don't rely on overwriting files on Windows) but it's still
+<FONT ID="LN">82  </FONT><A NAME="82"></A> *       an important limitation to be aware of. This class supplies a
+<FONT ID="LN">83  </FONT><A NAME="83"></A> *       (possibly dangerous) workaround mentioned in the bug report,
+<FONT ID="LN">84  </FONT><A NAME="84"></A> *       which may fail on non-Sun JVMs.
+<FONT ID="LN">85  </FONT><A NAME="85"></A> * &lt;/ul&gt;
+<FONT ID="LN">86  </FONT><A NAME="86"></A> *
+<FONT ID="LN">87  </FONT><A NAME="87"></A> * Unfortunately, because of system peculiarities, there is
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * no single overall best implementation.  Therefore, we've
+<FONT ID="LN">89  </FONT><A NAME="89"></A> * added the {@link #open} method, to allow Lucene to choose
+<FONT ID="LN">90  </FONT><A NAME="90"></A> * the best FSDirectory implementation given your
+<FONT ID="LN">91  </FONT><A NAME="91"></A> * environment, and the known limitations of each
+<FONT ID="LN">92  </FONT><A NAME="92"></A> * implementation.  For users who have no reason to prefer a
+<FONT ID="LN">93  </FONT><A NAME="93"></A> * specific implementation, it's best to simply use {@link
+<FONT ID="LN">94  </FONT><A NAME="94"></A> * #open}.  For all others, you should instantiate the
+<FONT ID="LN">95  </FONT><A NAME="95"></A> * desired implementation directly.
+<FONT ID="LN">96  </FONT><A NAME="96"></A> *
+<FONT ID="LN">97  </FONT><A NAME="97"></A> * &lt;p&gt;The locking implementation is by default {@link
+<FONT ID="LN">98  </FONT><A NAME="98"></A> * NativeFSLockFactory}, but can be changed by
+<FONT ID="LN">99  </FONT><A NAME="99"></A> * passing in a custom {@link LockFactory} instance.
+<FONT ID="LN">100 </FONT><A NAME="100"></A> * The deprecated &lt;code&gt;getDirectory&lt;/code&gt; methods default to use
+<FONT ID="LN">101 </FONT><A NAME="101"></A> * {@link SimpleFSLockFactory} for backwards compatibility.
+<FONT ID="LN">102 </FONT><A NAME="102"></A> * The system properties 
+<FONT ID="LN">103 </FONT><A NAME="103"></A> * &lt;code&gt;org.apache.lucene.store.FSDirectoryLockFactoryClass&lt;/code&gt;
+<FONT ID="LN">104 </FONT><A NAME="104"></A> * and &lt;code&gt;org.apache.lucene.FSDirectory.class&lt;/code&gt;
+<FONT ID="LN">105 </FONT><A NAME="105"></A> * are deprecated and only used by the deprecated
+<FONT ID="LN">106 </FONT><A NAME="106"></A> * &lt;code&gt;getDirectory&lt;/code&gt; methods. The system property
+<FONT ID="LN">107 </FONT><A NAME="107"></A> * &lt;code&gt;org.apache.lucene.lockDir&lt;/code&gt; is ignored completely,
+<FONT ID="LN">108 </FONT><A NAME="108"></A> * If you really want to store locks
+<FONT ID="LN">109 </FONT><A NAME="109"></A> * elsewhere, you can create your own {@link
+<FONT ID="LN">110 </FONT><A NAME="110"></A> * SimpleFSLockFactory} (or {@link NativeFSLockFactory},
+<FONT ID="LN">111 </FONT><A NAME="111"></A> * etc.) passing in your preferred lock directory.
+<FONT ID="LN">112 </FONT><A NAME="112"></A> *
+<FONT ID="LN">113 </FONT><A NAME="113"></A> * &lt;p&gt;&lt;em&gt;In 3.0 this class will become abstract.&lt;/em&gt;
+<FONT ID="LN">114 </FONT><A NAME="114"></A> *
+<FONT ID="LN">115 </FONT><A NAME="115"></A> * @see Directory
+<FONT ID="LN">116 </FONT><A NAME="116"></A> */</FONT>
+<FONT ID="LN">117 </FONT><A NAME="117"></A><FONT ID="SingleLineComment">// TODO: in 3.0 this will become an abstract base class
+<FONT ID="LN">118 </FONT><A NAME="118"></A></FONT><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> FSDirectory <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/store/Directory.java.html">Directory</A> {
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    
+<FONT ID="LN">120 </FONT><A NAME="120"></A>  <FONT ID="FormalComment">/** This cache of directories ensures that there is a unique Directory
+<FONT ID="LN">121 </FONT><A NAME="121"></A>   * instance per path, so that synchronization on the Directory can be used to
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   * synchronize access between readers and writers.  We use
+<FONT ID="LN">123 </FONT><A NAME="123"></A>   * refcounts to ensure when the last use of an FSDirectory
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   * instance for a given canonical path is closed, we remove the
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * instance from the cache.  See LUCENE-776
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   * for some relevant discussion.
+<FONT ID="LN">127 </FONT><A NAME="127"></A>   * @deprecated Not used by any non-deprecated methods anymore
+<FONT ID="LN">128 </FONT><A NAME="128"></A>   */</FONT>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> Map DIRECTORIES = <FONT ID="New">new</FONT> HashMap();
+<FONT ID="LN">130 </FONT><A NAME="130"></A>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> disableLocks = <FONT ID="False">false</FONT>;
+<FONT ID="LN">132 </FONT><A NAME="132"></A>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  <FONT ID="SingleLineComment">// TODO: should this move up to the Directory base class?  Also: should we
+<FONT ID="LN">134 </FONT><A NAME="134"></A></FONT>  <FONT ID="SingleLineComment">// make a per-instance (in addition to the static "default") version?
+<FONT ID="LN">135 </FONT><A NAME="135"></A></FONT>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * Set whether Lucene's use of lock files is disabled. By default, 
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   * lock files are enabled. They should only be disabled if the index
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   * is on a read-only medium like a CD-ROM.
+<FONT ID="LN">140 </FONT><A NAME="140"></A>   * @deprecated Use a {@link #open(File, LockFactory)} or a constructor
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * that takes a {@link LockFactory} and supply
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   * {@link NoLockFactory#getNoLockFactory}. This setting does not work
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * with {@link #open(File)} only the deprecated &lt;code&gt;getDirectory&lt;/code&gt;
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * respect this setting.   
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   */</FONT>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> setDisableLocks(<FONT ID="Boolean">boolean</FONT> doDisableLocks) {
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    FSDirectory.disableLocks = doDisableLocks;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  }
+<FONT ID="LN">149 </FONT><A NAME="149"></A>
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">151 </FONT><A NAME="151"></A>   * Returns whether Lucene's use of lock files is disabled.
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * @return true if locks are disabled, false if locks are enabled.
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * @see #setDisableLocks
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * @deprecated Use a constructor that takes a {@link LockFactory} and
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * supply {@link NoLockFactory#getNoLockFactory}.
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  */</FONT>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> getDisableLocks() {
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="Return">return</FONT> FSDirectory.disableLocks;
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  }
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   * Directory specified by &lt;code&gt;org.apache.lucene.lockDir&lt;/code&gt;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * or &lt;code&gt;java.io.tmpdir&lt;/code&gt; system property.
+<FONT ID="LN">164 </FONT><A NAME="164"></A>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * @deprecated As of 2.1, &lt;code&gt;LOCK_DIR&lt;/code&gt; is unused
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * because the write.lock is now stored by default in the
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * index directory.  If you really want to store locks
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * elsewhere, you can create your own {@link
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   * SimpleFSLockFactory} (or {@link NativeFSLockFactory},
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   * etc.) passing in your preferred lock directory.  Then,
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   * pass this &lt;code&gt;LockFactory&lt;/code&gt; instance to one of
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   * the &lt;code&gt;open&lt;/code&gt; methods that take a
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   * &lt;code&gt;lockFactory&lt;/code&gt; (for example, {@link #open(File, LockFactory)}).
+<FONT ID="LN">174 </FONT><A NAME="174"></A>   */</FONT>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String LOCK_DIR = System.getProperty(<FONT ID="StringLiteral">"org.apache.lucene.lockDir"</FONT>,
+<FONT ID="LN">176 </FONT><A NAME="176"></A>                                                           System.getProperty(<FONT ID="StringLiteral">"java.io.tmpdir"</FONT>));
+<FONT ID="LN">177 </FONT><A NAME="177"></A>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  <FONT ID="FormalComment">/** The default class which implements filesystem-based directories. */</FONT>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="SingleLineComment">// deprecated
+<FONT ID="LN">180 </FONT><A NAME="180"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> Class IMPL;
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  <FONT ID="Static">static</FONT> {
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">183 </FONT><A NAME="183"></A>      String name =
+<FONT ID="LN">184 </FONT><A NAME="184"></A>        System.getProperty(<FONT ID="StringLiteral">"org.apache.lucene.FSDirectory.class"</FONT>,
+<FONT ID="LN">185 </FONT><A NAME="185"></A>                           <A HREF="../../../../org/apache/lucene/store/SimpleFSDirectory.java.html">SimpleFSDirectory</A>.<FONT ID="Class">class</FONT>.getName());
+<FONT ID="LN">186 </FONT><A NAME="186"></A>      <FONT ID="If">if</FONT> (<A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A>.<FONT ID="Class">class</FONT>.getName().equals(name)) {
+<FONT ID="LN">187 </FONT><A NAME="187"></A>        <FONT ID="SingleLineComment">// FSDirectory will be abstract, so we replace it by the correct class
+<FONT ID="LN">188 </FONT><A NAME="188"></A></FONT>        IMPL = <A HREF="../../../../org/apache/lucene/store/SimpleFSDirectory.java.html">SimpleFSDirectory</A>.<FONT ID="Class">class</FONT>;
+<FONT ID="LN">189 </FONT><A NAME="189"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>        IMPL = Class.forName(name);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      }
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    } <FONT ID="Catch">catch</FONT> (ClassNotFoundException e) {
+<FONT ID="LN">193 </FONT><A NAME="193"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"cannot load FSDirectory class: "</FONT> + e.toString(), e);
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    } <FONT ID="Catch">catch</FONT> (SecurityException se) {
+<FONT ID="LN">195 </FONT><A NAME="195"></A>      IMPL = <A HREF="../../../../org/apache/lucene/store/SimpleFSDirectory.java.html">SimpleFSDirectory</A>.<FONT ID="Class">class</FONT>;
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    }
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  }
+<FONT ID="LN">198 </FONT><A NAME="198"></A>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> MessageDigest DIGESTER;
+<FONT ID="LN">200 </FONT><A NAME="200"></A>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  <FONT ID="Static">static</FONT> {
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">203 </FONT><A NAME="203"></A>      DIGESTER = MessageDigest.getInstance(<FONT ID="StringLiteral">"MD5"</FONT>);
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    } <FONT ID="Catch">catch</FONT> (NoSuchAlgorithmException e) {
+<FONT ID="LN">205 </FONT><A NAME="205"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(e.toString(), e);
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  }
+<FONT ID="LN">208 </FONT><A NAME="208"></A>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="FormalComment">/** A buffer optionally used in renameTo method */</FONT>
+<FONT ID="LN">210 </FONT><A NAME="210"></A>  <FONT ID="Private">private</FONT> <FONT ID="Byte">byte</FONT>[] buffer = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  <FONT ID="FormalComment">/** Returns the directory instance for the named location.
+<FONT ID="LN">214 </FONT><A NAME="214"></A>   *
+<FONT ID="LN">215 </FONT><A NAME="215"></A>   * @deprecated Use {@link #open(File)}
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   *
+<FONT ID="LN">217 </FONT><A NAME="217"></A>   * @param path the path to the directory.
+<FONT ID="LN">218 </FONT><A NAME="218"></A>   * @return the FSDirectory for the named file.  */</FONT>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> getDirectory(String path)
+<FONT ID="LN">220 </FONT><A NAME="220"></A>      <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="Return">return</FONT> getDirectory(<FONT ID="New">new</FONT> File(path), <FONT ID="Null">null</FONT>);
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="FormalComment">/** Returns the directory instance for the named location.
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   *
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   * @deprecated Use {@link #open(File, LockFactory)}
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   *
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * @param path the path to the directory.
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * @param lockFactory instance of {@link LockFactory} providing the
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   *        locking implementation.
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   * @return the FSDirectory for the named file.  */</FONT>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> getDirectory(String path, <A HREF="../../../../org/apache/lucene/store/LockFactory.java.html">LockFactory</A> lockFactory)
+<FONT ID="LN">233 </FONT><A NAME="233"></A>      <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    <FONT ID="Return">return</FONT> getDirectory(<FONT ID="New">new</FONT> File(path), lockFactory);
+<FONT ID="LN">235 </FONT><A NAME="235"></A>  }
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>  <FONT ID="FormalComment">/** Returns the directory instance for the named location.
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   *
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   * @deprecated Use {@link #open(File)}
+<FONT ID="LN">240 </FONT><A NAME="240"></A>   *
+<FONT ID="LN">241 </FONT><A NAME="241"></A>   * @param file the path to the directory.
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   * @return the FSDirectory for the named file.  */</FONT>
+<FONT ID="LN">243 </FONT><A NAME="243"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> getDirectory(File file)
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    <FONT ID="Return">return</FONT> getDirectory(file, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">246 </FONT><A NAME="246"></A>  }
+<FONT ID="LN">247 </FONT><A NAME="247"></A>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>  <FONT ID="FormalComment">/** Returns the directory instance for the named location.
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   *
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * @deprecated Use {@link #open(File, LockFactory)}
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   *
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   * @param file the path to the directory.
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   * @param lockFactory instance of {@link LockFactory} providing the
+<FONT ID="LN">254 </FONT><A NAME="254"></A>   *        locking implementation.
+<FONT ID="LN">255 </FONT><A NAME="255"></A>   * @return the FSDirectory for the named file.  */</FONT>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> getDirectory(File file, <A HREF="../../../../org/apache/lucene/store/LockFactory.java.html">LockFactory</A> lockFactory)
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  {
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    file = getCanonicalPath(file);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> dir;
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    <FONT ID="Synchronized">synchronized</FONT> (DIRECTORIES) {
+<FONT ID="LN">263 </FONT><A NAME="263"></A>      dir = (<A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A>)DIRECTORIES.get(file);
+<FONT ID="LN">264 </FONT><A NAME="264"></A>      <FONT ID="If">if</FONT> (dir == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>          dir = (<A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A>)IMPL.newInstance();
+<FONT ID="LN">267 </FONT><A NAME="267"></A>        } <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">268 </FONT><A NAME="268"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"cannot load FSDirectory class: "</FONT> + e.toString(), e);
+<FONT ID="LN">269 </FONT><A NAME="269"></A>        }
+<FONT ID="LN">270 </FONT><A NAME="270"></A>        dir.init(file, lockFactory);
+<FONT ID="LN">271 </FONT><A NAME="271"></A>        DIRECTORIES.put(file, dir);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">273 </FONT><A NAME="273"></A>        <FONT ID="SingleLineComment">// Catch the case where a Directory is pulled from the cache, but has a
+<FONT ID="LN">274 </FONT><A NAME="274"></A></FONT>        <FONT ID="SingleLineComment">// different LockFactory instance.
+<FONT ID="LN">275 </FONT><A NAME="275"></A></FONT>        <FONT ID="If">if</FONT> (lockFactory != <FONT ID="Null">null</FONT> &amp;&amp; lockFactory != dir.getLockFactory()) {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Directory was previously created with a different LockFactory instance; please pass null as the lockFactory instance and use setLockFactory to change it"</FONT>);
+<FONT ID="LN">277 </FONT><A NAME="277"></A>        }
+<FONT ID="LN">278 </FONT><A NAME="278"></A>        dir.checked = <FONT ID="False">false</FONT>;
+<FONT ID="LN">279 </FONT><A NAME="279"></A>      }
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    }
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    <FONT ID="Synchronized">synchronized</FONT> (dir) {
+<FONT ID="LN">282 </FONT><A NAME="282"></A>      dir.refCount++;
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    }
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    <FONT ID="Return">return</FONT> dir;
+<FONT ID="LN">285 </FONT><A NAME="285"></A>  }
+<FONT ID="LN">286 </FONT><A NAME="286"></A>
+<FONT ID="LN">287 </FONT><A NAME="287"></A>
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  <FONT ID="FormalComment">/** Returns the directory instance for the named location.
+<FONT ID="LN">289 </FONT><A NAME="289"></A>   *
+<FONT ID="LN">290 </FONT><A NAME="290"></A>   * @deprecated Use IndexWriter's create flag, instead, to
+<FONT ID="LN">291 </FONT><A NAME="291"></A>   * create a new index.
+<FONT ID="LN">292 </FONT><A NAME="292"></A>   *
+<FONT ID="LN">293 </FONT><A NAME="293"></A>   * @param path the path to the directory.
+<FONT ID="LN">294 </FONT><A NAME="294"></A>   * @param create if true, create, or erase any existing contents.
+<FONT ID="LN">295 </FONT><A NAME="295"></A>   * @return the FSDirectory for the named file.  */</FONT>
+<FONT ID="LN">296 </FONT><A NAME="296"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> getDirectory(String path, <FONT ID="Boolean">boolean</FONT> create)
+<FONT ID="LN">297 </FONT><A NAME="297"></A>      <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    <FONT ID="Return">return</FONT> getDirectory(<FONT ID="New">new</FONT> File(path), create);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>  }
+<FONT ID="LN">300 </FONT><A NAME="300"></A>
+<FONT ID="LN">301 </FONT><A NAME="301"></A>  <FONT ID="FormalComment">/** Returns the directory instance for the named location.
+<FONT ID="LN">302 </FONT><A NAME="302"></A>   *
+<FONT ID="LN">303 </FONT><A NAME="303"></A>   * @deprecated Use IndexWriter's create flag, instead, to
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   * create a new index.
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   *
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   * @param file the path to the directory.
+<FONT ID="LN">307 </FONT><A NAME="307"></A>   * @param create if true, create, or erase any existing contents.
+<FONT ID="LN">308 </FONT><A NAME="308"></A>   * @return the FSDirectory for the named file.  */</FONT>
+<FONT ID="LN">309 </FONT><A NAME="309"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> getDirectory(File file, <FONT ID="Boolean">boolean</FONT> create)
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    <FONT ID="Throws">throws</FONT> IOException
+<FONT ID="LN">311 </FONT><A NAME="311"></A>  {
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> dir = getDirectory(file, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">313 </FONT><A NAME="313"></A>
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    <FONT ID="SingleLineComment">// This is now deprecated (creation should only be done
+<FONT ID="LN">315 </FONT><A NAME="315"></A></FONT>    <FONT ID="SingleLineComment">// by IndexWriter):
+<FONT ID="LN">316 </FONT><A NAME="316"></A></FONT>    <FONT ID="If">if</FONT> (create) {
+<FONT ID="LN">317 </FONT><A NAME="317"></A>      dir.create();
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    }
+<FONT ID="LN">319 </FONT><A NAME="319"></A>
+<FONT ID="LN">320 </FONT><A NAME="320"></A>    <FONT ID="Return">return</FONT> dir;
+<FONT ID="LN">321 </FONT><A NAME="321"></A>  }
+<FONT ID="LN">322 </FONT><A NAME="322"></A>
+<FONT ID="LN">323 </FONT><A NAME="323"></A>  <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">324 </FONT><A NAME="324"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> create() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    <FONT ID="If">if</FONT> (directory.exists()) {
+<FONT ID="LN">326 </FONT><A NAME="326"></A>      String[] files = directory.list(IndexFileNameFilter.getFilter());            <FONT ID="SingleLineComment">// clear old files
+<FONT ID="LN">327 </FONT><A NAME="327"></A></FONT>      <FONT ID="If">if</FONT> (files == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">328 </FONT><A NAME="328"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"cannot read directory "</FONT> + directory.getAbsolutePath() + <FONT ID="StringLiteral">": list() returned null"</FONT>);
+<FONT ID="LN">329 </FONT><A NAME="329"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; files.length; i++) {
+<FONT ID="LN">330 </FONT><A NAME="330"></A>        File file = <FONT ID="New">new</FONT> File(directory, files[i]);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>        <FONT ID="If">if</FONT> (!file.delete())
+<FONT ID="LN">332 </FONT><A NAME="332"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Cannot delete "</FONT> + file);
+<FONT ID="LN">333 </FONT><A NAME="333"></A>      }
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    }
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    lockFactory.clearLock(IndexWriter.WRITE_LOCK_NAME);
+<FONT ID="LN">336 </FONT><A NAME="336"></A>  }
+<FONT ID="LN">337 </FONT><A NAME="337"></A>
+<FONT ID="LN">338 </FONT><A NAME="338"></A>  <FONT ID="SingleLineComment">// returns the canonical version of the directory, creating it if it doesn't exist.
+<FONT ID="LN">339 </FONT><A NAME="339"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> File getCanonicalPath(File file) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> File(file.getCanonicalPath());
+<FONT ID="LN">341 </FONT><A NAME="341"></A>  }
+<FONT ID="LN">342 </FONT><A NAME="342"></A>
+<FONT ID="LN">343 </FONT><A NAME="343"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> checked;
+<FONT ID="LN">344 </FONT><A NAME="344"></A>
+<FONT ID="LN">345 </FONT><A NAME="345"></A>  <FONT ID="Final">final</FONT> <FONT ID="Void">void</FONT> createDir() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    <FONT ID="If">if</FONT> (!checked) {
+<FONT ID="LN">347 </FONT><A NAME="347"></A>      <FONT ID="If">if</FONT> (!directory.exists())
+<FONT ID="LN">348 </FONT><A NAME="348"></A>        <FONT ID="If">if</FONT> (!directory.mkdirs())
+<FONT ID="LN">349 </FONT><A NAME="349"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Cannot create directory: "</FONT> + directory);
+<FONT ID="LN">350 </FONT><A NAME="350"></A>
+<FONT ID="LN">351 </FONT><A NAME="351"></A>      checked = <FONT ID="True">true</FONT>;
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    }
+<FONT ID="LN">353 </FONT><A NAME="353"></A>  }
+<FONT ID="LN">354 </FONT><A NAME="354"></A>
+<FONT ID="LN">355 </FONT><A NAME="355"></A>  <FONT ID="FormalComment">/** Initializes the directory to create a new file with the given name.
+<FONT ID="LN">356 </FONT><A NAME="356"></A>   * This method should be used in {@link #createOutput}. */</FONT>
+<FONT ID="LN">357 </FONT><A NAME="357"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Final">final</FONT> <FONT ID="Void">void</FONT> initOutput(String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    ensureOpen();
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    createDir();
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    File file = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    <FONT ID="If">if</FONT> (file.exists() &amp;&amp; !file.delete())          <FONT ID="SingleLineComment">// delete existing, if any
+<FONT ID="LN">362 </FONT><A NAME="362"></A></FONT>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Cannot overwrite: "</FONT> + file);
+<FONT ID="LN">363 </FONT><A NAME="363"></A>  }
+<FONT ID="LN">364 </FONT><A NAME="364"></A>
+<FONT ID="LN">365 </FONT><A NAME="365"></A>  <FONT ID="FormalComment">/** The underlying filesystem directory */</FONT>
+<FONT ID="LN">366 </FONT><A NAME="366"></A>  <FONT ID="Protected">protected</FONT> File directory = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">367 </FONT><A NAME="367"></A>  
+<FONT ID="LN">368 </FONT><A NAME="368"></A>  <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">369 </FONT><A NAME="369"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> refCount = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">370 </FONT><A NAME="370"></A>
+<FONT ID="LN">371 </FONT><A NAME="371"></A>  <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>  <FONT ID="Protected">protected</FONT> FSDirectory() {}; <FONT ID="SingleLineComment">// permit subclassing
+<FONT ID="LN">373 </FONT><A NAME="373"></A></FONT>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>  <FONT ID="FormalComment">/** Create a new FSDirectory for the named location (ctor for subclasses).
+<FONT ID="LN">375 </FONT><A NAME="375"></A>   * @param path the path of the directory
+<FONT ID="LN">376 </FONT><A NAME="376"></A>   * @param lockFactory the lock factory to use, or null for the default
+<FONT ID="LN">377 </FONT><A NAME="377"></A>   * ({@link NativeFSLockFactory});
+<FONT ID="LN">378 </FONT><A NAME="378"></A>   * @throws IOException
+<FONT ID="LN">379 </FONT><A NAME="379"></A>   */</FONT>
+<FONT ID="LN">380 </FONT><A NAME="380"></A>  <FONT ID="Protected">protected</FONT> FSDirectory(File path, <A HREF="../../../../org/apache/lucene/store/LockFactory.java.html">LockFactory</A> lockFactory) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">381 </FONT><A NAME="381"></A>    path = getCanonicalPath(path);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    <FONT ID="SingleLineComment">// new ctors use always NativeFSLockFactory as default:
+<FONT ID="LN">383 </FONT><A NAME="383"></A></FONT>    <FONT ID="If">if</FONT> (lockFactory == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">384 </FONT><A NAME="384"></A>      lockFactory = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/NativeFSLockFactory.java.html">NativeFSLockFactory</A>();
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    }
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    init(path, lockFactory);
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    refCount = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">388 </FONT><A NAME="388"></A>  }
+<FONT ID="LN">389 </FONT><A NAME="389"></A>
+<FONT ID="LN">390 </FONT><A NAME="390"></A>  <FONT ID="FormalComment">/** Creates an FSDirectory instance, trying to pick the
+<FONT ID="LN">391 </FONT><A NAME="391"></A>   *  best implementation given the current environment.
+<FONT ID="LN">392 </FONT><A NAME="392"></A>   *  The directory returned uses the {@link NativeFSLockFactory}.
+<FONT ID="LN">393 </FONT><A NAME="393"></A>   *
+<FONT ID="LN">394 </FONT><A NAME="394"></A>   *  &lt;p&gt;Currently this returns {@link NIOFSDirectory}
+<FONT ID="LN">395 </FONT><A NAME="395"></A>   *  on non-Windows JREs and {@link SimpleFSDirectory}
+<FONT ID="LN">396 </FONT><A NAME="396"></A>   *  on Windows.
+<FONT ID="LN">397 </FONT><A NAME="397"></A>   *
+<FONT ID="LN">398 </FONT><A NAME="398"></A>   * &lt;p&gt;&lt;b&gt;NOTE&lt;/b&gt;: this method may suddenly change which
+<FONT ID="LN">399 </FONT><A NAME="399"></A>   * implementation is returned from release to release, in
+<FONT ID="LN">400 </FONT><A NAME="400"></A>   * the event that higher performance defaults become
+<FONT ID="LN">401 </FONT><A NAME="401"></A>   * possible; if the precise implementation is important to
+<FONT ID="LN">402 </FONT><A NAME="402"></A>   * your application, please instantiate it directly,
+<FONT ID="LN">403 </FONT><A NAME="403"></A>   * instead. On 64 bit systems, it may also good to
+<FONT ID="LN">404 </FONT><A NAME="404"></A>   * return {@link MMapDirectory}, but this is disabled
+<FONT ID="LN">405 </FONT><A NAME="405"></A>   * because of officially missing unmap support in Java.
+<FONT ID="LN">406 </FONT><A NAME="406"></A>   * For optimal performance you should consider using
+<FONT ID="LN">407 </FONT><A NAME="407"></A>   * this implementation on 64 bit JVMs.
+<FONT ID="LN">408 </FONT><A NAME="408"></A>   *
+<FONT ID="LN">409 </FONT><A NAME="409"></A>   * &lt;p&gt;See &lt;a href="#subclasses"&gt;above&lt;/a&gt; */</FONT>
+<FONT ID="LN">410 </FONT><A NAME="410"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> open(File path) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    <FONT ID="Return">return</FONT> open(path, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">412 </FONT><A NAME="412"></A>  }
+<FONT ID="LN">413 </FONT><A NAME="413"></A>
+<FONT ID="LN">414 </FONT><A NAME="414"></A>  <FONT ID="FormalComment">/** Just like {@link #open(File)}, but allows you to
+<FONT ID="LN">415 </FONT><A NAME="415"></A>   *  also specify a custom {@link LockFactory}. */</FONT>
+<FONT ID="LN">416 </FONT><A NAME="416"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/apache/lucene/store/FSDirectory.java.html">FSDirectory</A> open(File path, <A HREF="../../../../org/apache/lucene/store/LockFactory.java.html">LockFactory</A> lockFactory) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    <FONT ID="MultiLineComment">/* For testing:
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    MMapDirectory dir=new MMapDirectory(path, lockFactory);
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    dir.setUseUnmap(true);
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    return dir;
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    */</FONT>
+<FONT ID="LN">422 </FONT><A NAME="422"></A>
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    <FONT ID="If">if</FONT> (Constants.WINDOWS) {
+<FONT ID="LN">424 </FONT><A NAME="424"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/SimpleFSDirectory.java.html">SimpleFSDirectory</A>(path, lockFactory);
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">426 </FONT><A NAME="426"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/NIOFSDirectory.java.html">NIOFSDirectory</A>(path, lockFactory);
+<FONT ID="LN">427 </FONT><A NAME="427"></A>    }
+<FONT ID="LN">428 </FONT><A NAME="428"></A>  }
+<FONT ID="LN">429 </FONT><A NAME="429"></A>
+<FONT ID="LN">430 </FONT><A NAME="430"></A>  <FONT ID="MultiLineComment">/* will move to ctor, when reflection is removed in 3.0 */</FONT>
+<FONT ID="LN">431 </FONT><A NAME="431"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> init(File path, <A HREF="../../../../org/apache/lucene/store/LockFactory.java.html">LockFactory</A> lockFactory) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">432 </FONT><A NAME="432"></A>
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    <FONT ID="SingleLineComment">// Set up lockFactory with cascaded defaults: if an instance was passed in,
+<FONT ID="LN">434 </FONT><A NAME="434"></A></FONT>    <FONT ID="SingleLineComment">// use that; else if locks are disabled, use NoLockFactory; else if the
+<FONT ID="LN">435 </FONT><A NAME="435"></A></FONT>    <FONT ID="SingleLineComment">// system property org.apache.lucene.store.FSDirectoryLockFactoryClass is set,
+<FONT ID="LN">436 </FONT><A NAME="436"></A></FONT>    <FONT ID="SingleLineComment">// instantiate that; else, use SimpleFSLockFactory:
+<FONT ID="LN">437 </FONT><A NAME="437"></A></FONT>
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    directory = path;
+<FONT ID="LN">439 </FONT><A NAME="439"></A>
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    <FONT ID="If">if</FONT> (directory.exists() &amp;&amp; !directory.isDirectory())
+<FONT ID="LN">441 </FONT><A NAME="441"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/NoSuchDirectoryException.java.html">NoSuchDirectoryException</A>(<FONT ID="StringLiteral">"file '"</FONT> + directory + <FONT ID="StringLiteral">"' exists but is not a directory"</FONT>);
+<FONT ID="LN">442 </FONT><A NAME="442"></A>
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    <FONT ID="If">if</FONT> (lockFactory == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">444 </FONT><A NAME="444"></A>
+<FONT ID="LN">445 </FONT><A NAME="445"></A>      <FONT ID="If">if</FONT> (disableLocks) {
+<FONT ID="LN">446 </FONT><A NAME="446"></A>        <FONT ID="SingleLineComment">// Locks are disabled:
+<FONT ID="LN">447 </FONT><A NAME="447"></A></FONT>        lockFactory = NoLockFactory.getNoLockFactory();
+<FONT ID="LN">448 </FONT><A NAME="448"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">449 </FONT><A NAME="449"></A>        String lockClassName = System.getProperty(<FONT ID="StringLiteral">"org.apache.lucene.store.FSDirectoryLockFactoryClass"</FONT>);
+<FONT ID="LN">450 </FONT><A NAME="450"></A>
+<FONT ID="LN">451 </FONT><A NAME="451"></A>        <FONT ID="If">if</FONT> (lockClassName != <FONT ID="Null">null</FONT> &amp;&amp; !lockClassName.equals(<FONT ID="StringLiteral">""</FONT>)) {
+<FONT ID="LN">452 </FONT><A NAME="452"></A>          Class c;
+<FONT ID="LN">453 </FONT><A NAME="453"></A>
+<FONT ID="LN">454 </FONT><A NAME="454"></A>          <FONT ID="Try">try</FONT> {
+<FONT ID="LN">455 </FONT><A NAME="455"></A>            c = Class.forName(lockClassName);
+<FONT ID="LN">456 </FONT><A NAME="456"></A>          } <FONT ID="Catch">catch</FONT> (ClassNotFoundException e) {
+<FONT ID="LN">457 </FONT><A NAME="457"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"unable to find LockClass "</FONT> + lockClassName);
+<FONT ID="LN">458 </FONT><A NAME="458"></A>          }
+<FONT ID="LN">459 </FONT><A NAME="459"></A>
+<FONT ID="LN">460 </FONT><A NAME="460"></A>          <FONT ID="Try">try</FONT> {
+<FONT ID="LN">461 </FONT><A NAME="461"></A>            lockFactory = (<A HREF="../../../../org/apache/lucene/store/LockFactory.java.html">LockFactory</A>) c.newInstance();          
+<FONT ID="LN">462 </FONT><A NAME="462"></A>          } <FONT ID="Catch">catch</FONT> (IllegalAccessException e) {
+<FONT ID="LN">463 </FONT><A NAME="463"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"IllegalAccessException when instantiating LockClass "</FONT> + lockClassName);
+<FONT ID="LN">464 </FONT><A NAME="464"></A>          } <FONT ID="Catch">catch</FONT> (InstantiationException e) {
+<FONT ID="LN">465 </FONT><A NAME="465"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"InstantiationException when instantiating LockClass "</FONT> + lockClassName);
+<FONT ID="LN">466 </FONT><A NAME="466"></A>          } <FONT ID="Catch">catch</FONT> (ClassCastException e) {
+<FONT ID="LN">467 </FONT><A NAME="467"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"unable to cast LockClass "</FONT> + lockClassName + <FONT ID="StringLiteral">" instance to a LockFactory"</FONT>);
+<FONT ID="LN">468 </FONT><A NAME="468"></A>          }
+<FONT ID="LN">469 </FONT><A NAME="469"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">470 </FONT><A NAME="470"></A>          <FONT ID="SingleLineComment">// Our default lock is SimpleFSLockFactory;
+<FONT ID="LN">471 </FONT><A NAME="471"></A></FONT>          <FONT ID="SingleLineComment">// default lockDir is our index directory:
+<FONT ID="LN">472 </FONT><A NAME="472"></A></FONT>          lockFactory = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/SimpleFSLockFactory.java.html">SimpleFSLockFactory</A>();
+<FONT ID="LN">473 </FONT><A NAME="473"></A>        }
+<FONT ID="LN">474 </FONT><A NAME="474"></A>      }
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    }
+<FONT ID="LN">476 </FONT><A NAME="476"></A>
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    setLockFactory(lockFactory);
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    
+<FONT ID="LN">479 </FONT><A NAME="479"></A>    <FONT ID="SingleLineComment">// for filesystem based LockFactory, delete the lockPrefix, if the locks are placed
+<FONT ID="LN">480 </FONT><A NAME="480"></A></FONT>    <FONT ID="SingleLineComment">// in index dir. If no index dir is given, set ourselves
+<FONT ID="LN">481 </FONT><A NAME="481"></A></FONT>    <FONT ID="If">if</FONT> (lockFactory <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/store/FSLockFactory.java.html">FSLockFactory</A>) {
+<FONT ID="LN">482 </FONT><A NAME="482"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/store/FSLockFactory.java.html">FSLockFactory</A> lf = (<A HREF="../../../../org/apache/lucene/store/FSLockFactory.java.html">FSLockFactory</A>) lockFactory;
+<FONT ID="LN">483 </FONT><A NAME="483"></A>      <FONT ID="Final">final</FONT> File dir = lf.getLockDir();
+<FONT ID="LN">484 </FONT><A NAME="484"></A>      <FONT ID="SingleLineComment">// if the lock factory has no lockDir set, use the this directory as lockDir
+<FONT ID="LN">485 </FONT><A NAME="485"></A></FONT>      <FONT ID="If">if</FONT> (dir == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">486 </FONT><A NAME="486"></A>        lf.setLockDir(<FONT ID="This">this</FONT>.directory);
+<FONT ID="LN">487 </FONT><A NAME="487"></A>        lf.setLockPrefix(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">488 </FONT><A NAME="488"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (dir.getCanonicalPath().equals(<FONT ID="This">this</FONT>.directory.getCanonicalPath())) {
+<FONT ID="LN">489 </FONT><A NAME="489"></A>        lf.setLockPrefix(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">490 </FONT><A NAME="490"></A>      }
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    }
+<FONT ID="LN">492 </FONT><A NAME="492"></A>  }
+<FONT ID="LN">493 </FONT><A NAME="493"></A>
+<FONT ID="LN">494 </FONT><A NAME="494"></A>  <FONT ID="FormalComment">/** Lists all files (not subdirectories) in the
+<FONT ID="LN">495 </FONT><A NAME="495"></A>   *  directory.  This method never returns null (throws
+<FONT ID="LN">496 </FONT><A NAME="496"></A>   *  {@link IOException} instead).
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   *
+<FONT ID="LN">498 </FONT><A NAME="498"></A>   *  @throws NoSuchDirectoryException if the directory
+<FONT ID="LN">499 </FONT><A NAME="499"></A>   *   does not exist, or does exist but is not a
+<FONT ID="LN">500 </FONT><A NAME="500"></A>   *   directory.
+<FONT ID="LN">501 </FONT><A NAME="501"></A>   *  @throws IOException if list() returns null */</FONT>
+<FONT ID="LN">502 </FONT><A NAME="502"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String[] listAll(File dir) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    <FONT ID="If">if</FONT> (!dir.exists())
+<FONT ID="LN">504 </FONT><A NAME="504"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/NoSuchDirectoryException.java.html">NoSuchDirectoryException</A>(<FONT ID="StringLiteral">"directory '"</FONT> + dir + <FONT ID="StringLiteral">"' does not exist"</FONT>);
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (!dir.isDirectory())
+<FONT ID="LN">506 </FONT><A NAME="506"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/store/NoSuchDirectoryException.java.html">NoSuchDirectoryException</A>(<FONT ID="StringLiteral">"file '"</FONT> + dir + <FONT ID="StringLiteral">"' exists but is not a directory"</FONT>);
+<FONT ID="LN">507 </FONT><A NAME="507"></A>
+<FONT ID="LN">508 </FONT><A NAME="508"></A>    <FONT ID="SingleLineComment">// Exclude subdirs
+<FONT ID="LN">509 </FONT><A NAME="509"></A></FONT>    String[] result = dir.list(<FONT ID="New">new</FONT> FilenameFilter() {
+<FONT ID="LN">510 </FONT><A NAME="510"></A>        <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> accept(File dir, String file) {
+<FONT ID="LN">511 </FONT><A NAME="511"></A>          <FONT ID="Return">return</FONT> !<FONT ID="New">new</FONT> File(dir, file).isDirectory();
+<FONT ID="LN">512 </FONT><A NAME="512"></A>        }
+<FONT ID="LN">513 </FONT><A NAME="513"></A>      });
+<FONT ID="LN">514 </FONT><A NAME="514"></A>
+<FONT ID="LN">515 </FONT><A NAME="515"></A>    <FONT ID="If">if</FONT> (result == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">516 </FONT><A NAME="516"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"directory '"</FONT> + dir + <FONT ID="StringLiteral">"' exists and is a directory, but cannot be listed: list() returned null"</FONT>);
+<FONT ID="LN">517 </FONT><A NAME="517"></A>
+<FONT ID="LN">518 </FONT><A NAME="518"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">519 </FONT><A NAME="519"></A>  }
+<FONT ID="LN">520 </FONT><A NAME="520"></A>
+<FONT ID="LN">521 </FONT><A NAME="521"></A>  <FONT ID="Public">public</FONT> String[] list() {
+<FONT ID="LN">522 </FONT><A NAME="522"></A>    ensureOpen();
+<FONT ID="LN">523 </FONT><A NAME="523"></A>    <FONT ID="Return">return</FONT> directory.list(IndexFileNameFilter.getFilter());
+<FONT ID="LN">524 </FONT><A NAME="524"></A>  }
+<FONT ID="LN">525 </FONT><A NAME="525"></A>
+<FONT ID="LN">526 </FONT><A NAME="526"></A>  <FONT ID="FormalComment">/** Lists all files (not subdirectories) in the
+<FONT ID="LN">527 </FONT><A NAME="527"></A>   * directory.
+<FONT ID="LN">528 </FONT><A NAME="528"></A>   * @see #listAll(File) */</FONT>
+<FONT ID="LN">529 </FONT><A NAME="529"></A>  <FONT ID="Public">public</FONT> String[] listAll() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">530 </FONT><A NAME="530"></A>    ensureOpen();
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    <FONT ID="Return">return</FONT> listAll(directory);
+<FONT ID="LN">532 </FONT><A NAME="532"></A>  }
+<FONT ID="LN">533 </FONT><A NAME="533"></A>
+<FONT ID="LN">534 </FONT><A NAME="534"></A>  <FONT ID="FormalComment">/** Returns true iff a file with the given name exists. */</FONT>
+<FONT ID="LN">535 </FONT><A NAME="535"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> fileExists(String name) {
+<FONT ID="LN">536 </FONT><A NAME="536"></A>    ensureOpen();
+<FONT ID="LN">537 </FONT><A NAME="537"></A>    File file = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">538 </FONT><A NAME="538"></A>    <FONT ID="Return">return</FONT> file.exists();
+<FONT ID="LN">539 </FONT><A NAME="539"></A>  }
+<FONT ID="LN">540 </FONT><A NAME="540"></A>
+<FONT ID="LN">541 </FONT><A NAME="541"></A>  <FONT ID="FormalComment">/** Returns the time the named file was last modified. */</FONT>
+<FONT ID="LN">542 </FONT><A NAME="542"></A>  <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> fileModified(String name) {
+<FONT ID="LN">543 </FONT><A NAME="543"></A>    ensureOpen();
+<FONT ID="LN">544 </FONT><A NAME="544"></A>    File file = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">545 </FONT><A NAME="545"></A>    <FONT ID="Return">return</FONT> file.lastModified();
+<FONT ID="LN">546 </FONT><A NAME="546"></A>  }
+<FONT ID="LN">547 </FONT><A NAME="547"></A>
+<FONT ID="LN">548 </FONT><A NAME="548"></A>  <FONT ID="FormalComment">/** Returns the time the named file was last modified. */</FONT>
+<FONT ID="LN">549 </FONT><A NAME="549"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> fileModified(File directory, String name) {
+<FONT ID="LN">550 </FONT><A NAME="550"></A>    File file = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">551 </FONT><A NAME="551"></A>    <FONT ID="Return">return</FONT> file.lastModified();
+<FONT ID="LN">552 </FONT><A NAME="552"></A>  }
+<FONT ID="LN">553 </FONT><A NAME="553"></A>
+<FONT ID="LN">554 </FONT><A NAME="554"></A>  <FONT ID="FormalComment">/** Set the modified time of an existing file to now. */</FONT>
+<FONT ID="LN">555 </FONT><A NAME="555"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> touchFile(String name) {
+<FONT ID="LN">556 </FONT><A NAME="556"></A>    ensureOpen();
+<FONT ID="LN">557 </FONT><A NAME="557"></A>    File file = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    file.setLastModified(System.currentTimeMillis());
+<FONT ID="LN">559 </FONT><A NAME="559"></A>  }
+<FONT ID="LN">560 </FONT><A NAME="560"></A>
+<FONT ID="LN">561 </FONT><A NAME="561"></A>  <FONT ID="FormalComment">/** Returns the length in bytes of a file in the directory. */</FONT>
+<FONT ID="LN">562 </FONT><A NAME="562"></A>  <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> fileLength(String name) {
+<FONT ID="LN">563 </FONT><A NAME="563"></A>    ensureOpen();
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    File file = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">565 </FONT><A NAME="565"></A>    <FONT ID="Return">return</FONT> file.length();
+<FONT ID="LN">566 </FONT><A NAME="566"></A>  }
+<FONT ID="LN">567 </FONT><A NAME="567"></A>
+<FONT ID="LN">568 </FONT><A NAME="568"></A>  <FONT ID="FormalComment">/** Removes an existing file in the directory. */</FONT>
+<FONT ID="LN">569 </FONT><A NAME="569"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> deleteFile(String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">570 </FONT><A NAME="570"></A>    ensureOpen();
+<FONT ID="LN">571 </FONT><A NAME="571"></A>    File file = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">572 </FONT><A NAME="572"></A>    <FONT ID="If">if</FONT> (!file.delete())
+<FONT ID="LN">573 </FONT><A NAME="573"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Cannot delete "</FONT> + file);
+<FONT ID="LN">574 </FONT><A NAME="574"></A>  }
+<FONT ID="LN">575 </FONT><A NAME="575"></A>
+<FONT ID="LN">576 </FONT><A NAME="576"></A>  <FONT ID="FormalComment">/** Renames an existing file in the directory. 
+<FONT ID="LN">577 </FONT><A NAME="577"></A>   * Warning: This is not atomic.
+<FONT ID="LN">578 </FONT><A NAME="578"></A>   * @deprecated 
+<FONT ID="LN">579 </FONT><A NAME="579"></A>   */</FONT>
+<FONT ID="LN">580 </FONT><A NAME="580"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> renameFile(String from, String to)
+<FONT ID="LN">581 </FONT><A NAME="581"></A>      <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">582 </FONT><A NAME="582"></A>    ensureOpen();
+<FONT ID="LN">583 </FONT><A NAME="583"></A>    File old = <FONT ID="New">new</FONT> File(directory, from);
+<FONT ID="LN">584 </FONT><A NAME="584"></A>    File nu = <FONT ID="New">new</FONT> File(directory, to);
+<FONT ID="LN">585 </FONT><A NAME="585"></A>
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    <FONT ID="MultiLineComment">/* This is not atomic.  If the program crashes between the call to
+<FONT ID="LN">587 </FONT><A NAME="587"></A>       delete() and the call to renameTo() then we're screwed, but I've
+<FONT ID="LN">588 </FONT><A NAME="588"></A>       been unable to figure out how else to do this... */</FONT>
+<FONT ID="LN">589 </FONT><A NAME="589"></A>
+<FONT ID="LN">590 </FONT><A NAME="590"></A>    <FONT ID="If">if</FONT> (nu.exists())
+<FONT ID="LN">591 </FONT><A NAME="591"></A>      <FONT ID="If">if</FONT> (!nu.delete())
+<FONT ID="LN">592 </FONT><A NAME="592"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Cannot delete "</FONT> + nu);
+<FONT ID="LN">593 </FONT><A NAME="593"></A>
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    <FONT ID="SingleLineComment">// Rename the old file to the new one. Unfortunately, the renameTo()
+<FONT ID="LN">595 </FONT><A NAME="595"></A></FONT>    <FONT ID="SingleLineComment">// method does not work reliably under some JVMs.  Therefore, if the
+<FONT ID="LN">596 </FONT><A NAME="596"></A></FONT>    <FONT ID="SingleLineComment">// rename fails, we manually rename by copying the old file to the new one
+<FONT ID="LN">597 </FONT><A NAME="597"></A></FONT>    <FONT ID="If">if</FONT> (!old.renameTo(nu)) {
+<FONT ID="LN">598 </FONT><A NAME="598"></A>      java.io.InputStream in = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">599 </FONT><A NAME="599"></A>      java.io.OutputStream out = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">600 </FONT><A NAME="600"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">601 </FONT><A NAME="601"></A>        in = <FONT ID="New">new</FONT> FileInputStream(old);
+<FONT ID="LN">602 </FONT><A NAME="602"></A>        out = <FONT ID="New">new</FONT> FileOutputStream(nu);
+<FONT ID="LN">603 </FONT><A NAME="603"></A>        <FONT ID="SingleLineComment">// see if the buffer needs to be initialized. Initialization is
+<FONT ID="LN">604 </FONT><A NAME="604"></A></FONT>        <FONT ID="SingleLineComment">// only done on-demand since many VM's will never run into the renameTo
+<FONT ID="LN">605 </FONT><A NAME="605"></A></FONT>        <FONT ID="SingleLineComment">// bug and hence shouldn't waste 1K of mem for no reason.
+<FONT ID="LN">606 </FONT><A NAME="606"></A></FONT>        <FONT ID="If">if</FONT> (buffer == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">607 </FONT><A NAME="607"></A>          buffer = <FONT ID="New">new</FONT> <FONT ID="Byte">byte</FONT>[<FONT ID="IntegerLiteral">1024</FONT>];
+<FONT ID="LN">608 </FONT><A NAME="608"></A>        }
+<FONT ID="LN">609 </FONT><A NAME="609"></A>        <FONT ID="Int">int</FONT> len;
+<FONT ID="LN">610 </FONT><A NAME="610"></A>        <FONT ID="While">while</FONT> ((len = in.read(buffer)) &gt;= <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">611 </FONT><A NAME="611"></A>          out.write(buffer, <FONT ID="IntegerLiteral">0</FONT>, len);
+<FONT ID="LN">612 </FONT><A NAME="612"></A>        }
+<FONT ID="LN">613 </FONT><A NAME="613"></A>
+<FONT ID="LN">614 </FONT><A NAME="614"></A>        <FONT ID="SingleLineComment">// delete the old file.
+<FONT ID="LN">615 </FONT><A NAME="615"></A></FONT>        old.delete();
+<FONT ID="LN">616 </FONT><A NAME="616"></A>      }
+<FONT ID="LN">617 </FONT><A NAME="617"></A>      <FONT ID="Catch">catch</FONT> (IOException ioe) {
+<FONT ID="LN">618 </FONT><A NAME="618"></A>        IOException newExc = <FONT ID="New">new</FONT> IOException(<FONT ID="StringLiteral">"Cannot rename "</FONT> + old + <FONT ID="StringLiteral">" to "</FONT> + nu);
+<FONT ID="LN">619 </FONT><A NAME="619"></A>        newExc.initCause(ioe);
+<FONT ID="LN">620 </FONT><A NAME="620"></A>        <FONT ID="Throw">throw</FONT> newExc;
+<FONT ID="LN">621 </FONT><A NAME="621"></A>      }
+<FONT ID="LN">622 </FONT><A NAME="622"></A>      <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">623 </FONT><A NAME="623"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">624 </FONT><A NAME="624"></A>          <FONT ID="If">if</FONT> (in != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">625 </FONT><A NAME="625"></A>            <FONT ID="Try">try</FONT> {
+<FONT ID="LN">626 </FONT><A NAME="626"></A>              in.close();
+<FONT ID="LN">627 </FONT><A NAME="627"></A>            } <FONT ID="Catch">catch</FONT> (IOException e) {
+<FONT ID="LN">628 </FONT><A NAME="628"></A>              <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"Cannot close input stream: "</FONT> + e.toString(), e);
+<FONT ID="LN">629 </FONT><A NAME="629"></A>            }
+<FONT ID="LN">630 </FONT><A NAME="630"></A>          }
+<FONT ID="LN">631 </FONT><A NAME="631"></A>        } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">632 </FONT><A NAME="632"></A>          <FONT ID="If">if</FONT> (out != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">633 </FONT><A NAME="633"></A>            <FONT ID="Try">try</FONT> {
+<FONT ID="LN">634 </FONT><A NAME="634"></A>              out.close();
+<FONT ID="LN">635 </FONT><A NAME="635"></A>            } <FONT ID="Catch">catch</FONT> (IOException e) {
+<FONT ID="LN">636 </FONT><A NAME="636"></A>              <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"Cannot close output stream: "</FONT> + e.toString(), e);
+<FONT ID="LN">637 </FONT><A NAME="637"></A>            }
+<FONT ID="LN">638 </FONT><A NAME="638"></A>          }
+<FONT ID="LN">639 </FONT><A NAME="639"></A>        }
+<FONT ID="LN">640 </FONT><A NAME="640"></A>      }
+<FONT ID="LN">641 </FONT><A NAME="641"></A>    }
+<FONT ID="LN">642 </FONT><A NAME="642"></A>  }
+<FONT ID="LN">643 </FONT><A NAME="643"></A>
+<FONT ID="LN">644 </FONT><A NAME="644"></A>  <FONT ID="FormalComment">/** Creates an IndexOutput for the file with the given name.
+<FONT ID="LN">645 </FONT><A NAME="645"></A>   * &lt;em&gt;In 3.0 this method will become abstract.&lt;/em&gt; */</FONT>
+<FONT ID="LN">646 </FONT><A NAME="646"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/IndexOutput.java.html">IndexOutput</A> createOutput(String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">647 </FONT><A NAME="647"></A>    initOutput(name);
+<FONT ID="LN">648 </FONT><A NAME="648"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> FSIndexOutput(<FONT ID="New">new</FONT> File(directory, name));
+<FONT ID="LN">649 </FONT><A NAME="649"></A>  }
+<FONT ID="LN">650 </FONT><A NAME="650"></A>
+<FONT ID="LN">651 </FONT><A NAME="651"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> sync(String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">652 </FONT><A NAME="652"></A>    ensureOpen();
+<FONT ID="LN">653 </FONT><A NAME="653"></A>    File fullFile = <FONT ID="New">new</FONT> File(directory, name);
+<FONT ID="LN">654 </FONT><A NAME="654"></A>    <FONT ID="Boolean">boolean</FONT> success = <FONT ID="False">false</FONT>;
+<FONT ID="LN">655 </FONT><A NAME="655"></A>    <FONT ID="Int">int</FONT> retryCount = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">656 </FONT><A NAME="656"></A>    IOException exc = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">657 </FONT><A NAME="657"></A>    <FONT ID="While">while</FONT>(!success &amp;&amp; retryCount &lt; <FONT ID="IntegerLiteral">5</FONT>) {
+<FONT ID="LN">658 </FONT><A NAME="658"></A>      retryCount++;
+<FONT ID="LN">659 </FONT><A NAME="659"></A>      RandomAccessFile file = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">660 </FONT><A NAME="660"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">661 </FONT><A NAME="661"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">662 </FONT><A NAME="662"></A>          file = <FONT ID="New">new</FONT> RandomAccessFile(fullFile, <FONT ID="StringLiteral">"rw"</FONT>);
+<FONT ID="LN">663 </FONT><A NAME="663"></A>          file.getFD().sync();
+<FONT ID="LN">664 </FONT><A NAME="664"></A>          success = <FONT ID="True">true</FONT>;
+<FONT ID="LN">665 </FONT><A NAME="665"></A>        } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">666 </FONT><A NAME="666"></A>          <FONT ID="If">if</FONT> (file != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">667 </FONT><A NAME="667"></A>            file.close();
+<FONT ID="LN">668 </FONT><A NAME="668"></A>        }
+<FONT ID="LN">669 </FONT><A NAME="669"></A>      } <FONT ID="Catch">catch</FONT> (IOException ioe) {
+<FONT ID="LN">670 </FONT><A NAME="670"></A>        <FONT ID="If">if</FONT> (exc == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">671 </FONT><A NAME="671"></A>          exc = ioe;
+<FONT ID="LN">672 </FONT><A NAME="672"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">673 </FONT><A NAME="673"></A>          <FONT ID="SingleLineComment">// Pause 5 msec
+<FONT ID="LN">674 </FONT><A NAME="674"></A></FONT>          Thread.sleep(<FONT ID="IntegerLiteral">5</FONT>);
+<FONT ID="LN">675 </FONT><A NAME="675"></A>        } <FONT ID="Catch">catch</FONT> (InterruptedException ie) {
+<FONT ID="LN">676 </FONT><A NAME="676"></A>          <FONT ID="SingleLineComment">// In 3.0 we will change this to throw
+<FONT ID="LN">677 </FONT><A NAME="677"></A></FONT>          <FONT ID="SingleLineComment">// InterruptedException instead
+<FONT ID="LN">678 </FONT><A NAME="678"></A></FONT>          Thread.currentThread().interrupt();
+<FONT ID="LN">679 </FONT><A NAME="679"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(ie);
+<FONT ID="LN">680 </FONT><A NAME="680"></A>        }
+<FONT ID="LN">681 </FONT><A NAME="681"></A>      }
+<FONT ID="LN">682 </FONT><A NAME="682"></A>    }
+<FONT ID="LN">683 </FONT><A NAME="683"></A>    <FONT ID="If">if</FONT> (!success)
+<FONT ID="LN">684 </FONT><A NAME="684"></A>      <FONT ID="SingleLineComment">// Throw original exception
+<FONT ID="LN">685 </FONT><A NAME="685"></A></FONT>      <FONT ID="Throw">throw</FONT> exc;
+<FONT ID="LN">686 </FONT><A NAME="686"></A>  }
+<FONT ID="LN">687 </FONT><A NAME="687"></A>
+<FONT ID="LN">688 </FONT><A NAME="688"></A>  <FONT ID="SingleLineComment">// Inherit javadoc
+<FONT ID="LN">689 </FONT><A NAME="689"></A></FONT>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> openInput(String name) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">690 </FONT><A NAME="690"></A>    ensureOpen();
+<FONT ID="LN">691 </FONT><A NAME="691"></A>    <FONT ID="Return">return</FONT> openInput(name, BufferedIndexInput.BUFFER_SIZE);
+<FONT ID="LN">692 </FONT><A NAME="692"></A>  }
+<FONT ID="LN">693 </FONT><A NAME="693"></A>
+<FONT ID="LN">694 </FONT><A NAME="694"></A>  <FONT ID="FormalComment">/** Creates an IndexInput for the file with the given name.
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   * &lt;em&gt;In 3.0 this method will become abstract.&lt;/em&gt; */</FONT>
+<FONT ID="LN">696 </FONT><A NAME="696"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../org/apache/lucene/store/IndexInput.java.html">IndexInput</A> openInput(String name, <FONT ID="Int">int</FONT> bufferSize) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">697 </FONT><A NAME="697"></A>    ensureOpen();
+<FONT ID="LN">698 </FONT><A NAME="698"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> FSIndexInput(<FONT ID="New">new</FONT> File(directory, name), bufferSize);
+<FONT ID="LN">699 </FONT><A NAME="699"></A>  }
+<FONT ID="LN">700 </FONT><A NAME="700"></A>
+<FONT ID="LN">701 </FONT><A NAME="701"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">702 </FONT><A NAME="702"></A>   * So we can do some byte-to-hexchar conversion below
+<FONT ID="LN">703 </FONT><A NAME="703"></A>   */</FONT>
+<FONT ID="LN">704 </FONT><A NAME="704"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Char">char</FONT>[] HEX_DIGITS =
+<FONT ID="LN">705 </FONT><A NAME="705"></A>  {<FONT ID="CharacerLiteral">'0'</FONT>,<FONT ID="CharacerLiteral">'1'</FONT>,<FONT ID="CharacerLiteral">'2'</FONT>,<FONT ID="CharacerLiteral">'3'</FONT>,<FONT ID="CharacerLiteral">'4'</FONT>,<FONT ID="CharacerLiteral">'5'</FONT>,<FONT ID="CharacerLiteral">'6'</FONT>,<FONT ID="CharacerLiteral">'7'</FONT>,<FONT ID="CharacerLiteral">'8'</FONT>,<FONT ID="CharacerLiteral">'9'</FONT>,<FONT ID="CharacerLiteral">'a'</FONT>,<FONT ID="CharacerLiteral">'b'</FONT>,<FONT ID="CharacerLiteral">'c'</FONT>,<FONT ID="CharacerLiteral">'d'</FONT>,<FONT ID="CharacerLiteral">'e'</FONT>,<FONT ID="CharacerLiteral">'f'</FONT>};
+<FONT ID="LN">706 </FONT><A NAME="706"></A>
+<FONT ID="LN">707 </FONT><A NAME="707"></A>  
+<FONT ID="LN">708 </FONT><A NAME="708"></A>  <FONT ID="Public">public</FONT> String getLockID() {
+<FONT ID="LN">709 </FONT><A NAME="709"></A>    ensureOpen();
+<FONT ID="LN">710 </FONT><A NAME="710"></A>    String dirName;                               <FONT ID="SingleLineComment">// name to be hashed
+<FONT ID="LN">711 </FONT><A NAME="711"></A></FONT>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">712 </FONT><A NAME="712"></A>      dirName = directory.getCanonicalPath();
+<FONT ID="LN">713 </FONT><A NAME="713"></A>    } <FONT ID="Catch">catch</FONT> (IOException e) {
+<FONT ID="LN">714 </FONT><A NAME="714"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(e.toString(), e);
+<FONT ID="LN">715 </FONT><A NAME="715"></A>    }
+<FONT ID="LN">716 </FONT><A NAME="716"></A>
+<FONT ID="LN">717 </FONT><A NAME="717"></A>    <FONT ID="Byte">byte</FONT> digest[];
+<FONT ID="LN">718 </FONT><A NAME="718"></A>    <FONT ID="Synchronized">synchronized</FONT> (DIGESTER) {
+<FONT ID="LN">719 </FONT><A NAME="719"></A>      digest = DIGESTER.digest(dirName.getBytes());
+<FONT ID="LN">720 </FONT><A NAME="720"></A>    }
+<FONT ID="LN">721 </FONT><A NAME="721"></A>    StringBuffer buf = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">722 </FONT><A NAME="722"></A>    buf.append(<FONT ID="StringLiteral">"lucene-"</FONT>);
+<FONT ID="LN">723 </FONT><A NAME="723"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; digest.length; i++) {
+<FONT ID="LN">724 </FONT><A NAME="724"></A>      <FONT ID="Int">int</FONT> b = digest[i];
+<FONT ID="LN">725 </FONT><A NAME="725"></A>      buf.append(HEX_DIGITS[(b &gt;&gt; <FONT ID="IntegerLiteral">4</FONT>) &amp; <FONT ID="IntegerLiteral">0xf</FONT>]);
+<FONT ID="LN">726 </FONT><A NAME="726"></A>      buf.append(HEX_DIGITS[b &amp; <FONT ID="IntegerLiteral">0xf</FONT>]);
+<FONT ID="LN">727 </FONT><A NAME="727"></A>    }
+<FONT ID="LN">728 </FONT><A NAME="728"></A>
+<FONT ID="LN">729 </FONT><A NAME="729"></A>    <FONT ID="Return">return</FONT> buf.toString();
+<FONT ID="LN">730 </FONT><A NAME="730"></A>  }
+<FONT ID="LN">731 </FONT><A NAME="731"></A>
+<FONT ID="LN">732 </FONT><A NAME="732"></A>  <FONT ID="FormalComment">/** Closes the store to future operations. */</FONT>
+<FONT ID="LN">733 </FONT><A NAME="733"></A>  <FONT ID="Public">public</FONT> <FONT ID="Synchronized">synchronized</FONT> <FONT ID="Void">void</FONT> close() {
+<FONT ID="LN">734 </FONT><A NAME="734"></A>    <FONT ID="If">if</FONT> (isOpen &amp;&amp; --refCount &lt;= <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">735 </FONT><A NAME="735"></A>      isOpen = <FONT ID="False">false</FONT>;
+<FONT ID="LN">736 </FONT><A NAME="736"></A>      <FONT ID="Synchronized">synchronized</FONT> (DIRECTORIES) {
+<FONT ID="LN">737 </FONT><A NAME="737"></A>        DIRECTORIES.remove(directory);
+<FONT ID="LN">738 </FONT><A NAME="738"></A>      }
+<FONT ID="LN">739 </FONT><A NAME="739"></A>    }
+<FONT ID="LN">740 </FONT><A NAME="740"></A>  }
+<FONT ID="LN">741 </FONT><A NAME="741"></A>
+<FONT ID="LN">742 </FONT><A NAME="742"></A>  <FONT ID="Public">public</FONT> File getFile() {
+<FONT ID="LN">743 </FONT><A NAME="743"></A>    ensureOpen();
+<FONT ID="LN">744 </FONT><A NAME="744"></A>    <FONT ID="Return">return</FONT> directory;
+<FONT ID="LN">745 </FONT><A NAME="745"></A>  }
+<FONT ID="LN">746 </FONT><A NAME="746"></A>
+<FONT ID="LN">747 </FONT><A NAME="747"></A>  <FONT ID="FormalComment">/** For debug output. */</FONT>
+<FONT ID="LN">748 </FONT><A NAME="748"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">749 </FONT><A NAME="749"></A>    <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.getClass().getName() + <FONT ID="StringLiteral">"@"</FONT> + directory;
+<FONT ID="LN">750 </FONT><A NAME="750"></A>  }
+<FONT ID="LN">751 </FONT><A NAME="751"></A>
+<FONT ID="LN">752 </FONT><A NAME="752"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">753 </FONT><A NAME="753"></A>   * Default read chunk size.  This is a conditional
+<FONT ID="LN">754 </FONT><A NAME="754"></A>   * default: on 32bit JVMs, it defaults to 100 MB.  On
+<FONT ID="LN">755 </FONT><A NAME="755"></A>   * 64bit JVMs, it's &lt;code&gt;Integer.MAX_VALUE&lt;/code&gt;.
+<FONT ID="LN">756 </FONT><A NAME="756"></A>   * @see #setReadChunkSize
+<FONT ID="LN">757 </FONT><A NAME="757"></A>   */</FONT>
+<FONT ID="LN">758 </FONT><A NAME="758"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> DEFAULT_READ_CHUNK_SIZE = Constants.JRE_IS_64BIT ? Integer.MAX_VALUE: <FONT ID="IntegerLiteral">100</FONT> * <FONT ID="IntegerLiteral">1024</FONT> * <FONT ID="IntegerLiteral">1024</FONT>;
+<FONT ID="LN">759 </FONT><A NAME="759"></A>
+<FONT ID="LN">760 </FONT><A NAME="760"></A>  <FONT ID="SingleLineComment">// LUCENE-1566
+<FONT ID="LN">761 </FONT><A NAME="761"></A></FONT>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> chunkSize = DEFAULT_READ_CHUNK_SIZE;
+<FONT ID="LN">762 </FONT><A NAME="762"></A>
+<FONT ID="LN">763 </FONT><A NAME="763"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">764 </FONT><A NAME="764"></A>   * Sets the maximum number of bytes read at once from the
+<FONT ID="LN">765 </FONT><A NAME="765"></A>   * underlying file during {@link IndexInput#readBytes}.
+<FONT ID="LN">766 </FONT><A NAME="766"></A>   * The default value is {@link #DEFAULT_READ_CHUNK_SIZE};
+<FONT ID="LN">767 </FONT><A NAME="767"></A>   *
+<FONT ID="LN">768 </FONT><A NAME="768"></A>   * &lt;p&gt; This was introduced due to &lt;a
+<FONT ID="LN">769 </FONT><A NAME="769"></A>   * href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6478546"&gt;Sun
+<FONT ID="LN">770 </FONT><A NAME="770"></A>   * JVM Bug 6478546&lt;/a&gt;, which throws an incorrect
+<FONT ID="LN">771 </FONT><A NAME="771"></A>   * OutOfMemoryError when attempting to read too many bytes
+<FONT ID="LN">772 </FONT><A NAME="772"></A>   * at once.  It only happens on 32bit JVMs with a large
+<FONT ID="LN">773 </FONT><A NAME="773"></A>   * maximum heap size.&lt;/p&gt;
+<FONT ID="LN">774 </FONT><A NAME="774"></A>   *
+<FONT ID="LN">775 </FONT><A NAME="775"></A>   * &lt;p&gt;Changes to this value will not impact any
+<FONT ID="LN">776 </FONT><A NAME="776"></A>   * already-opened {@link IndexInput}s.  You should call
+<FONT ID="LN">777 </FONT><A NAME="777"></A>   * this before attempting to open an index on the
+<FONT ID="LN">778 </FONT><A NAME="778"></A>   * directory.&lt;/p&gt;
+<FONT ID="LN">779 </FONT><A NAME="779"></A>   *
+<FONT ID="LN">780 </FONT><A NAME="780"></A>   * &lt;p&gt; &lt;b&gt;NOTE&lt;/b&gt;: This value should be as large as
+<FONT ID="LN">781 </FONT><A NAME="781"></A>   * possible to reduce any possible performance impact.  If
+<FONT ID="LN">782 </FONT><A NAME="782"></A>   * you still encounter an incorrect OutOfMemoryError,
+<FONT ID="LN">783 </FONT><A NAME="783"></A>   * trying lowering the chunk size.&lt;/p&gt;
+<FONT ID="LN">784 </FONT><A NAME="784"></A>   */</FONT>
+<FONT ID="LN">785 </FONT><A NAME="785"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Void">void</FONT> setReadChunkSize(<FONT ID="Int">int</FONT> chunkSize) {
+<FONT ID="LN">786 </FONT><A NAME="786"></A>    <FONT ID="SingleLineComment">// LUCENE-1566
+<FONT ID="LN">787 </FONT><A NAME="787"></A></FONT>    <FONT ID="If">if</FONT> (chunkSize &lt;= <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">788 </FONT><A NAME="788"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"chunkSize must be positive"</FONT>);
+<FONT ID="LN">789 </FONT><A NAME="789"></A>    }
+<FONT ID="LN">790 </FONT><A NAME="790"></A>    <FONT ID="If">if</FONT> (!Constants.JRE_IS_64BIT) {
+<FONT ID="LN">791 </FONT><A NAME="791"></A>      <FONT ID="This">this</FONT>.chunkSize = chunkSize;
+<FONT ID="LN">792 </FONT><A NAME="792"></A>    }
+<FONT ID="LN">793 </FONT><A NAME="793"></A>  }
+<FONT ID="LN">794 </FONT><A NAME="794"></A>
+<FONT ID="LN">795 </FONT><A NAME="795"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">796 </FONT><A NAME="796"></A>   * The maximum number of bytes to read at once from the
+<FONT ID="LN">797 </FONT><A NAME="797"></A>   * underlying file during {@link IndexInput#readBytes}.
+<FONT ID="LN">798 </FONT><A NAME="798"></A>   * @see #setReadChunkSize
+<FONT ID="LN">799 </FONT><A NAME="799"></A>   */</FONT>
+<FONT ID="LN">800 </FONT><A NAME="800"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> getReadChunkSize() {
+<FONT ID="LN">801 </FONT><A NAME="801"></A>    <FONT ID="SingleLineComment">// LUCENE-1566
+<FONT ID="LN">802 </FONT><A NAME="802"></A></FONT>    <FONT ID="Return">return</FONT> chunkSize;
+<FONT ID="LN">803 </FONT><A NAME="803"></A>  }
+<FONT ID="LN">804 </FONT><A NAME="804"></A>
+<FONT ID="LN">805 </FONT><A NAME="805"></A>
+<FONT ID="LN">806 </FONT><A NAME="806"></A>  <FONT ID="FormalComment">/** @deprecated Use SimpleFSDirectory.SimpleFSIndexInput instead */</FONT>
+<FONT ID="LN">807 </FONT><A NAME="807"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> FSIndexInput <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/store/SimpleFSDirectory.java.html">SimpleFSDirectory.SimpleFSIndexInput</A> {
+<FONT ID="LN">808 </FONT><A NAME="808"></A>  
+<FONT ID="LN">809 </FONT><A NAME="809"></A>    <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">810 </FONT><A NAME="810"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Descriptor <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/store/SimpleFSDirectory.java.html">SimpleFSDirectory.SimpleFSIndexInput.Descriptor</A> {
+<FONT ID="LN">811 </FONT><A NAME="811"></A>      <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">812 </FONT><A NAME="812"></A>      <FONT ID="Public">public</FONT> Descriptor(File file, String mode) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">813 </FONT><A NAME="813"></A>        <FONT ID="Super">super</FONT>(file, mode);
+<FONT ID="LN">814 </FONT><A NAME="814"></A>      }
+<FONT ID="LN">815 </FONT><A NAME="815"></A>    }
+<FONT ID="LN">816 </FONT><A NAME="816"></A>  
+<FONT ID="LN">817 </FONT><A NAME="817"></A>    <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">818 </FONT><A NAME="818"></A>    <FONT ID="Public">public</FONT> FSIndexInput(File path) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">819 </FONT><A NAME="819"></A>      <FONT ID="Super">super</FONT>(path);
+<FONT ID="LN">820 </FONT><A NAME="820"></A>    }
+<FONT ID="LN">821 </FONT><A NAME="821"></A>  
+<FONT ID="LN">822 </FONT><A NAME="822"></A>    <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">823 </FONT><A NAME="823"></A>    <FONT ID="Public">public</FONT> FSIndexInput(File path, <FONT ID="Int">int</FONT> bufferSize) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">824 </FONT><A NAME="824"></A>      <FONT ID="Super">super</FONT>(path, bufferSize);
+<FONT ID="LN">825 </FONT><A NAME="825"></A>    }
+<FONT ID="LN">826 </FONT><A NAME="826"></A>  
+<FONT ID="LN">827 </FONT><A NAME="827"></A>  }
+<FONT ID="LN">828 </FONT><A NAME="828"></A>
+<FONT ID="LN">829 </FONT><A NAME="829"></A>  <FONT ID="FormalComment">/** @deprecated Use SimpleFSDirectory.SimpleFSIndexOutput instead */</FONT>
+<FONT ID="LN">830 </FONT><A NAME="830"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> FSIndexOutput <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/apache/lucene/store/SimpleFSDirectory.java.html">SimpleFSDirectory.SimpleFSIndexOutput</A> {
+<FONT ID="LN">831 </FONT><A NAME="831"></A>
+<FONT ID="LN">832 </FONT><A NAME="832"></A>    <FONT ID="FormalComment">/** @deprecated */</FONT>
+<FONT ID="LN">833 </FONT><A NAME="833"></A>    <FONT ID="Public">public</FONT> FSIndexOutput(File path) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">834 </FONT><A NAME="834"></A>      <FONT ID="Super">super</FONT>(path);
+<FONT ID="LN">835 </FONT><A NAME="835"></A>    }
+<FONT ID="LN">836 </FONT><A NAME="836"></A>
+<FONT ID="LN">837 </FONT><A NAME="837"></A>  }
+<FONT ID="LN">838 </FONT><A NAME="838"></A>}
+<FONT ID="LN">839 </FONT><A NAME="839"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FSDirectory.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

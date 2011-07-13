@@ -1,0 +1,465 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.apache.lucene.util.FieldCacheSanityChecker (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldCacheSanityChecker.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.apache.lucene.util;
+<FONT ID="LN">2   </FONT><A NAME="2"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">3   </FONT><A NAME="3"></A> * Copyright 2009 The Apache Software Foundation
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * Licensed under the Apache License, Version 2.0 (the "License");
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * you may not use this file except in compliance with the License.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * You may obtain a copy of the License at
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *     http://www.apache.org/licenses/LICENSE-2.0
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * Unless required by applicable law or agreed to in writing, software
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * distributed under the License is distributed on an "AS IS" BASIS,
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * See the License for the specific language governing permissions and
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * limitations under the License.
+<FONT ID="LN">16  </FONT><A NAME="16"></A> */</FONT>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">19  </FONT><A NAME="19"></A><FONT ID="Import">import</FONT> java.util.Collection;
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.util.HashMap;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> java.util.HashSet;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> java.util.Map;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.util.Set;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">org.apache.lucene.index.IndexReader</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">org.apache.lucene.search.FieldCache</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">org.apache.lucene.search.FieldCache.CacheEntry</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="FormalComment">/** 
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * Provides methods for sanity checking that entries in the FieldCache 
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * are not wasteful or inconsistent.
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * &lt;/p&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * &lt;p&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * Lucene 2.9 Introduced numerous enhancements into how the FieldCache 
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * is used by the low levels of Lucene searching (for Sorting and 
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * ValueSourceQueries) to improve both the speed for Sorting, as well 
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * as reopening of IndexReaders.  But these changes have shifted the 
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * usage of FieldCache from "top level" IndexReaders (frequently a 
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * MultiReader or DirectoryReader) down to the leaf level SegmentReaders.  
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * As a result, existing applications that directly access the FieldCache 
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * may find RAM usage increase significantly when upgrading to 2.9 or 
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * Later.  This class provides an API for these applications (or their 
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * Unit tests) to check at run time if the FieldCache contains "insane" 
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * usages of the FieldCache.
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * &lt;/p&gt;
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * &lt;p&gt;
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * &lt;b&gt;EXPERIMENTAL API:&lt;/b&gt; This API is considered extremely advanced and 
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * experimental.  It may be removed or altered w/o warning in future releases 
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * of Lucene.
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * &lt;/p&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * @see FieldCache
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * @see FieldCacheSanityChecker.Insanity
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * @see FieldCacheSanityChecker.InsanityType
+<FONT ID="LN">56  </FONT><A NAME="56"></A> */</FONT>
+<FONT ID="LN">57  </FONT><A NAME="57"></A><FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> FieldCacheSanityChecker {
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../org/apache/lucene/util/RamUsageEstimator.java.html">RamUsageEstimator</A> ramCalc = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="Public">public</FONT> FieldCacheSanityChecker() {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="MultiLineComment">/* NOOP */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  }
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   * If set, will be used to estimate size for all CacheEntry objects 
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   * dealt with.
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   */</FONT>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setRamUsageEstimator(<A HREF="../../../../org/apache/lucene/util/RamUsageEstimator.java.html">RamUsageEstimator</A> r) {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    ramCalc = r;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  }
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   * Quick and dirty convenience method
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   * @see #check
+<FONT ID="LN">75  </FONT><A NAME="75"></A>   */</FONT>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Insanity[] checkSanity(<A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache</A> cache) {
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Return">return</FONT> checkSanity(cache.getCacheEntries());
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  }
+<FONT ID="LN">79  </FONT><A NAME="79"></A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   * Quick and dirty convenience method that instantiates an instance with 
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   * "good defaults" and uses it to test the CacheEntry[]
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   * @see #check
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   */</FONT>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Insanity[] checkSanity(CacheEntry[] cacheEntries) {
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <A HREF="../../../../org/apache/lucene/util/FieldCacheSanityChecker.java.html">FieldCacheSanityChecker</A> sanityChecker = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/FieldCacheSanityChecker.java.html">FieldCacheSanityChecker</A>();
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="SingleLineComment">// doesn't check for interned
+<FONT ID="LN">88  </FONT><A NAME="88"></A></FONT>    sanityChecker.setRamUsageEstimator(<FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/RamUsageEstimator.java.html">RamUsageEstimator</A>(<FONT ID="False">false</FONT>));
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Return">return</FONT> sanityChecker.check(cacheEntries);
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * Tests a CacheEntry[] for indication of "insane" cache usage.
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * &lt;p&gt;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * &lt;B&gt;NOTE:&lt;/b&gt;FieldCache CreationPlaceholder objects are ignored.
+<FONT ID="LN">97  </FONT><A NAME="97"></A>   * (:TODO: is this a bad idea? are we masking a real problem?)
+<FONT ID="LN">98  </FONT><A NAME="98"></A>   * &lt;/p&gt;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Public">public</FONT> Insanity[] check(CacheEntry[] cacheEntries) {
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="If">if</FONT> (<FONT ID="Null">null</FONT> == cacheEntries || <FONT ID="IntegerLiteral">0</FONT> == cacheEntries.length) 
+<FONT ID="LN">102 </FONT><A NAME="102"></A>      <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Insanity[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">103 </FONT><A NAME="103"></A>
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="If">if</FONT> (<FONT ID="Null">null</FONT> != ramCalc) {
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; cacheEntries.length; i++) {
+<FONT ID="LN">106 </FONT><A NAME="106"></A>        cacheEntries[i].estimateSize(ramCalc);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>      }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    <FONT ID="SingleLineComment">// the indirect mapping lets MapOfSet dedup identical valIds for us
+<FONT ID="LN">111 </FONT><A NAME="111"></A></FONT>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">112 </FONT><A NAME="112"></A></FONT>    <FONT ID="SingleLineComment">// maps the (valId) identityhashCode of cache values to 
+<FONT ID="LN">113 </FONT><A NAME="113"></A></FONT>    <FONT ID="SingleLineComment">// sets of CacheEntry instances
+<FONT ID="LN">114 </FONT><A NAME="114"></A></FONT>    <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A> valIdToItems = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A>(<FONT ID="New">new</FONT> HashMap(<FONT ID="IntegerLiteral">17</FONT>));
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="SingleLineComment">// maps ReaderField keys to Sets of ValueIds
+<FONT ID="LN">116 </FONT><A NAME="116"></A></FONT>    <FONT ID="Final">final</FONT> <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A> readerFieldToValIds = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A>(<FONT ID="New">new</FONT> HashMap(<FONT ID="IntegerLiteral">17</FONT>));
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">118 </FONT><A NAME="118"></A></FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    <FONT ID="SingleLineComment">// any keys that we know result in more then one valId
+<FONT ID="LN">120 </FONT><A NAME="120"></A></FONT>    <FONT ID="Final">final</FONT> Set valMismatchKeys = <FONT ID="New">new</FONT> HashSet();
+<FONT ID="LN">121 </FONT><A NAME="121"></A>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="SingleLineComment">// iterate over all the cacheEntries to get the mappings we'll need
+<FONT ID="LN">123 </FONT><A NAME="123"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; cacheEntries.length; i++) {
+<FONT ID="LN">124 </FONT><A NAME="124"></A>      <FONT ID="Final">final</FONT> CacheEntry item = cacheEntries[i];
+<FONT ID="LN">125 </FONT><A NAME="125"></A>      <FONT ID="Final">final</FONT> Object val = item.getValue();
+<FONT ID="LN">126 </FONT><A NAME="126"></A>
+<FONT ID="LN">127 </FONT><A NAME="127"></A>      <FONT ID="If">if</FONT> (val <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/search/FieldCache.java.html">FieldCache.CreationPlaceholder</A>)
+<FONT ID="LN">128 </FONT><A NAME="128"></A>        <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>      <FONT ID="Final">final</FONT> ReaderField rf = <FONT ID="New">new</FONT> ReaderField(item.getReaderKey(), 
+<FONT ID="LN">131 </FONT><A NAME="131"></A>                                            item.getFieldName());
+<FONT ID="LN">132 </FONT><A NAME="132"></A>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      <FONT ID="Final">final</FONT> Integer valId = <FONT ID="New">new</FONT> Integer(System.identityHashCode(val));
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>      <FONT ID="SingleLineComment">// indirect mapping, so the MapOfSet will dedup identical valIds for us
+<FONT ID="LN">136 </FONT><A NAME="136"></A></FONT>      valIdToItems.put(valId, item);
+<FONT ID="LN">137 </FONT><A NAME="137"></A>      <FONT ID="If">if</FONT> (<FONT ID="IntegerLiteral">1</FONT> &lt; readerFieldToValIds.put(rf, valId)) {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>        valMismatchKeys.add(rf);
+<FONT ID="LN">139 </FONT><A NAME="139"></A>      }
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    }
+<FONT ID="LN">141 </FONT><A NAME="141"></A>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    <FONT ID="Final">final</FONT> List insanity = <FONT ID="New">new</FONT> ArrayList(valMismatchKeys.size() * <FONT ID="IntegerLiteral">3</FONT>);
+<FONT ID="LN">143 </FONT><A NAME="143"></A>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    insanity.addAll(checkValueMismatch(valIdToItems, 
+<FONT ID="LN">145 </FONT><A NAME="145"></A>                                       readerFieldToValIds, 
+<FONT ID="LN">146 </FONT><A NAME="146"></A>                                       valMismatchKeys));
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    insanity.addAll(checkSubreaders(valIdToItems, 
+<FONT ID="LN">148 </FONT><A NAME="148"></A>                                    readerFieldToValIds));
+<FONT ID="LN">149 </FONT><A NAME="149"></A>                    
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    <FONT ID="Return">return</FONT> (Insanity[]) insanity.toArray(<FONT ID="New">new</FONT> Insanity[insanity.size()]);
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  }
+<FONT ID="LN">152 </FONT><A NAME="152"></A>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * Internal helper method used by check that iterates over 
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * valMismatchKeys and generates a Collection of Insanity 
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * instances accordingly.  The MapOfSets are used to populate 
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * the Insanity objects. 
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   * @see InsanityType#VALUEMISMATCH
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   */</FONT>
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  <FONT ID="Private">private</FONT> Collection checkValueMismatch(<A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A> valIdToItems,
+<FONT ID="LN">161 </FONT><A NAME="161"></A>                                        <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A> readerFieldToValIds,
+<FONT ID="LN">162 </FONT><A NAME="162"></A>                                        Set valMismatchKeys) {
+<FONT ID="LN">163 </FONT><A NAME="163"></A>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    <FONT ID="Final">final</FONT> List insanity = <FONT ID="New">new</FONT> ArrayList(valMismatchKeys.size() * <FONT ID="IntegerLiteral">3</FONT>);
+<FONT ID="LN">165 </FONT><A NAME="165"></A>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    <FONT ID="If">if</FONT> (! valMismatchKeys.isEmpty() ) { 
+<FONT ID="LN">167 </FONT><A NAME="167"></A>      <FONT ID="SingleLineComment">// we have multiple values for some ReaderFields
+<FONT ID="LN">168 </FONT><A NAME="168"></A></FONT>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>      <FONT ID="Final">final</FONT> Map rfMap = readerFieldToValIds.getMap();
+<FONT ID="LN">170 </FONT><A NAME="170"></A>      <FONT ID="Final">final</FONT> Map valMap = valIdToItems.getMap();
+<FONT ID="LN">171 </FONT><A NAME="171"></A>      <FONT ID="Final">final</FONT> Iterator mismatchIter = valMismatchKeys.iterator();
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      <FONT ID="While">while</FONT> (mismatchIter.hasNext()) {
+<FONT ID="LN">173 </FONT><A NAME="173"></A>        <FONT ID="Final">final</FONT> ReaderField rf = (ReaderField)mismatchIter.next();
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        <FONT ID="Final">final</FONT> List badEntries = <FONT ID="New">new</FONT> ArrayList(valMismatchKeys.size() * <FONT ID="IntegerLiteral">2</FONT>);
+<FONT ID="LN">175 </FONT><A NAME="175"></A>        <FONT ID="Final">final</FONT> Iterator valIter = ((Set)rfMap.get(rf)).iterator();
+<FONT ID="LN">176 </FONT><A NAME="176"></A>        <FONT ID="While">while</FONT> (valIter.hasNext()) {
+<FONT ID="LN">177 </FONT><A NAME="177"></A>          Iterator entriesIter = ((Set)valMap.get(valIter.next())).iterator();
+<FONT ID="LN">178 </FONT><A NAME="178"></A>          <FONT ID="While">while</FONT> (entriesIter.hasNext()) {
+<FONT ID="LN">179 </FONT><A NAME="179"></A>            badEntries.add(entriesIter.next());
+<FONT ID="LN">180 </FONT><A NAME="180"></A>          }
+<FONT ID="LN">181 </FONT><A NAME="181"></A>        }
+<FONT ID="LN">182 </FONT><A NAME="182"></A>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>        CacheEntry[] badness = <FONT ID="New">new</FONT> CacheEntry[badEntries.size()];
+<FONT ID="LN">184 </FONT><A NAME="184"></A>        badness = (CacheEntry[]) badEntries.toArray(badness);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>        insanity.add(<FONT ID="New">new</FONT> Insanity(InsanityType.VALUEMISMATCH,
+<FONT ID="LN">187 </FONT><A NAME="187"></A>                                  <FONT ID="StringLiteral">"Multiple distinct value objects for "</FONT> + 
+<FONT ID="LN">188 </FONT><A NAME="188"></A>                                  rf.toString(), badness));
+<FONT ID="LN">189 </FONT><A NAME="189"></A>      }
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    }
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="Return">return</FONT> insanity;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>  }
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">195 </FONT><A NAME="195"></A>   * Internal helper method used by check that iterates over 
+<FONT ID="LN">196 </FONT><A NAME="196"></A>   * the keys of readerFieldToValIds and generates a Collection 
+<FONT ID="LN">197 </FONT><A NAME="197"></A>   * of Insanity instances whenever two (or more) ReaderField instances are 
+<FONT ID="LN">198 </FONT><A NAME="198"></A>   * found that have an ancestry relationships.  
+<FONT ID="LN">199 </FONT><A NAME="199"></A>   *
+<FONT ID="LN">200 </FONT><A NAME="200"></A>   * @see InsanityType#SUBREADER
+<FONT ID="LN">201 </FONT><A NAME="201"></A>   */</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="Private">private</FONT> Collection checkSubreaders(<A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A> valIdToItems,
+<FONT ID="LN">203 </FONT><A NAME="203"></A>                                     <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A> readerFieldToValIds) {
+<FONT ID="LN">204 </FONT><A NAME="204"></A>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    <FONT ID="Final">final</FONT> List insanity = <FONT ID="New">new</FONT> ArrayList(<FONT ID="IntegerLiteral">23</FONT>);
+<FONT ID="LN">206 </FONT><A NAME="206"></A>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    Map badChildren = <FONT ID="New">new</FONT> HashMap(<FONT ID="IntegerLiteral">17</FONT>);
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A> badKids = <FONT ID="New">new</FONT> <A HREF="../../../../org/apache/lucene/util/MapOfSets.java.html">MapOfSets</A>(badChildren); <FONT ID="SingleLineComment">// wrapper
+<FONT ID="LN">209 </FONT><A NAME="209"></A></FONT>
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    Map viToItemSets = valIdToItems.getMap();
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    Map rfToValIdSets = readerFieldToValIds.getMap();
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    Set seen = <FONT ID="New">new</FONT> HashSet(<FONT ID="IntegerLiteral">17</FONT>);
+<FONT ID="LN">214 </FONT><A NAME="214"></A>
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    Set readerFields = rfToValIdSets.keySet();
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    Iterator rfIter = readerFields.iterator();
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    <FONT ID="While">while</FONT> (rfIter.hasNext()) {
+<FONT ID="LN">218 </FONT><A NAME="218"></A>      ReaderField rf = (ReaderField) rfIter.next();
+<FONT ID="LN">219 </FONT><A NAME="219"></A>      
+<FONT ID="LN">220 </FONT><A NAME="220"></A>      <FONT ID="If">if</FONT> (seen.contains(rf)) <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">221 </FONT><A NAME="221"></A>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>      List kids = getAllDecendentReaderKeys(rf.readerKey);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; kids.size(); i++) {
+<FONT ID="LN">224 </FONT><A NAME="224"></A>        ReaderField kid = <FONT ID="New">new</FONT> ReaderField(kids.get(i), rf.fieldName);
+<FONT ID="LN">225 </FONT><A NAME="225"></A>        
+<FONT ID="LN">226 </FONT><A NAME="226"></A>        <FONT ID="If">if</FONT> (badChildren.containsKey(kid)) {
+<FONT ID="LN">227 </FONT><A NAME="227"></A>          <FONT ID="SingleLineComment">// we've already process this kid as RF and found other problems
+<FONT ID="LN">228 </FONT><A NAME="228"></A></FONT>          <FONT ID="SingleLineComment">// track those problems as our own
+<FONT ID="LN">229 </FONT><A NAME="229"></A></FONT>          badKids.put(rf, kid);
+<FONT ID="LN">230 </FONT><A NAME="230"></A>          badKids.putAll(rf, (Collection)badChildren.get(kid));
+<FONT ID="LN">231 </FONT><A NAME="231"></A>          badChildren.remove(kid);
+<FONT ID="LN">232 </FONT><A NAME="232"></A>          
+<FONT ID="LN">233 </FONT><A NAME="233"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (rfToValIdSets.containsKey(kid)) {
+<FONT ID="LN">234 </FONT><A NAME="234"></A>          <FONT ID="SingleLineComment">// we have cache entries for the kid
+<FONT ID="LN">235 </FONT><A NAME="235"></A></FONT>          badKids.put(rf, kid);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>        }
+<FONT ID="LN">237 </FONT><A NAME="237"></A>        seen.add(kid);
+<FONT ID="LN">238 </FONT><A NAME="238"></A>      }
+<FONT ID="LN">239 </FONT><A NAME="239"></A>      seen.add(rf);
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    }
+<FONT ID="LN">241 </FONT><A NAME="241"></A>
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    <FONT ID="SingleLineComment">// every mapping in badKids represents an Insanity
+<FONT ID="LN">243 </FONT><A NAME="243"></A></FONT>    Iterator parentsIter = badChildren.keySet().iterator();
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    <FONT ID="While">while</FONT> (parentsIter.hasNext()) {
+<FONT ID="LN">245 </FONT><A NAME="245"></A>      ReaderField parent = (ReaderField) parentsIter.next();
+<FONT ID="LN">246 </FONT><A NAME="246"></A>      Set kids = (Set) badChildren.get(parent);
+<FONT ID="LN">247 </FONT><A NAME="247"></A>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>      List badEntries = <FONT ID="New">new</FONT> ArrayList(kids.size() * <FONT ID="IntegerLiteral">2</FONT>);
+<FONT ID="LN">249 </FONT><A NAME="249"></A>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>      <FONT ID="SingleLineComment">// put parent entr(ies) in first
+<FONT ID="LN">251 </FONT><A NAME="251"></A></FONT>      {
+<FONT ID="LN">252 </FONT><A NAME="252"></A>        Iterator valIter =((Set)rfToValIdSets.get(parent)).iterator();
+<FONT ID="LN">253 </FONT><A NAME="253"></A>        <FONT ID="While">while</FONT> (valIter.hasNext()) {
+<FONT ID="LN">254 </FONT><A NAME="254"></A>          badEntries.addAll((Set)viToItemSets.get(valIter.next()));
+<FONT ID="LN">255 </FONT><A NAME="255"></A>        }
+<FONT ID="LN">256 </FONT><A NAME="256"></A>      }
+<FONT ID="LN">257 </FONT><A NAME="257"></A>
+<FONT ID="LN">258 </FONT><A NAME="258"></A>      <FONT ID="SingleLineComment">// now the entries for the descendants
+<FONT ID="LN">259 </FONT><A NAME="259"></A></FONT>      Iterator kidsIter = kids.iterator();
+<FONT ID="LN">260 </FONT><A NAME="260"></A>      <FONT ID="While">while</FONT> (kidsIter.hasNext()) {
+<FONT ID="LN">261 </FONT><A NAME="261"></A>        ReaderField kid = (ReaderField) kidsIter.next();
+<FONT ID="LN">262 </FONT><A NAME="262"></A>        Iterator valIter =((Set)rfToValIdSets.get(kid)).iterator();
+<FONT ID="LN">263 </FONT><A NAME="263"></A>        <FONT ID="While">while</FONT> (valIter.hasNext()) {
+<FONT ID="LN">264 </FONT><A NAME="264"></A>          badEntries.addAll((Set)viToItemSets.get(valIter.next()));
+<FONT ID="LN">265 </FONT><A NAME="265"></A>        }
+<FONT ID="LN">266 </FONT><A NAME="266"></A>      }
+<FONT ID="LN">267 </FONT><A NAME="267"></A>
+<FONT ID="LN">268 </FONT><A NAME="268"></A>      CacheEntry[] badness = <FONT ID="New">new</FONT> CacheEntry[badEntries.size()];
+<FONT ID="LN">269 </FONT><A NAME="269"></A>      badness = (CacheEntry[]) badEntries.toArray(badness);
+<FONT ID="LN">270 </FONT><A NAME="270"></A>
+<FONT ID="LN">271 </FONT><A NAME="271"></A>      insanity.add(<FONT ID="New">new</FONT> Insanity(InsanityType.SUBREADER,
+<FONT ID="LN">272 </FONT><A NAME="272"></A>                                <FONT ID="StringLiteral">"Found caches for decendents of "</FONT> + 
+<FONT ID="LN">273 </FONT><A NAME="273"></A>                                parent.toString(),
+<FONT ID="LN">274 </FONT><A NAME="274"></A>                                badness));
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    }
+<FONT ID="LN">276 </FONT><A NAME="276"></A>
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    <FONT ID="Return">return</FONT> insanity;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>  }
+<FONT ID="LN">280 </FONT><A NAME="280"></A>
+<FONT ID="LN">281 </FONT><A NAME="281"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">282 </FONT><A NAME="282"></A>   * Checks if the seed is an IndexReader, and if so will walk
+<FONT ID="LN">283 </FONT><A NAME="283"></A>   * the hierarchy of subReaders building up a list of the objects 
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   * returned by obj.getFieldCacheKey()
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   */</FONT>
+<FONT ID="LN">286 </FONT><A NAME="286"></A>  <FONT ID="Private">private</FONT> List getAllDecendentReaderKeys(Object seed) {
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    List all = <FONT ID="New">new</FONT> ArrayList(<FONT ID="IntegerLiteral">17</FONT>); <FONT ID="SingleLineComment">// will grow as we iter
+<FONT ID="LN">288 </FONT><A NAME="288"></A></FONT>    all.add(seed);
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; all.size(); i++) {
+<FONT ID="LN">290 </FONT><A NAME="290"></A>      Object obj = all.get(i);
+<FONT ID="LN">291 </FONT><A NAME="291"></A>      <FONT ID="If">if</FONT> (obj <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A>) {
+<FONT ID="LN">292 </FONT><A NAME="292"></A>        <A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A>[] subs = ((<A HREF="../../../../org/apache/lucene/index/IndexReader.java.html">IndexReader</A>)obj).getSequentialSubReaders();
+<FONT ID="LN">293 </FONT><A NAME="293"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; (<FONT ID="Null">null</FONT> != subs) &amp;&amp; (j &lt; subs.length); j++) {
+<FONT ID="LN">294 </FONT><A NAME="294"></A>          all.add(subs[j].getFieldCacheKey());
+<FONT ID="LN">295 </FONT><A NAME="295"></A>        }
+<FONT ID="LN">296 </FONT><A NAME="296"></A>      }
+<FONT ID="LN">297 </FONT><A NAME="297"></A>      
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    }
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    <FONT ID="SingleLineComment">// need to skip the first, because it was the seed
+<FONT ID="LN">300 </FONT><A NAME="300"></A></FONT>    <FONT ID="Return">return</FONT> all.subList(<FONT ID="IntegerLiteral">1</FONT>, all.size());
+<FONT ID="LN">301 </FONT><A NAME="301"></A>  }
+<FONT ID="LN">302 </FONT><A NAME="302"></A>
+<FONT ID="LN">303 </FONT><A NAME="303"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   * Simple pair object for using "readerKey + fieldName" a Map key
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   */</FONT>
+<FONT ID="LN">306 </FONT><A NAME="306"></A>  <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ReaderField {
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> Object readerKey;
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> String fieldName;
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    <FONT ID="Public">public</FONT> ReaderField(Object readerKey, String fieldName) {
+<FONT ID="LN">310 </FONT><A NAME="310"></A>      <FONT ID="This">this</FONT>.readerKey = readerKey;
+<FONT ID="LN">311 </FONT><A NAME="311"></A>      <FONT ID="This">this</FONT>.fieldName = fieldName;
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    }
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> hashCode() {
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      <FONT ID="Return">return</FONT> System.identityHashCode(readerKey) * fieldName.hashCode();
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    }
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> equals(Object that) {
+<FONT ID="LN">317 </FONT><A NAME="317"></A>      <FONT ID="If">if</FONT> (! (that <FONT ID="InstanceOf">instanceof</FONT> ReaderField)) <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">318 </FONT><A NAME="318"></A>
+<FONT ID="LN">319 </FONT><A NAME="319"></A>      ReaderField other = (ReaderField) that;
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      <FONT ID="Return">return</FONT> (<FONT ID="This">this</FONT>.readerKey == other.readerKey &amp;&amp;
+<FONT ID="LN">321 </FONT><A NAME="321"></A>              <FONT ID="This">this</FONT>.fieldName.equals(other.fieldName));
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    }
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">324 </FONT><A NAME="324"></A>      <FONT ID="Return">return</FONT> readerKey.toString() + <FONT ID="StringLiteral">"+"</FONT> + fieldName;
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    }
+<FONT ID="LN">326 </FONT><A NAME="326"></A>  }
+<FONT ID="LN">327 </FONT><A NAME="327"></A>
+<FONT ID="LN">328 </FONT><A NAME="328"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">329 </FONT><A NAME="329"></A>   * Simple container for a collection of related CacheEntry objects that 
+<FONT ID="LN">330 </FONT><A NAME="330"></A>   * in conjunction with each other represent some "insane" usage of the 
+<FONT ID="LN">331 </FONT><A NAME="331"></A>   * FieldCache.
+<FONT ID="LN">332 </FONT><A NAME="332"></A>   */</FONT>
+<FONT ID="LN">333 </FONT><A NAME="333"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Insanity {
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> InsanityType type;
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> String msg;
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> CacheEntry[] entries;
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    <FONT ID="Public">public</FONT> Insanity(InsanityType type, String msg, CacheEntry[] entries) {
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      <FONT ID="If">if</FONT> (<FONT ID="Null">null</FONT> == type) {
+<FONT ID="LN">339 </FONT><A NAME="339"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">340 </FONT><A NAME="340"></A>          (<FONT ID="StringLiteral">"Insanity requires non-null InsanityType"</FONT>);
+<FONT ID="LN">341 </FONT><A NAME="341"></A>      }
+<FONT ID="LN">342 </FONT><A NAME="342"></A>      <FONT ID="If">if</FONT> (<FONT ID="Null">null</FONT> == entries || <FONT ID="IntegerLiteral">0</FONT> == entries.length) {
+<FONT ID="LN">343 </FONT><A NAME="343"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">344 </FONT><A NAME="344"></A>          (<FONT ID="StringLiteral">"Insanity requires non-null/non-empty CacheEntry[]"</FONT>);
+<FONT ID="LN">345 </FONT><A NAME="345"></A>      }
+<FONT ID="LN">346 </FONT><A NAME="346"></A>      <FONT ID="This">this</FONT>.type = type;
+<FONT ID="LN">347 </FONT><A NAME="347"></A>      <FONT ID="This">this</FONT>.msg = msg;
+<FONT ID="LN">348 </FONT><A NAME="348"></A>      <FONT ID="This">this</FONT>.entries = entries;
+<FONT ID="LN">349 </FONT><A NAME="349"></A>      
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    }
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">352 </FONT><A NAME="352"></A>     * Type of insane behavior this object represents
+<FONT ID="LN">353 </FONT><A NAME="353"></A>     */</FONT>
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    <FONT ID="Public">public</FONT> InsanityType getType() { <FONT ID="Return">return</FONT> type; }
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">356 </FONT><A NAME="356"></A>     * Description of hte insane behavior
+<FONT ID="LN">357 </FONT><A NAME="357"></A>     */</FONT>
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    <FONT ID="Public">public</FONT> String getMsg() { <FONT ID="Return">return</FONT> msg; }
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">360 </FONT><A NAME="360"></A>     * CacheEntry objects which suggest a problem
+<FONT ID="LN">361 </FONT><A NAME="361"></A>     */</FONT>
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    <FONT ID="Public">public</FONT> CacheEntry[] getCacheEntries() { <FONT ID="Return">return</FONT> entries; }
+<FONT ID="LN">363 </FONT><A NAME="363"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">364 </FONT><A NAME="364"></A>     * Multi-Line representation of this Insanity object, starting with 
+<FONT ID="LN">365 </FONT><A NAME="365"></A>     * the Type and Msg, followed by each CacheEntry.toString() on it's 
+<FONT ID="LN">366 </FONT><A NAME="366"></A>     * own line prefaced by a tab character
+<FONT ID="LN">367 </FONT><A NAME="367"></A>     */</FONT>
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      StringBuffer buf = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">370 </FONT><A NAME="370"></A>      buf.append(getType()).append(<FONT ID="StringLiteral">": "</FONT>);
+<FONT ID="LN">371 </FONT><A NAME="371"></A>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>      String m = getMsg();
+<FONT ID="LN">373 </FONT><A NAME="373"></A>      <FONT ID="If">if</FONT> (<FONT ID="Null">null</FONT> != m) buf.append(m);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>
+<FONT ID="LN">375 </FONT><A NAME="375"></A>      buf.append(<FONT ID="CharacerLiteral">'\n'</FONT>);
+<FONT ID="LN">376 </FONT><A NAME="376"></A>
+<FONT ID="LN">377 </FONT><A NAME="377"></A>      CacheEntry[] ce = getCacheEntries();
+<FONT ID="LN">378 </FONT><A NAME="378"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; ce.length; i++) {
+<FONT ID="LN">379 </FONT><A NAME="379"></A>        buf.append(<FONT ID="CharacerLiteral">'\t'</FONT>).append(ce[i].toString()).append(<FONT ID="CharacerLiteral">'\n'</FONT>);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>      }
+<FONT ID="LN">381 </FONT><A NAME="381"></A>
+<FONT ID="LN">382 </FONT><A NAME="382"></A>      <FONT ID="Return">return</FONT> buf.toString();
+<FONT ID="LN">383 </FONT><A NAME="383"></A>    }
+<FONT ID="LN">384 </FONT><A NAME="384"></A>  }
+<FONT ID="LN">385 </FONT><A NAME="385"></A>
+<FONT ID="LN">386 </FONT><A NAME="386"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">387 </FONT><A NAME="387"></A>   * An Enumeration of the different types of "insane" behavior that 
+<FONT ID="LN">388 </FONT><A NAME="388"></A>   * may be detected in a FieldCache.
+<FONT ID="LN">389 </FONT><A NAME="389"></A>   *
+<FONT ID="LN">390 </FONT><A NAME="390"></A>   * @see InsanityType#SUBREADER
+<FONT ID="LN">391 </FONT><A NAME="391"></A>   * @see InsanityType#VALUEMISMATCH
+<FONT ID="LN">392 </FONT><A NAME="392"></A>   * @see InsanityType#EXPECTED
+<FONT ID="LN">393 </FONT><A NAME="393"></A>   */</FONT>
+<FONT ID="LN">394 </FONT><A NAME="394"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> InsanityType {
+<FONT ID="LN">395 </FONT><A NAME="395"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> String label;
+<FONT ID="LN">396 </FONT><A NAME="396"></A>    <FONT ID="Private">private</FONT> InsanityType(<FONT ID="Final">final</FONT> String label) {
+<FONT ID="LN">397 </FONT><A NAME="397"></A>      <FONT ID="This">this</FONT>.label = label;
+<FONT ID="LN">398 </FONT><A NAME="398"></A>    }
+<FONT ID="LN">399 </FONT><A NAME="399"></A>    <FONT ID="Public">public</FONT> String toString() { <FONT ID="Return">return</FONT> label; }
+<FONT ID="LN">400 </FONT><A NAME="400"></A>
+<FONT ID="LN">401 </FONT><A NAME="401"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">402 </FONT><A NAME="402"></A>     * Indicates an overlap in cache usage on a given field 
+<FONT ID="LN">403 </FONT><A NAME="403"></A>     * in sub/super readers.
+<FONT ID="LN">404 </FONT><A NAME="404"></A>     */</FONT>
+<FONT ID="LN">405 </FONT><A NAME="405"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> InsanityType SUBREADER 
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      = <FONT ID="New">new</FONT> InsanityType(<FONT ID="StringLiteral">"SUBREADER"</FONT>);
+<FONT ID="LN">407 </FONT><A NAME="407"></A>
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">409 </FONT><A NAME="409"></A>     * &lt;p&gt;
+<FONT ID="LN">410 </FONT><A NAME="410"></A>     * Indicates entries have the same reader+fieldname but 
+<FONT ID="LN">411 </FONT><A NAME="411"></A>     * different cached values.  This can happen if different datatypes, 
+<FONT ID="LN">412 </FONT><A NAME="412"></A>     * or parsers are used -- and while it's not necessarily a bug 
+<FONT ID="LN">413 </FONT><A NAME="413"></A>     * it's typically an indication of a possible problem.
+<FONT ID="LN">414 </FONT><A NAME="414"></A>     * &lt;/p&gt;
+<FONT ID="LN">415 </FONT><A NAME="415"></A>     * &lt;p&gt;
+<FONT ID="LN">416 </FONT><A NAME="416"></A>     * &lt;bPNOTE:&lt;/b&gt; Only the reader, fieldname, and cached value are actually 
+<FONT ID="LN">417 </FONT><A NAME="417"></A>     * tested -- if two cache entries have different parsers or datatypes but 
+<FONT ID="LN">418 </FONT><A NAME="418"></A>     * the cached values are the same Object (== not just equal()) this method 
+<FONT ID="LN">419 </FONT><A NAME="419"></A>     * does not consider that a red flag.  This allows for subtle variations 
+<FONT ID="LN">420 </FONT><A NAME="420"></A>     * in the way a Parser is specified (null vs DEFAULT_LONG_PARSER, etc...)
+<FONT ID="LN">421 </FONT><A NAME="421"></A>     * &lt;/p&gt;
+<FONT ID="LN">422 </FONT><A NAME="422"></A>     */</FONT>
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> InsanityType VALUEMISMATCH 
+<FONT ID="LN">424 </FONT><A NAME="424"></A>      = <FONT ID="New">new</FONT> InsanityType(<FONT ID="StringLiteral">"VALUEMISMATCH"</FONT>);
+<FONT ID="LN">425 </FONT><A NAME="425"></A>
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">427 </FONT><A NAME="427"></A>     * Indicates an expected bit of "insanity".  This may be useful for 
+<FONT ID="LN">428 </FONT><A NAME="428"></A>     * clients that wish to preserve/log information about insane usage 
+<FONT ID="LN">429 </FONT><A NAME="429"></A>     * but indicate that it was expected. 
+<FONT ID="LN">430 </FONT><A NAME="430"></A>     */</FONT>
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> InsanityType EXPECTED
+<FONT ID="LN">432 </FONT><A NAME="432"></A>      = <FONT ID="New">new</FONT> InsanityType(<FONT ID="StringLiteral">"EXPECTED"</FONT>);
+<FONT ID="LN">433 </FONT><A NAME="433"></A>  }
+<FONT ID="LN">434 </FONT><A NAME="434"></A>  
+<FONT ID="LN">435 </FONT><A NAME="435"></A>  
+<FONT ID="LN">436 </FONT><A NAME="436"></A>}
+<FONT ID="LN">437 </FONT><A NAME="437"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">FieldCacheSanityChecker.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>
