@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.runner.Runner (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Runner.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.runner;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/notification/RunNotifier.java.html">org.junit.runner.notification.RunNotifier</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * A &lt;code&gt;Runner&lt;/code&gt; runs tests and notifies a {@link org.junit.runner.notification.RunNotifier}
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * of significant events as it does so. You will need to subclass &lt;code&gt;Runner&lt;/code&gt;
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * when using {@link org.junit.runner.RunWith} to invoke a custom runner. When creating
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * a custom runner, in addition to implementing the abstract methods here you must
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * also provide a constructor that takes as an argument the {@link Class} containing
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * the tests.
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * &lt;p/&gt;
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * The default runner implementation guarantees that the instances of the test case
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * class will be constructed immediately before running the test and that the runner
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * will retain no reference to the test case instances, generally making them 
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * available for garbage collection.
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * 
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * @see org.junit.runner.Description
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * @see org.junit.runner.RunWith
+<FONT ID="LN">20  </FONT><A NAME="20"></A> */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> Runner <FONT ID="Implements">implements</FONT> <A HREF="../../../org/junit/runner/Describable.java.html">Describable</A> {
+<FONT ID="LN">22  </FONT><A NAME="22"></A>    <FONT ID="MultiLineComment">/* (non-Javadoc)
+<FONT ID="LN">23  </FONT><A NAME="23"></A>     * @see org.junit.runner.Describable#getDescription()
+<FONT ID="LN">24  </FONT><A NAME="24"></A>     */</FONT>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../org/junit/runner/Description.java.html">Description</A> getDescription();
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A>     * Run the tests for this runner.
+<FONT ID="LN">29  </FONT><A NAME="29"></A>     * @param notifier will be notified of events while tests are being run--tests being 
+<FONT ID="LN">30  </FONT><A NAME="30"></A>     * started, finishing, and failing
+<FONT ID="LN">31  </FONT><A NAME="31"></A>     */</FONT>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Void">void</FONT> run(<A HREF="../../../org/junit/runner/notification/RunNotifier.java.html">RunNotifier</A> notifier);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">35  </FONT><A NAME="35"></A>     * @return the number of tests to be run by the receiver
+<FONT ID="LN">36  </FONT><A NAME="36"></A>     */</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> testCount() {
+<FONT ID="LN">38  </FONT><A NAME="38"></A>        <FONT ID="Return">return</FONT> getDescription().testCount();
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    }
+<FONT ID="LN">40  </FONT><A NAME="40"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Runner.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

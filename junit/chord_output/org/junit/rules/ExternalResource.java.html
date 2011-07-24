@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.rules.ExternalResource (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ExternalResource.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.rules;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/Description.java.html">org.junit.runner.Description</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">org.junit.runners.model.Statement</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * A base class for Rules (like TemporaryFolder) that set up an external
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * resource before a test (a file, socket, server, database connection, etc.),
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * and guarantee to tear it down afterward:
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * 
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * &lt;pre&gt;
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * public static class UsesExternalResource {
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *  Server myServer= new Server();
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * 
+<FONT ID="LN">15  </FONT><A NAME="15"></A> *  &amp;#064;Rule
+<FONT ID="LN">16  </FONT><A NAME="16"></A> *  public ExternalResource resource= new ExternalResource() {
+<FONT ID="LN">17  </FONT><A NAME="17"></A> *      &amp;#064;Override
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *      protected void before() throws Throwable {
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *          myServer.connect();
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *      };
+<FONT ID="LN">21  </FONT><A NAME="21"></A> * 
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *      &amp;#064;Override
+<FONT ID="LN">23  </FONT><A NAME="23"></A> *      protected void after() {
+<FONT ID="LN">24  </FONT><A NAME="24"></A> *          myServer.disconnect();
+<FONT ID="LN">25  </FONT><A NAME="25"></A> *      };
+<FONT ID="LN">26  </FONT><A NAME="26"></A> *  };
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * 
+<FONT ID="LN">28  </FONT><A NAME="28"></A> *  &amp;#064;Test
+<FONT ID="LN">29  </FONT><A NAME="29"></A> *  public void testFoo() {
+<FONT ID="LN">30  </FONT><A NAME="30"></A> *      new Client().run(myServer);
+<FONT ID="LN">31  </FONT><A NAME="31"></A> *  }
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * }
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * &lt;/pre&gt;
+<FONT ID="LN">34  </FONT><A NAME="34"></A> */</FONT>
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> ExternalResource <FONT ID="Implements">implements</FONT> <A HREF="../../../org/junit/rules/TestRule.java.html">TestRule</A> {
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> apply(<A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> base, <A HREF="../../../org/junit/runner/Description.java.html">Description</A> description) {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        <FONT ID="Return">return</FONT> statement(base);
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    }
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> statement(<FONT ID="Final">final</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> base) {
+<FONT ID="LN">41  </FONT><A NAME="41"></A>        <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A>() {
+<FONT ID="LN">42  </FONT><A NAME="42"></A>            @Override
+<FONT ID="LN">43  </FONT><A NAME="43"></A>            <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> evaluate() <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">44  </FONT><A NAME="44"></A>                before();
+<FONT ID="LN">45  </FONT><A NAME="45"></A>                <FONT ID="Try">try</FONT> {
+<FONT ID="LN">46  </FONT><A NAME="46"></A>                    base.evaluate();
+<FONT ID="LN">47  </FONT><A NAME="47"></A>                } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">48  </FONT><A NAME="48"></A>                    after();
+<FONT ID="LN">49  </FONT><A NAME="49"></A>                }
+<FONT ID="LN">50  </FONT><A NAME="50"></A>            }
+<FONT ID="LN">51  </FONT><A NAME="51"></A>        };
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    }
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">55  </FONT><A NAME="55"></A>     * Override to set up your specific external resource.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>     * @throws if setup fails (which will disable {@code after}
+<FONT ID="LN">57  </FONT><A NAME="57"></A>     */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> before() <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">59  </FONT><A NAME="59"></A>        <FONT ID="SingleLineComment">// do nothing
+<FONT ID="LN">60  </FONT><A NAME="60"></A></FONT>    }
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">63  </FONT><A NAME="63"></A>     * Override to tear down your specific external resource.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>     */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> after() {
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        <FONT ID="SingleLineComment">// do nothing
+<FONT ID="LN">67  </FONT><A NAME="67"></A></FONT>    }
+<FONT ID="LN">68  </FONT><A NAME="68"></A>}
+<FONT ID="LN">69  </FONT><A NAME="69"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ExternalResource.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.experimental.theories.extendingwithstubs.StubbedTheoriesTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StubbedTheoriesTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.experimental.theories.extendingwithstubs;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> org.hamcrest.CoreMatchers.is;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/Assume.java.html">org.junit.Assume.assumeThat</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">org.junit.experimental.theories.Theory</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/runner/RunWith.java.html">org.junit.runner.RunWith</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A>@<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/StubbedTheories.java.html">StubbedTheories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> StubbedTheoriesTest {
+<FONT ID="LN">10  </FONT><A NAME="10"></A>    @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">11  </FONT><A NAME="11"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> ask(@<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/Stub.java.html">Stub</A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A>    <A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/Correspondent.java.html">Correspondent</A> correspondent) {
+<FONT ID="LN">13  </FONT><A NAME="13"></A>        assumeThat(correspondent.getAnswer(<FONT ID="StringLiteral">"What is five?"</FONT>, <FONT ID="StringLiteral">"four"</FONT>, <FONT ID="StringLiteral">"five"</FONT>),
+<FONT ID="LN">14  </FONT><A NAME="14"></A>                is(<FONT ID="StringLiteral">"five"</FONT>));
+<FONT ID="LN">15  </FONT><A NAME="15"></A>    }
+<FONT ID="LN">16  </FONT><A NAME="16"></A>}
+<FONT ID="LN">17  </FONT><A NAME="17"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StubbedTheoriesTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,119 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.rules.TemporaryFolder (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TemporaryFolder.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.rules;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Rule.java.html">org.junit.Rule</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * The TemporaryFolder Rule allows creation of files and folders that are
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * guaranteed to be deleted when the test method finishes (whether it passes or
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * fails):
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * 
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * &lt;pre&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * public static class HasTempFolder {
+<FONT ID="LN">15  </FONT><A NAME="15"></A> *  &amp;#064;Rule
+<FONT ID="LN">16  </FONT><A NAME="16"></A> *  public TemporaryFolder folder= new TemporaryFolder();
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * 
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *  &amp;#064;Test
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *  public void testUsingTempFolder() throws IOException {
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *      File createdFile= folder.newFile(&amp;quot;myfile.txt&amp;quot;);
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *      File createdFolder= folder.newFolder(&amp;quot;subfolder&amp;quot;);
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *      // ...
+<FONT ID="LN">23  </FONT><A NAME="23"></A> *  }
+<FONT ID="LN">24  </FONT><A NAME="24"></A> * }
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * &lt;/pre&gt;
+<FONT ID="LN">26  </FONT><A NAME="26"></A> */</FONT>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> TemporaryFolder <FONT ID="Extends">extends</FONT> <A HREF="../../../org/junit/rules/ExternalResource.java.html">ExternalResource</A> {
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="Private">private</FONT> File folder;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    @Override
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> before() <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">32  </FONT><A NAME="32"></A>        create();
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    }
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    @Override
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> after() {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        delete();
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    }
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    <FONT ID="SingleLineComment">// testing purposes only
+<FONT ID="LN">41  </FONT><A NAME="41"></A></FONT>    <FONT ID="FormalComment">/**
+<FONT ID="LN">42  </FONT><A NAME="42"></A>     * for testing purposes only.  Do not use.
+<FONT ID="LN">43  </FONT><A NAME="43"></A>     */</FONT>
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> create() <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>        folder= File.createTempFile(<FONT ID="StringLiteral">"junit"</FONT>, <FONT ID="StringLiteral">""</FONT>);
+<FONT ID="LN">46  </FONT><A NAME="46"></A>        folder.delete();
+<FONT ID="LN">47  </FONT><A NAME="47"></A>        folder.mkdir();
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    }
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">51  </FONT><A NAME="51"></A>     * Returns a new fresh file with the given name under the temporary folder.
+<FONT ID="LN">52  </FONT><A NAME="52"></A>     */</FONT>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="Public">public</FONT> File newFile(String fileName) <FONT ID="Throws">throws</FONT> IOException {
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        File file= <FONT ID="New">new</FONT> File(folder, fileName);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        file.createNewFile();
+<FONT ID="LN">56  </FONT><A NAME="56"></A>        <FONT ID="Return">return</FONT> file;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    }
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A>     * Returns a new fresh folder with the given name under the temporary folder.
+<FONT ID="LN">61  </FONT><A NAME="61"></A>     */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    <FONT ID="Public">public</FONT> File newFolder(String folderName) {
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        File file= <FONT ID="New">new</FONT> File(folder, folderName);
+<FONT ID="LN">64  </FONT><A NAME="64"></A>        file.mkdir();
+<FONT ID="LN">65  </FONT><A NAME="65"></A>        <FONT ID="Return">return</FONT> file;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    }
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">69  </FONT><A NAME="69"></A>     * @return the location of this temporary folder.
+<FONT ID="LN">70  </FONT><A NAME="70"></A>     */</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="Public">public</FONT> File getRoot() {
+<FONT ID="LN">72  </FONT><A NAME="72"></A>        <FONT ID="Return">return</FONT> folder;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    }
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">76  </FONT><A NAME="76"></A>     * Delete all files and folders under the temporary folder.
+<FONT ID="LN">77  </FONT><A NAME="77"></A>     * Usually not called directly, since it is automatically applied 
+<FONT ID="LN">78  </FONT><A NAME="78"></A>     * by the {@link Rule}
+<FONT ID="LN">79  </FONT><A NAME="79"></A>     */</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> delete() {
+<FONT ID="LN">81  </FONT><A NAME="81"></A>        recursiveDelete(folder);
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    }
+<FONT ID="LN">83  </FONT><A NAME="83"></A>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> recursiveDelete(File file) {
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        File[] files= file.listFiles();
+<FONT ID="LN">86  </FONT><A NAME="86"></A>        <FONT ID="If">if</FONT> (files != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">87  </FONT><A NAME="87"></A>            <FONT ID="For">for</FONT> (File each : files)
+<FONT ID="LN">88  </FONT><A NAME="88"></A>                recursiveDelete(each);
+<FONT ID="LN">89  </FONT><A NAME="89"></A>        file.delete();
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TemporaryFolder.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.internal.TextListener (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TextListener.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.internal;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.PrintStream;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.text.NumberFormat;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/Description.java.html">org.junit.runner.Description</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/Result.java.html">org.junit.runner.Result</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/notification/Failure.java.html">org.junit.runner.notification.Failure</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/notification/RunListener.java.html">org.junit.runner.notification.RunListener</A>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> TextListener <FONT ID="Extends">extends</FONT> <A HREF="../../../org/junit/runner/notification/RunListener.java.html">RunListener</A> {
+<FONT ID="LN">13  </FONT><A NAME="13"></A>
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> PrintStream fWriter;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    <FONT ID="Public">public</FONT> TextListener(<A HREF="../../../org/junit/internal/JUnitSystem.java.html">JUnitSystem</A> system) {
+<FONT ID="LN">17  </FONT><A NAME="17"></A>        <FONT ID="This">this</FONT>(system.out());
+<FONT ID="LN">18  </FONT><A NAME="18"></A>    }
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    <FONT ID="Public">public</FONT> TextListener(PrintStream writer) {
+<FONT ID="LN">21  </FONT><A NAME="21"></A>        <FONT ID="This">this</FONT>.fWriter= writer;
+<FONT ID="LN">22  </FONT><A NAME="22"></A>    }
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    @Override
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testRunFinished(<A HREF="../../../org/junit/runner/Result.java.html">Result</A> result) {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        printHeader(result.getRunTime());
+<FONT ID="LN">27  </FONT><A NAME="27"></A>        printFailures(result);
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        printFooter(result);
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    }
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    @Override
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testStarted(<A HREF="../../../org/junit/runner/Description.java.html">Description</A> description) {
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        fWriter.append(<FONT ID="CharacerLiteral">'.'</FONT>);
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    }
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    @Override
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testFailure(<A HREF="../../../org/junit/runner/notification/Failure.java.html">Failure</A> failure) {
+<FONT ID="LN">38  </FONT><A NAME="38"></A>        fWriter.append(<FONT ID="CharacerLiteral">'E'</FONT>);
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    }
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    @Override
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testIgnored(<A HREF="../../../org/junit/runner/Description.java.html">Description</A> description) {
+<FONT ID="LN">43  </FONT><A NAME="43"></A>        fWriter.append(<FONT ID="CharacerLiteral">'I'</FONT>);
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    }
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    <FONT ID="MultiLineComment">/*
+<FONT ID="LN">47  </FONT><A NAME="47"></A>     * Internal methods
+<FONT ID="LN">48  </FONT><A NAME="48"></A>     */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="Private">private</FONT> PrintStream getWriter() {
+<FONT ID="LN">51  </FONT><A NAME="51"></A>        <FONT ID="Return">return</FONT> fWriter;
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    }
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> printHeader(<FONT ID="Long">long</FONT> runTime) {
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        getWriter().println();
+<FONT ID="LN">56  </FONT><A NAME="56"></A>        getWriter().println(<FONT ID="StringLiteral">"Time: "</FONT> + elapsedTimeAsString(runTime));
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    }
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> printFailures(<A HREF="../../../org/junit/runner/Result.java.html">Result</A> result) {
+<FONT ID="LN">60  </FONT><A NAME="60"></A>        List&lt;<A HREF="../../../org/junit/runner/notification/Failure.java.html">Failure</A>&gt; failures= result.getFailures();
+<FONT ID="LN">61  </FONT><A NAME="61"></A>        <FONT ID="If">if</FONT> (failures.size() == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">62  </FONT><A NAME="62"></A>            <FONT ID="Return">return</FONT>;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        <FONT ID="If">if</FONT> (failures.size() == <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">64  </FONT><A NAME="64"></A>            getWriter().println(<FONT ID="StringLiteral">"There was "</FONT> + failures.size() + <FONT ID="StringLiteral">" failure:"</FONT>);
+<FONT ID="LN">65  </FONT><A NAME="65"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>            getWriter().println(<FONT ID="StringLiteral">"There were "</FONT> + failures.size() + <FONT ID="StringLiteral">" failures:"</FONT>);
+<FONT ID="LN">67  </FONT><A NAME="67"></A>        <FONT ID="Int">int</FONT> i= <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        <FONT ID="For">for</FONT> (<A HREF="../../../org/junit/runner/notification/Failure.java.html">Failure</A> each : failures)
+<FONT ID="LN">69  </FONT><A NAME="69"></A>            printFailure(each, <FONT ID="StringLiteral">""</FONT> + i++);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    }
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> printFailure(<A HREF="../../../org/junit/runner/notification/Failure.java.html">Failure</A> each, String prefix) {
+<FONT ID="LN">73  </FONT><A NAME="73"></A>        getWriter().println(prefix + <FONT ID="StringLiteral">") "</FONT> + each.getTestHeader());
+<FONT ID="LN">74  </FONT><A NAME="74"></A>        getWriter().print(each.getTrace());
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    }
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> printFooter(<A HREF="../../../org/junit/runner/Result.java.html">Result</A> result) {
+<FONT ID="LN">78  </FONT><A NAME="78"></A>        <FONT ID="If">if</FONT> (result.wasSuccessful()) {
+<FONT ID="LN">79  </FONT><A NAME="79"></A>            getWriter().println();
+<FONT ID="LN">80  </FONT><A NAME="80"></A>            getWriter().print(<FONT ID="StringLiteral">"OK"</FONT>);
+<FONT ID="LN">81  </FONT><A NAME="81"></A>            getWriter().println(<FONT ID="StringLiteral">" ("</FONT> + result.getRunCount() + <FONT ID="StringLiteral">" test"</FONT> + (result.getRunCount() == <FONT ID="IntegerLiteral">1</FONT> ? <FONT ID="StringLiteral">""</FONT> : <FONT ID="StringLiteral">"s"</FONT>) + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">82  </FONT><A NAME="82"></A>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>            getWriter().println();
+<FONT ID="LN">85  </FONT><A NAME="85"></A>            getWriter().println(<FONT ID="StringLiteral">"FAILURES!!!"</FONT>);
+<FONT ID="LN">86  </FONT><A NAME="86"></A>            getWriter().println(<FONT ID="StringLiteral">"Tests run: "</FONT> + result.getRunCount() + <FONT ID="StringLiteral">",  Failures: "</FONT> + result.getFailureCount());
+<FONT ID="LN">87  </FONT><A NAME="87"></A>        }
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        getWriter().println();
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    }
+<FONT ID="LN">90  </FONT><A NAME="90"></A>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">92  </FONT><A NAME="92"></A>     * Returns the formatted string of the elapsed time. Duplicated from
+<FONT ID="LN">93  </FONT><A NAME="93"></A>     * BaseTestRunner. Fix it.
+<FONT ID="LN">94  </FONT><A NAME="94"></A>     */</FONT>
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    <FONT ID="Protected">protected</FONT> String elapsedTimeAsString(<FONT ID="Long">long</FONT> runTime) {
+<FONT ID="LN">96  </FONT><A NAME="96"></A>        <FONT ID="Return">return</FONT> NumberFormat.getInstance().format((<FONT ID="Double">double</FONT>) runTime / <FONT ID="IntegerLiteral">1000</FONT>);
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    }
+<FONT ID="LN">98  </FONT><A NAME="98"></A>}
+<FONT ID="LN">99  </FONT><A NAME="99"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TextListener.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

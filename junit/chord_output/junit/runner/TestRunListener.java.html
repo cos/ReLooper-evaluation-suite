@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>junit.runner.TestRunListener (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TestRunListener.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> junit.runner;
+<FONT ID="LN">2   </FONT><A NAME="2"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">3   </FONT><A NAME="3"></A> * A listener interface for observing the
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * execution of a test run. Unlike TestListener,
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * this interface using only primitive objects,
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * making it suitable for remote test execution.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> */</FONT>
+<FONT ID="LN">8   </FONT><A NAME="8"></A> <FONT ID="Public">public</FONT> <FONT ID="Interface">interface</FONT> TestRunListener {
+<FONT ID="LN">9   </FONT><A NAME="9"></A>     <FONT ID="MultiLineComment">/* test status constants*/</FONT>
+<FONT ID="LN">10  </FONT><A NAME="10"></A>     <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> STATUS_ERROR= <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>     <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> STATUS_FAILURE= <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A>     <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testRunStarted(String testSuiteName, <FONT ID="Int">int</FONT> testCount);
+<FONT ID="LN">14  </FONT><A NAME="14"></A>     <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testRunEnded(<FONT ID="Long">long</FONT> elapsedTime);
+<FONT ID="LN">15  </FONT><A NAME="15"></A>     <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testRunStopped(<FONT ID="Long">long</FONT> elapsedTime);
+<FONT ID="LN">16  </FONT><A NAME="16"></A>     <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testStarted(String testName);
+<FONT ID="LN">17  </FONT><A NAME="17"></A>     <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testEnded(String testName);
+<FONT ID="LN">18  </FONT><A NAME="18"></A>     <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testFailed(<FONT ID="Int">int</FONT> status, String testName, String trace);
+<FONT ID="LN">19  </FONT><A NAME="19"></A>}
+<FONT ID="LN">20  </FONT><A NAME="20"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TestRunListener.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

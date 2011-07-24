@@ -1,0 +1,429 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.runners.BlockJUnit4ClassRunner (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BlockJUnit4ClassRunner.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.runners;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.lang.reflect.Field;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.lang.reflect.Modifier;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/After.java.html">org.junit.After</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Before.java.html">org.junit.Before</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Ignore.java.html">org.junit.Ignore</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Rule.java.html">org.junit.Rule</A>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Test.java.html">org.junit.Test.None</A>;
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/internal/runners/model/ReflectiveCallable.java.html">org.junit.internal.runners.model.ReflectiveCallable</A>;
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">org.junit.internal.runners.statements.ExpectException</A>;
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/internal/runners/statements/Fail.java.html">org.junit.internal.runners.statements.Fail</A>;
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/internal/runners/statements/FailOnTimeout.java.html">org.junit.internal.runners.statements.FailOnTimeout</A>;
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/internal/runners/statements/InvokeMethod.java.html">org.junit.internal.runners.statements.InvokeMethod</A>;
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/internal/runners/statements/RunAfters.java.html">org.junit.internal.runners.statements.RunAfters</A>;
+<FONT ID="LN">19  </FONT><A NAME="19"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/internal/runners/statements/RunBefores.java.html">org.junit.internal.runners.statements.RunBefores</A>;
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/rules/RunRules.java.html">org.junit.rules.RunRules</A>;
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/rules/TestRule.java.html">org.junit.rules.TestRule</A>;
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/Description.java.html">org.junit.runner.Description</A>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/notification/RunNotifier.java.html">org.junit.runner.notification.RunNotifier</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/FrameworkField.java.html">org.junit.runners.model.FrameworkField</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">org.junit.runners.model.FrameworkMethod</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/InitializationError.java.html">org.junit.runners.model.InitializationError</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/MultipleFailureException.java.html">org.junit.runners.model.MultipleFailureException</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">org.junit.runners.model.Statement</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * Implements the JUnit 4 standard test case class model, as defined by the
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * annotations in the org.junit package. Many users will never notice this
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * class: it is now the default test class runner, but it should have exactly
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * the same behavior as the old test class runner ({@code JUnit4ClassRunner}).
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * 
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * BlockJUnit4ClassRunner has advantages for writers of custom JUnit runners
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * that are slight changes to the default behavior, however:
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * 
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * &lt;ul&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * &lt;li&gt;It has a much simpler implementation based on {@link Statement}s,
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * allowing new operations to be inserted into the appropriate point in the
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * execution flow.
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * 
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * &lt;li&gt;It is published, and extension and reuse are encouraged, whereas {@code
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * JUnit4ClassRunner} was in an internal package, and is now deprecated.
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * &lt;/ul&gt;
+<FONT ID="LN">47  </FONT><A NAME="47"></A> */</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> BlockJUnit4ClassRunner <FONT ID="Extends">extends</FONT> <A HREF="../../../org/junit/runners/ParentRunner.java.html">ParentRunner</A>&lt;<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A>&gt; {
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">51  </FONT><A NAME="51"></A>     * Creates a BlockJUnit4ClassRunner to run {@code klass}
+<FONT ID="LN">52  </FONT><A NAME="52"></A>     * 
+<FONT ID="LN">53  </FONT><A NAME="53"></A>     * @throws InitializationError
+<FONT ID="LN">54  </FONT><A NAME="54"></A>     *             if the test class is malformed.
+<FONT ID="LN">55  </FONT><A NAME="55"></A>     */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    <FONT ID="Public">public</FONT> BlockJUnit4ClassRunner(Class&lt;?&gt; klass) <FONT ID="Throws">throws</FONT> <A HREF="../../../org/junit/runners/model/InitializationError.java.html">InitializationError</A> {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>        <FONT ID="Super">super</FONT>(klass);
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    }
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">61  </FONT><A NAME="61"></A></FONT>    <FONT ID="SingleLineComment">// Implementation of ParentRunner
+<FONT ID="LN">62  </FONT><A NAME="62"></A></FONT>    <FONT ID="SingleLineComment">// 
+<FONT ID="LN">63  </FONT><A NAME="63"></A></FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    @Override
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> runChild(<FONT ID="Final">final</FONT> <A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method, <A HREF="../../../org/junit/runner/notification/RunNotifier.java.html">RunNotifier</A> notifier) {
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        <A HREF="../../../org/junit/runner/Description.java.html">Description</A> description= describeChild(method);
+<FONT ID="LN">67  </FONT><A NAME="67"></A>        <FONT ID="If">if</FONT> (method.getAnnotation(<A HREF="../../../org/junit/Ignore.java.html">Ignore</A>.<FONT ID="Class">class</FONT>) != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>            notifier.fireTestIgnored(description);
+<FONT ID="LN">69  </FONT><A NAME="69"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">70  </FONT><A NAME="70"></A>            runLeaf(methodBlock(method), description, notifier);
+<FONT ID="LN">71  </FONT><A NAME="71"></A>        }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    }
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    @Override
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../../org/junit/runner/Description.java.html">Description</A> describeChild(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method) {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>        <FONT ID="Return">return</FONT> Description.createTestDescription(getTestClass().getJavaClass(),
+<FONT ID="LN">77  </FONT><A NAME="77"></A>                testName(method), method.getAnnotations());
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    }
+<FONT ID="LN">79  </FONT><A NAME="79"></A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    @Override
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    <FONT ID="Protected">protected</FONT> List&lt;<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A>&gt; getChildren() {
+<FONT ID="LN">82  </FONT><A NAME="82"></A>        <FONT ID="Return">return</FONT> computeTestMethods();
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">86  </FONT><A NAME="86"></A></FONT>    <FONT ID="SingleLineComment">// Override in subclasses
+<FONT ID="LN">87  </FONT><A NAME="87"></A></FONT>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">88  </FONT><A NAME="88"></A></FONT>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">90  </FONT><A NAME="90"></A>     * Returns the methods that run tests. Default implementation returns all
+<FONT ID="LN">91  </FONT><A NAME="91"></A>     * methods annotated with {@code @Test} on this class and superclasses that
+<FONT ID="LN">92  </FONT><A NAME="92"></A>     * are not overridden.
+<FONT ID="LN">93  </FONT><A NAME="93"></A>     */</FONT>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="Protected">protected</FONT> List&lt;<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A>&gt; computeTestMethods() {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>        <FONT ID="Return">return</FONT> getTestClass().getAnnotatedMethods(<A HREF="../../../org/junit/Test.java.html">Test</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    }
+<FONT ID="LN">97  </FONT><A NAME="97"></A>
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    @Override
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> collectInitializationErrors(List&lt;Throwable&gt; errors) {
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        <FONT ID="Super">super</FONT>.collectInitializationErrors(errors);
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        validateConstructor(errors);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>        validateInstanceMethods(errors);
+<FONT ID="LN">104 </FONT><A NAME="104"></A>        validateFields(errors);
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    }
+<FONT ID="LN">106 </FONT><A NAME="106"></A>
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">108 </FONT><A NAME="108"></A>     * Adds to {@code errors} if the test class has more than one constructor,
+<FONT ID="LN">109 </FONT><A NAME="109"></A>     * or if the constructor takes parameters. Override if a subclass requires
+<FONT ID="LN">110 </FONT><A NAME="110"></A>     * different validation rules.
+<FONT ID="LN">111 </FONT><A NAME="111"></A>     */</FONT>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> validateConstructor(List&lt;Throwable&gt; errors) {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>        validateOnlyOneConstructor(errors);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>        validateZeroArgConstructor(errors);
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    }
+<FONT ID="LN">116 </FONT><A NAME="116"></A>
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">118 </FONT><A NAME="118"></A>     * Adds to {@code errors} if the test class has more than one constructor
+<FONT ID="LN">119 </FONT><A NAME="119"></A>     * (do not override)
+<FONT ID="LN">120 </FONT><A NAME="120"></A>     */</FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> validateOnlyOneConstructor(List&lt;Throwable&gt; errors) {
+<FONT ID="LN">122 </FONT><A NAME="122"></A>        <FONT ID="If">if</FONT> (!hasOneConstructor()) {
+<FONT ID="LN">123 </FONT><A NAME="123"></A>            String gripe= <FONT ID="StringLiteral">"Test class should have exactly one public constructor"</FONT>;
+<FONT ID="LN">124 </FONT><A NAME="124"></A>            errors.add(<FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">Exception</A>(gripe));
+<FONT ID="LN">125 </FONT><A NAME="125"></A>        }
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    }
+<FONT ID="LN">127 </FONT><A NAME="127"></A>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">129 </FONT><A NAME="129"></A>     * Adds to {@code errors} if the test class's single constructor takes
+<FONT ID="LN">130 </FONT><A NAME="130"></A>     * parameters (do not override)
+<FONT ID="LN">131 </FONT><A NAME="131"></A>     */</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> validateZeroArgConstructor(List&lt;Throwable&gt; errors) {
+<FONT ID="LN">133 </FONT><A NAME="133"></A>        <FONT ID="If">if</FONT> (hasOneConstructor()
+<FONT ID="LN">134 </FONT><A NAME="134"></A>                &amp;&amp; !(getTestClass().getOnlyConstructor().getParameterTypes().length == <FONT ID="IntegerLiteral">0</FONT>)) {
+<FONT ID="LN">135 </FONT><A NAME="135"></A>            String gripe= <FONT ID="StringLiteral">"Test class should have exactly one public zero-argument constructor"</FONT>;
+<FONT ID="LN">136 </FONT><A NAME="136"></A>            errors.add(<FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">Exception</A>(gripe));
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        }
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    }
+<FONT ID="LN">139 </FONT><A NAME="139"></A>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> hasOneConstructor() {
+<FONT ID="LN">141 </FONT><A NAME="141"></A>        <FONT ID="Return">return</FONT> getTestClass().getJavaClass().getConstructors().length == <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    }
+<FONT ID="LN">143 </FONT><A NAME="143"></A>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">145 </FONT><A NAME="145"></A>     * Adds to {@code errors} for each method annotated with {@code @Test},
+<FONT ID="LN">146 </FONT><A NAME="146"></A>     * {@code @Before}, or {@code @After} that is not a public, void instance
+<FONT ID="LN">147 </FONT><A NAME="147"></A>     * method with no arguments.
+<FONT ID="LN">148 </FONT><A NAME="148"></A>     * 
+<FONT ID="LN">149 </FONT><A NAME="149"></A>     * @deprecated unused API, will go away in future version
+<FONT ID="LN">150 </FONT><A NAME="150"></A>     */</FONT>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    @Deprecated
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> validateInstanceMethods(List&lt;Throwable&gt; errors) {
+<FONT ID="LN">153 </FONT><A NAME="153"></A>        validatePublicVoidNoArgMethods(<A HREF="../../../org/junit/After.java.html">After</A>.<FONT ID="Class">class</FONT>, <FONT ID="False">false</FONT>, errors);
+<FONT ID="LN">154 </FONT><A NAME="154"></A>        validatePublicVoidNoArgMethods(<A HREF="../../../org/junit/Before.java.html">Before</A>.<FONT ID="Class">class</FONT>, <FONT ID="False">false</FONT>, errors);
+<FONT ID="LN">155 </FONT><A NAME="155"></A>        validateTestMethods(errors);
+<FONT ID="LN">156 </FONT><A NAME="156"></A>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>        <FONT ID="If">if</FONT> (computeTestMethods().size() == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">158 </FONT><A NAME="158"></A>            errors.add(<FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">Exception</A>(<FONT ID="StringLiteral">"No runnable methods"</FONT>));
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    }
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> validateFields(List&lt;Throwable&gt; errors) {
+<FONT ID="LN">162 </FONT><A NAME="162"></A>        <FONT ID="For">for</FONT> (<A HREF="../../../org/junit/runners/model/FrameworkField.java.html">FrameworkField</A> each : getTestClass()
+<FONT ID="LN">163 </FONT><A NAME="163"></A>                .getAnnotatedFields(<A HREF="../../../org/junit/Rule.java.html">Rule</A>.<FONT ID="Class">class</FONT>))
+<FONT ID="LN">164 </FONT><A NAME="164"></A>            validateRuleField(each.getField(), errors);
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    }
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> validateRuleField(Field field, List&lt;Throwable&gt; errors) {
+<FONT ID="LN">168 </FONT><A NAME="168"></A>        Class&lt;?&gt; type= field.getType();
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        <FONT ID="If">if</FONT> (!isMethodRule(type) &amp;&amp; !isTestRule(type))
+<FONT ID="LN">170 </FONT><A NAME="170"></A>            errors.add(<FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">Exception</A>(<FONT ID="StringLiteral">"Field "</FONT> + field.getName()
+<FONT ID="LN">171 </FONT><A NAME="171"></A>                    + <FONT ID="StringLiteral">" must implement MethodRule or TestRule"</FONT>));
+<FONT ID="LN">172 </FONT><A NAME="172"></A>        <FONT ID="If">if</FONT> (!Modifier.isPublic(field.getModifiers()))
+<FONT ID="LN">173 </FONT><A NAME="173"></A>            errors.add(<FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">Exception</A>(<FONT ID="StringLiteral">"Field "</FONT> + field.getName()
+<FONT ID="LN">174 </FONT><A NAME="174"></A>                    + <FONT ID="StringLiteral">" must be public"</FONT>));
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> isTestRule(Class&lt;?&gt; type) {
+<FONT ID="LN">178 </FONT><A NAME="178"></A>        <FONT ID="Return">return</FONT> <A HREF="../../../org/junit/rules/TestRule.java.html">TestRule</A>.<FONT ID="Class">class</FONT>.isAssignableFrom(type);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    }
+<FONT ID="LN">180 </FONT><A NAME="180"></A>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    @SuppressWarnings(<FONT ID="StringLiteral">"deprecation"</FONT>)
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> isMethodRule(Class&lt;?&gt; type) {
+<FONT ID="LN">183 </FONT><A NAME="183"></A>        <FONT ID="Return">return</FONT> <A HREF="../../../org/junit/rules/MethodRule.java.html">org.junit.rules.MethodRule</A>.<FONT ID="Class">class</FONT>.isAssignableFrom(type);
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    }
+<FONT ID="LN">185 </FONT><A NAME="185"></A>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">187 </FONT><A NAME="187"></A>     * Adds to {@code errors} for each method annotated with {@code @Test}that
+<FONT ID="LN">188 </FONT><A NAME="188"></A>     * is not a public, void instance method with no arguments.
+<FONT ID="LN">189 </FONT><A NAME="189"></A>     */</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> validateTestMethods(List&lt;Throwable&gt; errors) {
+<FONT ID="LN">191 </FONT><A NAME="191"></A>        validatePublicVoidNoArgMethods(<A HREF="../../../org/junit/Test.java.html">Test</A>.<FONT ID="Class">class</FONT>, <FONT ID="False">false</FONT>, errors);
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    }
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">195 </FONT><A NAME="195"></A>     * Returns a new fixture for running a test. Default implementation executes
+<FONT ID="LN">196 </FONT><A NAME="196"></A>     * the test class's no-argument constructor (validation should have ensured
+<FONT ID="LN">197 </FONT><A NAME="197"></A>     * one exists).
+<FONT ID="LN">198 </FONT><A NAME="198"></A>     */</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    <FONT ID="Protected">protected</FONT> Object createTest() <FONT ID="Throws">throws</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">Exception</A> {
+<FONT ID="LN">200 </FONT><A NAME="200"></A>        <FONT ID="Return">return</FONT> getTestClass().getOnlyConstructor().newInstance();
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    }
+<FONT ID="LN">202 </FONT><A NAME="202"></A>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">204 </FONT><A NAME="204"></A>     * Returns the name that describes {@code method} for {@link Description}s.
+<FONT ID="LN">205 </FONT><A NAME="205"></A>     * Default implementation is the method's name
+<FONT ID="LN">206 </FONT><A NAME="206"></A>     */</FONT>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    <FONT ID="Protected">protected</FONT> String testName(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method) {
+<FONT ID="LN">208 </FONT><A NAME="208"></A>        <FONT ID="Return">return</FONT> method.getName();
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    }
+<FONT ID="LN">210 </FONT><A NAME="210"></A>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">212 </FONT><A NAME="212"></A>     * Returns a Statement that, when executed, either returns normally if
+<FONT ID="LN">213 </FONT><A NAME="213"></A>     * {@code method} passes, or throws an exception if {@code method} fails.
+<FONT ID="LN">214 </FONT><A NAME="214"></A>     * 
+<FONT ID="LN">215 </FONT><A NAME="215"></A>     * Here is an outline of the default implementation:
+<FONT ID="LN">216 </FONT><A NAME="216"></A>     * 
+<FONT ID="LN">217 </FONT><A NAME="217"></A>     * &lt;ul&gt;
+<FONT ID="LN">218 </FONT><A NAME="218"></A>     * &lt;li&gt;Invoke {@code method} on the result of {@code createTest()}, and
+<FONT ID="LN">219 </FONT><A NAME="219"></A>     * throw any exceptions thrown by either operation.
+<FONT ID="LN">220 </FONT><A NAME="220"></A>     * &lt;li&gt;HOWEVER, if {@code method}'s {@code @Test} annotation has the {@code
+<FONT ID="LN">221 </FONT><A NAME="221"></A>     * expecting} attribute, return normally only if the previous step threw an
+<FONT ID="LN">222 </FONT><A NAME="222"></A>     * exception of the correct type, and throw an exception otherwise.
+<FONT ID="LN">223 </FONT><A NAME="223"></A>     * &lt;li&gt;HOWEVER, if {@code method}'s {@code @Test} annotation has the {@code
+<FONT ID="LN">224 </FONT><A NAME="224"></A>     * timeout} attribute, throw an exception if the previous step takes more
+<FONT ID="LN">225 </FONT><A NAME="225"></A>     * than the specified number of milliseconds.
+<FONT ID="LN">226 </FONT><A NAME="226"></A>     * &lt;li&gt;ALWAYS run all non-overridden {@code @Before} methods on this class
+<FONT ID="LN">227 </FONT><A NAME="227"></A>     * and superclasses before any of the previous steps; if any throws an
+<FONT ID="LN">228 </FONT><A NAME="228"></A>     * Exception, stop execution and pass the exception on.
+<FONT ID="LN">229 </FONT><A NAME="229"></A>     * &lt;li&gt;ALWAYS run all non-overridden {@code @After} methods on this class
+<FONT ID="LN">230 </FONT><A NAME="230"></A>     * and superclasses after any of the previous steps; all After methods are
+<FONT ID="LN">231 </FONT><A NAME="231"></A>     * always executed: exceptions thrown by previous steps are combined, if
+<FONT ID="LN">232 </FONT><A NAME="232"></A>     * necessary, with exceptions from After methods into a
+<FONT ID="LN">233 </FONT><A NAME="233"></A>     * {@link MultipleFailureException}.
+<FONT ID="LN">234 </FONT><A NAME="234"></A>     * &lt;li&gt;ALWAYS allow {@code @Rule} fields to modify the execution of the
+<FONT ID="LN">235 </FONT><A NAME="235"></A>     * above steps. A {@code Rule} may prevent all execution of the above steps,
+<FONT ID="LN">236 </FONT><A NAME="236"></A>     * or add additional behavior before and after, or modify thrown exceptions.
+<FONT ID="LN">237 </FONT><A NAME="237"></A>     * For more information, see {@link TestRule}
+<FONT ID="LN">238 </FONT><A NAME="238"></A>     * &lt;/ul&gt;
+<FONT ID="LN">239 </FONT><A NAME="239"></A>     * 
+<FONT ID="LN">240 </FONT><A NAME="240"></A>     * This can be overridden in subclasses, either by overriding this method,
+<FONT ID="LN">241 </FONT><A NAME="241"></A>     * or the implementations creating each sub-statement.
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     */</FONT>
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> methodBlock(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method) {
+<FONT ID="LN">244 </FONT><A NAME="244"></A>        Object test;
+<FONT ID="LN">245 </FONT><A NAME="245"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">246 </FONT><A NAME="246"></A>            test= <FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/model/ReflectiveCallable.java.html">ReflectiveCallable</A>() {
+<FONT ID="LN">247 </FONT><A NAME="247"></A>                @Override
+<FONT ID="LN">248 </FONT><A NAME="248"></A>                <FONT ID="Protected">protected</FONT> Object runReflectiveCall() <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">249 </FONT><A NAME="249"></A>                    <FONT ID="Return">return</FONT> createTest();
+<FONT ID="LN">250 </FONT><A NAME="250"></A>                }
+<FONT ID="LN">251 </FONT><A NAME="251"></A>            }.run();
+<FONT ID="LN">252 </FONT><A NAME="252"></A>        } <FONT ID="Catch">catch</FONT> (Throwable e) {
+<FONT ID="LN">253 </FONT><A NAME="253"></A>            <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/Fail.java.html">Fail</A>(e);
+<FONT ID="LN">254 </FONT><A NAME="254"></A>        }
+<FONT ID="LN">255 </FONT><A NAME="255"></A>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>        <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> statement= methodInvoker(method, test);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>        statement= possiblyExpectingExceptions(method, test, statement);
+<FONT ID="LN">258 </FONT><A NAME="258"></A>        statement= withPotentialTimeout(method, test, statement);
+<FONT ID="LN">259 </FONT><A NAME="259"></A>        statement= withBefores(method, test, statement);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>        statement= withAfters(method, test, statement);
+<FONT ID="LN">261 </FONT><A NAME="261"></A>        statement= withRules(method, test, statement);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>        <FONT ID="Return">return</FONT> statement;
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    }
+<FONT ID="LN">264 </FONT><A NAME="264"></A>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">266 </FONT><A NAME="266"></A></FONT>    <FONT ID="SingleLineComment">// Statement builders
+<FONT ID="LN">267 </FONT><A NAME="267"></A></FONT>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">268 </FONT><A NAME="268"></A></FONT>
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">270 </FONT><A NAME="270"></A>     * Returns a {@link Statement} that invokes {@code method} on {@code test}
+<FONT ID="LN">271 </FONT><A NAME="271"></A>     */</FONT>
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> methodInvoker(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method, Object test) {
+<FONT ID="LN">273 </FONT><A NAME="273"></A>        <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/InvokeMethod.java.html">InvokeMethod</A>(method, test);
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    }
+<FONT ID="LN">275 </FONT><A NAME="275"></A>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">277 </FONT><A NAME="277"></A>     * Returns a {@link Statement}: if {@code method}'s {@code @Test} annotation
+<FONT ID="LN">278 </FONT><A NAME="278"></A>     * has the {@code expecting} attribute, return normally only if {@code next}
+<FONT ID="LN">279 </FONT><A NAME="279"></A>     * throws an exception of the correct type, and throw an exception
+<FONT ID="LN">280 </FONT><A NAME="280"></A>     * otherwise.
+<FONT ID="LN">281 </FONT><A NAME="281"></A>     * 
+<FONT ID="LN">282 </FONT><A NAME="282"></A>     * @deprecated Will be private soon: use Rules instead
+<FONT ID="LN">283 </FONT><A NAME="283"></A>     */</FONT>
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    @Deprecated
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> possiblyExpectingExceptions(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method,
+<FONT ID="LN">286 </FONT><A NAME="286"></A>            Object test, <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> next) {
+<FONT ID="LN">287 </FONT><A NAME="287"></A>        <A HREF="../../../org/junit/Test.java.html">Test</A> annotation= method.getAnnotation(<A HREF="../../../org/junit/Test.java.html">Test</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">288 </FONT><A NAME="288"></A>        <FONT ID="Return">return</FONT> expectsException(annotation) ? <FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/ExpectException.java.html">ExpectException</A>(next,
+<FONT ID="LN">289 </FONT><A NAME="289"></A>                getExpectedException(annotation)) : next;
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    }
+<FONT ID="LN">291 </FONT><A NAME="291"></A>
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">293 </FONT><A NAME="293"></A>     * Returns a {@link Statement}: if {@code method}'s {@code @Test} annotation
+<FONT ID="LN">294 </FONT><A NAME="294"></A>     * has the {@code timeout} attribute, throw an exception if {@code next}
+<FONT ID="LN">295 </FONT><A NAME="295"></A>     * takes more than the specified number of milliseconds.
+<FONT ID="LN">296 </FONT><A NAME="296"></A>     * 
+<FONT ID="LN">297 </FONT><A NAME="297"></A>     * @deprecated Will be private soon: use Rules instead
+<FONT ID="LN">298 </FONT><A NAME="298"></A>     */</FONT>
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    @Deprecated
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> withPotentialTimeout(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method,
+<FONT ID="LN">301 </FONT><A NAME="301"></A>            Object test, <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> next) {
+<FONT ID="LN">302 </FONT><A NAME="302"></A>        <FONT ID="Long">long</FONT> timeout= getTimeout(method.getAnnotation(<A HREF="../../../org/junit/Test.java.html">Test</A>.<FONT ID="Class">class</FONT>));
+<FONT ID="LN">303 </FONT><A NAME="303"></A>        <FONT ID="Return">return</FONT> timeout &gt; <FONT ID="IntegerLiteral">0</FONT> ? <FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/FailOnTimeout.java.html">FailOnTimeout</A>(next, timeout) : next;
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    }
+<FONT ID="LN">305 </FONT><A NAME="305"></A>
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">307 </FONT><A NAME="307"></A>     * Returns a {@link Statement}: run all non-overridden {@code @Before}
+<FONT ID="LN">308 </FONT><A NAME="308"></A>     * methods on this class and superclasses before running {@code next}; if
+<FONT ID="LN">309 </FONT><A NAME="309"></A>     * any throws an Exception, stop execution and pass the exception on.
+<FONT ID="LN">310 </FONT><A NAME="310"></A>     * 
+<FONT ID="LN">311 </FONT><A NAME="311"></A>     * @deprecated Will be private soon: use Rules instead
+<FONT ID="LN">312 </FONT><A NAME="312"></A>     */</FONT>
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    @Deprecated
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> withBefores(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method, Object target,
+<FONT ID="LN">315 </FONT><A NAME="315"></A>            <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> statement) {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>        List&lt;<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A>&gt; befores= getTestClass().getAnnotatedMethods(
+<FONT ID="LN">317 </FONT><A NAME="317"></A>                <A HREF="../../../org/junit/Before.java.html">Before</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">318 </FONT><A NAME="318"></A>        <FONT ID="Return">return</FONT> befores.isEmpty() ? statement : <FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/RunBefores.java.html">RunBefores</A>(statement,
+<FONT ID="LN">319 </FONT><A NAME="319"></A>                befores, target);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>    }
+<FONT ID="LN">321 </FONT><A NAME="321"></A>
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">323 </FONT><A NAME="323"></A>     * Returns a {@link Statement}: run all non-overridden {@code @After}
+<FONT ID="LN">324 </FONT><A NAME="324"></A>     * methods on this class and superclasses before running {@code next}; all
+<FONT ID="LN">325 </FONT><A NAME="325"></A>     * After methods are always executed: exceptions thrown by previous steps
+<FONT ID="LN">326 </FONT><A NAME="326"></A>     * are combined, if necessary, with exceptions from After methods into a
+<FONT ID="LN">327 </FONT><A NAME="327"></A>     * {@link MultipleFailureException}.
+<FONT ID="LN">328 </FONT><A NAME="328"></A>     * 
+<FONT ID="LN">329 </FONT><A NAME="329"></A>     * @deprecated Will be private soon: use Rules instead
+<FONT ID="LN">330 </FONT><A NAME="330"></A>     */</FONT>
+<FONT ID="LN">331 </FONT><A NAME="331"></A>    @Deprecated
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> withAfters(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method, Object target,
+<FONT ID="LN">333 </FONT><A NAME="333"></A>            <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> statement) {
+<FONT ID="LN">334 </FONT><A NAME="334"></A>        List&lt;<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A>&gt; afters= getTestClass().getAnnotatedMethods(
+<FONT ID="LN">335 </FONT><A NAME="335"></A>                <A HREF="../../../org/junit/After.java.html">After</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">336 </FONT><A NAME="336"></A>        <FONT ID="Return">return</FONT> afters.isEmpty() ? statement : <FONT ID="New">new</FONT> <A HREF="../../../org/junit/internal/runners/statements/RunAfters.java.html">RunAfters</A>(statement, afters,
+<FONT ID="LN">337 </FONT><A NAME="337"></A>                target);
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    }
+<FONT ID="LN">339 </FONT><A NAME="339"></A>
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> withRules(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method, Object target,
+<FONT ID="LN">341 </FONT><A NAME="341"></A>            <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> statement) {
+<FONT ID="LN">342 </FONT><A NAME="342"></A>        <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> result= statement;
+<FONT ID="LN">343 </FONT><A NAME="343"></A>        result= withMethodRules(method, target, result);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>        result= withTestRules(method, target, result);
+<FONT ID="LN">345 </FONT><A NAME="345"></A>        <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    }
+<FONT ID="LN">347 </FONT><A NAME="347"></A>
+<FONT ID="LN">348 </FONT><A NAME="348"></A>    @SuppressWarnings(<FONT ID="StringLiteral">"deprecation"</FONT>)
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> withMethodRules(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method, Object target,
+<FONT ID="LN">350 </FONT><A NAME="350"></A>            <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> result) {
+<FONT ID="LN">351 </FONT><A NAME="351"></A>        List&lt;<A HREF="../../../org/junit/rules/TestRule.java.html">TestRule</A>&gt; testRules= getTestRules(target);
+<FONT ID="LN">352 </FONT><A NAME="352"></A>        <FONT ID="For">for</FONT> (<A HREF="../../../org/junit/rules/MethodRule.java.html">org.junit.rules.MethodRule</A> each : getMethodRules(target))
+<FONT ID="LN">353 </FONT><A NAME="353"></A>            <FONT ID="If">if</FONT> (! testRules.contains(each))
+<FONT ID="LN">354 </FONT><A NAME="354"></A>                result= each.apply(result, method, target);
+<FONT ID="LN">355 </FONT><A NAME="355"></A>        <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    }
+<FONT ID="LN">357 </FONT><A NAME="357"></A>
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    @SuppressWarnings(<FONT ID="StringLiteral">"deprecation"</FONT>)
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    <FONT ID="Private">private</FONT> List&lt;<A HREF="../../../org/junit/rules/MethodRule.java.html">org.junit.rules.MethodRule</A>&gt; getMethodRules(Object target) {
+<FONT ID="LN">360 </FONT><A NAME="360"></A>        <FONT ID="Return">return</FONT> getTestClass().getAnnotatedFieldValues(target,
+<FONT ID="LN">361 </FONT><A NAME="361"></A>                <A HREF="../../../org/junit/Rule.java.html">Rule</A>.<FONT ID="Class">class</FONT>, <A HREF="../../../org/junit/rules/MethodRule.java.html">org.junit.rules.MethodRule</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    }
+<FONT ID="LN">363 </FONT><A NAME="363"></A>
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">365 </FONT><A NAME="365"></A>     * Returns a {@link Statement}: apply all non-static {@link Value} fields
+<FONT ID="LN">366 </FONT><A NAME="366"></A>     * annotated with {@link Rule}.
+<FONT ID="LN">367 </FONT><A NAME="367"></A>     *
+<FONT ID="LN">368 </FONT><A NAME="368"></A>     * @param statement The base statement
+<FONT ID="LN">369 </FONT><A NAME="369"></A>     * @return a RunRules statement if any class-level {@link Rule}s are
+<FONT ID="LN">370 </FONT><A NAME="370"></A>     *         found, or the base statement
+<FONT ID="LN">371 </FONT><A NAME="371"></A>     */</FONT>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> withTestRules(<A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A> method, Object target,
+<FONT ID="LN">373 </FONT><A NAME="373"></A>            <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> statement) {
+<FONT ID="LN">374 </FONT><A NAME="374"></A>        List&lt;<A HREF="../../../org/junit/rules/TestRule.java.html">TestRule</A>&gt; testRules= getTestRules(target);
+<FONT ID="LN">375 </FONT><A NAME="375"></A>        <FONT ID="Return">return</FONT> testRules.isEmpty() ? statement :
+<FONT ID="LN">376 </FONT><A NAME="376"></A>            <FONT ID="New">new</FONT> <A HREF="../../../org/junit/rules/RunRules.java.html">RunRules</A>(statement, testRules, describeChild(method));
+<FONT ID="LN">377 </FONT><A NAME="377"></A>    }
+<FONT ID="LN">378 </FONT><A NAME="378"></A>
+<FONT ID="LN">379 </FONT><A NAME="379"></A>    <FONT ID="Private">private</FONT> List&lt;<A HREF="../../../org/junit/rules/TestRule.java.html">TestRule</A>&gt; getTestRules(Object target) {
+<FONT ID="LN">380 </FONT><A NAME="380"></A>        <FONT ID="Return">return</FONT> getTestClass().getAnnotatedFieldValues(target,
+<FONT ID="LN">381 </FONT><A NAME="381"></A>                <A HREF="../../../org/junit/Rule.java.html">Rule</A>.<FONT ID="Class">class</FONT>, <A HREF="../../../org/junit/rules/TestRule.java.html">TestRule</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    }
+<FONT ID="LN">383 </FONT><A NAME="383"></A>
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    <FONT ID="Private">private</FONT> Class&lt;? <FONT ID="Extends">extends</FONT> Throwable&gt; getExpectedException(<A HREF="../../../org/junit/Test.java.html">Test</A> annotation) {
+<FONT ID="LN">385 </FONT><A NAME="385"></A>        <FONT ID="If">if</FONT> (annotation == <FONT ID="Null">null</FONT> || annotation.expected() == None.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">386 </FONT><A NAME="386"></A>            <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">387 </FONT><A NAME="387"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">388 </FONT><A NAME="388"></A>            <FONT ID="Return">return</FONT> annotation.expected();
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    }
+<FONT ID="LN">390 </FONT><A NAME="390"></A>
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> expectsException(<A HREF="../../../org/junit/Test.java.html">Test</A> annotation) {
+<FONT ID="LN">392 </FONT><A NAME="392"></A>        <FONT ID="Return">return</FONT> getExpectedException(annotation) != <FONT ID="Null">null</FONT>;
+<FONT ID="LN">393 </FONT><A NAME="393"></A>    }
+<FONT ID="LN">394 </FONT><A NAME="394"></A>
+<FONT ID="LN">395 </FONT><A NAME="395"></A>    <FONT ID="Private">private</FONT> <FONT ID="Long">long</FONT> getTimeout(<A HREF="../../../org/junit/Test.java.html">Test</A> annotation) {
+<FONT ID="LN">396 </FONT><A NAME="396"></A>        <FONT ID="If">if</FONT> (annotation == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">397 </FONT><A NAME="397"></A>            <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">398 </FONT><A NAME="398"></A>        <FONT ID="Return">return</FONT> annotation.timeout();
+<FONT ID="LN">399 </FONT><A NAME="399"></A>    }
+<FONT ID="LN">400 </FONT><A NAME="400"></A>}
+<FONT ID="LN">401 </FONT><A NAME="401"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BlockJUnit4ClassRunner.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

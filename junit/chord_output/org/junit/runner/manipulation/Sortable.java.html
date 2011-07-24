@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.runner.manipulation.Sortable (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Sortable.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.runner.manipulation;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * Interface for runners that allow sorting of tests. By sorting tests based on when they last failed, most recently
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * failed first, you can reduce the average time to the first test failing. Test sorting should not be used to
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * cope with order dependencies between tests. Tests that are isolated from each other are less
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * expensive to maintain and can be run individually.
+<FONT ID="LN">8   </FONT><A NAME="8"></A> */</FONT>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Public">public</FONT> <FONT ID="Interface">interface</FONT> Sortable {
+<FONT ID="LN">10  </FONT><A NAME="10"></A>
+<FONT ID="LN">11  </FONT><A NAME="11"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">12  </FONT><A NAME="12"></A>     * Sorts the tests using &lt;code&gt;sorter&lt;/code&gt;
+<FONT ID="LN">13  </FONT><A NAME="13"></A>     * @param sorter the {@link Sorter} to use for sorting the tests
+<FONT ID="LN">14  </FONT><A NAME="14"></A>     */</FONT>
+<FONT ID="LN">15  </FONT><A NAME="15"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> sort(<A HREF="../../../../org/junit/runner/manipulation/Sorter.java.html">Sorter</A> sorter);
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>}
+<FONT ID="LN">18  </FONT><A NAME="18"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Sortable.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

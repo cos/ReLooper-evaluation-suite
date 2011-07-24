@@ -1,0 +1,241 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>junit.framework.TestCase (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TestCase.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> junit.framework;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.lang.reflect.InvocationTargetException;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.lang.reflect.Method;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.lang.reflect.Modifier;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * A test case defines the fixture to run multiple tests. To define a test case&lt;br/&gt;
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * &lt;ol&gt;
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *   &lt;li&gt;implement a subclass of &lt;code&gt;TestCase&lt;/code&gt;&lt;/li&gt;
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *   &lt;li&gt;define instance variables that store the state of the fixture&lt;/li&gt;
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *   &lt;li&gt;initialize the fixture state by overriding {@link #setUp()}&lt;/li&gt;
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *   &lt;li&gt;clean-up after a test by overriding {@link #tearDown()}.&lt;/li&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * &lt;/ol&gt;
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * Each test runs in its own fixture so there
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * can be no side effects among test runs.
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * Here is an example:
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * &lt;pre&gt;
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * public class MathTest extends TestCase {
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *    protected double fValue1;
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *    protected double fValue2;
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *
+<FONT ID="LN">23  </FONT><A NAME="23"></A> *    protected void setUp() {
+<FONT ID="LN">24  </FONT><A NAME="24"></A> *       fValue1= 2.0;
+<FONT ID="LN">25  </FONT><A NAME="25"></A> *       fValue2= 3.0;
+<FONT ID="LN">26  </FONT><A NAME="26"></A> *    }
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * }
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * &lt;/pre&gt;
+<FONT ID="LN">29  </FONT><A NAME="29"></A> *
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * For each test implement a method which interacts
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * with the fixture. Verify the expected results with assertions specified
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * by calling {@link junit.framework.Assert#assertTrue(String, boolean)} with a boolean.
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * &lt;pre&gt;
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *    public void testAdd() {
+<FONT ID="LN">35  </FONT><A NAME="35"></A> *       double result= fValue1 + fValue2;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> *       assertTrue(result == 5.0);
+<FONT ID="LN">37  </FONT><A NAME="37"></A> *    }
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * &lt;/pre&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * 
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * Once the methods are defined you can run them. The framework supports
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * both a static type safe and more dynamic way to run a test.
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * In the static way you override the runTest method and define the method to
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * be invoked. A convenient way to do so is with an anonymous inner class.
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * &lt;pre&gt;
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * TestCase test= new MathTest("add") {
+<FONT ID="LN">46  </FONT><A NAME="46"></A> *    public void runTest() {
+<FONT ID="LN">47  </FONT><A NAME="47"></A> *       testAdd();
+<FONT ID="LN">48  </FONT><A NAME="48"></A> *    }
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * };
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * test.run();
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * &lt;/pre&gt;
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * 
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * The dynamic way uses reflection to implement {@link #runTest()}. It dynamically finds
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * and invokes a method.
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * In this case the name of the test case has to correspond to the test method
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * to be run.
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * &lt;pre&gt;
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * TestCase test= new MathTest("testAdd");
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * test.run();
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * &lt;/pre&gt;
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * 
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * The tests to be run can be collected into a TestSuite. JUnit provides
+<FONT ID="LN">63  </FONT><A NAME="63"></A> * different &lt;i&gt;test runners&lt;/i&gt; which can run a test suite and collect the results.
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * A test runner either expects a static method &lt;code&gt;suite&lt;/code&gt; as the entry
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * point to get a test to run or it will extract the suite automatically.
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * &lt;pre&gt;
+<FONT ID="LN">67  </FONT><A NAME="67"></A> * public static Test suite() {
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *    suite.addTest(new MathTest("testAdd"));
+<FONT ID="LN">69  </FONT><A NAME="69"></A> *    suite.addTest(new MathTest("testDivideByZero"));
+<FONT ID="LN">70  </FONT><A NAME="70"></A> *    return suite;
+<FONT ID="LN">71  </FONT><A NAME="71"></A> * }
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * &lt;/pre&gt;
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * @see TestResult
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * @see TestSuite
+<FONT ID="LN">75  </FONT><A NAME="75"></A> */</FONT>
+<FONT ID="LN">76  </FONT><A NAME="76"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> TestCase <FONT ID="Extends">extends</FONT> <A HREF="../../junit/framework/Assert.java.html">Assert</A> <FONT ID="Implements">implements</FONT> <A HREF="../../junit/framework/Test.java.html">Test</A> {
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">78  </FONT><A NAME="78"></A>     * the name of the test case
+<FONT ID="LN">79  </FONT><A NAME="79"></A>     */</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    <FONT ID="Private">private</FONT> String fName;
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">83  </FONT><A NAME="83"></A>     * No-arg constructor to enable serialization. This method
+<FONT ID="LN">84  </FONT><A NAME="84"></A>     * is not intended to be used by mere mortals without calling setName().
+<FONT ID="LN">85  </FONT><A NAME="85"></A>     */</FONT>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="Public">public</FONT> TestCase() {
+<FONT ID="LN">87  </FONT><A NAME="87"></A>        fName= <FONT ID="Null">null</FONT>;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    }
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">90  </FONT><A NAME="90"></A>     * Constructs a test case with the given name.
+<FONT ID="LN">91  </FONT><A NAME="91"></A>     */</FONT>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <FONT ID="Public">public</FONT> TestCase(String name) {
+<FONT ID="LN">93  </FONT><A NAME="93"></A>        fName= name;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    }
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">96  </FONT><A NAME="96"></A>     * Counts the number of test cases executed by run(TestResult result).
+<FONT ID="LN">97  </FONT><A NAME="97"></A>     */</FONT>
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> countTestCases() {
+<FONT ID="LN">99  </FONT><A NAME="99"></A>        <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    }
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">102 </FONT><A NAME="102"></A>     * Creates a default TestResult object
+<FONT ID="LN">103 </FONT><A NAME="103"></A>     *
+<FONT ID="LN">104 </FONT><A NAME="104"></A>     * @see TestResult
+<FONT ID="LN">105 </FONT><A NAME="105"></A>     */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    <FONT ID="Protected">protected</FONT> <A HREF="../../junit/framework/TestResult.java.html">TestResult</A> createResult() {
+<FONT ID="LN">107 </FONT><A NAME="107"></A>        <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../junit/framework/TestResult.java.html">TestResult</A>();
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">110 </FONT><A NAME="110"></A>     * A convenience method to run this test, collecting the results with a
+<FONT ID="LN">111 </FONT><A NAME="111"></A>     * default TestResult object.
+<FONT ID="LN">112 </FONT><A NAME="112"></A>     *
+<FONT ID="LN">113 </FONT><A NAME="113"></A>     * @see TestResult
+<FONT ID="LN">114 </FONT><A NAME="114"></A>     */</FONT>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="Public">public</FONT> <A HREF="../../junit/framework/TestResult.java.html">TestResult</A> run() {
+<FONT ID="LN">116 </FONT><A NAME="116"></A>        <A HREF="../../junit/framework/TestResult.java.html">TestResult</A> result= createResult();
+<FONT ID="LN">117 </FONT><A NAME="117"></A>        run(result);
+<FONT ID="LN">118 </FONT><A NAME="118"></A>        <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    }
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">121 </FONT><A NAME="121"></A>     * Runs the test case and collects the results in TestResult.
+<FONT ID="LN">122 </FONT><A NAME="122"></A>     */</FONT>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(<A HREF="../../junit/framework/TestResult.java.html">TestResult</A> result) {
+<FONT ID="LN">124 </FONT><A NAME="124"></A>        result.run(<FONT ID="This">this</FONT>);
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    }
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">127 </FONT><A NAME="127"></A>     * Runs the bare test sequence.
+<FONT ID="LN">128 </FONT><A NAME="128"></A>     * @throws Throwable if any exception is thrown
+<FONT ID="LN">129 </FONT><A NAME="129"></A>     */</FONT>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> runBare() <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">131 </FONT><A NAME="131"></A>        Throwable exception= <FONT ID="Null">null</FONT>;
+<FONT ID="LN">132 </FONT><A NAME="132"></A>        setUp();
+<FONT ID="LN">133 </FONT><A NAME="133"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">134 </FONT><A NAME="134"></A>            runTest();
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        } <FONT ID="Catch">catch</FONT> (Throwable running) {
+<FONT ID="LN">136 </FONT><A NAME="136"></A>            exception= running;
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        }
+<FONT ID="LN">138 </FONT><A NAME="138"></A>        <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>            <FONT ID="Try">try</FONT> {
+<FONT ID="LN">140 </FONT><A NAME="140"></A>                tearDown();
+<FONT ID="LN">141 </FONT><A NAME="141"></A>            } <FONT ID="Catch">catch</FONT> (Throwable tearingDown) {
+<FONT ID="LN">142 </FONT><A NAME="142"></A>                <FONT ID="If">if</FONT> (exception == <FONT ID="Null">null</FONT>) exception= tearingDown;
+<FONT ID="LN">143 </FONT><A NAME="143"></A>            }
+<FONT ID="LN">144 </FONT><A NAME="144"></A>        }
+<FONT ID="LN">145 </FONT><A NAME="145"></A>        <FONT ID="If">if</FONT> (exception != <FONT ID="Null">null</FONT>) <FONT ID="Throw">throw</FONT> exception;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    }
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">148 </FONT><A NAME="148"></A>     * Override to run the test and assert its state.
+<FONT ID="LN">149 </FONT><A NAME="149"></A>     * @throws Throwable if any exception is thrown
+<FONT ID="LN">150 </FONT><A NAME="150"></A>     */</FONT>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> runTest() <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">152 </FONT><A NAME="152"></A>        assertNotNull(<FONT ID="StringLiteral">"TestCase.fName cannot be null"</FONT>, fName); <FONT ID="SingleLineComment">// Some VMs crash when calling getMethod(null,null);
+<FONT ID="LN">153 </FONT><A NAME="153"></A></FONT>        Method runMethod= <FONT ID="Null">null</FONT>;
+<FONT ID="LN">154 </FONT><A NAME="154"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">155 </FONT><A NAME="155"></A>            <FONT ID="SingleLineComment">// use getMethod to get all public inherited
+<FONT ID="LN">156 </FONT><A NAME="156"></A></FONT>            <FONT ID="SingleLineComment">// methods. getDeclaredMethods returns all
+<FONT ID="LN">157 </FONT><A NAME="157"></A></FONT>            <FONT ID="SingleLineComment">// methods of this class but excludes the
+<FONT ID="LN">158 </FONT><A NAME="158"></A></FONT>            <FONT ID="SingleLineComment">// inherited ones.
+<FONT ID="LN">159 </FONT><A NAME="159"></A></FONT>            runMethod= getClass().getMethod(fName, (Class[])<FONT ID="Null">null</FONT>);
+<FONT ID="LN">160 </FONT><A NAME="160"></A>        } <FONT ID="Catch">catch</FONT> (NoSuchMethodException e) {
+<FONT ID="LN">161 </FONT><A NAME="161"></A>            fail(<FONT ID="StringLiteral">"Method \""</FONT>+fName+<FONT ID="StringLiteral">"\" not found"</FONT>);
+<FONT ID="LN">162 </FONT><A NAME="162"></A>        }
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        <FONT ID="If">if</FONT> (!Modifier.isPublic(runMethod.getModifiers())) {
+<FONT ID="LN">164 </FONT><A NAME="164"></A>            fail(<FONT ID="StringLiteral">"Method \""</FONT>+fName+<FONT ID="StringLiteral">"\" should be public"</FONT>);
+<FONT ID="LN">165 </FONT><A NAME="165"></A>        }
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">168 </FONT><A NAME="168"></A>            runMethod.invoke(<FONT ID="This">this</FONT>);
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        }
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        <FONT ID="Catch">catch</FONT> (InvocationTargetException e) {
+<FONT ID="LN">171 </FONT><A NAME="171"></A>            e.fillInStackTrace();
+<FONT ID="LN">172 </FONT><A NAME="172"></A>            <FONT ID="Throw">throw</FONT> e.getTargetException();
+<FONT ID="LN">173 </FONT><A NAME="173"></A>        }
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        <FONT ID="Catch">catch</FONT> (IllegalAccessException e) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>            e.fillInStackTrace();
+<FONT ID="LN">176 </FONT><A NAME="176"></A>            <FONT ID="Throw">throw</FONT> e;
+<FONT ID="LN">177 </FONT><A NAME="177"></A>        }
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    }
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">180 </FONT><A NAME="180"></A>     * Sets up the fixture, for example, open a network connection.
+<FONT ID="LN">181 </FONT><A NAME="181"></A>     * This method is called before a test is executed.
+<FONT ID="LN">182 </FONT><A NAME="182"></A>     */</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setUp() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    }
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">186 </FONT><A NAME="186"></A>     * Tears down the fixture, for example, close a network connection.
+<FONT ID="LN">187 </FONT><A NAME="187"></A>     * This method is called after a test is executed.
+<FONT ID="LN">188 </FONT><A NAME="188"></A>     */</FONT>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> tearDown() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    }
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">192 </FONT><A NAME="192"></A>     * Returns a string representation of the test case
+<FONT ID="LN">193 </FONT><A NAME="193"></A>     */</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    @Override
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">196 </FONT><A NAME="196"></A>        <FONT ID="Return">return</FONT> getName() + <FONT ID="StringLiteral">"("</FONT> + getClass().getName() + <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    }
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">199 </FONT><A NAME="199"></A>     * Gets the name of a TestCase
+<FONT ID="LN">200 </FONT><A NAME="200"></A>     * @return the name of the TestCase
+<FONT ID="LN">201 </FONT><A NAME="201"></A>     */</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    <FONT ID="Public">public</FONT> String getName() {
+<FONT ID="LN">203 </FONT><A NAME="203"></A>        <FONT ID="Return">return</FONT> fName;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    }
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">206 </FONT><A NAME="206"></A>     * Sets the name of a TestCase
+<FONT ID="LN">207 </FONT><A NAME="207"></A>     * @param name the name to set
+<FONT ID="LN">208 </FONT><A NAME="208"></A>     */</FONT>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setName(String name) {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>        fName= name;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    }
+<FONT ID="LN">212 </FONT><A NAME="212"></A>}
+<FONT ID="LN">213 </FONT><A NAME="213"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TestCase.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

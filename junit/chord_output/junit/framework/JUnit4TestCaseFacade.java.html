@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>junit.framework.JUnit4TestCaseFacade (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">JUnit4TestCaseFacade.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">2   </FONT><A NAME="2"></A> * 
+<FONT ID="LN">3   </FONT><A NAME="3"></A> */</FONT>
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Package">package</FONT> junit.framework;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../org/junit/runner/Describable.java.html">org.junit.runner.Describable</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../org/junit/runner/Description.java.html">org.junit.runner.Description</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> JUnit4TestCaseFacade <FONT ID="Implements">implements</FONT> <A HREF="../../junit/framework/Test.java.html">Test</A>, <A HREF="../../org/junit/runner/Describable.java.html">Describable</A> {
+<FONT ID="LN">10  </FONT><A NAME="10"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> <A HREF="../../org/junit/runner/Description.java.html">Description</A> fDescription;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A>    JUnit4TestCaseFacade(<A HREF="../../org/junit/runner/Description.java.html">Description</A> description) {
+<FONT ID="LN">13  </FONT><A NAME="13"></A>        fDescription = description;
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    }
+<FONT ID="LN">15  </FONT><A NAME="15"></A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    @Override
+<FONT ID="LN">17  </FONT><A NAME="17"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">18  </FONT><A NAME="18"></A>        <FONT ID="Return">return</FONT> getDescription().toString();
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    }
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> countTestCases() {
+<FONT ID="LN">22  </FONT><A NAME="22"></A>        <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(<A HREF="../../junit/framework/TestResult.java.html">TestResult</A> result) {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(
+<FONT ID="LN">27  </FONT><A NAME="27"></A>                <FONT ID="StringLiteral">"This test stub created only for informational purposes."</FONT>);
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    }
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    <FONT ID="Public">public</FONT> <A HREF="../../org/junit/runner/Description.java.html">Description</A> getDescription() {
+<FONT ID="LN">31  </FONT><A NAME="31"></A>        <FONT ID="Return">return</FONT> fDescription;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    }
+<FONT ID="LN">33  </FONT><A NAME="33"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">JUnit4TestCaseFacade.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

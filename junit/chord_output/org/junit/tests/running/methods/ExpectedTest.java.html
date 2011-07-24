@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.running.methods.ExpectedTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ExpectedTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.running.methods;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/Assert.java.html">org.junit.Assert.assertEquals</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/Assert.java.html">org.junit.Assert.assertFalse</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/Assert.java.html">org.junit.Assert.assertTrue</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">org.junit.runner.JUnitCore</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/runner/Result.java.html">org.junit.runner.Result</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/runner/notification/Failure.java.html">org.junit.runner.notification.Failure</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A>
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ExpectedTest {
+<FONT ID="LN">12  </FONT><A NAME="12"></A>    
+<FONT ID="LN">13  </FONT><A NAME="13"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Expected {
+<FONT ID="LN">14  </FONT><A NAME="14"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A>(expected= Exception.<FONT ID="Class">class</FONT>) <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> expected() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">15  </FONT><A NAME="15"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception();
+<FONT ID="LN">16  </FONT><A NAME="16"></A>        }
+<FONT ID="LN">17  </FONT><A NAME="17"></A>    }
+<FONT ID="LN">18  </FONT><A NAME="18"></A>    
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> expected() {
+<FONT ID="LN">20  </FONT><A NAME="20"></A>        <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">JUnitCore</A> core= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">JUnitCore</A>();
+<FONT ID="LN">21  </FONT><A NAME="21"></A>        <A HREF="../../../../../org/junit/runner/Result.java.html">Result</A> result= core.run(Expected.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">22  </FONT><A NAME="22"></A>        assertTrue(result.wasSuccessful());
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Unexpected {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A>(expected= Exception.<FONT ID="Class">class</FONT>) <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> expected() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">27  </FONT><A NAME="27"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Error();
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        }
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    }
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> unexpected() {
+<FONT ID="LN">31  </FONT><A NAME="31"></A>        <A HREF="../../../../../org/junit/runner/Result.java.html">Result</A> result= JUnitCore.runClasses(Unexpected.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">32  </FONT><A NAME="32"></A>        <A HREF="../../../../../org/junit/runner/notification/Failure.java.html">Failure</A> failure= result.getFailures().get(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        String message= failure.getMessage();
+<FONT ID="LN">34  </FONT><A NAME="34"></A>        assertTrue(message.contains(<FONT ID="StringLiteral">"expected&lt;java.lang.Exception&gt; but was&lt;java.lang.Error&gt;"</FONT>));
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        assertEquals(Error.<FONT ID="Class">class</FONT>, failure.getException().getCause().getClass());
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    }
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> NoneThrown {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A>(expected= Exception.<FONT ID="Class">class</FONT>) <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> nothing() {
+<FONT ID="LN">40  </FONT><A NAME="40"></A>        }
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    }
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> noneThrown() {
+<FONT ID="LN">43  </FONT><A NAME="43"></A>        <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">JUnitCore</A> core= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">JUnitCore</A>();
+<FONT ID="LN">44  </FONT><A NAME="44"></A>        <A HREF="../../../../../org/junit/runner/Result.java.html">Result</A> result= core.run(NoneThrown.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">45  </FONT><A NAME="45"></A>        assertFalse(result.wasSuccessful());
+<FONT ID="LN">46  </FONT><A NAME="46"></A>        String message= result.getFailures().get(<FONT ID="IntegerLiteral">0</FONT>).getMessage();
+<FONT ID="LN">47  </FONT><A NAME="47"></A>        assertTrue(message.contains(<FONT ID="StringLiteral">"Expected exception: java.lang.Exception"</FONT>));
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    }
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ExpectSuperclass {
+<FONT ID="LN">51  </FONT><A NAME="51"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A>(expected= RuntimeException.<FONT ID="Class">class</FONT>) <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> throwsSubclass() {
+<FONT ID="LN">52  </FONT><A NAME="52"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> ClassCastException();
+<FONT ID="LN">53  </FONT><A NAME="53"></A>        }
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    }
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> expectsSuperclass() {
+<FONT ID="LN">56  </FONT><A NAME="56"></A>        assertTrue(<FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">JUnitCore</A>().run(ExpectSuperclass.<FONT ID="Class">class</FONT>).wasSuccessful());
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    }
+<FONT ID="LN">58  </FONT><A NAME="58"></A>}
+<FONT ID="LN">59  </FONT><A NAME="59"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ExpectedTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

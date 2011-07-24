@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.experimental.runners.Enclosed (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Enclosed.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.experimental.runners;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> org.junit.runners.Suite;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runners/model/RunnerBuilder.java.html">org.junit.runners.model.RunnerBuilder</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * If you put tests in inner classes, Ant, for example, won't find them. By running the outer class
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * with Enclosed, the tests in the inner classes will be run. You might put tests in inner classes
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * to group them for convenience or to share constants.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * 
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *  So, for example:
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *  &lt;pre&gt;
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *  \@RunWith(Enclosed.class)
+<FONT ID="LN">15  </FONT><A NAME="15"></A> *  public class ListTests {
+<FONT ID="LN">16  </FONT><A NAME="16"></A> *      ...useful shared stuff...
+<FONT ID="LN">17  </FONT><A NAME="17"></A> *      public static class OneKindOfListTest {...}
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *      public static class AnotherKind {...}
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *  }
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *  &lt;/pre&gt;
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *  
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *  For a real example, @see org.junit.tests.manipulation.SortableTest.
+<FONT ID="LN">23  </FONT><A NAME="23"></A> */</FONT>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Enclosed <FONT ID="Extends">extends</FONT> Suite {
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">26  </FONT><A NAME="26"></A>     * Only called reflectively. Do not use programmatically.
+<FONT ID="LN">27  </FONT><A NAME="27"></A>     */</FONT>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="Public">public</FONT> Enclosed(Class&lt;?&gt; klass, <A HREF="../../../../org/junit/runners/model/RunnerBuilder.java.html">RunnerBuilder</A> builder) <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>        <FONT ID="Super">super</FONT>(builder, klass, klass.getClasses());
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    }
+<FONT ID="LN">31  </FONT><A NAME="31"></A>}
+<FONT ID="LN">32  </FONT><A NAME="32"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Enclosed.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

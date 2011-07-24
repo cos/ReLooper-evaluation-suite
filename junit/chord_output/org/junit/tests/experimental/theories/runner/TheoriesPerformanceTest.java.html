@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.experimental.theories.runner.TheoriesPerformanceTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TheoriesPerformanceTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.experimental.theories.runner;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/Assert.java.html">org.junit.Assert.assertThat</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/Assume.java.html">org.junit.Assume.assumeTrue</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/experimental/results/PrintableResult.java.html">org.junit.experimental.results.PrintableResult.testResult</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/experimental/results/ResultMatchers.java.html">org.junit.experimental.results.ResultMatchers.isSuccessful</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">org.junit.experimental.theories.DataPoints</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">org.junit.experimental.theories.Theories</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">org.junit.experimental.theories.Theory</A>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/runner/RunWith.java.html">org.junit.runner.RunWith</A>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> TheoriesPerformanceTest {
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    @<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">15  </FONT><A NAME="15"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> UpToTen {
+<FONT ID="LN">16  </FONT><A NAME="16"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">DataPoints</A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT>[] ints= { <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">3</FONT>, <FONT ID="IntegerLiteral">4</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">6</FONT>, <FONT ID="IntegerLiteral">7</FONT>, <FONT ID="IntegerLiteral">8</FONT>, <FONT ID="IntegerLiteral">9</FONT>, <FONT ID="IntegerLiteral">10</FONT> };
+<FONT ID="LN">18  </FONT><A NAME="18"></A>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> threeInts(<FONT ID="Int">int</FONT> x, <FONT ID="Int">int</FONT> y, <FONT ID="Int">int</FONT> z) {
+<FONT ID="LN">21  </FONT><A NAME="21"></A>            <FONT ID="SingleLineComment">// pass always
+<FONT ID="LN">22  </FONT><A NAME="22"></A></FONT>        }
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Boolean">boolean</FONT> TESTING_PERFORMANCE= <FONT ID="False">false</FONT>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    <FONT ID="SingleLineComment">// If we do not share the same instance of TestClass, repeatedly parsing the 
+<FONT ID="LN">28  </FONT><A NAME="28"></A></FONT>    <FONT ID="SingleLineComment">// class's annotations looking for @Befores and @Afters gets really costly.
+<FONT ID="LN">29  </FONT><A NAME="29"></A></FONT>    <FONT ID="SingleLineComment">//
+<FONT ID="LN">30  </FONT><A NAME="30"></A></FONT>    <FONT ID="SingleLineComment">// Likewise, the TestClass must be passed into AllMembersSupplier, or the
+<FONT ID="LN">31  </FONT><A NAME="31"></A></FONT>    <FONT ID="SingleLineComment">// annotation parsing is again costly.
+<FONT ID="LN">32  </FONT><A NAME="32"></A></FONT>    @<A HREF="../../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> tryCombinationsQuickly() {
+<FONT ID="LN">34  </FONT><A NAME="34"></A>        assumeTrue(TESTING_PERFORMANCE);
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        assertThat(testResult(UpToTen.<FONT ID="Class">class</FONT>), isSuccessful());
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    }
+<FONT ID="LN">37  </FONT><A NAME="37"></A>}
+<FONT ID="LN">38  </FONT><A NAME="38"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TheoriesPerformanceTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

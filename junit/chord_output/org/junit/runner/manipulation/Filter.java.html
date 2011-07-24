@@ -1,0 +1,143 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.runner.manipulation.Filter (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Filter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.runner.manipulation;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/Description.java.html">org.junit.runner.Description</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/Request.java.html">org.junit.runner.Request</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * The canonical case of filtering is when you want to run a single test method in a class. Rather
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * than introduce runner API just for that one case, JUnit provides a general filtering mechanism.
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * If you want to filter the tests to be run, extend &lt;code&gt;Filter&lt;/code&gt; and apply an instance of
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * your filter to the {@link org.junit.runner.Request} before running it (see 
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * {@link org.junit.runner.JUnitCore#run(Request)}. Alternatively, apply a &lt;code&gt;Filter&lt;/code&gt; to 
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * a {@link org.junit.runner.Runner} before running tests (for example, in conjunction with 
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * {@link org.junit.runner.RunWith}.
+<FONT ID="LN">14  </FONT><A NAME="14"></A> */</FONT>
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> Filter {
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">17  </FONT><A NAME="17"></A>     * A null &lt;code&gt;Filter&lt;/code&gt; that passes all tests through.
+<FONT ID="LN">18  </FONT><A NAME="18"></A>     */</FONT>
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A> ALL= <FONT ID="New">new</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A>() {
+<FONT ID="LN">20  </FONT><A NAME="20"></A>        @Override
+<FONT ID="LN">21  </FONT><A NAME="21"></A>        <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> shouldRun(<A HREF="../../../../org/junit/runner/Description.java.html">Description</A> description) {
+<FONT ID="LN">22  </FONT><A NAME="22"></A>            <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>        }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>        @Override
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        <FONT ID="Public">public</FONT> String describe() {
+<FONT ID="LN">27  </FONT><A NAME="27"></A>            <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"all tests"</FONT>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        }
+<FONT ID="LN">29  </FONT><A NAME="29"></A>        
+<FONT ID="LN">30  </FONT><A NAME="30"></A>        @Override
+<FONT ID="LN">31  </FONT><A NAME="31"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> apply(Object child) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/junit/runner/manipulation/NoTestsRemainException.java.html">NoTestsRemainException</A> {
+<FONT ID="LN">32  </FONT><A NAME="32"></A>            <FONT ID="SingleLineComment">// do nothing
+<FONT ID="LN">33  </FONT><A NAME="33"></A></FONT>        }
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        @Override
+<FONT ID="LN">36  </FONT><A NAME="36"></A>        <FONT ID="Public">public</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A> intersect(<A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A> second) {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>            <FONT ID="Return">return</FONT> second;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>        }
+<FONT ID="LN">39  </FONT><A NAME="39"></A>    };
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">42  </FONT><A NAME="42"></A>     * Returns a {@code Filter} that only runs the single method described by
+<FONT ID="LN">43  </FONT><A NAME="43"></A>     * {@code desiredDescription}
+<FONT ID="LN">44  </FONT><A NAME="44"></A>     */</FONT>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A> matchMethodDescription(<FONT ID="Final">final</FONT> <A HREF="../../../../org/junit/runner/Description.java.html">Description</A> desiredDescription) {
+<FONT ID="LN">46  </FONT><A NAME="46"></A>        <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A>() {
+<FONT ID="LN">47  </FONT><A NAME="47"></A>            @Override
+<FONT ID="LN">48  </FONT><A NAME="48"></A>            <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> shouldRun(<A HREF="../../../../org/junit/runner/Description.java.html">Description</A> description) {
+<FONT ID="LN">49  </FONT><A NAME="49"></A>                <FONT ID="If">if</FONT> (description.isTest())
+<FONT ID="LN">50  </FONT><A NAME="50"></A>                    <FONT ID="Return">return</FONT> desiredDescription.equals(description);
+<FONT ID="LN">51  </FONT><A NAME="51"></A>                
+<FONT ID="LN">52  </FONT><A NAME="52"></A>                <FONT ID="SingleLineComment">// explicitly check if any children want to run
+<FONT ID="LN">53  </FONT><A NAME="53"></A></FONT>                <FONT ID="For">for</FONT> (<A HREF="../../../../org/junit/runner/Description.java.html">Description</A> each : description.getChildren())
+<FONT ID="LN">54  </FONT><A NAME="54"></A>                    <FONT ID="If">if</FONT> (shouldRun(each))
+<FONT ID="LN">55  </FONT><A NAME="55"></A>                        <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>                <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;                   
+<FONT ID="LN">57  </FONT><A NAME="57"></A>            }
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>            @Override
+<FONT ID="LN">60  </FONT><A NAME="60"></A>            <FONT ID="Public">public</FONT> String describe() {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>                <FONT ID="Return">return</FONT> String.format(<FONT ID="StringLiteral">"Method %s"</FONT>, desiredDescription.getDisplayName());
+<FONT ID="LN">62  </FONT><A NAME="62"></A>            }
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        };
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    }
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">68  </FONT><A NAME="68"></A>     * @param description the description of the test to be run
+<FONT ID="LN">69  </FONT><A NAME="69"></A>     * @return &lt;code&gt;true&lt;/code&gt; if the test should be run
+<FONT ID="LN">70  </FONT><A NAME="70"></A>     */</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Boolean">boolean</FONT> shouldRun(<A HREF="../../../../org/junit/runner/Description.java.html">Description</A> description);
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">74  </FONT><A NAME="74"></A>     * Returns a textual description of this Filter
+<FONT ID="LN">75  </FONT><A NAME="75"></A>     * @return a textual description of this Filter
+<FONT ID="LN">76  </FONT><A NAME="76"></A>     */</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> String describe();
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">80  </FONT><A NAME="80"></A>     * Invoke with a {@link org.junit.runner.Runner} to cause all tests it intends to run
+<FONT ID="LN">81  </FONT><A NAME="81"></A>     * to first be checked with the filter. Only those that pass the filter will be run.
+<FONT ID="LN">82  </FONT><A NAME="82"></A>     * @param child the runner to be filtered by the receiver
+<FONT ID="LN">83  </FONT><A NAME="83"></A>     * @throws NoTestsRemainException if the receiver removes all tests
+<FONT ID="LN">84  </FONT><A NAME="84"></A>     */</FONT>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> apply(Object child) <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/junit/runner/manipulation/NoTestsRemainException.java.html">NoTestsRemainException</A> {
+<FONT ID="LN">86  </FONT><A NAME="86"></A>        <FONT ID="If">if</FONT> (!(child <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filterable.java.html">Filterable</A>))
+<FONT ID="LN">87  </FONT><A NAME="87"></A>            <FONT ID="Return">return</FONT>;
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        <A HREF="../../../../org/junit/runner/manipulation/Filterable.java.html">Filterable</A> filterable= (<A HREF="../../../../org/junit/runner/manipulation/Filterable.java.html">Filterable</A>) child;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>        filterable.filter(<FONT ID="This">this</FONT>);
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">93  </FONT><A NAME="93"></A>     * Returns a new Filter that accepts the intersection of the tests accepted
+<FONT ID="LN">94  </FONT><A NAME="94"></A>     * by this Filter and {@code second}
+<FONT ID="LN">95  </FONT><A NAME="95"></A>     */</FONT>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A> intersect(<FONT ID="Final">final</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A> second) {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>        <FONT ID="If">if</FONT> (second == <FONT ID="This">this</FONT> || second == ALL) {
+<FONT ID="LN">98  </FONT><A NAME="98"></A>            <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>        }
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        <FONT ID="Final">final</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A> first= <FONT ID="This">this</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>        <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../org/junit/runner/manipulation/Filter.java.html">Filter</A>() {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>            @Override
+<FONT ID="LN">103 </FONT><A NAME="103"></A>            <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> shouldRun(<A HREF="../../../../org/junit/runner/Description.java.html">Description</A> description) {
+<FONT ID="LN">104 </FONT><A NAME="104"></A>                <FONT ID="Return">return</FONT> first.shouldRun(description)
+<FONT ID="LN">105 </FONT><A NAME="105"></A>                        &amp;&amp; second.shouldRun(description);
+<FONT ID="LN">106 </FONT><A NAME="106"></A>            }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>            @Override
+<FONT ID="LN">109 </FONT><A NAME="109"></A>            <FONT ID="Public">public</FONT> String describe() {
+<FONT ID="LN">110 </FONT><A NAME="110"></A>                <FONT ID="Return">return</FONT> first.describe() + <FONT ID="StringLiteral">" and "</FONT> + second.describe();
+<FONT ID="LN">111 </FONT><A NAME="111"></A>            }
+<FONT ID="LN">112 </FONT><A NAME="112"></A>        };
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    }
+<FONT ID="LN">114 </FONT><A NAME="114"></A>}
+<FONT ID="LN">115 </FONT><A NAME="115"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Filter.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

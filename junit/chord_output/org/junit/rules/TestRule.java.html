@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.rules.TestRule (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TestRule.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.rules;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/Description.java.html">org.junit.runner.Description</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/Statement.java.html">org.junit.runners.model.Statement</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">7   </FONT><A NAME="7"></A> * A TestRule is an alteration in how a test method, or set of test methods,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> * is run and reported.  A {@link TestRule} may add additional checks that cause
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * a test that would otherwise fail to pass, or it may perform necessary setup or
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * cleanup for tests, or it may observe test execution to report it elsewhere.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * {@link TestRule}s can do everything that could be done previously with
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * methods annotated with {@link org.junit.Before}, 
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * {@link org.junit.After}, {@link org.junit.BeforeClass}, or 
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * {@link org.junit.AfterClass}, but they are more powerful, and more easily 
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * shared
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * between projects and classes.
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * 
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * The default JUnit test runners for suites and
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * individual test cases recognize {@link TestRule}s introduced in two different
+<FONT ID="LN">20  </FONT><A NAME="20"></A> * ways.  {@link org.junit.Rule} annotates method-level 
+<FONT ID="LN">21  </FONT><A NAME="21"></A> * {@link TestRule}s, and {@link org.junit.ClassRule} 
+<FONT ID="LN">22  </FONT><A NAME="22"></A> * annotates class-level {@link TestRule}s.  See Javadoc for those annotations
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * for more information.
+<FONT ID="LN">24  </FONT><A NAME="24"></A> *
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * Multiple {@link TestRule}s can be applied to a test or suite execution. The
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * {@link Statement} that executes the method or suite is passed to each annotated
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * {@link org.junit.Rule} in turn, and each may return a substitute or modified
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * {@link Statement}, which is passed to the next {@link org.junit.Rule}, if any. For
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * examples of how this can be useful, see these provided TestRules,
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * or write your own:
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * 
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * &lt;ul&gt;
+<FONT ID="LN">33  </FONT><A NAME="33"></A> *   &lt;li&gt;{@link ErrorCollector}: collect multiple errors in one test method&lt;/li&gt;
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *   &lt;li&gt;{@link ExpectedException}: make flexible assertions about thrown exceptions&lt;/li&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A> *   &lt;li&gt;{@link ExternalResource}: start and stop a server, for example&lt;/li&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> *   &lt;li&gt;{@link TemporaryFolder}: create fresh files, and delete after test&lt;/li&gt;
+<FONT ID="LN">37  </FONT><A NAME="37"></A> *   &lt;li&gt;{@link TestName}: remember the test name for use during the method&lt;/li&gt;
+<FONT ID="LN">38  </FONT><A NAME="38"></A> *   &lt;li&gt;{@link TestWatcher}: add logic at events during method execution&lt;/li&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A> *   &lt;li&gt;{@link Timeout}: cause test to fail after a set time&lt;/li&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A> *   &lt;li&gt;{@link Verifier}: fail test if object state ends up incorrect&lt;/li&gt;
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * &lt;/ul&gt;
+<FONT ID="LN">42  </FONT><A NAME="42"></A> */</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Public">public</FONT> <FONT ID="Interface">interface</FONT> TestRule {
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">45  </FONT><A NAME="45"></A>     * Modifies the method-running {@link Statement} to implement this
+<FONT ID="LN">46  </FONT><A NAME="46"></A>     * test-running rule.
+<FONT ID="LN">47  </FONT><A NAME="47"></A>     * 
+<FONT ID="LN">48  </FONT><A NAME="48"></A>     * @param base The {@link Statement} to be modified
+<FONT ID="LN">49  </FONT><A NAME="49"></A>     * @param description A {@link Description} of the test implemented in {@code base}
+<FONT ID="LN">50  </FONT><A NAME="50"></A>     * @return a new statement, which may be the same as {@code base},
+<FONT ID="LN">51  </FONT><A NAME="51"></A>     * a wrapper around {@code base}, or a completely new Statement.
+<FONT ID="LN">52  </FONT><A NAME="52"></A>     */</FONT>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> apply(<A HREF="../../../org/junit/runners/model/Statement.java.html">Statement</A> base, <A HREF="../../../org/junit/runner/Description.java.html">Description</A> description);
+<FONT ID="LN">54  </FONT><A NAME="54"></A>}
+<FONT ID="LN">55  </FONT><A NAME="55"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TestRule.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

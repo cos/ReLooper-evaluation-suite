@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.Before (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Before.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.lang.annotation.ElementType;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.lang.annotation.Retention;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.lang.annotation.RetentionPolicy;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.lang.annotation.Target;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * &lt;p&gt;When writing tests, it is common to find that several tests need similar 
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * objects created before they can run. Annotating a &lt;code&gt;public void&lt;/code&gt; method
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * with &lt;code&gt;&amp;#064;Before&lt;/code&gt; causes that method to be run before the {@link org.junit.Test} method.
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * The &lt;code&gt;&amp;#064;Before&lt;/code&gt; methods of superclasses will be run before those of the current class.
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * No other ordering is defined.
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * &lt;/p&gt;
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * 
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * Here is a simple example:
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * &lt;pre&gt;
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * public class Example {
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    List empty;
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *    &amp;#064;Before public void initialize() {
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *       empty= new ArrayList();
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *    }
+<FONT ID="LN">23  </FONT><A NAME="23"></A> *    &amp;#064;Test public void size() {
+<FONT ID="LN">24  </FONT><A NAME="24"></A> *       ...
+<FONT ID="LN">25  </FONT><A NAME="25"></A> *    }
+<FONT ID="LN">26  </FONT><A NAME="26"></A> *    &amp;#064;Test public void remove() {
+<FONT ID="LN">27  </FONT><A NAME="27"></A> *       ...
+<FONT ID="LN">28  </FONT><A NAME="28"></A> *    }
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * }
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * &lt;/pre&gt;
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * 
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * @see org.junit.BeforeClass
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * @see org.junit.After
+<FONT ID="LN">34  </FONT><A NAME="34"></A> */</FONT>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>@Retention(RetentionPolicy.RUNTIME)
+<FONT ID="LN">36  </FONT><A NAME="36"></A>@Target(ElementType.METHOD)
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Public">public</FONT> @<FONT ID="Interface">interface</FONT> Before {
+<FONT ID="LN">38  </FONT><A NAME="38"></A>}
+<FONT ID="LN">39  </FONT><A NAME="39"></A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Before.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

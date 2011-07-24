@@ -1,0 +1,131 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>junit.tests.framework.ComparisonCompactorTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ComparisonCompactorTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> junit.tests.framework;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">junit.framework.ComparisonCompactor</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../junit/framework/TestCase.java.html">junit.framework.TestCase</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ComparisonCompactorTest <FONT ID="Extends">extends</FONT> <A HREF="../../../junit/framework/TestCase.java.html">TestCase</A> {
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testMessage() {
+<FONT ID="LN">9   </FONT><A NAME="9"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"b"</FONT>, <FONT ID="StringLiteral">"c"</FONT>).compact(<FONT ID="StringLiteral">"a"</FONT>);
+<FONT ID="LN">10  </FONT><A NAME="10"></A>        assertTrue(<FONT ID="StringLiteral">"a expected:&lt;[b]&gt; but was:&lt;[c]&gt;"</FONT>.equals(failure));
+<FONT ID="LN">11  </FONT><A NAME="11"></A>    }
+<FONT ID="LN">12  </FONT><A NAME="12"></A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testStartSame() {
+<FONT ID="LN">14  </FONT><A NAME="14"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"ba"</FONT>, <FONT ID="StringLiteral">"bc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">15  </FONT><A NAME="15"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;b[a]&gt; but was:&lt;b[c]&gt;"</FONT>, failure);
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    }
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testEndSame() {
+<FONT ID="LN">19  </FONT><A NAME="19"></A>        String  failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"ab"</FONT>, <FONT ID="StringLiteral">"cb"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">20  </FONT><A NAME="20"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;[a]b&gt; but was:&lt;[c]b&gt;"</FONT>, failure);
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    }
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testSame() {
+<FONT ID="LN">24  </FONT><A NAME="24"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"ab"</FONT>, <FONT ID="StringLiteral">"ab"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">25  </FONT><A NAME="25"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;ab&gt; but was:&lt;ab&gt;"</FONT>, failure);
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    }
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testNoContextStartAndEndSame() {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"abc"</FONT>, <FONT ID="StringLiteral">"adc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">30  </FONT><A NAME="30"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;...[b]...&gt; but was:&lt;...[d]...&gt;"</FONT>, failure);
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    }
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testStartAndEndContext() {
+<FONT ID="LN">34  </FONT><A NAME="34"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"abc"</FONT>, <FONT ID="StringLiteral">"adc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;a[b]c&gt; but was:&lt;a[d]c&gt;"</FONT>, failure);
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    }
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testStartAndEndContextWithEllipses() {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"abcde"</FONT>, <FONT ID="StringLiteral">"abfde"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">40  </FONT><A NAME="40"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;...b[c]d...&gt; but was:&lt;...b[f]d...&gt;"</FONT>, failure);
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    }
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorStartSameComplete() {
+<FONT ID="LN">44  </FONT><A NAME="44"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="StringLiteral">"ab"</FONT>, <FONT ID="StringLiteral">"abc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">45  </FONT><A NAME="45"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;ab[]&gt; but was:&lt;ab[c]&gt;"</FONT>, failure);
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    }
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorEndSameComplete() {
+<FONT ID="LN">49  </FONT><A NAME="49"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"bc"</FONT>, <FONT ID="StringLiteral">"abc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">50  </FONT><A NAME="50"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;[]...&gt; but was:&lt;[a]...&gt;"</FONT>, failure);
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    }
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorEndSameCompleteContext() {
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="StringLiteral">"bc"</FONT>, <FONT ID="StringLiteral">"abc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;[]bc&gt; but was:&lt;[a]bc&gt;"</FONT>, failure);
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorOverlapingMatches() {
+<FONT ID="LN">59  </FONT><A NAME="59"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"abc"</FONT>, <FONT ID="StringLiteral">"abbc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">60  </FONT><A NAME="60"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;...[]...&gt; but was:&lt;...[b]...&gt;"</FONT>, failure);
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    }
+<FONT ID="LN">62  </FONT><A NAME="62"></A>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorOverlapingMatchesContext() {
+<FONT ID="LN">64  </FONT><A NAME="64"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="StringLiteral">"abc"</FONT>, <FONT ID="StringLiteral">"abbc"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">65  </FONT><A NAME="65"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;ab[]c&gt; but was:&lt;ab[b]c&gt;"</FONT>, failure);
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    }
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorOverlapingMatches2() {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"abcdde"</FONT>, <FONT ID="StringLiteral">"abcde"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;...[d]...&gt; but was:&lt;...[]...&gt;"</FONT>, failure);
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorOverlapingMatches2Context() {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="StringLiteral">"abcdde"</FONT>, <FONT ID="StringLiteral">"abcde"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">75  </FONT><A NAME="75"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;...cd[d]e&gt; but was:&lt;...cd[]e&gt;"</FONT>, failure);
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    }
+<FONT ID="LN">77  </FONT><A NAME="77"></A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorWithActualNull() {
+<FONT ID="LN">79  </FONT><A NAME="79"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"a"</FONT>, <FONT ID="Null">null</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">80  </FONT><A NAME="80"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;a&gt; but was:&lt;null&gt;"</FONT>, failure);
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    }
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorWithActualNullContext() {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="StringLiteral">"a"</FONT>, <FONT ID="Null">null</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;a&gt; but was:&lt;null&gt;"</FONT>, failure);
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorWithExpectedNull() {
+<FONT ID="LN">89  </FONT><A NAME="89"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="Null">null</FONT>, <FONT ID="StringLiteral">"a"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;null&gt; but was:&lt;a&gt;"</FONT>, failure);
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testComparisonErrorWithExpectedNullContext() {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="Null">null</FONT>, <FONT ID="StringLiteral">"a"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">95  </FONT><A NAME="95"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;null&gt; but was:&lt;a&gt;"</FONT>, failure);
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    }
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testBug609972() {
+<FONT ID="LN">99  </FONT><A NAME="99"></A>        String failure= <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/ComparisonCompactor.java.html">ComparisonCompactor</A>(<FONT ID="IntegerLiteral">10</FONT>, <FONT ID="StringLiteral">"S&amp;P500"</FONT>, <FONT ID="StringLiteral">"0"</FONT>).compact(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        assertEquals(<FONT ID="StringLiteral">"expected:&lt;[S&amp;P50]0&gt; but was:&lt;[]0&gt;"</FONT>, failure);
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    }
+<FONT ID="LN">102 </FONT><A NAME="102"></A>}
+<FONT ID="LN">103 </FONT><A NAME="103"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ComparisonCompactorTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

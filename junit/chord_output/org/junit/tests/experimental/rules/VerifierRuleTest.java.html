@@ -1,0 +1,153 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.experimental.rules.VerifierRuleTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">VerifierRuleTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.experimental.rules;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> org.hamcrest.CoreMatchers.is;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/Assert.java.html">org.junit.Assert.assertEquals</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/Assert.java.html">org.junit.Assert.assertThat</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">org.junit.experimental.results.PrintableResult.testResult</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/experimental/results/ResultMatchers.java.html">org.junit.experimental.results.ResultMatchers.hasFailureContaining</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/experimental/results/ResultMatchers.java.html">org.junit.experimental.results.ResultMatchers.isSuccessful</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A>
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> java.util.concurrent.Callable;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/Rule.java.html">org.junit.Rule</A>;
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">org.junit.experimental.results.PrintableResult</A>;
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">org.junit.rules.ErrorCollector</A>;
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/rules/Verifier.java.html">org.junit.rules.Verifier</A>;
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> VerifierRuleTest {
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> UsesErrorCollector {
+<FONT ID="LN">20  </FONT><A NAME="20"></A>        @<A HREF="../../../../../org/junit/Rule.java.html">Rule</A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>        <FONT ID="Public">public</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A> collector= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A>();
+<FONT ID="LN">22  </FONT><A NAME="22"></A>        
+<FONT ID="LN">23  </FONT><A NAME="23"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> example() {
+<FONT ID="LN">24  </FONT><A NAME="24"></A>            collector.addError(<FONT ID="New">new</FONT> Throwable(<FONT ID="StringLiteral">"message"</FONT>));
+<FONT ID="LN">25  </FONT><A NAME="25"></A>        }
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    }
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> usedErrorCollectorShouldFail() {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>        assertThat(testResult(UsesErrorCollector.<FONT ID="Class">class</FONT>), hasFailureContaining(<FONT ID="StringLiteral">"message"</FONT>));
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    }
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> UsesErrorCollectorTwice {
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        @<A HREF="../../../../../org/junit/Rule.java.html">Rule</A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>        <FONT ID="Public">public</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A> collector= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A>();
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        
+<FONT ID="LN">36  </FONT><A NAME="36"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> example() {
+<FONT ID="LN">37  </FONT><A NAME="37"></A>            collector.addError(<FONT ID="New">new</FONT> Throwable(<FONT ID="StringLiteral">"first thing went wrong"</FONT>));
+<FONT ID="LN">38  </FONT><A NAME="38"></A>            collector.addError(<FONT ID="New">new</FONT> Throwable(<FONT ID="StringLiteral">"second thing went wrong"</FONT>));
+<FONT ID="LN">39  </FONT><A NAME="39"></A>        }
+<FONT ID="LN">40  </FONT><A NAME="40"></A>    }
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    
+<FONT ID="LN">42  </FONT><A NAME="42"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> usedErrorCollectorTwiceShouldFail() {
+<FONT ID="LN">43  </FONT><A NAME="43"></A>        <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">PrintableResult</A> testResult= testResult(UsesErrorCollectorTwice.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">44  </FONT><A NAME="44"></A>        assertThat(testResult, hasFailureContaining(<FONT ID="StringLiteral">"first thing went wrong"</FONT>));
+<FONT ID="LN">45  </FONT><A NAME="45"></A>        assertThat(testResult, hasFailureContaining(<FONT ID="StringLiteral">"second thing went wrong"</FONT>));
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    }
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> UsesErrorCollectorCheckThat {
+<FONT ID="LN">49  </FONT><A NAME="49"></A>        @<A HREF="../../../../../org/junit/Rule.java.html">Rule</A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>        <FONT ID="Public">public</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A> collector= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A>();
+<FONT ID="LN">51  </FONT><A NAME="51"></A>        
+<FONT ID="LN">52  </FONT><A NAME="52"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> example() {
+<FONT ID="LN">53  </FONT><A NAME="53"></A>            collector.checkThat(<FONT ID="IntegerLiteral">3</FONT>, is(<FONT ID="IntegerLiteral">4</FONT>));
+<FONT ID="LN">54  </FONT><A NAME="54"></A>            collector.checkThat(<FONT ID="IntegerLiteral">5</FONT>, is(<FONT ID="IntegerLiteral">6</FONT>));
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        }
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> usedErrorCollectorCheckThatShouldFail() {
+<FONT ID="LN">59  </FONT><A NAME="59"></A>        <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">PrintableResult</A> testResult= testResult(UsesErrorCollectorCheckThat.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">60  </FONT><A NAME="60"></A>        assertThat(testResult, hasFailureContaining(<FONT ID="StringLiteral">"got: &lt;3&gt;"</FONT>));
+<FONT ID="LN">61  </FONT><A NAME="61"></A>        assertThat(testResult, hasFailureContaining(<FONT ID="StringLiteral">"got: &lt;5&gt;"</FONT>));
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    }
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> UsesErrorCollectorCheckSucceeds {
+<FONT ID="LN">65  </FONT><A NAME="65"></A>        @<A HREF="../../../../../org/junit/Rule.java.html">Rule</A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>        <FONT ID="Public">public</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A> collector= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A>();
+<FONT ID="LN">67  </FONT><A NAME="67"></A>        
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> example() {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>            collector.checkSucceeds(<FONT ID="New">new</FONT> Callable&lt;Object&gt;() {
+<FONT ID="LN">70  </FONT><A NAME="70"></A>                <FONT ID="Public">public</FONT> Object call() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>                    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"first!"</FONT>);
+<FONT ID="LN">72  </FONT><A NAME="72"></A>                }
+<FONT ID="LN">73  </FONT><A NAME="73"></A>            });
+<FONT ID="LN">74  </FONT><A NAME="74"></A>            collector.checkSucceeds(<FONT ID="New">new</FONT> Callable&lt;Object&gt;() {
+<FONT ID="LN">75  </FONT><A NAME="75"></A>                <FONT ID="Public">public</FONT> Object call() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>                    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"second!"</FONT>);
+<FONT ID="LN">77  </FONT><A NAME="77"></A>                }
+<FONT ID="LN">78  </FONT><A NAME="78"></A>            });
+<FONT ID="LN">79  </FONT><A NAME="79"></A>        }
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    }
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> usedErrorCollectorCheckSucceedsShouldFail() {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>        <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">PrintableResult</A> testResult= testResult(UsesErrorCollectorCheckSucceeds.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        assertThat(testResult, hasFailureContaining(<FONT ID="StringLiteral">"first!"</FONT>));
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        assertThat(testResult, hasFailureContaining(<FONT ID="StringLiteral">"second!"</FONT>));
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> UsesErrorCollectorCheckSucceedsPasses {
+<FONT ID="LN">89  </FONT><A NAME="89"></A>        @<A HREF="../../../../../org/junit/Rule.java.html">Rule</A>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        <FONT ID="Public">public</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A> collector= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/rules/ErrorCollector.java.html">ErrorCollector</A>();
+<FONT ID="LN">91  </FONT><A NAME="91"></A>        
+<FONT ID="LN">92  </FONT><A NAME="92"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> example() {
+<FONT ID="LN">93  </FONT><A NAME="93"></A>            assertEquals(<FONT ID="IntegerLiteral">3</FONT>, collector.checkSucceeds(<FONT ID="New">new</FONT> Callable&lt;Object&gt;() {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>                <FONT ID="Public">public</FONT> Object call() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>                    <FONT ID="Return">return</FONT> <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>                }
+<FONT ID="LN">97  </FONT><A NAME="97"></A>            }));
+<FONT ID="LN">98  </FONT><A NAME="98"></A>        }
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    }
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> usedErrorCollectorCheckSucceedsShouldPass() {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">PrintableResult</A> testResult= testResult(UsesErrorCollectorCheckSucceedsPasses.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>        assertThat(testResult, isSuccessful());
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> String sequence;
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> UsesVerifier {
+<FONT ID="LN">109 </FONT><A NAME="109"></A>        @<A HREF="../../../../../org/junit/Rule.java.html">Rule</A>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        <FONT ID="Public">public</FONT> <A HREF="../../../../../org/junit/rules/Verifier.java.html">Verifier</A> collector= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/rules/Verifier.java.html">Verifier</A>() {
+<FONT ID="LN">111 </FONT><A NAME="111"></A>            @Override
+<FONT ID="LN">112 </FONT><A NAME="112"></A>            <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> verify() {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>                sequence+= <FONT ID="StringLiteral">"verify "</FONT>;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>            }
+<FONT ID="LN">115 </FONT><A NAME="115"></A>        };
+<FONT ID="LN">116 </FONT><A NAME="116"></A>        
+<FONT ID="LN">117 </FONT><A NAME="117"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> example() {
+<FONT ID="LN">118 </FONT><A NAME="118"></A>            sequence+= <FONT ID="StringLiteral">"test "</FONT>;
+<FONT ID="LN">119 </FONT><A NAME="119"></A>        }
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> verifierRunsAfterTest() {
+<FONT ID="LN">123 </FONT><A NAME="123"></A>        assertThat(testResult(UsesVerifier.<FONT ID="Class">class</FONT>), isSuccessful());
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    }
+<FONT ID="LN">125 </FONT><A NAME="125"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">VerifierRuleTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

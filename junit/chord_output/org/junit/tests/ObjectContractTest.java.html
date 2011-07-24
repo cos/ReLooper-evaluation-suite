@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.ObjectContractTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ObjectContractTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> org.hamcrest.CoreMatchers.is;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../org/junit/Assert.java.html">org.junit.Assert.assertThat</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../org/junit/Assume.java.html">org.junit.Assume.assumeNotNull</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../org/junit/Assume.java.html">org.junit.Assume.assumeThat</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> java.lang.reflect.Method;
+<FONT ID="LN">9   </FONT><A NAME="9"></A>
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Test.java.html">org.junit.Test.None</A>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/experimental/theories/DataPoints.java.html">org.junit.experimental.theories.DataPoints</A>;
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/experimental/theories/Theories.java.html">org.junit.experimental.theories.Theories</A>;
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/experimental/theories/Theory.java.html">org.junit.experimental.theories.Theory</A>;
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runner/RunWith.java.html">org.junit.runner.RunWith</A>;
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">org.junit.runners.model.FrameworkMethod</A>;
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>@<A HREF="../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">19  </FONT><A NAME="19"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ObjectContractTest {
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    @<A HREF="../../../org/junit/experimental/theories/DataPoints.java.html">DataPoints</A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Object[] objects= { <FONT ID="New">new</FONT> <A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A>(toStringMethod()),
+<FONT ID="LN">22  </FONT><A NAME="22"></A>            <FONT ID="New">new</FONT> <A HREF="../../../org/junit/runners/model/FrameworkMethod.java.html">FrameworkMethod</A>(toStringMethod()), <FONT ID="IntegerLiteral">3</FONT>, <FONT ID="Null">null</FONT> };
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    @<A HREF="../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    @<A HREF="../../../org/junit/Test.java.html">Test</A>(expected= None.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> equalsThrowsNoException(Object a, Object b) {
+<FONT ID="LN">27  </FONT><A NAME="27"></A>        assumeNotNull(a);
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        a.equals(b);
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    }
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    @<A HREF="../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> equalsMeansEqualHashCodes(Object a, Object b) {
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        assumeNotNull(a, b);
+<FONT ID="LN">34  </FONT><A NAME="34"></A>        assumeThat(a, is(b));
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        assertThat(a.hashCode(), is(b.hashCode()));
+<FONT ID="LN">36  </FONT><A NAME="36"></A>    }
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> Method toStringMethod() {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">40  </FONT><A NAME="40"></A>            <FONT ID="Return">return</FONT> Object.<FONT ID="Class">class</FONT>.getMethod(<FONT ID="StringLiteral">"toString"</FONT>);
+<FONT ID="LN">41  </FONT><A NAME="41"></A>        } <FONT ID="Catch">catch</FONT> (SecurityException e) {
+<FONT ID="LN">42  </FONT><A NAME="42"></A>        } <FONT ID="Catch">catch</FONT> (NoSuchMethodException e) {
+<FONT ID="LN">43  </FONT><A NAME="43"></A>        }
+<FONT ID="LN">44  </FONT><A NAME="44"></A>        <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    }
+<FONT ID="LN">46  </FONT><A NAME="46"></A>}
+<FONT ID="LN">47  </FONT><A NAME="47"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ObjectContractTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

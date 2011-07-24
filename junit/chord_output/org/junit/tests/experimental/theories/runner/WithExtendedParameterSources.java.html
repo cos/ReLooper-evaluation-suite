@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.experimental.theories.runner.WithExtendedParameterSources (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">WithExtendedParameterSources.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.experimental.theories.runner;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> org.hamcrest.CoreMatchers.is;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> org.hamcrest.CoreMatchers.notNullValue;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/Assert.java.html">org.junit.Assert.assertThat</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/experimental/results/PrintableResult.java.html">org.junit.experimental.results.PrintableResult.testResult</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../../org/junit/experimental/results/ResultMatchers.java.html">org.junit.experimental.results.ResultMatchers.isSuccessful</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/results/ResultMatchers.java.html">org.junit.experimental.results.ResultMatchers</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/DataPoint.java.html">org.junit.experimental.theories.DataPoint</A>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">org.junit.experimental.theories.DataPoints</A>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">org.junit.experimental.theories.Theories</A>;
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">org.junit.experimental.theories.Theory</A>;
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/experimental/theories/suppliers/TestedOn.java.html">org.junit.experimental.theories.suppliers.TestedOn</A>;
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/runner/JUnitCore.java.html">org.junit.runner.JUnitCore</A>;
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/runner/RunWith.java.html">org.junit.runner.RunWith</A>;
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> WithExtendedParameterSources {
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    @<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ParameterAnnotations {
+<FONT ID="LN">21  </FONT><A NAME="21"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> everythingIsOne(@<A HREF="../../../../../../org/junit/experimental/theories/suppliers/TestedOn.java.html">TestedOn</A>(ints= { <FONT ID="IntegerLiteral">1</FONT> })
+<FONT ID="LN">23  </FONT><A NAME="23"></A>        <FONT ID="Int">int</FONT> number) {
+<FONT ID="LN">24  </FONT><A NAME="24"></A>            assertThat(number, is(<FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">25  </FONT><A NAME="25"></A>        }
+<FONT ID="LN">26  </FONT><A NAME="26"></A>    }
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    @<A HREF="../../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testedOnLimitsParameters() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">30  </FONT><A NAME="30"></A>        assertThat(testResult(ParameterAnnotations.<FONT ID="Class">class</FONT>), ResultMatchers
+<FONT ID="LN">31  </FONT><A NAME="31"></A>                .isSuccessful());
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    }
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A>    @<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ShouldFilterNull {
+<FONT ID="LN">36  </FONT><A NAME="36"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoint.java.html">DataPoint</A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String NULL= <FONT ID="Null">null</FONT>;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoint.java.html">DataPoint</A>
+<FONT ID="LN">40  </FONT><A NAME="40"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String A= <FONT ID="StringLiteral">"a"</FONT>;
+<FONT ID="LN">41  </FONT><A NAME="41"></A>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>(nullsAccepted= <FONT ID="False">false</FONT>)
+<FONT ID="LN">43  </FONT><A NAME="43"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> allStringsAreNonNull(String s) {
+<FONT ID="LN">44  </FONT><A NAME="44"></A>            assertThat(s, notNullValue());
+<FONT ID="LN">45  </FONT><A NAME="45"></A>        }
+<FONT ID="LN">46  </FONT><A NAME="46"></A>    }
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    @<A HREF="../../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> shouldFilterNull() {
+<FONT ID="LN">50  </FONT><A NAME="50"></A>        assertThat(testResult(ShouldFilterNull.<FONT ID="Class">class</FONT>), isSuccessful());
+<FONT ID="LN">51  </FONT><A NAME="51"></A>    }
+<FONT ID="LN">52  </FONT><A NAME="52"></A>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>    @<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> DataPointArrays {
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">DataPoints</A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String[] STRINGS= <FONT ID="New">new</FONT> String[] { <FONT ID="StringLiteral">"A"</FONT>, <FONT ID="StringLiteral">"B"</FONT> };
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addToLog(String string) {
+<FONT ID="LN">62  </FONT><A NAME="62"></A>            log+= string;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        }
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    }
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    @<A HREF="../../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> getDataPointsFromArray() {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        DataPointArrays.log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>        JUnitCore.runClasses(DataPointArrays.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>        assertThat(DataPointArrays.log, is(<FONT ID="StringLiteral">"AB"</FONT>));
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    @<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> DataPointArrayMethod {
+<FONT ID="LN">75  </FONT><A NAME="75"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">DataPoints</A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String[] STRINGS() {
+<FONT ID="LN">79  </FONT><A NAME="79"></A>            <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> String[] { <FONT ID="StringLiteral">"A"</FONT>, <FONT ID="StringLiteral">"B"</FONT> };
+<FONT ID="LN">80  </FONT><A NAME="80"></A>        };
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addToLog(String string) {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>            log+= string;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    @<A HREF="../../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> getDataPointsFromArrayMethod() {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        DataPointArrayMethod.log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">91  </FONT><A NAME="91"></A>        JUnitCore.runClasses(DataPointArrayMethod.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">92  </FONT><A NAME="92"></A>        assertThat(DataPointArrayMethod.log, is(<FONT ID="StringLiteral">"AB"</FONT>));
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    }
+<FONT ID="LN">94  </FONT><A NAME="94"></A>
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    @<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> DataPointMalformedArrayMethods {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">DataPoints</A>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String[] STRINGS() {
+<FONT ID="LN">101 </FONT><A NAME="101"></A>            <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> String[] { <FONT ID="StringLiteral">"A"</FONT>, <FONT ID="StringLiteral">"B"</FONT> };
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        };
+<FONT ID="LN">103 </FONT><A NAME="103"></A>
+<FONT ID="LN">104 </FONT><A NAME="104"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">DataPoints</A>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String STRING() {
+<FONT ID="LN">106 </FONT><A NAME="106"></A>            <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"C"</FONT>;
+<FONT ID="LN">107 </FONT><A NAME="107"></A>        }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoints.java.html">DataPoints</A>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT>[] INTS() {
+<FONT ID="LN">111 </FONT><A NAME="111"></A>            <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[] { <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">3</FONT> };
+<FONT ID="LN">112 </FONT><A NAME="112"></A>        }
+<FONT ID="LN">113 </FONT><A NAME="113"></A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addToLog(String string) {
+<FONT ID="LN">116 </FONT><A NAME="116"></A>            log+= string;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>        }
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    }
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    @<A HREF="../../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> getDataPointsFromArrayMethodInSpiteOfMalformedness() {
+<FONT ID="LN">122 </FONT><A NAME="122"></A>        DataPointArrayMethod.log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">123 </FONT><A NAME="123"></A>        JUnitCore.runClasses(DataPointArrayMethod.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">124 </FONT><A NAME="124"></A>        assertThat(DataPointArrayMethod.log, is(<FONT ID="StringLiteral">"AB"</FONT>));
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    }
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    @<A HREF="../../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(<A HREF="../../../../../../org/junit/experimental/theories/Theories.java.html">Theories</A>.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> DataPointArrayToBeUsedForWholeParameter {
+<FONT ID="LN">129 </FONT><A NAME="129"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">130 </FONT><A NAME="130"></A>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/DataPoint.java.html">DataPoint</A>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String[] STRINGS= <FONT ID="New">new</FONT> String[] { <FONT ID="StringLiteral">"A"</FONT>, <FONT ID="StringLiteral">"B"</FONT> };
+<FONT ID="LN">133 </FONT><A NAME="133"></A>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>        @<A HREF="../../../../../../org/junit/experimental/theories/Theory.java.html">Theory</A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addToLog(String[] strings) {
+<FONT ID="LN">136 </FONT><A NAME="136"></A>            log+= strings[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        }
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    }
+<FONT ID="LN">139 </FONT><A NAME="139"></A>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    @<A HREF="../../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> dataPointCanBeArray() {
+<FONT ID="LN">142 </FONT><A NAME="142"></A>        DataPointArrayToBeUsedForWholeParameter.log= <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">143 </FONT><A NAME="143"></A>        JUnitCore.runClasses(DataPointArrayToBeUsedForWholeParameter.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">144 </FONT><A NAME="144"></A>        assertThat(DataPointArrayToBeUsedForWholeParameter.log, is(<FONT ID="StringLiteral">"A"</FONT>));
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    }
+<FONT ID="LN">146 </FONT><A NAME="146"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">WithExtendedParameterSources.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

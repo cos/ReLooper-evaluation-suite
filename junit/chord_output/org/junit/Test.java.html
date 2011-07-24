@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.Test (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Test.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.lang.annotation.ElementType;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.lang.annotation.Retention;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.lang.annotation.RetentionPolicy;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.lang.annotation.Target;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * &lt;p&gt;The &lt;code&gt;Test&lt;/code&gt; annotation tells JUnit that the &lt;code&gt;public void&lt;/code&gt; method
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * to which it is attached can be run as a test case. To run the method,
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * JUnit first constructs a fresh instance of the class then invokes the
+<FONT ID="LN">12  </FONT><A NAME="12"></A> * annotated method. Any exceptions thrown by the test will be reported
+<FONT ID="LN">13  </FONT><A NAME="13"></A> * by JUnit as a failure. If no exceptions are thrown, the test is assumed
+<FONT ID="LN">14  </FONT><A NAME="14"></A> * to have succeeded.&lt;/p&gt;
+<FONT ID="LN">15  </FONT><A NAME="15"></A> * 
+<FONT ID="LN">16  </FONT><A NAME="16"></A> * &lt;p&gt;A simple test looks like this:
+<FONT ID="LN">17  </FONT><A NAME="17"></A> * &lt;pre&gt;
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * public class Example {
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    &lt;b&gt;&amp;#064;Test&lt;/b&gt; 
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *    public void method() {
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *       org.junit.Assert.assertTrue( new ArrayList().isEmpty() );
+<FONT ID="LN">22  </FONT><A NAME="22"></A> *    }
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * }
+<FONT ID="LN">24  </FONT><A NAME="24"></A> * &lt;/pre&gt;
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * &lt;/p&gt;
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * 
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * &lt;p&gt;The &lt;code&gt;Test&lt;/code&gt; annotation supports two optional parameters.
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * The first, &lt;code&gt;expected&lt;/code&gt;, declares that a test method should throw
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * an exception. If it doesn't throw an exception or if it throws a different exception
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * than the one declared, the test fails. For example, the following test succeeds:
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * &lt;pre&gt;
+<FONT ID="LN">32  </FONT><A NAME="32"></A> *    &amp;#064;Test(&lt;b&gt;expected=IndexOutOfBoundsException.class&lt;/b&gt;) public void outOfBounds() {
+<FONT ID="LN">33  </FONT><A NAME="33"></A> *       new ArrayList&amp;lt;Object&amp;gt;().get(1);
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *    }
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * &lt;/pre&gt;&lt;/p&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * 
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * &lt;p&gt;The second optional parameter, &lt;code&gt;timeout&lt;/code&gt;, causes a test to fail if it takes 
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * longer than a specified amount of clock time (measured in milliseconds). The following test fails:
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * &lt;pre&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A> *    &amp;#064;Test(&lt;b&gt;timeout=100&lt;/b&gt;) public void infinity() {
+<FONT ID="LN">41  </FONT><A NAME="41"></A> *       while(true);
+<FONT ID="LN">42  </FONT><A NAME="42"></A> *    }
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * &lt;/pre&gt;&lt;/p&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A> */</FONT>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>@Retention(RetentionPolicy.RUNTIME)
+<FONT ID="LN">46  </FONT><A NAME="46"></A>@Target({ElementType.METHOD})
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Public">public</FONT> @<FONT ID="Interface">interface</FONT> Test {
+<FONT ID="LN">48  </FONT><A NAME="48"></A>    
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">50  </FONT><A NAME="50"></A>     * Default empty exception
+<FONT ID="LN">51  </FONT><A NAME="51"></A>     */</FONT>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> None <FONT ID="Extends">extends</FONT> Throwable {
+<FONT ID="LN">53  </FONT><A NAME="53"></A>        <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID= <FONT ID="IntegerLiteral">1L</FONT>;     
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        <FONT ID="Private">private</FONT> None() {
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        }
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">59  </FONT><A NAME="59"></A>     * Optionally specify &lt;code&gt;expected&lt;/code&gt;, a Throwable, to cause a test method to succeed iff 
+<FONT ID="LN">60  </FONT><A NAME="60"></A>     * an exception of the specified class is thrown by the method.
+<FONT ID="LN">61  </FONT><A NAME="61"></A>     */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    Class&lt;? <FONT ID="Extends">extends</FONT> Throwable&gt; expected() <FONT ID="Default">default</FONT> None.<FONT ID="Class">class</FONT>;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">65  </FONT><A NAME="65"></A>     * Optionally specify &lt;code&gt;timeout&lt;/code&gt; in milliseconds to cause a test method to fail if it
+<FONT ID="LN">66  </FONT><A NAME="66"></A>     * takes longer than that number of milliseconds.*/</FONT>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    <FONT ID="Long">long</FONT> timeout() <FONT ID="Default">default</FONT> <FONT ID="IntegerLiteral">0L</FONT>; 
+<FONT ID="LN">68  </FONT><A NAME="68"></A>}
+<FONT ID="LN">69  </FONT><A NAME="69"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Test.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.experimental.theories.extendingwithstubs.Guesser (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Guesser.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.experimental.theories.extendingwithstubs;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.lang.reflect.InvocationHandler;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.lang.reflect.Method;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.lang.reflect.Proxy;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> java.util.HashMap;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> java.util.Random;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> java.util.Map.Entry;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> org.hamcrest.BaseDescription;
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Import">import</FONT> org.hamcrest.Description;
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../../org/junit/internal/AssumptionViolatedException.java.html">org.junit.internal.AssumptionViolatedException</A>;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Guesser&lt;T&gt; <FONT ID="Extends">extends</FONT> <A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/ReguessableValue.java.html">ReguessableValue</A> {
+<FONT ID="LN">17  </FONT><A NAME="17"></A>    <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> GuessMap <FONT ID="Extends">extends</FONT> HashMap&lt;<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/MethodCall.java.html">MethodCall</A>, Object&gt; <FONT ID="Implements">implements</FONT>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>            InvocationHandler {
+<FONT ID="LN">19  </FONT><A NAME="19"></A>        <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID= <FONT ID="IntegerLiteral">1L</FONT>;
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>        <FONT ID="Public">public</FONT> GuessMap(GuessMap guesses) {
+<FONT ID="LN">22  </FONT><A NAME="22"></A>            <FONT ID="Super">super</FONT>(guesses);
+<FONT ID="LN">23  </FONT><A NAME="23"></A>        }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>        <FONT ID="Public">public</FONT> GuessMap() {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        }
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        GuessMap replaceGuess(Object oldValue, Object newValue) {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>            GuessMap newGuesses= <FONT ID="New">new</FONT> GuessMap(<FONT ID="This">this</FONT>);
+<FONT ID="LN">30  </FONT><A NAME="30"></A>            <FONT ID="For">for</FONT> (Entry&lt;<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/MethodCall.java.html">MethodCall</A>, Object&gt; entry : newGuesses.entrySet()) {
+<FONT ID="LN">31  </FONT><A NAME="31"></A>                <FONT ID="If">if</FONT> (entry.getValue().equals(oldValue))
+<FONT ID="LN">32  </FONT><A NAME="32"></A>                    entry.setValue(newValue);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>            }
+<FONT ID="LN">34  </FONT><A NAME="34"></A>            <FONT ID="Return">return</FONT> newGuesses;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        }
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        <FONT ID="Protected">protected</FONT> Object generateGuess(Class&lt;?&gt; returnType) {
+<FONT ID="LN">38  </FONT><A NAME="38"></A>            <FONT ID="If">if</FONT> (returnType.equals(String.<FONT ID="Class">class</FONT>))
+<FONT ID="LN">39  </FONT><A NAME="39"></A>                <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"GUESS"</FONT> + <FONT ID="New">new</FONT> Random().nextInt();
+<FONT ID="LN">40  </FONT><A NAME="40"></A>            <FONT ID="If">if</FONT> (returnType.equals(Integer.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">41  </FONT><A NAME="41"></A>                    || returnType.equals(<FONT ID="Int">int</FONT>.<FONT ID="Class">class</FONT>))
+<FONT ID="LN">42  </FONT><A NAME="42"></A>                <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Random().nextInt();
+<FONT ID="LN">43  </FONT><A NAME="43"></A>            <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>        }
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>        Object getGuess(<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/MethodCall.java.html">MethodCall</A> call) {
+<FONT ID="LN">47  </FONT><A NAME="47"></A>            <FONT ID="If">if</FONT> (!containsKey(call))
+<FONT ID="LN">48  </FONT><A NAME="48"></A>                put(call, generateGuess(call.getReturnType()));
+<FONT ID="LN">49  </FONT><A NAME="49"></A>            <FONT ID="Return">return</FONT> get(call);
+<FONT ID="LN">50  </FONT><A NAME="50"></A>        }
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>        <FONT ID="Public">public</FONT> Object invoke(Object proxy, Method method, Object[] args)
+<FONT ID="LN">53  </FONT><A NAME="53"></A>                <FONT ID="Throws">throws</FONT> Throwable {
+<FONT ID="LN">54  </FONT><A NAME="54"></A>            <FONT ID="Return">return</FONT> getGuess(<FONT ID="New">new</FONT> <A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/MethodCall.java.html">MethodCall</A>(method, args));
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        }
+<FONT ID="LN">56  </FONT><A NAME="56"></A>    }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> GuessMap guesses;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> Class&lt;? <FONT ID="Extends">extends</FONT> T&gt; type;
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    <FONT ID="Public">public</FONT> Guesser(Class&lt;? <FONT ID="Extends">extends</FONT> T&gt; type) {
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        <FONT ID="This">this</FONT>(type, <FONT ID="New">new</FONT> GuessMap());
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    }
+<FONT ID="LN">65  </FONT><A NAME="65"></A>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Public">public</FONT> Guesser(Class&lt;? <FONT ID="Extends">extends</FONT> T&gt; type2, GuessMap guesses) {
+<FONT ID="LN">67  </FONT><A NAME="67"></A>        <FONT ID="This">this</FONT>.type= type2;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>        <FONT ID="This">this</FONT>.guesses= guesses;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    }
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    @SuppressWarnings(<FONT ID="StringLiteral">"unchecked"</FONT>)
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="Public">public</FONT> T getProxy() {
+<FONT ID="LN">73  </FONT><A NAME="73"></A>        <FONT ID="Return">return</FONT> (T) Proxy.newProxyInstance(getClass().getClassLoader(),
+<FONT ID="LN">74  </FONT><A NAME="74"></A>                <FONT ID="New">new</FONT> Class[] { getType() }, guesses);
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    }
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    @Override
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    <FONT ID="Public">public</FONT> List&lt;<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/ReguessableValue.java.html">ReguessableValue</A>&gt; reguesses(<A HREF="../../../../../../org/junit/internal/AssumptionViolatedException.java.html">AssumptionViolatedException</A> e) {
+<FONT ID="LN">79  </FONT><A NAME="79"></A>        <FONT ID="Final">final</FONT> ArrayList&lt;<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/ReguessableValue.java.html">ReguessableValue</A>&gt; returnThis= <FONT ID="New">new</FONT> ArrayList&lt;<A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/ReguessableValue.java.html">ReguessableValue</A>&gt;();
+<FONT ID="LN">80  </FONT><A NAME="80"></A>        e.describeTo(<FONT ID="New">new</FONT> BaseDescription() {
+<FONT ID="LN">81  </FONT><A NAME="81"></A>            @Override
+<FONT ID="LN">82  </FONT><A NAME="82"></A>            <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> append(<FONT ID="Char">char</FONT> arg0) {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>            }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>            <FONT ID="Boolean">boolean</FONT> expectedSeen= <FONT ID="False">false</FONT>;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>            Object expected= <FONT ID="Null">null</FONT>;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>            @Override
+<FONT ID="LN">89  </FONT><A NAME="89"></A>            <FONT ID="Public">public</FONT> Description appendValue(Object value) {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>                noteValue(value);
+<FONT ID="LN">91  </FONT><A NAME="91"></A>                <FONT ID="Return">return</FONT> <FONT ID="Super">super</FONT>.appendValue(value);
+<FONT ID="LN">92  </FONT><A NAME="92"></A>            }
+<FONT ID="LN">93  </FONT><A NAME="93"></A>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>            <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> noteValue(Object value) {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>                <FONT ID="If">if</FONT> (!expectedSeen) {
+<FONT ID="LN">96  </FONT><A NAME="96"></A>                    expected= value;
+<FONT ID="LN">97  </FONT><A NAME="97"></A>                    expectedSeen= <FONT ID="True">true</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>                    <FONT ID="Return">return</FONT>;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>                }
+<FONT ID="LN">100 </FONT><A NAME="100"></A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>                GuessMap newGuesses= guesses.replaceGuess(expected, value);
+<FONT ID="LN">102 </FONT><A NAME="102"></A>                returnThis.add(<FONT ID="New">new</FONT> <A HREF="../../../../../../org/junit/tests/experimental/theories/extendingwithstubs/Guesser.java.html">Guesser</A>&lt;T&gt;(getType(), newGuesses));
+<FONT ID="LN">103 </FONT><A NAME="103"></A>            }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>        });
+<FONT ID="LN">105 </FONT><A NAME="105"></A>        <FONT ID="Return">return</FONT> returnThis;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    @Override
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="Public">public</FONT> Object getValue() <FONT ID="Throws">throws</FONT> CouldNotGenerateValueException {
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        <FONT ID="Return">return</FONT> getProxy();
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    }
+<FONT ID="LN">112 </FONT><A NAME="112"></A>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="Public">public</FONT> Class&lt;? <FONT ID="Extends">extends</FONT> T&gt; getType() {
+<FONT ID="LN">114 </FONT><A NAME="114"></A>        <FONT ID="Return">return</FONT> type;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    }
+<FONT ID="LN">116 </FONT><A NAME="116"></A>
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    @Override
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="Public">public</FONT> String getDescription() <FONT ID="Throws">throws</FONT> CouldNotGenerateValueException {
+<FONT ID="LN">119 </FONT><A NAME="119"></A>        <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"guesser["</FONT> + type + <FONT ID="StringLiteral">"]"</FONT>;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Guesser.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

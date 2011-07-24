@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.experimental.categories.CategoriesAndParameterizedTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CategoriesAndParameterizedTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.experimental.categories;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../../org/junit/Assert.java.html">org.junit.Assert.assertTrue</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A>
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.util.Collection;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> java.util.Collections;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/Assert.java.html">org.junit.Assert</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> org.junit.experimental.categories.Categories;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> org.junit.experimental.categories.Categories.IncludeCategory;
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/experimental/categories/Category.java.html">org.junit.experimental.categories.Category</A>;
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">org.junit.experimental.results.PrintableResult</A>;
+<FONT ID="LN">14  </FONT><A NAME="14"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/experimental/results/ResultMatchers.java.html">org.junit.experimental.results.ResultMatchers</A>;
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">org.junit.runner.JUnitCore</A>;
+<FONT ID="LN">16  </FONT><A NAME="16"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/runner/Result.java.html">org.junit.runner.Result</A>;
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="Import">import</FONT> <A HREF="../../../../../org/junit/runner/RunWith.java.html">org.junit.runner.RunWith</A>;
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Import">import</FONT> org.junit.runners.Parameterized;
+<FONT ID="LN">19  </FONT><A NAME="19"></A><FONT ID="Import">import</FONT> org.junit.runners.Parameterized.Parameters;
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> org.junit.runners.Suite.SuiteClasses;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> CategoriesAndParameterizedTest {
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Token {
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    }
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    @<A HREF="../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(Parameterized.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">28  </FONT><A NAME="28"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> WellBehavedParameterizedTest {
+<FONT ID="LN">29  </FONT><A NAME="29"></A>        <FONT ID="Public">public</FONT> WellBehavedParameterizedTest(String a) {
+<FONT ID="LN">30  </FONT><A NAME="30"></A>        }
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A>        @Parameters
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Collection&lt;Object[]&gt; getParameters() {
+<FONT ID="LN">34  </FONT><A NAME="34"></A>            <FONT ID="Return">return</FONT> Collections.singletonList(<FONT ID="New">new</FONT> Object[] { <FONT ID="StringLiteral">"a"</FONT> });
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        }
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testSomething() {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>            Assert.assertTrue(<FONT ID="True">true</FONT>);
+<FONT ID="LN">40  </FONT><A NAME="40"></A>        }
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    }
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    @<A HREF="../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(Parameterized.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ParameterizedTestWithAttemptedMethodCategory {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>        <FONT ID="Public">public</FONT> ParameterizedTestWithAttemptedMethodCategory(String a) {
+<FONT ID="LN">46  </FONT><A NAME="46"></A>        }
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>        @Parameters
+<FONT ID="LN">49  </FONT><A NAME="49"></A>        <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Collection&lt;Object[]&gt; getParameters() {
+<FONT ID="LN">50  </FONT><A NAME="50"></A>            <FONT ID="Return">return</FONT> Collections.singletonList(<FONT ID="New">new</FONT> Object[] { <FONT ID="StringLiteral">"a"</FONT> });
+<FONT ID="LN">51  </FONT><A NAME="51"></A>        }
+<FONT ID="LN">52  </FONT><A NAME="52"></A>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>        @Category(Token.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testSomething() {
+<FONT ID="LN">56  </FONT><A NAME="56"></A>            Assert.assertTrue(<FONT ID="True">true</FONT>);
+<FONT ID="LN">57  </FONT><A NAME="57"></A>        }
+<FONT ID="LN">58  </FONT><A NAME="58"></A>    }
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>    @Category(Token.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">61  </FONT><A NAME="61"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> VanillaCategorizedJUnitTest {
+<FONT ID="LN">62  </FONT><A NAME="62"></A>        @<A HREF="../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testSomething() {
+<FONT ID="LN">64  </FONT><A NAME="64"></A>            Assert.assertTrue(<FONT ID="True">true</FONT>);
+<FONT ID="LN">65  </FONT><A NAME="65"></A>        }
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    }
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    @<A HREF="../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(Categories.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    @IncludeCategory(Token.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    @SuiteClasses({ VanillaCategorizedJUnitTest.<FONT ID="Class">class</FONT>, WellBehavedParameterizedTest.<FONT ID="Class">class</FONT> })
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ParameterTokenSuiteWellFormed {
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    }
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    @<A HREF="../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(Categories.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    @IncludeCategory(Token.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    @SuiteClasses({ ParameterizedTestWithAttemptedMethodCategory.<FONT ID="Class">class</FONT>, VanillaCategorizedJUnitTest.<FONT ID="Class">class</FONT> })
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ParameterTokenSuiteMalformed {
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    }
+<FONT ID="LN">79  </FONT><A NAME="79"></A>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    @<A HREF="../../../../../org/junit/runner/RunWith.java.html">RunWith</A>(Categories.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    @IncludeCategory(Token.<FONT ID="Class">class</FONT>)
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    @SuiteClasses({ VanillaCategorizedJUnitTest.<FONT ID="Class">class</FONT>, ParameterizedTestWithAttemptedMethodCategory.<FONT ID="Class">class</FONT> })
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> ParameterTokenSuiteMalformedAndSwapped {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    }
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> shouldSucceedWithAParameterizedClassSomewhere() {
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        <A HREF="../../../../../org/junit/experimental/results/PrintableResult.java.html">Result</A> result= <FONT ID="New">new</FONT> <A HREF="../../../../../org/junit/runner/JUnitCore.java.html">JUnitCore</A>().run(ParameterTokenSuiteWellFormed.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">89  </FONT><A NAME="89"></A>        assertTrue(result.wasSuccessful());
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> shouldFailWithMethodLevelCategoryAnnotation() {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>        Assert.assertThat(
+<FONT ID="LN">95  </FONT><A NAME="95"></A>                PrintableResult.testResult(ParameterTokenSuiteMalformed.<FONT ID="Class">class</FONT>),
+<FONT ID="LN">96  </FONT><A NAME="96"></A>                ResultMatchers
+<FONT ID="LN">97  </FONT><A NAME="97"></A>                        .hasFailureContaining(<FONT ID="StringLiteral">"Category annotations on Parameterized classes are not supported on individual methods."</FONT>));
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    }
+<FONT ID="LN">99  </FONT><A NAME="99"></A>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    @<A HREF="../../../../../org/junit/Test.java.html">Test</A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> shouldFailWithMethodLevelCategoryAnnotationSwapped() {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>        Assert.assertThat(
+<FONT ID="LN">103 </FONT><A NAME="103"></A>                PrintableResult.testResult(ParameterTokenSuiteMalformedAndSwapped.<FONT ID="Class">class</FONT>),
+<FONT ID="LN">104 </FONT><A NAME="104"></A>                ResultMatchers
+<FONT ID="LN">105 </FONT><A NAME="105"></A>                        .hasFailureContaining(<FONT ID="StringLiteral">"Category annotations on Parameterized classes are not supported on individual methods."</FONT>));
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CategoriesAndParameterizedTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

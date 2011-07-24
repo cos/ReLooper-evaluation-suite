@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.samples.SimpleTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">SimpleTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.samples;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../org/junit/Assert.java.html">org.junit.Assert.assertEquals</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../junit/framework/JUnit4TestAdapter.java.html">junit.framework.JUnit4TestAdapter</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Before.java.html">org.junit.Before</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A>
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">9   </FONT><A NAME="9"></A> * Some simple tests.
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *
+<FONT ID="LN">11  </FONT><A NAME="11"></A> */</FONT>
+<FONT ID="LN">12  </FONT><A NAME="12"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> SimpleTest  {
+<FONT ID="LN">13  </FONT><A NAME="13"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> fValue1;
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> fValue2;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    @<A HREF="../../../org/junit/Before.java.html">Before</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setUp() {
+<FONT ID="LN">17  </FONT><A NAME="17"></A>        fValue1= <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">18  </FONT><A NAME="18"></A>        fValue2= <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    }
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../junit/framework/Test.java.html">junit.framework.Test</A> suite() {
+<FONT ID="LN">22  </FONT><A NAME="22"></A>         <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../junit/framework/JUnit4TestAdapter.java.html">JUnit4TestAdapter</A>(<A HREF="../../../org/junit/samples/SimpleTest.java.html">SimpleTest</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    @<A HREF="../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> divideByZero() {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        <FONT ID="Int">int</FONT> zero= <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>        <FONT ID="Int">int</FONT> result= <FONT ID="IntegerLiteral">8</FONT>/zero;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        result++; <FONT ID="SingleLineComment">// avoid warning for not using result
+<FONT ID="LN">29  </FONT><A NAME="29"></A></FONT>    }
+<FONT ID="LN">30  </FONT><A NAME="30"></A>    @<A HREF="../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testEquals() {
+<FONT ID="LN">31  </FONT><A NAME="31"></A>        assertEquals(<FONT ID="IntegerLiteral">12</FONT>, <FONT ID="IntegerLiteral">12</FONT>);
+<FONT ID="LN">32  </FONT><A NAME="32"></A>        assertEquals(<FONT ID="IntegerLiteral">12L</FONT>, <FONT ID="IntegerLiteral">12L</FONT>);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        assertEquals(<FONT ID="New">new</FONT> Long(<FONT ID="IntegerLiteral">12</FONT>), <FONT ID="New">new</FONT> Long(<FONT ID="IntegerLiteral">12</FONT>));
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        assertEquals(<FONT ID="StringLiteral">"Size"</FONT>, <FONT ID="IntegerLiteral">12</FONT>, <FONT ID="IntegerLiteral">13</FONT>);
+<FONT ID="LN">36  </FONT><A NAME="36"></A>        assertEquals(<FONT ID="StringLiteral">"Capacity"</FONT>, <FONT ID="FloatPointLiteral">12.0</FONT>, <FONT ID="FloatPointLiteral">11.99</FONT>, <FONT ID="FloatPointLiteral">0.0</FONT>);
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    }
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">SimpleTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

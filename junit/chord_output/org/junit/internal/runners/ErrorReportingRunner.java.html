@@ -1,0 +1,88 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.internal.runners.ErrorReportingRunner (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ErrorReportingRunner.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.internal.runners;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.lang.reflect.InvocationTargetException;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.util.Arrays;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> java.util.List;
+<FONT ID="LN">6   </FONT><A NAME="6"></A>
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/Description.java.html">org.junit.runner.Description</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/Runner.java.html">org.junit.runner.Runner</A>;
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/notification/Failure.java.html">org.junit.runner.notification.Failure</A>;
+<FONT ID="LN">10  </FONT><A NAME="10"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/notification/RunNotifier.java.html">org.junit.runner.notification.RunNotifier</A>;
+<FONT ID="LN">11  </FONT><A NAME="11"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runners/model/InitializationError.java.html">org.junit.runners.model.InitializationError</A>;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>
+<FONT ID="LN">13  </FONT><A NAME="13"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ErrorReportingRunner <FONT ID="Extends">extends</FONT> <A HREF="../../../../org/junit/runner/Runner.java.html">Runner</A> {
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> List&lt;Throwable&gt; fCauses;
+<FONT ID="LN">15  </FONT><A NAME="15"></A>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    <FONT ID="Private">private</FONT> <FONT ID="Final">final</FONT> Class&lt;?&gt; fTestClass;
+<FONT ID="LN">17  </FONT><A NAME="17"></A>
+<FONT ID="LN">18  </FONT><A NAME="18"></A>    <FONT ID="Public">public</FONT> ErrorReportingRunner(Class&lt;?&gt; testClass, Throwable cause) {
+<FONT ID="LN">19  </FONT><A NAME="19"></A>        fTestClass= testClass;
+<FONT ID="LN">20  </FONT><A NAME="20"></A>        fCauses= getCauses(cause);
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    }
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    @Override
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../org/junit/runner/Description.java.html">Description</A> getDescription() {
+<FONT ID="LN">25  </FONT><A NAME="25"></A>        <A HREF="../../../../org/junit/runner/Description.java.html">Description</A> description= Description.createSuiteDescription(fTestClass);
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        <FONT ID="For">for</FONT> (Throwable each : fCauses)
+<FONT ID="LN">27  </FONT><A NAME="27"></A>            description.addChild(describeCause(each));
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        <FONT ID="Return">return</FONT> description;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>    }
+<FONT ID="LN">30  </FONT><A NAME="30"></A>
+<FONT ID="LN">31  </FONT><A NAME="31"></A>    @Override
+<FONT ID="LN">32  </FONT><A NAME="32"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run(<A HREF="../../../../org/junit/runner/notification/RunNotifier.java.html">RunNotifier</A> notifier) {
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        <FONT ID="For">for</FONT> (Throwable each : fCauses)
+<FONT ID="LN">34  </FONT><A NAME="34"></A>            runCause(each, notifier);
+<FONT ID="LN">35  </FONT><A NAME="35"></A>    }
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>    @SuppressWarnings(<FONT ID="StringLiteral">"deprecation"</FONT>)
+<FONT ID="LN">38  </FONT><A NAME="38"></A>    <FONT ID="Private">private</FONT> List&lt;Throwable&gt; getCauses(Throwable cause) {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>        <FONT ID="If">if</FONT> (cause <FONT ID="InstanceOf">instanceof</FONT> InvocationTargetException)
+<FONT ID="LN">40  </FONT><A NAME="40"></A>            <FONT ID="Return">return</FONT> getCauses(cause.getCause());
+<FONT ID="LN">41  </FONT><A NAME="41"></A>        <FONT ID="If">if</FONT> (cause <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/junit/internal/runners/InitializationError.java.html">InitializationError</A>)
+<FONT ID="LN">42  </FONT><A NAME="42"></A>            <FONT ID="Return">return</FONT> ((<A HREF="../../../../org/junit/internal/runners/InitializationError.java.html">InitializationError</A>) cause).getCauses();
+<FONT ID="LN">43  </FONT><A NAME="43"></A>        <FONT ID="If">if</FONT> (cause <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../org/junit/internal/runners/InitializationError.java.html">org.junit.internal.runners.InitializationError</A>)
+<FONT ID="LN">44  </FONT><A NAME="44"></A>            <FONT ID="Return">return</FONT> ((<A HREF="../../../../org/junit/internal/runners/InitializationError.java.html">org.junit.internal.runners.InitializationError</A>) cause)
+<FONT ID="LN">45  </FONT><A NAME="45"></A>                    .getCauses();
+<FONT ID="LN">46  </FONT><A NAME="46"></A>        <FONT ID="Return">return</FONT> Arrays.asList(cause);
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    }
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../../org/junit/runner/Description.java.html">Description</A> describeCause(Throwable child) {
+<FONT ID="LN">50  </FONT><A NAME="50"></A>        <FONT ID="Return">return</FONT> Description.createTestDescription(fTestClass,
+<FONT ID="LN">51  </FONT><A NAME="51"></A>                <FONT ID="StringLiteral">"initializationError"</FONT>);
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    }
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> runCause(Throwable child, <A HREF="../../../../org/junit/runner/notification/RunNotifier.java.html">RunNotifier</A> notifier) {
+<FONT ID="LN">55  </FONT><A NAME="55"></A>        <A HREF="../../../../org/junit/runner/Description.java.html">Description</A> description= describeCause(child);
+<FONT ID="LN">56  </FONT><A NAME="56"></A>        notifier.fireTestStarted(description);
+<FONT ID="LN">57  </FONT><A NAME="57"></A>        notifier.fireTestFailure(<FONT ID="New">new</FONT> <A HREF="../../../../org/junit/runner/notification/Failure.java.html">Failure</A>(description, child));
+<FONT ID="LN">58  </FONT><A NAME="58"></A>        notifier.fireTestFinished(description);
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    }
+<FONT ID="LN">60  </FONT><A NAME="60"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ErrorReportingRunner.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

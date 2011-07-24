@@ -1,0 +1,74 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>junit.tests.runner.StackFilterTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StackFilterTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> junit.tests.runner;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> java.io.PrintWriter;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> java.io.StringWriter;
+<FONT ID="LN">5   </FONT><A NAME="5"></A>
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../../junit/framework/TestCase.java.html">junit.framework.TestCase</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../junit/runner/BaseTestRunner.java.html">junit.runner.BaseTestRunner</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> StackFilterTest <FONT ID="Extends">extends</FONT> <A HREF="../../../junit/framework/TestCase.java.html">TestCase</A> {
+<FONT ID="LN">10  </FONT><A NAME="10"></A>    String fFiltered;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>    String fUnfiltered;
+<FONT ID="LN">12  </FONT><A NAME="12"></A>    
+<FONT ID="LN">13  </FONT><A NAME="13"></A>    @Override
+<FONT ID="LN">14  </FONT><A NAME="14"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setUp() {
+<FONT ID="LN">15  </FONT><A NAME="15"></A>        StringWriter swin= <FONT ID="New">new</FONT> StringWriter();
+<FONT ID="LN">16  </FONT><A NAME="16"></A>        PrintWriter pwin= <FONT ID="New">new</FONT> PrintWriter(swin);
+<FONT ID="LN">17  </FONT><A NAME="17"></A>        pwin.println(<FONT ID="StringLiteral">"junit.framework.AssertionFailedError"</FONT>);
+<FONT ID="LN">18  </FONT><A NAME="18"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.Assert.fail(Assert.java:144)"</FONT>);
+<FONT ID="LN">19  </FONT><A NAME="19"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.Assert.assert(Assert.java:19)"</FONT>);
+<FONT ID="LN">20  </FONT><A NAME="20"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.Assert.assert(Assert.java:26)"</FONT>);
+<FONT ID="LN">21  </FONT><A NAME="21"></A>        pwin.println(<FONT ID="StringLiteral">"  at MyTest.f(MyTest.java:13)"</FONT>);
+<FONT ID="LN">22  </FONT><A NAME="22"></A>        pwin.println(<FONT ID="StringLiteral">"  at MyTest.testStackTrace(MyTest.java:8)"</FONT>);
+<FONT ID="LN">23  </FONT><A NAME="23"></A>        pwin.println(<FONT ID="StringLiteral">"  at java.lang.reflect.Method.invoke(Native Method)"</FONT>);
+<FONT ID="LN">24  </FONT><A NAME="24"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestCase.runTest(TestCase.java:156)"</FONT>);
+<FONT ID="LN">25  </FONT><A NAME="25"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestCase.runBare(TestCase.java:130)"</FONT>);
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestResult$1.protect(TestResult.java:100)"</FONT>);
+<FONT ID="LN">27  </FONT><A NAME="27"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestResult.runProtected(TestResult.java:118)"</FONT>);
+<FONT ID="LN">28  </FONT><A NAME="28"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestResult.run(TestResult.java:103)"</FONT>);
+<FONT ID="LN">29  </FONT><A NAME="29"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestCase.run(TestCase.java:121)"</FONT>);
+<FONT ID="LN">30  </FONT><A NAME="30"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestSuite.runTest(TestSuite.java:157)"</FONT>);
+<FONT ID="LN">31  </FONT><A NAME="31"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.framework.TestSuite.run(TestSuite.java, Compiled Code)"</FONT>);
+<FONT ID="LN">32  </FONT><A NAME="32"></A>        pwin.println(<FONT ID="StringLiteral">"  at junit.swingui.TestRunner$17.run(TestRunner.java:669)"</FONT>);
+<FONT ID="LN">33  </FONT><A NAME="33"></A>        fUnfiltered= swin.toString();
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>        StringWriter swout= <FONT ID="New">new</FONT> StringWriter();
+<FONT ID="LN">36  </FONT><A NAME="36"></A>        PrintWriter pwout= <FONT ID="New">new</FONT> PrintWriter(swout);
+<FONT ID="LN">37  </FONT><A NAME="37"></A>        pwout.println(<FONT ID="StringLiteral">"junit.framework.AssertionFailedError"</FONT>);
+<FONT ID="LN">38  </FONT><A NAME="38"></A>        pwout.println(<FONT ID="StringLiteral">" at MyTest.f(MyTest.java:13)"</FONT>);
+<FONT ID="LN">39  </FONT><A NAME="39"></A>        pwout.println(<FONT ID="StringLiteral">" at MyTest.testStackTrace(MyTest.java:8)"</FONT>);
+<FONT ID="LN">40  </FONT><A NAME="40"></A>        fFiltered= swout.toString();
+<FONT ID="LN">41  </FONT><A NAME="41"></A>    }
+<FONT ID="LN">42  </FONT><A NAME="42"></A>        
+<FONT ID="LN">43  </FONT><A NAME="43"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testFilter() {
+<FONT ID="LN">44  </FONT><A NAME="44"></A>        assertEquals(fFiltered, BaseTestRunner.getFilteredTrace(fUnfiltered));
+<FONT ID="LN">45  </FONT><A NAME="45"></A>    }
+<FONT ID="LN">46  </FONT><A NAME="46"></A>}</pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">StackFilterTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

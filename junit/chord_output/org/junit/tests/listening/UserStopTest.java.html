@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>org.junit.tests.listening.UserStopTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">UserStopTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="Package">package</FONT> org.junit.tests.listening;
+<FONT ID="LN">2   </FONT><A NAME="2"></A>
+<FONT ID="LN">3   </FONT><A NAME="3"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/Before.java.html">org.junit.Before</A>;
+<FONT ID="LN">4   </FONT><A NAME="4"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/Test.java.html">org.junit.Test</A>;
+<FONT ID="LN">5   </FONT><A NAME="5"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/Request.java.html">org.junit.runner.Request</A>;
+<FONT ID="LN">6   </FONT><A NAME="6"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/notification/RunNotifier.java.html">org.junit.runner.notification.RunNotifier</A>;
+<FONT ID="LN">7   </FONT><A NAME="7"></A><FONT ID="Import">import</FONT> <A HREF="../../../../org/junit/runner/notification/StoppedByUserException.java.html">org.junit.runner.notification.StoppedByUserException</A>;
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> UserStopTest {
+<FONT ID="LN">10  </FONT><A NAME="10"></A>    <FONT ID="Private">private</FONT> <A HREF="../../../../org/junit/runner/notification/RunNotifier.java.html">RunNotifier</A> fNotifier;
+<FONT ID="LN">11  </FONT><A NAME="11"></A>
+<FONT ID="LN">12  </FONT><A NAME="12"></A>    @<A HREF="../../../../org/junit/Before.java.html">Before</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> createNotifier() {
+<FONT ID="LN">13  </FONT><A NAME="13"></A>        fNotifier= <FONT ID="New">new</FONT> <A HREF="../../../../org/junit/runner/notification/RunNotifier.java.html">RunNotifier</A>();
+<FONT ID="LN">14  </FONT><A NAME="14"></A>        fNotifier.pleaseStop();     
+<FONT ID="LN">15  </FONT><A NAME="15"></A>    }
+<FONT ID="LN">16  </FONT><A NAME="16"></A>    
+<FONT ID="LN">17  </FONT><A NAME="17"></A>    @<A HREF="../../../../org/junit/Test.java.html">Test</A>(expected=<A HREF="../../../../org/junit/runner/notification/StoppedByUserException.java.html">StoppedByUserException</A>.<FONT ID="Class">class</FONT>) <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> userStop() {
+<FONT ID="LN">18  </FONT><A NAME="18"></A>        fNotifier.fireTestStarted(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">19  </FONT><A NAME="19"></A>    }
+<FONT ID="LN">20  </FONT><A NAME="20"></A>    
+<FONT ID="LN">21  </FONT><A NAME="21"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> OneTest {
+<FONT ID="LN">22  </FONT><A NAME="22"></A>        @<A HREF="../../../../org/junit/Test.java.html">Test</A> <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> foo() {}
+<FONT ID="LN">23  </FONT><A NAME="23"></A>    }
+<FONT ID="LN">24  </FONT><A NAME="24"></A>    
+<FONT ID="LN">25  </FONT><A NAME="25"></A>    @<A HREF="../../../../org/junit/Test.java.html">Test</A>(expected=<A HREF="../../../../org/junit/runner/notification/StoppedByUserException.java.html">StoppedByUserException</A>.<FONT ID="Class">class</FONT>) <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> stopClassRunner() <FONT ID="Throws">throws</FONT> <A HREF="../../../../org/junit/runner/notification/StoppedByUserException.java.html">Exception</A> {
+<FONT ID="LN">26  </FONT><A NAME="26"></A>        Request.aClass(OneTest.<FONT ID="Class">class</FONT>).getRunner().run(fNotifier);
+<FONT ID="LN">27  </FONT><A NAME="27"></A>    }
+<FONT ID="LN">28  </FONT><A NAME="28"></A>}
+<FONT ID="LN">29  </FONT><A NAME="29"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">UserStopTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>
