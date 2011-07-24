@@ -15,7 +15,7 @@ public class ParallelAllTests {
 		junit.textui.TestRunner.run(suite());
 	}
 
-	public static Test suite() {
+	public static ParallelTestSuite suite() {
 		final int i[]= new int[1];
 		ParallelTestSuite suite= new ParallelTestSuite("Framework Tests", 3);
 		suite.generate(new Generator<Test>() {
