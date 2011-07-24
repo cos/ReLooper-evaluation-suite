@@ -1,0 +1,27 @@
+$chord_results = {
+	"BH" => {"m" => "184", "t" => "118", "real" => "0", "constructor" => "0"}
+}
+
+
+100 -> 229 - in RecurseForce
+19 -> 122 - in ComputeForce
+63 -> 176 - in ComputeForce
+2 -> 105 - between ComputeForce and RecurseForce
+26 -> 129 - between ComputeForce and RecurseForce
+83 -> 214 - in RecurseForce
+
+M = 102 + 52 + 28 + 2 = 184
+T = 82 + 27 + 9 = 118
+
+
+1.
+1-102 M
+103-184 T
+185-212 M
+213-239 T
+240-241 M
+242-250 T
+
+
+
+52 M
