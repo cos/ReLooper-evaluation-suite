@@ -1,0 +1,838 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.classifiers.meta.RegressionByDiscretization (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RegressionByDiscretization.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    RegressionByDiscretization.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 1999 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.classifiers.meta;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/SingleClassifierEnhancer.java.html">weka.classifiers.SingleClassifierEnhancer</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/IntervalEstimator.java.html">weka.classifiers.IntervalEstimator</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/ConditionalDensityEstimator.java.html">weka.classifiers.ConditionalDensityEstimator</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Capabilities.java.html">weka.core.Capabilities</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Attribute.java.html">weka.core.Attribute</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/FastVector.java.html">weka.core.FastVector</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Option.java.html">weka.core.Option</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Capabilities.java.html">weka.core.Capabilities.Capability</A>;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Tag.java.html">weka.core.Tag</A>;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/SelectedTag.java.html">weka.core.SelectedTag</A>;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation</A>;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Field</A>;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Type</A>;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/filters/Filter.java.html">weka.filters.Filter</A>;
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/filters/unsupervised/attribute/Discretize.java.html">weka.filters.unsupervised.attribute.Discretize</A>;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/estimators/UnivariateDensityEstimator.java.html">weka.estimators.UnivariateDensityEstimator</A>;
+<FONT ID="LN">48  </FONT><A NAME="48"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/estimators/UnivariateIntervalEstimator.java.html">weka.estimators.UnivariateIntervalEstimator</A>;
+<FONT ID="LN">49  </FONT><A NAME="49"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/estimators/UnivariateQuantileEstimator.java.html">weka.estimators.UnivariateQuantileEstimator</A>;
+<FONT ID="LN">50  </FONT><A NAME="50"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/estimators/UnivariateEqualFrequencyHistogramEstimator.java.html">weka.estimators.UnivariateEqualFrequencyHistogramEstimator</A>;
+<FONT ID="LN">51  </FONT><A NAME="51"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/estimators/UnivariateKernelEstimator.java.html">weka.estimators.UnivariateKernelEstimator</A>;
+<FONT ID="LN">52  </FONT><A NAME="52"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/estimators/UnivariateNormalEstimator.java.html">weka.estimators.UnivariateNormalEstimator</A>;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">55  </FONT><A NAME="55"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">58  </FONT><A NAME="58"></A> &lt;!-- globalinfo-start --&gt;
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * A regression scheme that employs any classifier on a copy of the data that has the class attribute (equal-width) discretized. The predicted value is the expected value of the mean class value for each discretized interval (based on the predicted probabilities for each interval).
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * &lt;p/&gt;
+<FONT ID="LN">61  </FONT><A NAME="61"></A> &lt;!-- globalinfo-end --&gt;
+<FONT ID="LN">62  </FONT><A NAME="62"></A> *
+<FONT ID="LN">63  </FONT><A NAME="63"></A> &lt;!-- options-start --&gt;
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * Valid options are: &lt;p/&gt;
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * 
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * &lt;pre&gt; -B &amp;lt;int&amp;gt;
+<FONT ID="LN">67  </FONT><A NAME="67"></A> *  Number of bins for equal-width discretization
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *  (default 10).
+<FONT ID="LN">69  </FONT><A NAME="69"></A> * &lt;/pre&gt;
+<FONT ID="LN">70  </FONT><A NAME="70"></A> * 
+<FONT ID="LN">71  </FONT><A NAME="71"></A> * &lt;pre&gt; -E
+<FONT ID="LN">72  </FONT><A NAME="72"></A> *  Whether to delete empty bins after discretization
+<FONT ID="LN">73  </FONT><A NAME="73"></A> *  (default false).
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * &lt;/pre&gt;
+<FONT ID="LN">75  </FONT><A NAME="75"></A> * 
+<FONT ID="LN">76  </FONT><A NAME="76"></A> * &lt;pre&gt; -F
+<FONT ID="LN">77  </FONT><A NAME="77"></A> *  Use equal-frequency instead of equal-width discretization.&lt;/pre&gt;
+<FONT ID="LN">78  </FONT><A NAME="78"></A> * 
+<FONT ID="LN">79  </FONT><A NAME="79"></A> * &lt;pre&gt; -D
+<FONT ID="LN">80  </FONT><A NAME="80"></A> *  If set, classifier is run in debug mode and
+<FONT ID="LN">81  </FONT><A NAME="81"></A> *  may output additional info to the console&lt;/pre&gt;
+<FONT ID="LN">82  </FONT><A NAME="82"></A> * 
+<FONT ID="LN">83  </FONT><A NAME="83"></A> * &lt;pre&gt; -W
+<FONT ID="LN">84  </FONT><A NAME="84"></A> *  Full name of base classifier.
+<FONT ID="LN">85  </FONT><A NAME="85"></A> *  (default: weka.classifiers.trees.J48)&lt;/pre&gt;
+<FONT ID="LN">86  </FONT><A NAME="86"></A> * 
+<FONT ID="LN">87  </FONT><A NAME="87"></A> * &lt;pre&gt; 
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * Options specific to classifier weka.classifiers.trees.J48:
+<FONT ID="LN">89  </FONT><A NAME="89"></A> * &lt;/pre&gt;
+<FONT ID="LN">90  </FONT><A NAME="90"></A> * 
+<FONT ID="LN">91  </FONT><A NAME="91"></A> * &lt;pre&gt; -U
+<FONT ID="LN">92  </FONT><A NAME="92"></A> *  Use unpruned tree.&lt;/pre&gt;
+<FONT ID="LN">93  </FONT><A NAME="93"></A> * 
+<FONT ID="LN">94  </FONT><A NAME="94"></A> * &lt;pre&gt; -C &amp;lt;pruning confidence&amp;gt;
+<FONT ID="LN">95  </FONT><A NAME="95"></A> *  Set confidence threshold for pruning.
+<FONT ID="LN">96  </FONT><A NAME="96"></A> *  (default 0.25)&lt;/pre&gt;
+<FONT ID="LN">97  </FONT><A NAME="97"></A> * 
+<FONT ID="LN">98  </FONT><A NAME="98"></A> * &lt;pre&gt; -M &amp;lt;minimum number of instances&amp;gt;
+<FONT ID="LN">99  </FONT><A NAME="99"></A> *  Set minimum number of instances per leaf.
+<FONT ID="LN">100 </FONT><A NAME="100"></A> *  (default 2)&lt;/pre&gt;
+<FONT ID="LN">101 </FONT><A NAME="101"></A> * 
+<FONT ID="LN">102 </FONT><A NAME="102"></A> * &lt;pre&gt; -R
+<FONT ID="LN">103 </FONT><A NAME="103"></A> *  Use reduced error pruning.&lt;/pre&gt;
+<FONT ID="LN">104 </FONT><A NAME="104"></A> * 
+<FONT ID="LN">105 </FONT><A NAME="105"></A> * &lt;pre&gt; -N &amp;lt;number of folds&amp;gt;
+<FONT ID="LN">106 </FONT><A NAME="106"></A> *  Set number of folds for reduced error
+<FONT ID="LN">107 </FONT><A NAME="107"></A> *  pruning. One fold is used as pruning set.
+<FONT ID="LN">108 </FONT><A NAME="108"></A> *  (default 3)&lt;/pre&gt;
+<FONT ID="LN">109 </FONT><A NAME="109"></A> * 
+<FONT ID="LN">110 </FONT><A NAME="110"></A> * &lt;pre&gt; -B
+<FONT ID="LN">111 </FONT><A NAME="111"></A> *  Use binary splits only.&lt;/pre&gt;
+<FONT ID="LN">112 </FONT><A NAME="112"></A> * 
+<FONT ID="LN">113 </FONT><A NAME="113"></A> * &lt;pre&gt; -S
+<FONT ID="LN">114 </FONT><A NAME="114"></A> *  Don't perform subtree raising.&lt;/pre&gt;
+<FONT ID="LN">115 </FONT><A NAME="115"></A> * 
+<FONT ID="LN">116 </FONT><A NAME="116"></A> * &lt;pre&gt; -L
+<FONT ID="LN">117 </FONT><A NAME="117"></A> *  Do not clean up after the tree has been built.&lt;/pre&gt;
+<FONT ID="LN">118 </FONT><A NAME="118"></A> * 
+<FONT ID="LN">119 </FONT><A NAME="119"></A> * &lt;pre&gt; -A
+<FONT ID="LN">120 </FONT><A NAME="120"></A> *  Laplace smoothing for predicted probabilities.&lt;/pre&gt;
+<FONT ID="LN">121 </FONT><A NAME="121"></A> * 
+<FONT ID="LN">122 </FONT><A NAME="122"></A> * &lt;pre&gt; -Q &amp;lt;seed&amp;gt;
+<FONT ID="LN">123 </FONT><A NAME="123"></A> *  Seed for random data shuffling (default 1).&lt;/pre&gt;
+<FONT ID="LN">124 </FONT><A NAME="124"></A> * 
+<FONT ID="LN">125 </FONT><A NAME="125"></A> &lt;!-- options-end --&gt;
+<FONT ID="LN">126 </FONT><A NAME="126"></A> *
+<FONT ID="LN">127 </FONT><A NAME="127"></A> * @author Len Trigg (trigg@cs.waikato.ac.nz)
+<FONT ID="LN">128 </FONT><A NAME="128"></A> * @author Eibe Frank (eibe@cs.waikato.ac.nz)
+<FONT ID="LN">129 </FONT><A NAME="129"></A> * @version $Revision: 5925 $
+<FONT ID="LN">130 </FONT><A NAME="130"></A> */</FONT>
+<FONT ID="LN">131 </FONT><A NAME="131"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> RegressionByDiscretization 
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../../weka/classifiers/SingleClassifierEnhancer.java.html">SingleClassifierEnhancer</A> <FONT ID="Implements">implements</FONT> <A HREF="../../../weka/classifiers/IntervalEstimator.java.html">IntervalEstimator</A>, <A HREF="../../../weka/classifiers/ConditionalDensityEstimator.java.html">ConditionalDensityEstimator</A> {
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">5066426153134050378L</FONT>;
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="FormalComment">/** The discretization filter. */</FONT>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/filters/unsupervised/attribute/Discretize.java.html">Discretize</A> m_Discretizer = <FONT ID="New">new</FONT> <A HREF="../../../weka/filters/unsupervised/attribute/Discretize.java.html">Discretize</A>();
+<FONT ID="LN">139 </FONT><A NAME="139"></A>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="FormalComment">/** The number of discretization intervals. */</FONT>
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_NumBins = <FONT ID="IntegerLiteral">10</FONT>;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="FormalComment">/** The mean values for each Discretized class interval. */</FONT>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT> [] m_ClassMeans;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="FormalComment">/** The class counts for each Discretized class interval. */</FONT>
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> [] m_ClassCounts;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  <FONT ID="FormalComment">/** Whether to delete empty intervals. */</FONT>
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_DeleteEmptyBins;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="FormalComment">/** Header of discretized data. */</FONT>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A> m_DiscretizedHeader = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>  <FONT ID="FormalComment">/** Use equal-frequency binning */</FONT>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_UseEqualFrequency = <FONT ID="False">false</FONT>;
+<FONT ID="LN">157 </FONT><A NAME="157"></A>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="FormalComment">/** Whether to minimize absolute error, rather than squared error. */</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_MinimizeAbsoluteError = <FONT ID="False">false</FONT>;
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="FormalComment">/** Use histogram estimator */</FONT>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> ESTIMATOR_HISTOGRAM = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>  <FONT ID="FormalComment">/** filter: Standardize training data */</FONT>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> ESTIMATOR_KERNEL = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="FormalComment">/** filter: No normalization/standardization */</FONT>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> ESTIMATOR_NORMAL = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="FormalComment">/** The filter to apply to the training data */</FONT>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../../weka/core/Tag.java.html">Tag</A> [] TAGS_ESTIMATOR = {
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Tag.java.html">Tag</A>(ESTIMATOR_HISTOGRAM, <FONT ID="StringLiteral">"Histogram density estimator"</FONT>),
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Tag.java.html">Tag</A>(ESTIMATOR_KERNEL, <FONT ID="StringLiteral">"Kernel density estimator"</FONT>),
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Tag.java.html">Tag</A>(ESTIMATOR_NORMAL, <FONT ID="StringLiteral">"Normal density estimator"</FONT>),
+<FONT ID="LN">172 </FONT><A NAME="172"></A>  };
+<FONT ID="LN">173 </FONT><A NAME="173"></A>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="FormalComment">/** Which estimator to use (default: histogram) */</FONT>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_estimatorType = ESTIMATOR_HISTOGRAM;
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  <FONT ID="FormalComment">/** The original target values in the training data */</FONT>
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT>[] m_OriginalTargetValues = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">179 </FONT><A NAME="179"></A>
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  <FONT ID="FormalComment">/** The converted target values in the training data */</FONT>
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT>[] m_NewTargetValues = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">182 </FONT><A NAME="182"></A>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">184 </FONT><A NAME="184"></A>   * Returns a string describing classifier
+<FONT ID="LN">185 </FONT><A NAME="185"></A>   * @return a description suitable for
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   */</FONT>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  <FONT ID="Public">public</FONT> String globalInfo() {
+<FONT ID="LN">189 </FONT><A NAME="189"></A>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"A regression scheme that employs any "</FONT>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      + <FONT ID="StringLiteral">"classifier on a copy of the data that has the class attribute "</FONT>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      + <FONT ID="StringLiteral">"discretized. The predicted value is the expected value of the "</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>      + <FONT ID="StringLiteral">"mean class value for each discretized interval (based on the "</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      + <FONT ID="StringLiteral">"predicted probabilities for each interval). This class now "</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>      + <FONT ID="StringLiteral">"also supports conditional density estimation by building "</FONT>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>      + <FONT ID="StringLiteral">"a univariate density estimator from the target values in "</FONT>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>      + <FONT ID="StringLiteral">"the training data, weighted by the class probabilities. \n\n"</FONT>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>      + <FONT ID="StringLiteral">"For more information on this process, see\n\n"</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>      + getTechnicalInformation().toString();
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  }
+<FONT ID="LN">201 </FONT><A NAME="201"></A>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">203 </FONT><A NAME="203"></A>   * Returns an instance of a TechnicalInformation object, containing 
+<FONT ID="LN">204 </FONT><A NAME="204"></A>   * detailed information about the technical background of this class,
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   * e.g., paper reference or book this class is based on.
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   * 
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   * @return the technical information about this class
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   */</FONT>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A> getTechnicalInformation() {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A>    result;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    result = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A>(Type.INPROCEEDINGS);
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    result.setValue(Field.AUTHOR, <FONT ID="StringLiteral">"Eibe Frank and Remco R. Bouckaert"</FONT>);
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    result.setValue(Field.TITLE, <FONT ID="StringLiteral">"Conditional Density Estimation with Class Probability Estimators"</FONT>);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    result.setValue(Field.BOOKTITLE, <FONT ID="StringLiteral">"First Asian Conference on Machine Learning"</FONT>);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    result.setValue(Field.YEAR, <FONT ID="StringLiteral">"2009"</FONT>);
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    result.setValue(Field.PAGES, <FONT ID="StringLiteral">"65-81"</FONT>);
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    result.setValue(Field.PUBLISHER, <FONT ID="StringLiteral">"Springer Verlag"</FONT>);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    result.setValue(Field.ADDRESS, <FONT ID="StringLiteral">"Berlin"</FONT>);
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   * String describing default classifier.
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   * 
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * @return the default classifier classname
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   */</FONT>
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="Protected">protected</FONT> String defaultClassifierString() {
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"weka.classifiers.trees.J48"</FONT>;
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  }
+<FONT ID="LN">233 </FONT><A NAME="233"></A>
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">235 </FONT><A NAME="235"></A>   * Default constructor.
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   */</FONT>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>  <FONT ID="Public">public</FONT> RegressionByDiscretization() {
+<FONT ID="LN">238 </FONT><A NAME="238"></A>
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    m_Classifier = <FONT ID="New">new</FONT> <A HREF="../../../weka/classifiers/trees/J48.java.html">weka.classifiers.trees.J48</A>();
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  }
+<FONT ID="LN">241 </FONT><A NAME="241"></A>
+<FONT ID="LN">242 </FONT><A NAME="242"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">243 </FONT><A NAME="243"></A>   * Returns default capabilities of the classifier.
+<FONT ID="LN">244 </FONT><A NAME="244"></A>   *
+<FONT ID="LN">245 </FONT><A NAME="245"></A>   * @return      the capabilities of this classifier
+<FONT ID="LN">246 </FONT><A NAME="246"></A>   */</FONT>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/Capabilities.java.html">Capabilities</A> getCapabilities() {
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    <A HREF="../../../weka/core/Capabilities.java.html">Capabilities</A> result = <FONT ID="Super">super</FONT>.getCapabilities();
+<FONT ID="LN">249 </FONT><A NAME="249"></A>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    <FONT ID="SingleLineComment">// class
+<FONT ID="LN">251 </FONT><A NAME="251"></A></FONT>    result.disableAllClasses();
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    result.disableAllClassDependencies();
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    result.enable(Capability.NUMERIC_CLASS);
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    result.enable(Capability.DATE_CLASS);
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    result.setMinimumNumberInstances(<FONT ID="IntegerLiteral">2</FONT>);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">259 </FONT><A NAME="259"></A>  }
+<FONT ID="LN">260 </FONT><A NAME="260"></A>
+<FONT ID="LN">261 </FONT><A NAME="261"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">262 </FONT><A NAME="262"></A>   * Generates the classifier.
+<FONT ID="LN">263 </FONT><A NAME="263"></A>   *
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   * @param instances set of instances serving as training data 
+<FONT ID="LN">265 </FONT><A NAME="265"></A>   * @throws Exception if the classifier has not been generated successfully
+<FONT ID="LN">266 </FONT><A NAME="266"></A>   */</FONT>
+<FONT ID="LN">267 </FONT><A NAME="267"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> buildClassifier(<A HREF="../../../weka/core/Instances.java.html">Instances</A> instances) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">268 </FONT><A NAME="268"></A>
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    <FONT ID="SingleLineComment">// can classifier handle the data?
+<FONT ID="LN">270 </FONT><A NAME="270"></A></FONT>    getCapabilities().testWithFail(instances);
+<FONT ID="LN">271 </FONT><A NAME="271"></A>
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    <FONT ID="SingleLineComment">// remove instances with missing class
+<FONT ID="LN">273 </FONT><A NAME="273"></A></FONT>    instances = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A>(instances);
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    instances.deleteWithMissingClass();
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <FONT ID="SingleLineComment">// Discretize the training data
+<FONT ID="LN">277 </FONT><A NAME="277"></A></FONT>    m_Discretizer.setIgnoreClass(<FONT ID="True">true</FONT>);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    m_Discretizer.setAttributeIndices(<FONT ID="StringLiteral">""</FONT> + (instances.classIndex() + <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    m_Discretizer.setBins(getNumBins());
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    m_Discretizer.setUseEqualFrequency(getUseEqualFrequency());
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    m_Discretizer.setInputFormat(instances);
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    <A HREF="../../../weka/core/Instances.java.html">Instances</A> newTrain = Filter.useFilter(instances, m_Discretizer);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    <FONT ID="SingleLineComment">// Should empty bins be deleted?
+<FONT ID="LN">285 </FONT><A NAME="285"></A></FONT>    <FONT ID="If">if</FONT> (m_DeleteEmptyBins) {
+<FONT ID="LN">286 </FONT><A NAME="286"></A>
+<FONT ID="LN">287 </FONT><A NAME="287"></A>      <FONT ID="SingleLineComment">// Figure out which classes are empty after discretization
+<FONT ID="LN">288 </FONT><A NAME="288"></A></FONT>      <FONT ID="Int">int</FONT> numNonEmptyClasses = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">289 </FONT><A NAME="289"></A>      <FONT ID="Boolean">boolean</FONT>[] notEmptyClass = <FONT ID="New">new</FONT> <FONT ID="Boolean">boolean</FONT>[newTrain.numClasses()];
+<FONT ID="LN">290 </FONT><A NAME="290"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; newTrain.numInstances(); i++) {
+<FONT ID="LN">291 </FONT><A NAME="291"></A>        <FONT ID="If">if</FONT> (!notEmptyClass[(<FONT ID="Int">int</FONT>)newTrain.instance(i).classValue()]) {
+<FONT ID="LN">292 </FONT><A NAME="292"></A>          numNonEmptyClasses++;
+<FONT ID="LN">293 </FONT><A NAME="293"></A>          notEmptyClass[(<FONT ID="Int">int</FONT>)newTrain.instance(i).classValue()] = <FONT ID="True">true</FONT>;
+<FONT ID="LN">294 </FONT><A NAME="294"></A>        }
+<FONT ID="LN">295 </FONT><A NAME="295"></A>      }
+<FONT ID="LN">296 </FONT><A NAME="296"></A>      
+<FONT ID="LN">297 </FONT><A NAME="297"></A>      <FONT ID="SingleLineComment">// Compute new list of non-empty classes and mapping of indices
+<FONT ID="LN">298 </FONT><A NAME="298"></A></FONT>      <A HREF="../../../weka/core/FastVector.java.html">FastVector</A> newClassVals = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/FastVector.java.html">FastVector</A>(numNonEmptyClasses);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>      <FONT ID="Int">int</FONT>[] oldIndexToNewIndex = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[newTrain.numClasses()];
+<FONT ID="LN">300 </FONT><A NAME="300"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; newTrain.numClasses(); i++) {
+<FONT ID="LN">301 </FONT><A NAME="301"></A>        <FONT ID="If">if</FONT> (notEmptyClass[i]) {
+<FONT ID="LN">302 </FONT><A NAME="302"></A>         oldIndexToNewIndex[i] = newClassVals.size();
+<FONT ID="LN">303 </FONT><A NAME="303"></A>          newClassVals.addElement(newTrain.classAttribute().value(i));
+<FONT ID="LN">304 </FONT><A NAME="304"></A>        }
+<FONT ID="LN">305 </FONT><A NAME="305"></A>      }
+<FONT ID="LN">306 </FONT><A NAME="306"></A>      
+<FONT ID="LN">307 </FONT><A NAME="307"></A>      <FONT ID="SingleLineComment">// Compute new header information
+<FONT ID="LN">308 </FONT><A NAME="308"></A></FONT>      <A HREF="../../../weka/core/Attribute.java.html">Attribute</A> newClass = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Attribute.java.html">Attribute</A>(newTrain.classAttribute().name(), 
+<FONT ID="LN">309 </FONT><A NAME="309"></A>                                         newClassVals);
+<FONT ID="LN">310 </FONT><A NAME="310"></A>      <A HREF="../../../weka/core/FastVector.java.html">FastVector</A> newAttributes = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/FastVector.java.html">FastVector</A>(newTrain.numAttributes());
+<FONT ID="LN">311 </FONT><A NAME="311"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; newTrain.numAttributes(); i++) {
+<FONT ID="LN">312 </FONT><A NAME="312"></A>        <FONT ID="If">if</FONT> (i != newTrain.classIndex()) {
+<FONT ID="LN">313 </FONT><A NAME="313"></A>          newAttributes.addElement(newTrain.attribute(i).copy());
+<FONT ID="LN">314 </FONT><A NAME="314"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">315 </FONT><A NAME="315"></A>          newAttributes.addElement(newClass);
+<FONT ID="LN">316 </FONT><A NAME="316"></A>        }
+<FONT ID="LN">317 </FONT><A NAME="317"></A>      }
+<FONT ID="LN">318 </FONT><A NAME="318"></A>      
+<FONT ID="LN">319 </FONT><A NAME="319"></A>      <FONT ID="SingleLineComment">// Create new header and modify instances
+<FONT ID="LN">320 </FONT><A NAME="320"></A></FONT>      <A HREF="../../../weka/core/Instances.java.html">Instances</A> newTrainTransformed = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A>(newTrain.relationName(), 
+<FONT ID="LN">321 </FONT><A NAME="321"></A>                                                    newAttributes,
+<FONT ID="LN">322 </FONT><A NAME="322"></A>                                                    newTrain.numInstances());
+<FONT ID="LN">323 </FONT><A NAME="323"></A>      newTrainTransformed.setClassIndex(newTrain.classIndex());
+<FONT ID="LN">324 </FONT><A NAME="324"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; newTrain.numInstances(); i++) {
+<FONT ID="LN">325 </FONT><A NAME="325"></A>        <A HREF="../../../weka/core/Instance.java.html">Instance</A> inst = newTrain.instance(i);
+<FONT ID="LN">326 </FONT><A NAME="326"></A>        newTrainTransformed.add(inst);
+<FONT ID="LN">327 </FONT><A NAME="327"></A>        newTrainTransformed.lastInstance().
+<FONT ID="LN">328 </FONT><A NAME="328"></A>          setClassValue(oldIndexToNewIndex[(<FONT ID="Int">int</FONT>)inst.classValue()]);
+<FONT ID="LN">329 </FONT><A NAME="329"></A>      }
+<FONT ID="LN">330 </FONT><A NAME="330"></A>      newTrain = newTrainTransformed;
+<FONT ID="LN">331 </FONT><A NAME="331"></A>    }
+<FONT ID="LN">332 </FONT><A NAME="332"></A>
+<FONT ID="LN">333 </FONT><A NAME="333"></A>    <FONT ID="SingleLineComment">// Store target values, in case a prediction interval or computation of median is required
+<FONT ID="LN">334 </FONT><A NAME="334"></A></FONT>    m_OriginalTargetValues = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[instances.numInstances()];
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    m_NewTargetValues = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[instances.numInstances()];
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_OriginalTargetValues.length; i++) {
+<FONT ID="LN">337 </FONT><A NAME="337"></A>      m_OriginalTargetValues[i] = instances.instance(i).classValue();
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      m_NewTargetValues[i] = (<FONT ID="Int">int</FONT>)newTrain.instance(i).classValue();
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    }
+<FONT ID="LN">340 </FONT><A NAME="340"></A>
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    m_DiscretizedHeader = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A>(newTrain, <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">342 </FONT><A NAME="342"></A>
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    <FONT ID="Int">int</FONT> numClasses = newTrain.numClasses();
+<FONT ID="LN">344 </FONT><A NAME="344"></A>
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    <FONT ID="SingleLineComment">// Calculate the mean value for each bin of the new class attribute
+<FONT ID="LN">346 </FONT><A NAME="346"></A></FONT>    m_ClassMeans = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT> [numClasses];
+<FONT ID="LN">347 </FONT><A NAME="347"></A>    m_ClassCounts = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT> [numClasses];
+<FONT ID="LN">348 </FONT><A NAME="348"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; instances.numInstances(); i++) {
+<FONT ID="LN">349 </FONT><A NAME="349"></A>      <A HREF="../../../weka/core/Instance.java.html">Instance</A> inst = newTrain.instance(i);
+<FONT ID="LN">350 </FONT><A NAME="350"></A>      <FONT ID="If">if</FONT> (!inst.classIsMissing()) {
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    <FONT ID="Int">int</FONT> classVal = (<FONT ID="Int">int</FONT>) inst.classValue();
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    m_ClassCounts[classVal]++;
+<FONT ID="LN">353 </FONT><A NAME="353"></A>    m_ClassMeans[classVal] += instances.instance(i).classValue();
+<FONT ID="LN">354 </FONT><A NAME="354"></A>      }
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    }
+<FONT ID="LN">356 </FONT><A NAME="356"></A>
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numClasses; i++) {
+<FONT ID="LN">358 </FONT><A NAME="358"></A>      <FONT ID="If">if</FONT> (m_ClassCounts[i] &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    m_ClassMeans[i] /= m_ClassCounts[i];
+<FONT ID="LN">360 </FONT><A NAME="360"></A>      }
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    }
+<FONT ID="LN">362 </FONT><A NAME="362"></A>
+<FONT ID="LN">363 </FONT><A NAME="363"></A>    <FONT ID="If">if</FONT> (m_Debug) {
+<FONT ID="LN">364 </FONT><A NAME="364"></A>      System.out.println(<FONT ID="StringLiteral">"Bin Means"</FONT>);
+<FONT ID="LN">365 </FONT><A NAME="365"></A>      System.out.println(<FONT ID="StringLiteral">"=========="</FONT>);
+<FONT ID="LN">366 </FONT><A NAME="366"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_ClassMeans.length; i++) {
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    System.out.println(m_ClassMeans[i]);
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      }
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      System.out.println();
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    }
+<FONT ID="LN">371 </FONT><A NAME="371"></A>
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    <FONT ID="SingleLineComment">// Train the sub-classifier
+<FONT ID="LN">373 </FONT><A NAME="373"></A></FONT>    m_Classifier.buildClassifier(newTrain);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>  }
+<FONT ID="LN">375 </FONT><A NAME="375"></A>
+<FONT ID="LN">376 </FONT><A NAME="376"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">377 </FONT><A NAME="377"></A>   * Get density estimator for given instance.
+<FONT ID="LN">378 </FONT><A NAME="378"></A>   * 
+<FONT ID="LN">379 </FONT><A NAME="379"></A>   * @param inst the instance
+<FONT ID="LN">380 </FONT><A NAME="380"></A>   * @return the univariate density estimator
+<FONT ID="LN">381 </FONT><A NAME="381"></A>   * @exception Exception if the estimator can't be computed
+<FONT ID="LN">382 </FONT><A NAME="382"></A>   */</FONT>
+<FONT ID="LN">383 </FONT><A NAME="383"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/estimators/UnivariateDensityEstimator.java.html">UnivariateDensityEstimator</A> getDensityEstimator(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Boolean">boolean</FONT> print) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">384 </FONT><A NAME="384"></A>
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    <FONT ID="SingleLineComment">// Initialize estimator
+<FONT ID="LN">386 </FONT><A NAME="386"></A></FONT>    <A HREF="../../../weka/estimators/UnivariateDensityEstimator.java.html">UnivariateDensityEstimator</A> e;
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    
+<FONT ID="LN">388 </FONT><A NAME="388"></A>    <FONT ID="If">if</FONT> (m_estimatorType == ESTIMATOR_KERNEL) {
+<FONT ID="LN">389 </FONT><A NAME="389"></A>      e = <FONT ID="New">new</FONT> <A HREF="../../../weka/estimators/UnivariateKernelEstimator.java.html">UnivariateKernelEstimator</A>();
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (m_estimatorType == ESTIMATOR_NORMAL) {
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      e = <FONT ID="New">new</FONT> <A HREF="../../../weka/estimators/UnivariateNormalEstimator.java.html">UnivariateNormalEstimator</A>();
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">393 </FONT><A NAME="393"></A>      e = <FONT ID="New">new</FONT> <A HREF="../../../weka/estimators/UnivariateEqualFrequencyHistogramEstimator.java.html">UnivariateEqualFrequencyHistogramEstimator</A>();
+<FONT ID="LN">394 </FONT><A NAME="394"></A>
+<FONT ID="LN">395 </FONT><A NAME="395"></A>      <FONT ID="SingleLineComment">// Set the number of bins appropriately
+<FONT ID="LN">396 </FONT><A NAME="396"></A></FONT>      ((<A HREF="../../../weka/estimators/UnivariateEqualFrequencyHistogramEstimator.java.html">UnivariateEqualFrequencyHistogramEstimator</A>)e).setNumBins(getNumBins());
+<FONT ID="LN">397 </FONT><A NAME="397"></A>
+<FONT ID="LN">398 </FONT><A NAME="398"></A>      <FONT ID="SingleLineComment">// Initialize boundaries of equal frequency estimator
+<FONT ID="LN">399 </FONT><A NAME="399"></A></FONT>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_OriginalTargetValues.length; i++) {
+<FONT ID="LN">400 </FONT><A NAME="400"></A>        e.addValue(m_OriginalTargetValues[i], <FONT ID="FloatPointLiteral">1.0</FONT>);
+<FONT ID="LN">401 </FONT><A NAME="401"></A>      }
+<FONT ID="LN">402 </FONT><A NAME="402"></A>      
+<FONT ID="LN">403 </FONT><A NAME="403"></A>      <FONT ID="SingleLineComment">// Construct estimator, then initialize statistics, so that only boundaries will be kept
+<FONT ID="LN">404 </FONT><A NAME="404"></A></FONT>      ((<A HREF="../../../weka/estimators/UnivariateEqualFrequencyHistogramEstimator.java.html">UnivariateEqualFrequencyHistogramEstimator</A>)e).initializeStatistics();
+<FONT ID="LN">405 </FONT><A NAME="405"></A>
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      <FONT ID="SingleLineComment">// Now that boundaries have been determined, we only need to update the bin weights
+<FONT ID="LN">407 </FONT><A NAME="407"></A></FONT>      ((<A HREF="../../../weka/estimators/UnivariateEqualFrequencyHistogramEstimator.java.html">UnivariateEqualFrequencyHistogramEstimator</A>)e).setUpdateWeightsOnly(<FONT ID="True">true</FONT>);      
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    }
+<FONT ID="LN">409 </FONT><A NAME="409"></A>
+<FONT ID="LN">410 </FONT><A NAME="410"></A>    <FONT ID="SingleLineComment">// Make sure structure of class attribute correct
+<FONT ID="LN">411 </FONT><A NAME="411"></A></FONT>    <A HREF="../../../weka/core/Instance.java.html">Instance</A> newInstance = (<A HREF="../../../weka/core/Instance.java.html">Instance</A>)instance.copy();
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    newInstance.setDataset(m_DiscretizedHeader);
+<FONT ID="LN">413 </FONT><A NAME="413"></A>    <FONT ID="Double">double</FONT> [] probs = m_Classifier.distributionForInstance(newInstance);
+<FONT ID="LN">414 </FONT><A NAME="414"></A>
+<FONT ID="LN">415 </FONT><A NAME="415"></A>    <FONT ID="SingleLineComment">// Add values to estimator
+<FONT ID="LN">416 </FONT><A NAME="416"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_OriginalTargetValues.length; i++) {
+<FONT ID="LN">417 </FONT><A NAME="417"></A>      e.addValue(m_OriginalTargetValues[i], probs[m_NewTargetValues[i]] * 
+<FONT ID="LN">418 </FONT><A NAME="418"></A>                 m_OriginalTargetValues.length / m_ClassCounts[m_NewTargetValues[i]]);
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    }
+<FONT ID="LN">420 </FONT><A NAME="420"></A>
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    <FONT ID="SingleLineComment">// Return estimator
+<FONT ID="LN">422 </FONT><A NAME="422"></A></FONT>    <FONT ID="Return">return</FONT> e;
+<FONT ID="LN">423 </FONT><A NAME="423"></A>  }
+<FONT ID="LN">424 </FONT><A NAME="424"></A>  
+<FONT ID="LN">425 </FONT><A NAME="425"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">426 </FONT><A NAME="426"></A>   * Returns an N * 2 array, where N is the number of prediction
+<FONT ID="LN">427 </FONT><A NAME="427"></A>   * intervals. In each row, the first element contains the lower
+<FONT ID="LN">428 </FONT><A NAME="428"></A>   * boundary of the corresponding prediction interval and the second
+<FONT ID="LN">429 </FONT><A NAME="429"></A>   * element the upper boundary.
+<FONT ID="LN">430 </FONT><A NAME="430"></A>   *
+<FONT ID="LN">431 </FONT><A NAME="431"></A>   * @param inst the instance to make the prediction for.
+<FONT ID="LN">432 </FONT><A NAME="432"></A>   * @param confidenceLevel the percentage of cases that the interval should cover.
+<FONT ID="LN">433 </FONT><A NAME="433"></A>   * @return an array of prediction intervals
+<FONT ID="LN">434 </FONT><A NAME="434"></A>   * @exception Exception if the intervals can't be computed
+<FONT ID="LN">435 </FONT><A NAME="435"></A>   */</FONT>
+<FONT ID="LN">436 </FONT><A NAME="436"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT>[][] predictIntervals(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Double">double</FONT> confidenceLevel) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    <FONT ID="SingleLineComment">// Get density estimator
+<FONT ID="LN">439 </FONT><A NAME="439"></A></FONT>    <A HREF="../../../weka/estimators/UnivariateIntervalEstimator.java.html">UnivariateIntervalEstimator</A> e = (<A HREF="../../../weka/estimators/UnivariateIntervalEstimator.java.html">UnivariateIntervalEstimator</A>)getDensityEstimator(instance, <FONT ID="False">false</FONT>);
+<FONT ID="LN">440 </FONT><A NAME="440"></A>
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="SingleLineComment">// Return intervals
+<FONT ID="LN">442 </FONT><A NAME="442"></A></FONT>    <FONT ID="Return">return</FONT> e.predictIntervals(confidenceLevel);
+<FONT ID="LN">443 </FONT><A NAME="443"></A>  }
+<FONT ID="LN">444 </FONT><A NAME="444"></A>
+<FONT ID="LN">445 </FONT><A NAME="445"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">446 </FONT><A NAME="446"></A>   * Returns natural logarithm of density estimate for given value based on given instance.
+<FONT ID="LN">447 </FONT><A NAME="447"></A>   *
+<FONT ID="LN">448 </FONT><A NAME="448"></A>   * @param inst the instance to make the prediction for.
+<FONT ID="LN">449 </FONT><A NAME="449"></A>   * @param the value to make the prediction for.
+<FONT ID="LN">450 </FONT><A NAME="450"></A>   * @return the natural logarithm of the density estimate
+<FONT ID="LN">451 </FONT><A NAME="451"></A>   * @exception Exception if the intervals can't be computed
+<FONT ID="LN">452 </FONT><A NAME="452"></A>   */</FONT>
+<FONT ID="LN">453 </FONT><A NAME="453"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> logDensity(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Double">double</FONT> value) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    <FONT ID="SingleLineComment">// Get density estimator
+<FONT ID="LN">456 </FONT><A NAME="456"></A></FONT>    <A HREF="../../../weka/estimators/UnivariateDensityEstimator.java.html">UnivariateDensityEstimator</A> e = getDensityEstimator(instance, <FONT ID="True">true</FONT>);
+<FONT ID="LN">457 </FONT><A NAME="457"></A>
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    <FONT ID="SingleLineComment">// Return estimate
+<FONT ID="LN">459 </FONT><A NAME="459"></A></FONT>    <FONT ID="Return">return</FONT> e.logDensity(value);
+<FONT ID="LN">460 </FONT><A NAME="460"></A>  }
+<FONT ID="LN">461 </FONT><A NAME="461"></A>
+<FONT ID="LN">462 </FONT><A NAME="462"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">463 </FONT><A NAME="463"></A>   * Returns a predicted class for the test instance.
+<FONT ID="LN">464 </FONT><A NAME="464"></A>   *
+<FONT ID="LN">465 </FONT><A NAME="465"></A>   * @param instance the instance to be classified
+<FONT ID="LN">466 </FONT><A NAME="466"></A>   * @return predicted class value
+<FONT ID="LN">467 </FONT><A NAME="467"></A>   * @throws Exception if the prediction couldn't be made
+<FONT ID="LN">468 </FONT><A NAME="468"></A>   */</FONT>
+<FONT ID="LN">469 </FONT><A NAME="469"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> classifyInstance(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance) <FONT ID="Throws">throws</FONT> Exception {  
+<FONT ID="LN">470 </FONT><A NAME="470"></A>
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    <FONT ID="SingleLineComment">// Make sure structure of class attribute correct
+<FONT ID="LN">472 </FONT><A NAME="472"></A></FONT>    <A HREF="../../../weka/core/Instance.java.html">Instance</A> newInstance = (<A HREF="../../../weka/core/Instance.java.html">Instance</A>)instance.copy();
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    newInstance.setDataset(m_DiscretizedHeader);
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    <FONT ID="Double">double</FONT> [] probs = m_Classifier.distributionForInstance(newInstance);
+<FONT ID="LN">475 </FONT><A NAME="475"></A>
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    <FONT ID="If">if</FONT> (!m_MinimizeAbsoluteError) {
+<FONT ID="LN">477 </FONT><A NAME="477"></A>
+<FONT ID="LN">478 </FONT><A NAME="478"></A>      <FONT ID="SingleLineComment">// Compute actual prediction
+<FONT ID="LN">479 </FONT><A NAME="479"></A></FONT>      <FONT ID="Double">double</FONT> prediction = <FONT ID="IntegerLiteral">0</FONT>, probSum = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">480 </FONT><A NAME="480"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; probs.length; j++) {
+<FONT ID="LN">481 </FONT><A NAME="481"></A>        prediction += probs[j] * m_ClassMeans[j];
+<FONT ID="LN">482 </FONT><A NAME="482"></A>        probSum += probs[j];
+<FONT ID="LN">483 </FONT><A NAME="483"></A>      }
+<FONT ID="LN">484 </FONT><A NAME="484"></A>      
+<FONT ID="LN">485 </FONT><A NAME="485"></A>      <FONT ID="Return">return</FONT> prediction /  probSum;
+<FONT ID="LN">486 </FONT><A NAME="486"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">487 </FONT><A NAME="487"></A>    
+<FONT ID="LN">488 </FONT><A NAME="488"></A>      <FONT ID="SingleLineComment">// Get density estimator
+<FONT ID="LN">489 </FONT><A NAME="489"></A></FONT>      <A HREF="../../../weka/estimators/UnivariateQuantileEstimator.java.html">UnivariateQuantileEstimator</A> e = (<A HREF="../../../weka/estimators/UnivariateQuantileEstimator.java.html">UnivariateQuantileEstimator</A>)getDensityEstimator(instance, <FONT ID="True">true</FONT>);
+<FONT ID="LN">490 </FONT><A NAME="490"></A>      
+<FONT ID="LN">491 </FONT><A NAME="491"></A>      <FONT ID="SingleLineComment">// Return estimate
+<FONT ID="LN">492 </FONT><A NAME="492"></A></FONT>      <FONT ID="Return">return</FONT> e.predictQuantile(<FONT ID="FloatPointLiteral">0.5</FONT>);
+<FONT ID="LN">493 </FONT><A NAME="493"></A>    }
+<FONT ID="LN">494 </FONT><A NAME="494"></A>  }
+<FONT ID="LN">495 </FONT><A NAME="495"></A>
+<FONT ID="LN">496 </FONT><A NAME="496"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   * Returns an enumeration describing the available options.
+<FONT ID="LN">498 </FONT><A NAME="498"></A>   *
+<FONT ID="LN">499 </FONT><A NAME="499"></A>   * @return an enumeration of all the available options.
+<FONT ID="LN">500 </FONT><A NAME="500"></A>   */</FONT>
+<FONT ID="LN">501 </FONT><A NAME="501"></A>  <FONT ID="Public">public</FONT> Enumeration listOptions() {
+<FONT ID="LN">502 </FONT><A NAME="502"></A>
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    <A HREF="../../../weka/core/FastVector.java.html">Vector</A> newVector = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/FastVector.java.html">Vector</A>(<FONT ID="IntegerLiteral">5</FONT>);
+<FONT ID="LN">504 </FONT><A NAME="504"></A>
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">506 </FONT><A NAME="506"></A>          <FONT ID="StringLiteral">"\tNumber of bins for equal-width discretization\n"</FONT>
+<FONT ID="LN">507 </FONT><A NAME="507"></A>          + <FONT ID="StringLiteral">"\t(default 10).\n"</FONT>,
+<FONT ID="LN">508 </FONT><A NAME="508"></A>          <FONT ID="StringLiteral">"B"</FONT>, <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"-B &lt;int&gt;"</FONT>));
+<FONT ID="LN">509 </FONT><A NAME="509"></A>
+<FONT ID="LN">510 </FONT><A NAME="510"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">511 </FONT><A NAME="511"></A>          <FONT ID="StringLiteral">"\tWhether to delete empty bins after discretization\n"</FONT>
+<FONT ID="LN">512 </FONT><A NAME="512"></A>          + <FONT ID="StringLiteral">"\t(default false).\n"</FONT>,
+<FONT ID="LN">513 </FONT><A NAME="513"></A>          <FONT ID="StringLiteral">"E"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-E"</FONT>));
+<FONT ID="LN">514 </FONT><A NAME="514"></A>
+<FONT ID="LN">515 </FONT><A NAME="515"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">516 </FONT><A NAME="516"></A>          <FONT ID="StringLiteral">"\tWhether to minimize absolute error, rather than squared error.\n"</FONT>
+<FONT ID="LN">517 </FONT><A NAME="517"></A>          + <FONT ID="StringLiteral">"\t(default false).\n"</FONT>,
+<FONT ID="LN">518 </FONT><A NAME="518"></A>          <FONT ID="StringLiteral">"A"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-A"</FONT>));
+<FONT ID="LN">519 </FONT><A NAME="519"></A>    
+<FONT ID="LN">520 </FONT><A NAME="520"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">521 </FONT><A NAME="521"></A>         <FONT ID="StringLiteral">"\tUse equal-frequency instead of equal-width discretization."</FONT>,
+<FONT ID="LN">522 </FONT><A NAME="522"></A>         <FONT ID="StringLiteral">"F"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-F"</FONT>));
+<FONT ID="LN">523 </FONT><A NAME="523"></A>    
+<FONT ID="LN">524 </FONT><A NAME="524"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">525 </FONT><A NAME="525"></A>         <FONT ID="StringLiteral">"\tWhat type of density estimator to use: 0=histogram/1=kernel/2=normal (default: 0)."</FONT>,
+<FONT ID="LN">526 </FONT><A NAME="526"></A>         <FONT ID="StringLiteral">"K"</FONT>, <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"-K"</FONT>));
+<FONT ID="LN">527 </FONT><A NAME="527"></A>
+<FONT ID="LN">528 </FONT><A NAME="528"></A>    Enumeration enu = <FONT ID="Super">super</FONT>.listOptions();
+<FONT ID="LN">529 </FONT><A NAME="529"></A>    <FONT ID="While">while</FONT> (enu.hasMoreElements()) {
+<FONT ID="LN">530 </FONT><A NAME="530"></A>      newVector.addElement(enu.nextElement());
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    }
+<FONT ID="LN">532 </FONT><A NAME="532"></A>
+<FONT ID="LN">533 </FONT><A NAME="533"></A>    <FONT ID="Return">return</FONT> newVector.elements();
+<FONT ID="LN">534 </FONT><A NAME="534"></A>  }
+<FONT ID="LN">535 </FONT><A NAME="535"></A>
+<FONT ID="LN">536 </FONT><A NAME="536"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">537 </FONT><A NAME="537"></A>   * Parses a given list of options. &lt;p/&gt;
+<FONT ID="LN">538 </FONT><A NAME="538"></A>   *
+<FONT ID="LN">539 </FONT><A NAME="539"></A>   &lt;!-- options-start --&gt;
+<FONT ID="LN">540 </FONT><A NAME="540"></A>   &lt;!-- options-end --&gt;
+<FONT ID="LN">541 </FONT><A NAME="541"></A>   *
+<FONT ID="LN">542 </FONT><A NAME="542"></A>   * @param options the list of options as an array of strings
+<FONT ID="LN">543 </FONT><A NAME="543"></A>   * @throws Exception if an option is not supported
+<FONT ID="LN">544 </FONT><A NAME="544"></A>   */</FONT>
+<FONT ID="LN">545 </FONT><A NAME="545"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOptions(String[] options) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">546 </FONT><A NAME="546"></A>
+<FONT ID="LN">547 </FONT><A NAME="547"></A>    String binsString = Utils.getOption(<FONT ID="CharacerLiteral">'B'</FONT>, options);
+<FONT ID="LN">548 </FONT><A NAME="548"></A>    <FONT ID="If">if</FONT> (binsString.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">549 </FONT><A NAME="549"></A>      setNumBins(Integer.parseInt(binsString));
+<FONT ID="LN">550 </FONT><A NAME="550"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">551 </FONT><A NAME="551"></A>      setNumBins(<FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">552 </FONT><A NAME="552"></A>    }
+<FONT ID="LN">553 </FONT><A NAME="553"></A>
+<FONT ID="LN">554 </FONT><A NAME="554"></A>    setDeleteEmptyBins(Utils.getFlag(<FONT ID="CharacerLiteral">'E'</FONT>, options));
+<FONT ID="LN">555 </FONT><A NAME="555"></A>    setUseEqualFrequency(Utils.getFlag(<FONT ID="CharacerLiteral">'F'</FONT>, options));
+<FONT ID="LN">556 </FONT><A NAME="556"></A>    setMinimizeAbsoluteError(Utils.getFlag(<FONT ID="CharacerLiteral">'A'</FONT>, options));
+<FONT ID="LN">557 </FONT><A NAME="557"></A>
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    String tmpStr = Utils.getOption(<FONT ID="CharacerLiteral">'K'</FONT>, options);
+<FONT ID="LN">559 </FONT><A NAME="559"></A>    <FONT ID="If">if</FONT> (tmpStr.length() != <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">560 </FONT><A NAME="560"></A>      setEstimatorType(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/SelectedTag.java.html">SelectedTag</A>(Integer.parseInt(tmpStr), TAGS_ESTIMATOR));
+<FONT ID="LN">561 </FONT><A NAME="561"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">562 </FONT><A NAME="562"></A>      setEstimatorType(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/SelectedTag.java.html">SelectedTag</A>(ESTIMATOR_HISTOGRAM, TAGS_ESTIMATOR));
+<FONT ID="LN">563 </FONT><A NAME="563"></A>
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    <FONT ID="Super">super</FONT>.setOptions(options);
+<FONT ID="LN">565 </FONT><A NAME="565"></A>  }
+<FONT ID="LN">566 </FONT><A NAME="566"></A>
+<FONT ID="LN">567 </FONT><A NAME="567"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">568 </FONT><A NAME="568"></A>   * Gets the current settings of the Classifier.
+<FONT ID="LN">569 </FONT><A NAME="569"></A>   *
+<FONT ID="LN">570 </FONT><A NAME="570"></A>   * @return an array of strings suitable for passing to setOptions
+<FONT ID="LN">571 </FONT><A NAME="571"></A>   */</FONT>
+<FONT ID="LN">572 </FONT><A NAME="572"></A>  <FONT ID="Public">public</FONT> String [] getOptions() {
+<FONT ID="LN">573 </FONT><A NAME="573"></A>
+<FONT ID="LN">574 </FONT><A NAME="574"></A>    String [] superOptions = <FONT ID="Super">super</FONT>.getOptions();
+<FONT ID="LN">575 </FONT><A NAME="575"></A>    String [] options = <FONT ID="New">new</FONT> String [superOptions.length + <FONT ID="IntegerLiteral">7</FONT>];
+<FONT ID="LN">576 </FONT><A NAME="576"></A>    <FONT ID="Int">int</FONT> current = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">577 </FONT><A NAME="577"></A>
+<FONT ID="LN">578 </FONT><A NAME="578"></A>    options[current++] = <FONT ID="StringLiteral">"-B"</FONT>;
+<FONT ID="LN">579 </FONT><A NAME="579"></A>    options[current++] = <FONT ID="StringLiteral">""</FONT> + getNumBins();
+<FONT ID="LN">580 </FONT><A NAME="580"></A>
+<FONT ID="LN">581 </FONT><A NAME="581"></A>    <FONT ID="If">if</FONT> (getDeleteEmptyBins()) {
+<FONT ID="LN">582 </FONT><A NAME="582"></A>      options[current++] = <FONT ID="StringLiteral">"-E"</FONT>;
+<FONT ID="LN">583 </FONT><A NAME="583"></A>    }
+<FONT ID="LN">584 </FONT><A NAME="584"></A>    
+<FONT ID="LN">585 </FONT><A NAME="585"></A>    <FONT ID="If">if</FONT> (getUseEqualFrequency()) {
+<FONT ID="LN">586 </FONT><A NAME="586"></A>      options[current++] = <FONT ID="StringLiteral">"-F"</FONT>;
+<FONT ID="LN">587 </FONT><A NAME="587"></A>    }
+<FONT ID="LN">588 </FONT><A NAME="588"></A>
+<FONT ID="LN">589 </FONT><A NAME="589"></A>    <FONT ID="If">if</FONT> (getMinimizeAbsoluteError()) {
+<FONT ID="LN">590 </FONT><A NAME="590"></A>      options[current++] = <FONT ID="StringLiteral">"-A"</FONT>;
+<FONT ID="LN">591 </FONT><A NAME="591"></A>    }
+<FONT ID="LN">592 </FONT><A NAME="592"></A>    
+<FONT ID="LN">593 </FONT><A NAME="593"></A>    options[current++] = <FONT ID="StringLiteral">"-K"</FONT>;
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    options[current++] = <FONT ID="StringLiteral">""</FONT> + m_estimatorType;
+<FONT ID="LN">595 </FONT><A NAME="595"></A>
+<FONT ID="LN">596 </FONT><A NAME="596"></A>    System.arraycopy(superOptions, <FONT ID="IntegerLiteral">0</FONT>, options, current, 
+<FONT ID="LN">597 </FONT><A NAME="597"></A>             superOptions.length);
+<FONT ID="LN">598 </FONT><A NAME="598"></A>
+<FONT ID="LN">599 </FONT><A NAME="599"></A>    current += superOptions.length;
+<FONT ID="LN">600 </FONT><A NAME="600"></A>    <FONT ID="While">while</FONT> (current &lt; options.length) {
+<FONT ID="LN">601 </FONT><A NAME="601"></A>      options[current++] = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">602 </FONT><A NAME="602"></A>    }
+<FONT ID="LN">603 </FONT><A NAME="603"></A>
+<FONT ID="LN">604 </FONT><A NAME="604"></A>    <FONT ID="Return">return</FONT> options;
+<FONT ID="LN">605 </FONT><A NAME="605"></A>  }
+<FONT ID="LN">606 </FONT><A NAME="606"></A>
+<FONT ID="LN">607 </FONT><A NAME="607"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">608 </FONT><A NAME="608"></A>   * Returns the tip text for this property
+<FONT ID="LN">609 </FONT><A NAME="609"></A>   *
+<FONT ID="LN">610 </FONT><A NAME="610"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">611 </FONT><A NAME="611"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">612 </FONT><A NAME="612"></A>   */</FONT>
+<FONT ID="LN">613 </FONT><A NAME="613"></A>  <FONT ID="Public">public</FONT> String numBinsTipText() {
+<FONT ID="LN">614 </FONT><A NAME="614"></A>
+<FONT ID="LN">615 </FONT><A NAME="615"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Number of bins for discretization."</FONT>;
+<FONT ID="LN">616 </FONT><A NAME="616"></A>  }
+<FONT ID="LN">617 </FONT><A NAME="617"></A>
+<FONT ID="LN">618 </FONT><A NAME="618"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">619 </FONT><A NAME="619"></A>   * Gets the number of bins numeric attributes will be divided into
+<FONT ID="LN">620 </FONT><A NAME="620"></A>   *
+<FONT ID="LN">621 </FONT><A NAME="621"></A>   * @return the number of bins.
+<FONT ID="LN">622 </FONT><A NAME="622"></A>   */</FONT>
+<FONT ID="LN">623 </FONT><A NAME="623"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getNumBins() {
+<FONT ID="LN">624 </FONT><A NAME="624"></A>
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    <FONT ID="Return">return</FONT> m_NumBins;
+<FONT ID="LN">626 </FONT><A NAME="626"></A>  }
+<FONT ID="LN">627 </FONT><A NAME="627"></A>
+<FONT ID="LN">628 </FONT><A NAME="628"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">629 </FONT><A NAME="629"></A>   * Sets the number of bins to divide each selected numeric attribute into
+<FONT ID="LN">630 </FONT><A NAME="630"></A>   *
+<FONT ID="LN">631 </FONT><A NAME="631"></A>   * @param numBins the number of bins
+<FONT ID="LN">632 </FONT><A NAME="632"></A>   */</FONT>
+<FONT ID="LN">633 </FONT><A NAME="633"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setNumBins(<FONT ID="Int">int</FONT> numBins) {
+<FONT ID="LN">634 </FONT><A NAME="634"></A>
+<FONT ID="LN">635 </FONT><A NAME="635"></A>    m_NumBins = numBins;
+<FONT ID="LN">636 </FONT><A NAME="636"></A>  }
+<FONT ID="LN">637 </FONT><A NAME="637"></A>
+<FONT ID="LN">638 </FONT><A NAME="638"></A>
+<FONT ID="LN">639 </FONT><A NAME="639"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">640 </FONT><A NAME="640"></A>   * Returns the tip text for this property
+<FONT ID="LN">641 </FONT><A NAME="641"></A>   *
+<FONT ID="LN">642 </FONT><A NAME="642"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">643 </FONT><A NAME="643"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">644 </FONT><A NAME="644"></A>   */</FONT>
+<FONT ID="LN">645 </FONT><A NAME="645"></A>  <FONT ID="Public">public</FONT> String deleteEmptyBinsTipText() {
+<FONT ID="LN">646 </FONT><A NAME="646"></A>
+<FONT ID="LN">647 </FONT><A NAME="647"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Whether to delete empty bins after discretization."</FONT>;
+<FONT ID="LN">648 </FONT><A NAME="648"></A>  }
+<FONT ID="LN">649 </FONT><A NAME="649"></A>
+<FONT ID="LN">650 </FONT><A NAME="650"></A>
+<FONT ID="LN">651 </FONT><A NAME="651"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">652 </FONT><A NAME="652"></A>   * Gets whether empty bins are deleted.
+<FONT ID="LN">653 </FONT><A NAME="653"></A>   *
+<FONT ID="LN">654 </FONT><A NAME="654"></A>   * @return true if empty bins get deleted.
+<FONT ID="LN">655 </FONT><A NAME="655"></A>   */</FONT>
+<FONT ID="LN">656 </FONT><A NAME="656"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getDeleteEmptyBins() {
+<FONT ID="LN">657 </FONT><A NAME="657"></A>
+<FONT ID="LN">658 </FONT><A NAME="658"></A>    <FONT ID="Return">return</FONT> m_DeleteEmptyBins;
+<FONT ID="LN">659 </FONT><A NAME="659"></A>  }
+<FONT ID="LN">660 </FONT><A NAME="660"></A>
+<FONT ID="LN">661 </FONT><A NAME="661"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">662 </FONT><A NAME="662"></A>   * Sets whether to delete empty bins.
+<FONT ID="LN">663 </FONT><A NAME="663"></A>   *
+<FONT ID="LN">664 </FONT><A NAME="664"></A>   * @param b if true, empty bins will be deleted
+<FONT ID="LN">665 </FONT><A NAME="665"></A>   */</FONT>
+<FONT ID="LN">666 </FONT><A NAME="666"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDeleteEmptyBins(<FONT ID="Boolean">boolean</FONT> b) {
+<FONT ID="LN">667 </FONT><A NAME="667"></A>
+<FONT ID="LN">668 </FONT><A NAME="668"></A>    m_DeleteEmptyBins = b;
+<FONT ID="LN">669 </FONT><A NAME="669"></A>  }
+<FONT ID="LN">670 </FONT><A NAME="670"></A>
+<FONT ID="LN">671 </FONT><A NAME="671"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">672 </FONT><A NAME="672"></A>   * Returns the tip text for this property
+<FONT ID="LN">673 </FONT><A NAME="673"></A>   *
+<FONT ID="LN">674 </FONT><A NAME="674"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">675 </FONT><A NAME="675"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">676 </FONT><A NAME="676"></A>   */</FONT>
+<FONT ID="LN">677 </FONT><A NAME="677"></A>  <FONT ID="Public">public</FONT> String minimizeAbsoluteErrorTipText() {
+<FONT ID="LN">678 </FONT><A NAME="678"></A>
+<FONT ID="LN">679 </FONT><A NAME="679"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Whether to minimize absolute error."</FONT>;
+<FONT ID="LN">680 </FONT><A NAME="680"></A>  }
+<FONT ID="LN">681 </FONT><A NAME="681"></A>
+<FONT ID="LN">682 </FONT><A NAME="682"></A>
+<FONT ID="LN">683 </FONT><A NAME="683"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">684 </FONT><A NAME="684"></A>   * Gets whether to min. abs. error
+<FONT ID="LN">685 </FONT><A NAME="685"></A>   *
+<FONT ID="LN">686 </FONT><A NAME="686"></A>   * @return true if abs. err. is to be minimized
+<FONT ID="LN">687 </FONT><A NAME="687"></A>   */</FONT>
+<FONT ID="LN">688 </FONT><A NAME="688"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getMinimizeAbsoluteError() {
+<FONT ID="LN">689 </FONT><A NAME="689"></A>
+<FONT ID="LN">690 </FONT><A NAME="690"></A>    <FONT ID="Return">return</FONT> m_MinimizeAbsoluteError;
+<FONT ID="LN">691 </FONT><A NAME="691"></A>  }
+<FONT ID="LN">692 </FONT><A NAME="692"></A>
+<FONT ID="LN">693 </FONT><A NAME="693"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">694 </FONT><A NAME="694"></A>   * Sets whether to min. abs. error.
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   *
+<FONT ID="LN">696 </FONT><A NAME="696"></A>   * @param b if true, abs. err. is minimized
+<FONT ID="LN">697 </FONT><A NAME="697"></A>   */</FONT>
+<FONT ID="LN">698 </FONT><A NAME="698"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setMinimizeAbsoluteError(<FONT ID="Boolean">boolean</FONT> b) {
+<FONT ID="LN">699 </FONT><A NAME="699"></A>
+<FONT ID="LN">700 </FONT><A NAME="700"></A>    m_MinimizeAbsoluteError = b;
+<FONT ID="LN">701 </FONT><A NAME="701"></A>  }
+<FONT ID="LN">702 </FONT><A NAME="702"></A>  
+<FONT ID="LN">703 </FONT><A NAME="703"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">704 </FONT><A NAME="704"></A>   * Returns the tip text for this property
+<FONT ID="LN">705 </FONT><A NAME="705"></A>   *
+<FONT ID="LN">706 </FONT><A NAME="706"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">707 </FONT><A NAME="707"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">708 </FONT><A NAME="708"></A>   */</FONT>
+<FONT ID="LN">709 </FONT><A NAME="709"></A>  <FONT ID="Public">public</FONT> String useEqualFrequencyTipText() {
+<FONT ID="LN">710 </FONT><A NAME="710"></A>
+<FONT ID="LN">711 </FONT><A NAME="711"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"If set to true, equal-frequency binning will be used instead of"</FONT> +
+<FONT ID="LN">712 </FONT><A NAME="712"></A>      <FONT ID="StringLiteral">" equal-width binning."</FONT>;
+<FONT ID="LN">713 </FONT><A NAME="713"></A>  }
+<FONT ID="LN">714 </FONT><A NAME="714"></A>  
+<FONT ID="LN">715 </FONT><A NAME="715"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">716 </FONT><A NAME="716"></A>   * Get the value of UseEqualFrequency.
+<FONT ID="LN">717 </FONT><A NAME="717"></A>   *
+<FONT ID="LN">718 </FONT><A NAME="718"></A>   * @return Value of UseEqualFrequency.
+<FONT ID="LN">719 </FONT><A NAME="719"></A>   */</FONT>
+<FONT ID="LN">720 </FONT><A NAME="720"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getUseEqualFrequency() {
+<FONT ID="LN">721 </FONT><A NAME="721"></A>    
+<FONT ID="LN">722 </FONT><A NAME="722"></A>    <FONT ID="Return">return</FONT> m_UseEqualFrequency;
+<FONT ID="LN">723 </FONT><A NAME="723"></A>  }
+<FONT ID="LN">724 </FONT><A NAME="724"></A>  
+<FONT ID="LN">725 </FONT><A NAME="725"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">726 </FONT><A NAME="726"></A>   * Set the value of UseEqualFrequency.
+<FONT ID="LN">727 </FONT><A NAME="727"></A>   *
+<FONT ID="LN">728 </FONT><A NAME="728"></A>   * @param newUseEqualFrequency Value to assign to UseEqualFrequency.
+<FONT ID="LN">729 </FONT><A NAME="729"></A>   */</FONT>
+<FONT ID="LN">730 </FONT><A NAME="730"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setUseEqualFrequency(<FONT ID="Boolean">boolean</FONT> newUseEqualFrequency) {
+<FONT ID="LN">731 </FONT><A NAME="731"></A>    
+<FONT ID="LN">732 </FONT><A NAME="732"></A>    m_UseEqualFrequency = newUseEqualFrequency;
+<FONT ID="LN">733 </FONT><A NAME="733"></A>  }
+<FONT ID="LN">734 </FONT><A NAME="734"></A>
+<FONT ID="LN">735 </FONT><A NAME="735"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">736 </FONT><A NAME="736"></A>   * Returns the tip text for this property
+<FONT ID="LN">737 </FONT><A NAME="737"></A>   *
+<FONT ID="LN">738 </FONT><A NAME="738"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">739 </FONT><A NAME="739"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">740 </FONT><A NAME="740"></A>   */</FONT>
+<FONT ID="LN">741 </FONT><A NAME="741"></A>  <FONT ID="Public">public</FONT> String estimatorTypeTipText() {
+<FONT ID="LN">742 </FONT><A NAME="742"></A>
+<FONT ID="LN">743 </FONT><A NAME="743"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"The density estimator to use."</FONT>;
+<FONT ID="LN">744 </FONT><A NAME="744"></A>  }
+<FONT ID="LN">745 </FONT><A NAME="745"></A>  
+<FONT ID="LN">746 </FONT><A NAME="746"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">747 </FONT><A NAME="747"></A>   * Get the estimator type
+<FONT ID="LN">748 </FONT><A NAME="748"></A>   *
+<FONT ID="LN">749 </FONT><A NAME="749"></A>   * @return the estimator type
+<FONT ID="LN">750 </FONT><A NAME="750"></A>   */</FONT>
+<FONT ID="LN">751 </FONT><A NAME="751"></A>  <FONT ID="Public">public</FONT>  <A HREF="../../../weka/core/SelectedTag.java.html">SelectedTag</A> getEstimatorType() {
+<FONT ID="LN">752 </FONT><A NAME="752"></A>    
+<FONT ID="LN">753 </FONT><A NAME="753"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../weka/core/SelectedTag.java.html">SelectedTag</A>(m_estimatorType, TAGS_ESTIMATOR);
+<FONT ID="LN">754 </FONT><A NAME="754"></A>  }
+<FONT ID="LN">755 </FONT><A NAME="755"></A>  
+<FONT ID="LN">756 </FONT><A NAME="756"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">757 </FONT><A NAME="757"></A>   * Set the estimator
+<FONT ID="LN">758 </FONT><A NAME="758"></A>   *
+<FONT ID="LN">759 </FONT><A NAME="759"></A>   * @param newEstimator the estimator to use
+<FONT ID="LN">760 </FONT><A NAME="760"></A>   */</FONT>
+<FONT ID="LN">761 </FONT><A NAME="761"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setEstimatorType(<A HREF="../../../weka/core/SelectedTag.java.html">SelectedTag</A> newEstimator) {
+<FONT ID="LN">762 </FONT><A NAME="762"></A>        
+<FONT ID="LN">763 </FONT><A NAME="763"></A>    <FONT ID="If">if</FONT> (newEstimator.getTags() == TAGS_ESTIMATOR) {
+<FONT ID="LN">764 </FONT><A NAME="764"></A>      m_estimatorType = newEstimator.getSelectedTag().getID();
+<FONT ID="LN">765 </FONT><A NAME="765"></A>    }
+<FONT ID="LN">766 </FONT><A NAME="766"></A>  }
+<FONT ID="LN">767 </FONT><A NAME="767"></A>
+<FONT ID="LN">768 </FONT><A NAME="768"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">769 </FONT><A NAME="769"></A>   * Returns a description of the classifier.
+<FONT ID="LN">770 </FONT><A NAME="770"></A>   *
+<FONT ID="LN">771 </FONT><A NAME="771"></A>   * @return a description of the classifier as a string.
+<FONT ID="LN">772 </FONT><A NAME="772"></A>   */</FONT>
+<FONT ID="LN">773 </FONT><A NAME="773"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">774 </FONT><A NAME="774"></A>
+<FONT ID="LN">775 </FONT><A NAME="775"></A>    StringBuffer text = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">776 </FONT><A NAME="776"></A>
+<FONT ID="LN">777 </FONT><A NAME="777"></A>    text.append(<FONT ID="StringLiteral">"Regression by discretization"</FONT>);
+<FONT ID="LN">778 </FONT><A NAME="778"></A>    <FONT ID="If">if</FONT> (m_ClassMeans == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">779 </FONT><A NAME="779"></A>      text.append(<FONT ID="StringLiteral">": No model built yet."</FONT>);
+<FONT ID="LN">780 </FONT><A NAME="780"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">781 </FONT><A NAME="781"></A>      text.append(<FONT ID="StringLiteral">"\n\nClass attribute discretized into "</FONT> 
+<FONT ID="LN">782 </FONT><A NAME="782"></A>          + m_ClassMeans.length + <FONT ID="StringLiteral">" values\n"</FONT>);
+<FONT ID="LN">783 </FONT><A NAME="783"></A>
+<FONT ID="LN">784 </FONT><A NAME="784"></A>      text.append(<FONT ID="StringLiteral">"\nClassifier spec: "</FONT> + getClassifierSpec() 
+<FONT ID="LN">785 </FONT><A NAME="785"></A>          + <FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">786 </FONT><A NAME="786"></A>      text.append(m_Classifier.toString());
+<FONT ID="LN">787 </FONT><A NAME="787"></A>    }
+<FONT ID="LN">788 </FONT><A NAME="788"></A>    <FONT ID="Return">return</FONT> text.toString();
+<FONT ID="LN">789 </FONT><A NAME="789"></A>  }
+<FONT ID="LN">790 </FONT><A NAME="790"></A>  
+<FONT ID="LN">791 </FONT><A NAME="791"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">792 </FONT><A NAME="792"></A>   * Returns the revision string.
+<FONT ID="LN">793 </FONT><A NAME="793"></A>   * 
+<FONT ID="LN">794 </FONT><A NAME="794"></A>   * @return        the revision
+<FONT ID="LN">795 </FONT><A NAME="795"></A>   */</FONT>
+<FONT ID="LN">796 </FONT><A NAME="796"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">797 </FONT><A NAME="797"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5925 $"</FONT>);
+<FONT ID="LN">798 </FONT><A NAME="798"></A>  }
+<FONT ID="LN">799 </FONT><A NAME="799"></A> 
+<FONT ID="LN">800 </FONT><A NAME="800"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">801 </FONT><A NAME="801"></A>   * Main method for testing this class.
+<FONT ID="LN">802 </FONT><A NAME="802"></A>   *
+<FONT ID="LN">803 </FONT><A NAME="803"></A>   * @param argv the options
+<FONT ID="LN">804 </FONT><A NAME="804"></A>   */</FONT>
+<FONT ID="LN">805 </FONT><A NAME="805"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String [] argv) {
+<FONT ID="LN">806 </FONT><A NAME="806"></A>    runClassifier(<FONT ID="New">new</FONT> <A HREF="../../../weka/classifiers/meta/RegressionByDiscretization.java.html">RegressionByDiscretization</A>(), argv);
+<FONT ID="LN">807 </FONT><A NAME="807"></A>  }
+<FONT ID="LN">808 </FONT><A NAME="808"></A>}
+<FONT ID="LN">809 </FONT><A NAME="809"></A>
+<FONT ID="LN">810 </FONT><A NAME="810"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RegressionByDiscretization.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

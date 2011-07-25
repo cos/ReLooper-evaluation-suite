@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.gui.treevisualizer.PlaceNode1 (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">PlaceNode1.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    PlaceNode1.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 1999 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.gui.treevisualizer;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * This class will place the Nodes of a tree. &lt;p&gt;
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * 
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * It will place these nodes so that they symetrically fill each row. 
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * This is simple to calculate but is not visually nice for most trees.&lt;p&gt;
+<FONT ID="LN">30  </FONT><A NAME="30"></A> *
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * @author Malcolm F Ware (mfw4@cs.waikato.ac.nz)
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * @version $Revision: 1.4 $
+<FONT ID="LN">33  </FONT><A NAME="33"></A> */</FONT>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> PlaceNode1 <FONT ID="Implements">implements</FONT> <A HREF="../../../weka/gui/treevisualizer/NodePlace.java.html">NodePlace</A> {
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  <FONT ID="FormalComment">/** An array containing the spacing value for each level */</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT>[] m_levels; <FONT ID="SingleLineComment">//contains num of nodes one each level
+<FONT ID="LN">37  </FONT><A NAME="37"></A></FONT>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  <FONT ID="FormalComment">/** The number of levels in the tree */</FONT> 
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_noLevels;<FONT ID="SingleLineComment">//contains num of levels
+<FONT ID="LN">40  </FONT><A NAME="40"></A></FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="FormalComment">/** An array containing the current node place for each level to place 
+<FONT ID="LN">42  </FONT><A NAME="42"></A>   * each node accordingly. */</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT>[] m_levelNode; <FONT ID="SingleLineComment">//contains num of node upto on particular level
+<FONT ID="LN">44  </FONT><A NAME="44"></A></FONT>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="FormalComment">/** The distance between each level. */</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> m_yRatio; <FONT ID="SingleLineComment">//for quicker running y_ratio is a constant after 
+<FONT ID="LN">47  </FONT><A NAME="47"></A></FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>                         <FONT ID="SingleLineComment">//being calculated
+<FONT ID="LN">49  </FONT><A NAME="49"></A></FONT>  <FONT ID="FormalComment">/**
+<FONT ID="LN">50  </FONT><A NAME="50"></A>   * Call this function to have each node in the tree starting at 'r' placed 
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   * in a visual
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * (not logical, they already are) tree position.
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   *
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   * @param r The top of the tree.
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> place(<A HREF="../../../weka/gui/treevisualizer/Node.java.html">Node</A> r) {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="MultiLineComment">/* this is the first and most basic algorithm to write
+<FONT ID="LN">58  </FONT><A NAME="58"></A>       I will use this as a reference to test the classes 
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>       this works by counting up the nodes on each level and spacing the
+<FONT ID="LN">61  </FONT><A NAME="61"></A>       level evenly so that it is all used
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    */</FONT>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="MultiLineComment">/* this loop will work by starting at the first node
+<FONT ID="LN">65  </FONT><A NAME="65"></A>       and systematically going through all their children from left
+<FONT ID="LN">66  </FONT><A NAME="66"></A>       to right.but first it will do a quick pass to find out the number
+<FONT ID="LN">67  </FONT><A NAME="67"></A>       of levels there are*/</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="SingleLineComment">//+ 1 so that no nodes are on edge of screen
+<FONT ID="LN">70  </FONT><A NAME="70"></A></FONT>    m_noLevels = r.getHeight(r,<FONT ID="IntegerLiteral">0</FONT>)+<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    m_yRatio = <FONT ID="IntegerLiteral">1</FONT> / (<FONT ID="Double">double</FONT>) m_noLevels;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    
+<FONT ID="LN">74  </FONT><A NAME="74"></A>    m_levels = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_noLevels];
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    m_levelNode = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_noLevels];
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> noa = <FONT ID="IntegerLiteral">0</FONT>;noa &lt; m_noLevels;noa++) {
+<FONT ID="LN">77  </FONT><A NAME="77"></A>      m_levels[noa] = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>      m_levelNode[noa] = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    }
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    setNumOfNodes(r,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> noa = <FONT ID="IntegerLiteral">0</FONT>;noa &lt; m_noLevels;noa++) {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>      m_levels[noa] = <FONT ID="IntegerLiteral">1</FONT> / m_levels[noa];
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    placer(r,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  }
+<FONT ID="LN">89  </FONT><A NAME="89"></A>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">91  </FONT><A NAME="91"></A>   * This function finds the number of nodes on each level recursively.
+<FONT ID="LN">92  </FONT><A NAME="92"></A>   *
+<FONT ID="LN">93  </FONT><A NAME="93"></A>   * @param r The current Node upto.
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * @param l The current level upto.
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   */</FONT>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> setNumOfNodes(<A HREF="../../../weka/gui/treevisualizer/Node.java.html">Node</A> r,<FONT ID="Int">int</FONT> l) {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    <A HREF="../../../weka/gui/treevisualizer/Edge.java.html">Edge</A> e;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    l++;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    m_levels[l]++;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> noa = <FONT ID="IntegerLiteral">0</FONT>;(e = r.getChild(noa)) != <FONT ID="Null">null</FONT> &amp;&amp; r.getCVisible();noa++) {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>      setNumOfNodes(e.getTarget(),l);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>  }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">107 </FONT><A NAME="107"></A>   * This function goes through and sets the position of each node
+<FONT ID="LN">108 </FONT><A NAME="108"></A>   *
+<FONT ID="LN">109 </FONT><A NAME="109"></A>   * @param r The current node upto.
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   * @param l the current level upto.
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   */</FONT>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> placer(<A HREF="../../../weka/gui/treevisualizer/Node.java.html">Node</A> r,<FONT ID="Int">int</FONT> l) {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <A HREF="../../../weka/gui/treevisualizer/Edge.java.html">Edge</A> e;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    l++;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    m_levelNode[l]++;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    r.setCenter(m_levelNode[l] * m_levels[l]);
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    r.setTop(l * m_yRatio);
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> noa = <FONT ID="IntegerLiteral">0</FONT>;(e = r.getChild(noa)) != <FONT ID="Null">null</FONT> &amp;&amp; r.getCVisible();noa++) {
+<FONT ID="LN">119 </FONT><A NAME="119"></A>      placer(e.getTarget(),l);
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>}
+<FONT ID="LN">123 </FONT><A NAME="123"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">PlaceNode1.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,423 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.gui.experiment.RunPanel (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RunPanel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    RunPanel.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 1999 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.gui.experiment;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/SerializedObject.java.html">weka.core.SerializedObject</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/Experiment.java.html">weka.experiment.Experiment</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/RemoteExperiment.java.html">weka.experiment.RemoteExperiment</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/RemoteExperimentEvent.java.html">weka.experiment.RemoteExperimentEvent</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/RemoteExperimentListener.java.html">weka.experiment.RemoteExperimentListener</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/LogPanel.java.html">weka.gui.LogPanel</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A>
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> java.awt.BorderLayout;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.awt.GridBagConstraints;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.awt.GridBagLayout;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.awt.Insets;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.awt.event.ActionEvent;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.awt.event.ActionListener;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.awt.event.WindowAdapter;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> java.awt.event.WindowEvent;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.io.BufferedInputStream;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> java.io.FileInputStream;
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> java.io.ObjectInputStream;
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Import">import</FONT> javax.swing.BorderFactory;
+<FONT ID="LN">48  </FONT><A NAME="48"></A><FONT ID="Import">import</FONT> javax.swing.JButton;
+<FONT ID="LN">49  </FONT><A NAME="49"></A><FONT ID="Import">import</FONT> javax.swing.JFrame;
+<FONT ID="LN">50  </FONT><A NAME="50"></A><FONT ID="Import">import</FONT> javax.swing.JPanel;
+<FONT ID="LN">51  </FONT><A NAME="51"></A>
+<FONT ID="LN">52  </FONT><A NAME="52"></A><FONT ID="FormalComment">/** 
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * This panel controls the running of an experiment.
+<FONT ID="LN">54  </FONT><A NAME="54"></A> *
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * @author Len Trigg (trigg@cs.waikato.ac.nz)
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * @version $Revision: 1.21 $
+<FONT ID="LN">57  </FONT><A NAME="57"></A> */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> RunPanel
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="Extends">extends</FONT> JPanel
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="Implements">implements</FONT> ActionListener {
+<FONT ID="LN">61  </FONT><A NAME="61"></A>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">1691868018596872051L</FONT>;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="FormalComment">/** The message displayed when no experiment is running */</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String NOT_RUNNING = <FONT ID="StringLiteral">"Not running"</FONT>;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="FormalComment">/** Click to start running the experiment */</FONT>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Protected">protected</FONT> JButton m_StartBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Start"</FONT>);
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="FormalComment">/** Click to signal the running experiment to halt */</FONT>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="Protected">protected</FONT> JButton m_StopBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Stop"</FONT>);
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/gui/LogPanel.java.html">LogPanel</A> m_Log = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/LogPanel.java.html">LogPanel</A>();
+<FONT ID="LN">75  </FONT><A NAME="75"></A>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="FormalComment">/** The experiment to run */</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> m_Exp;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="FormalComment">/** The thread running the experiment */</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  <FONT ID="Protected">protected</FONT> Thread m_RunThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="FormalComment">/** A pointer to the results panel */</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/gui/experiment/ResultsPanel.java.html">ResultsPanel</A> m_ResultsPanel = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="MultiLineComment">/*
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   * A class that handles running a copy of the experiment
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   * in a separate thread
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   */</FONT>
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  <FONT ID="Class">class</FONT> ExperimentRunner
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    <FONT ID="Extends">extends</FONT> Thread
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    <FONT ID="Implements">implements</FONT> Serializable {
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">5591889874714150118L</FONT>;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> m_ExpCopy;
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    <FONT ID="Public">public</FONT> ExperimentRunner(<FONT ID="Final">final</FONT> <A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> exp) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">99  </FONT><A NAME="99"></A>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>      <FONT ID="SingleLineComment">// Create a full copy using serialization
+<FONT ID="LN">101 </FONT><A NAME="101"></A></FONT>      <FONT ID="If">if</FONT> (exp == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    System.err.println(<FONT ID="StringLiteral">"Null experiment!!!"</FONT>);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    System.err.println(<FONT ID="StringLiteral">"Running experiment: "</FONT> + exp.toString());
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      }
+<FONT ID="LN">106 </FONT><A NAME="106"></A>      System.err.println(<FONT ID="StringLiteral">"Writing experiment copy"</FONT>);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>      <A HREF="../../../weka/core/SerializedObject.java.html">SerializedObject</A> so = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/SerializedObject.java.html">SerializedObject</A>(exp);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>      System.err.println(<FONT ID="StringLiteral">"Reading experiment copy"</FONT>);
+<FONT ID="LN">109 </FONT><A NAME="109"></A>      m_ExpCopy = (<A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A>) so.getObject();
+<FONT ID="LN">110 </FONT><A NAME="110"></A>      System.err.println(<FONT ID="StringLiteral">"Made experiment copy"</FONT>);
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    }
+<FONT ID="LN">112 </FONT><A NAME="112"></A>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> abortExperiment() {
+<FONT ID="LN">114 </FONT><A NAME="114"></A>      <FONT ID="If">if</FONT> (m_ExpCopy <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>) {
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    ((<A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>)m_ExpCopy).abortExperiment();
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="SingleLineComment">//  m_StartBut.setEnabled(true);
+<FONT ID="LN">117 </FONT><A NAME="117"></A></FONT>    m_StopBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="SingleLineComment">//  statusMessage(NOT_RUNNING);
+<FONT ID="LN">119 </FONT><A NAME="119"></A></FONT>      }
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">123 </FONT><A NAME="123"></A>     * Starts running the experiment.
+<FONT ID="LN">124 </FONT><A NAME="124"></A>     */</FONT>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run() {
+<FONT ID="LN">126 </FONT><A NAME="126"></A>      
+<FONT ID="LN">127 </FONT><A NAME="127"></A>      m_StartBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">128 </FONT><A NAME="128"></A>      m_StopBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">129 </FONT><A NAME="129"></A>      <FONT ID="If">if</FONT> (m_ResultsPanel != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    m_ResultsPanel.setExperiment(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    <FONT ID="If">if</FONT> (m_ExpCopy <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>) {
+<FONT ID="LN">134 </FONT><A NAME="134"></A>      <FONT ID="SingleLineComment">// add a listener
+<FONT ID="LN">135 </FONT><A NAME="135"></A></FONT>      System.err.println(<FONT ID="StringLiteral">"Adding a listener"</FONT>);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>      ((<A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>)m_ExpCopy).
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        addRemoteExperimentListener(<FONT ID="New">new</FONT> <A HREF="../../../weka/experiment/RemoteExperimentListener.java.html">RemoteExperimentListener</A>() {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> remoteExperimentStatus(<A HREF="../../../weka/experiment/RemoteExperimentEvent.java.html">RemoteExperimentEvent</A> e) {
+<FONT ID="LN">139 </FONT><A NAME="139"></A>          <FONT ID="If">if</FONT> (e.m_statusMessage) {
+<FONT ID="LN">140 </FONT><A NAME="140"></A>            statusMessage(e.m_messageString);
+<FONT ID="LN">141 </FONT><A NAME="141"></A>          }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>          <FONT ID="If">if</FONT> (e.m_logMessage) {
+<FONT ID="LN">143 </FONT><A NAME="143"></A>            logMessage(e.m_messageString);
+<FONT ID="LN">144 </FONT><A NAME="144"></A>          }
+<FONT ID="LN">145 </FONT><A NAME="145"></A>          <FONT ID="If">if</FONT> (e.m_experimentFinished) {
+<FONT ID="LN">146 </FONT><A NAME="146"></A>            m_RunThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>            m_StartBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">148 </FONT><A NAME="148"></A>            m_StopBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">149 </FONT><A NAME="149"></A>            statusMessage(NOT_RUNNING);
+<FONT ID="LN">150 </FONT><A NAME="150"></A>          }
+<FONT ID="LN">151 </FONT><A NAME="151"></A>        }
+<FONT ID="LN">152 </FONT><A NAME="152"></A>          });
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    logMessage(<FONT ID="StringLiteral">"Started"</FONT>);
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    statusMessage(<FONT ID="StringLiteral">"Initializing..."</FONT>);
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    m_ExpCopy.initialize();
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    <FONT ID="Int">int</FONT> errors = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="If">if</FONT> (!(m_ExpCopy <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>)) {
+<FONT ID="LN">159 </FONT><A NAME="159"></A>      statusMessage(<FONT ID="StringLiteral">"Iterating..."</FONT>);
+<FONT ID="LN">160 </FONT><A NAME="160"></A>      <FONT ID="While">while</FONT> (m_RunThread != <FONT ID="Null">null</FONT> &amp;&amp; m_ExpCopy.hasMoreIterations()) {
+<FONT ID="LN">161 </FONT><A NAME="161"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">162 </FONT><A NAME="162"></A>          String current = <FONT ID="StringLiteral">"Iteration:"</FONT>;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>          <FONT ID="If">if</FONT> (m_ExpCopy.getUsePropertyIterator()) {
+<FONT ID="LN">164 </FONT><A NAME="164"></A>        <FONT ID="Int">int</FONT> cnum = m_ExpCopy.getCurrentPropertyNumber();
+<FONT ID="LN">165 </FONT><A NAME="165"></A>        String ctype = m_ExpCopy.getPropertyArray().getClass().getComponentType().getName();
+<FONT ID="LN">166 </FONT><A NAME="166"></A>        <FONT ID="Int">int</FONT> lastDot = ctype.lastIndexOf(<FONT ID="CharacerLiteral">'.'</FONT>);
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        <FONT ID="If">if</FONT> (lastDot != -<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">168 </FONT><A NAME="168"></A>          ctype = ctype.substring(lastDot + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        }
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        String cname = <FONT ID="StringLiteral">" "</FONT> + ctype + <FONT ID="StringLiteral">"="</FONT>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>          + (cnum + <FONT ID="IntegerLiteral">1</FONT>) + <FONT ID="StringLiteral">":"</FONT>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>          + m_ExpCopy.getPropertyArrayValue(cnum).getClass().getName();
+<FONT ID="LN">173 </FONT><A NAME="173"></A>        current += cname;
+<FONT ID="LN">174 </FONT><A NAME="174"></A>          }
+<FONT ID="LN">175 </FONT><A NAME="175"></A>          String dname = ((File) m_ExpCopy.getDatasets()
+<FONT ID="LN">176 </FONT><A NAME="176"></A>                  .elementAt(m_ExpCopy.getCurrentDatasetNumber()))
+<FONT ID="LN">177 </FONT><A NAME="177"></A>        .getName();
+<FONT ID="LN">178 </FONT><A NAME="178"></A>          current += <FONT ID="StringLiteral">" Dataset="</FONT> + dname
+<FONT ID="LN">179 </FONT><A NAME="179"></A>        + <FONT ID="StringLiteral">" Run="</FONT> + (m_ExpCopy.getCurrentRunNumber());
+<FONT ID="LN">180 </FONT><A NAME="180"></A>          statusMessage(current);
+<FONT ID="LN">181 </FONT><A NAME="181"></A>          m_ExpCopy.nextIteration();
+<FONT ID="LN">182 </FONT><A NAME="182"></A>        } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">183 </FONT><A NAME="183"></A>          errors ++;
+<FONT ID="LN">184 </FONT><A NAME="184"></A>          logMessage(ex.getMessage());
+<FONT ID="LN">185 </FONT><A NAME="185"></A>          ex.printStackTrace();
+<FONT ID="LN">186 </FONT><A NAME="186"></A>          <FONT ID="Boolean">boolean</FONT> continueAfterError = <FONT ID="False">false</FONT>;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>          <FONT ID="If">if</FONT> (continueAfterError) {
+<FONT ID="LN">188 </FONT><A NAME="188"></A>        m_ExpCopy.advanceCounters(); <FONT ID="SingleLineComment">// Try to keep plowing through
+<FONT ID="LN">189 </FONT><A NAME="189"></A></FONT>          } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>        m_RunThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">191 </FONT><A NAME="191"></A>          }
+<FONT ID="LN">192 </FONT><A NAME="192"></A>        }
+<FONT ID="LN">193 </FONT><A NAME="193"></A>      }
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      statusMessage(<FONT ID="StringLiteral">"Postprocessing..."</FONT>);
+<FONT ID="LN">195 </FONT><A NAME="195"></A>      m_ExpCopy.postProcess();
+<FONT ID="LN">196 </FONT><A NAME="196"></A>      <FONT ID="If">if</FONT> (m_RunThread == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">197 </FONT><A NAME="197"></A>        logMessage(<FONT ID="StringLiteral">"Interrupted"</FONT>);
+<FONT ID="LN">198 </FONT><A NAME="198"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">199 </FONT><A NAME="199"></A>        logMessage(<FONT ID="StringLiteral">"Finished"</FONT>);
+<FONT ID="LN">200 </FONT><A NAME="200"></A>      }
+<FONT ID="LN">201 </FONT><A NAME="201"></A>      <FONT ID="If">if</FONT> (errors == <FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">202 </FONT><A NAME="202"></A>        logMessage(<FONT ID="StringLiteral">"There was "</FONT> + errors + <FONT ID="StringLiteral">" error"</FONT>);
+<FONT ID="LN">203 </FONT><A NAME="203"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">204 </FONT><A NAME="204"></A>        logMessage(<FONT ID="StringLiteral">"There were "</FONT> + errors + <FONT ID="StringLiteral">" errors"</FONT>);
+<FONT ID="LN">205 </FONT><A NAME="205"></A>      }
+<FONT ID="LN">206 </FONT><A NAME="206"></A>      statusMessage(NOT_RUNNING);
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">208 </FONT><A NAME="208"></A>      statusMessage(<FONT ID="StringLiteral">"Remote experiment running..."</FONT>);
+<FONT ID="LN">209 </FONT><A NAME="209"></A>      ((<A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>)m_ExpCopy).runExperiment();
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    }
+<FONT ID="LN">211 </FONT><A NAME="211"></A>      } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    ex.printStackTrace();
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    System.err.println(ex.getMessage());
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    statusMessage(ex.getMessage());
+<FONT ID="LN">215 </FONT><A NAME="215"></A>      } <FONT ID="Finally">finally</FONT> {
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    <FONT ID="If">if</FONT> (m_ResultsPanel != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">217 </FONT><A NAME="217"></A>      m_ResultsPanel.setExperiment(m_ExpCopy);
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    }
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    <FONT ID="If">if</FONT> (!(m_ExpCopy <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>)) {
+<FONT ID="LN">220 </FONT><A NAME="220"></A>      m_RunThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">221 </FONT><A NAME="221"></A>      m_StartBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">222 </FONT><A NAME="222"></A>      m_StopBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>      System.err.println(<FONT ID="StringLiteral">"Done..."</FONT>);
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    }
+<FONT ID="LN">225 </FONT><A NAME="225"></A>      }
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    }
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  }
+<FONT ID="LN">228 </FONT><A NAME="228"></A>
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   * Sets the pointer to the results panel.
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   */</FONT>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setResultsPanel(<A HREF="../../../weka/gui/experiment/ResultsPanel.java.html">ResultsPanel</A> rp) {
+<FONT ID="LN">233 </FONT><A NAME="233"></A>
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    m_ResultsPanel = rp;
+<FONT ID="LN">235 </FONT><A NAME="235"></A>  }
+<FONT ID="LN">236 </FONT><A NAME="236"></A>  
+<FONT ID="LN">237 </FONT><A NAME="237"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * Creates the run panel with no initial experiment.
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   */</FONT>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="Public">public</FONT> RunPanel() {
+<FONT ID="LN">241 </FONT><A NAME="241"></A>
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    m_StartBut.addActionListener(<FONT ID="This">this</FONT>);
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    m_StopBut.addActionListener(<FONT ID="This">this</FONT>);
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    m_StartBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    m_StopBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    m_StartBut.setMnemonic(<FONT ID="CharacerLiteral">'S'</FONT>);
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    m_StopBut.setMnemonic(<FONT ID="CharacerLiteral">'t'</FONT>);
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    m_Log.statusMessage(NOT_RUNNING);
+<FONT ID="LN">249 </FONT><A NAME="249"></A>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    <FONT ID="SingleLineComment">// Set the GUI layout
+<FONT ID="LN">251 </FONT><A NAME="251"></A></FONT>    JPanel controls = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    GridBagLayout gb = <FONT ID="New">new</FONT> GridBagLayout();
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    GridBagConstraints constraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    controls.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">5</FONT>));
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    <FONT ID="SingleLineComment">//    controls.setLayout(new GridLayout(1,2));
+<FONT ID="LN">256 </FONT><A NAME="256"></A></FONT>    controls.setLayout(gb);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    constraints.gridx=<FONT ID="IntegerLiteral">0</FONT>;constraints.gridy=<FONT ID="IntegerLiteral">0</FONT>;constraints.weightx=<FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    constraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    constraints.gridwidth=<FONT ID="IntegerLiteral">1</FONT>;constraints.gridheight=<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">260 </FONT><A NAME="260"></A>    constraints.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">2</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">2</FONT>);
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    controls.add(m_StartBut,constraints);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    constraints.gridx=<FONT ID="IntegerLiteral">1</FONT>;constraints.gridy=<FONT ID="IntegerLiteral">0</FONT>;constraints.weightx=<FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    constraints.gridwidth=<FONT ID="IntegerLiteral">1</FONT>;constraints.gridheight=<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    controls.add(m_StopBut,constraints);
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    add(controls, BorderLayout.NORTH);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    add(m_Log, BorderLayout.CENTER);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  }
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    
+<FONT ID="LN">270 </FONT><A NAME="270"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   * Creates the panel with the supplied initial experiment.
+<FONT ID="LN">272 </FONT><A NAME="272"></A>   *
+<FONT ID="LN">273 </FONT><A NAME="273"></A>   * @param exp a value of type 'Experiment'
+<FONT ID="LN">274 </FONT><A NAME="274"></A>   */</FONT>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>  <FONT ID="Public">public</FONT> RunPanel(<A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> exp) {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    <FONT ID="This">this</FONT>();
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    setExperiment(exp);
+<FONT ID="LN">279 </FONT><A NAME="279"></A>  }
+<FONT ID="LN">280 </FONT><A NAME="280"></A>
+<FONT ID="LN">281 </FONT><A NAME="281"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">282 </FONT><A NAME="282"></A>   * Sets the experiment the panel operates on.
+<FONT ID="LN">283 </FONT><A NAME="283"></A>   *
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   * @param exp a value of type 'Experiment'
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   */</FONT>
+<FONT ID="LN">286 </FONT><A NAME="286"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setExperiment(<A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> exp) {
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    m_Exp = exp;
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    m_StartBut.setEnabled(m_RunThread == <FONT ID="Null">null</FONT>);
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    m_StopBut.setEnabled(m_RunThread != <FONT ID="Null">null</FONT>);
+<FONT ID="LN">291 </FONT><A NAME="291"></A>  }
+<FONT ID="LN">292 </FONT><A NAME="292"></A>  
+<FONT ID="LN">293 </FONT><A NAME="293"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">294 </FONT><A NAME="294"></A>   * Controls starting and stopping the experiment.
+<FONT ID="LN">295 </FONT><A NAME="295"></A>   *
+<FONT ID="LN">296 </FONT><A NAME="296"></A>   * @param e a value of type 'ActionEvent'
+<FONT ID="LN">297 </FONT><A NAME="297"></A>   */</FONT>
+<FONT ID="LN">298 </FONT><A NAME="298"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">299 </FONT><A NAME="299"></A>
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    <FONT ID="If">if</FONT> (e.getSource() == m_StartBut) {
+<FONT ID="LN">301 </FONT><A NAME="301"></A>      <FONT ID="If">if</FONT> (m_RunThread == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">303 </FONT><A NAME="303"></A>      m_RunThread = <FONT ID="New">new</FONT> ExperimentRunner(m_Exp);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>      m_RunThread.setPriority(Thread.MIN_PRIORITY); <FONT ID="SingleLineComment">// UI has most priority
+<FONT ID="LN">305 </FONT><A NAME="305"></A></FONT>      m_RunThread.start();
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">307 </FONT><A NAME="307"></A>          ex.printStackTrace();
+<FONT ID="LN">308 </FONT><A NAME="308"></A>      logMessage(<FONT ID="StringLiteral">"Problem creating experiment copy to run: "</FONT>
+<FONT ID="LN">309 </FONT><A NAME="309"></A>             + ex.getMessage());
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    }
+<FONT ID="LN">311 </FONT><A NAME="311"></A>      }
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (e.getSource() == m_StopBut) {
+<FONT ID="LN">313 </FONT><A NAME="313"></A>      m_StopBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      logMessage(<FONT ID="StringLiteral">"User aborting experiment. "</FONT>);
+<FONT ID="LN">315 </FONT><A NAME="315"></A>      <FONT ID="If">if</FONT> (m_Exp <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>) {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    logMessage(<FONT ID="StringLiteral">"Waiting for remote tasks to "</FONT>
+<FONT ID="LN">317 </FONT><A NAME="317"></A>           +<FONT ID="StringLiteral">"complete..."</FONT>);
+<FONT ID="LN">318 </FONT><A NAME="318"></A>      }
+<FONT ID="LN">319 </FONT><A NAME="319"></A>      ((ExperimentRunner)m_RunThread).abortExperiment();
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      <FONT ID="SingleLineComment">// m_RunThread.stop() ??
+<FONT ID="LN">321 </FONT><A NAME="321"></A></FONT>      m_RunThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    }
+<FONT ID="LN">323 </FONT><A NAME="323"></A>  }
+<FONT ID="LN">324 </FONT><A NAME="324"></A>  
+<FONT ID="LN">325 </FONT><A NAME="325"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">326 </FONT><A NAME="326"></A>   * Sends the supplied message to the log panel log area.
+<FONT ID="LN">327 </FONT><A NAME="327"></A>   *
+<FONT ID="LN">328 </FONT><A NAME="328"></A>   * @param message the message to log
+<FONT ID="LN">329 </FONT><A NAME="329"></A>   */</FONT>
+<FONT ID="LN">330 </FONT><A NAME="330"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> logMessage(String message) {
+<FONT ID="LN">331 </FONT><A NAME="331"></A>
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    m_Log.logMessage(message);
+<FONT ID="LN">333 </FONT><A NAME="333"></A>  }
+<FONT ID="LN">334 </FONT><A NAME="334"></A>
+<FONT ID="LN">335 </FONT><A NAME="335"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">336 </FONT><A NAME="336"></A>   * Sends the supplied message to the log panel status line.
+<FONT ID="LN">337 </FONT><A NAME="337"></A>   *
+<FONT ID="LN">338 </FONT><A NAME="338"></A>   * @param message the status message
+<FONT ID="LN">339 </FONT><A NAME="339"></A>   */</FONT>
+<FONT ID="LN">340 </FONT><A NAME="340"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> statusMessage(String message) {
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    m_Log.statusMessage(message);
+<FONT ID="LN">343 </FONT><A NAME="343"></A>  }
+<FONT ID="LN">344 </FONT><A NAME="344"></A>  
+<FONT ID="LN">345 </FONT><A NAME="345"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">346 </FONT><A NAME="346"></A>   * Tests out the run panel from the command line.
+<FONT ID="LN">347 </FONT><A NAME="347"></A>   *
+<FONT ID="LN">348 </FONT><A NAME="348"></A>   * @param args may contain options specifying an experiment to run.
+<FONT ID="LN">349 </FONT><A NAME="349"></A>   */</FONT>
+<FONT ID="LN">350 </FONT><A NAME="350"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String [] args) {
+<FONT ID="LN">351 </FONT><A NAME="351"></A>
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">353 </FONT><A NAME="353"></A>      <FONT ID="Boolean">boolean</FONT> readExp = Utils.getFlag(<FONT ID="CharacerLiteral">'l'</FONT>, args);
+<FONT ID="LN">354 </FONT><A NAME="354"></A>      <FONT ID="Final">final</FONT> String expFile = Utils.getOption(<FONT ID="CharacerLiteral">'f'</FONT>, args);
+<FONT ID="LN">355 </FONT><A NAME="355"></A>      <FONT ID="If">if</FONT> (readExp &amp;&amp; (expFile.length() == <FONT ID="IntegerLiteral">0</FONT>)) {
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"A filename must be given with the -f option"</FONT>);
+<FONT ID="LN">357 </FONT><A NAME="357"></A>      }
+<FONT ID="LN">358 </FONT><A NAME="358"></A>      <A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> exp = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">359 </FONT><A NAME="359"></A>      <FONT ID="If">if</FONT> (readExp) {
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    FileInputStream fi = <FONT ID="New">new</FONT> FileInputStream(expFile);
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    ObjectInputStream oi = <FONT ID="New">new</FONT> ObjectInputStream(
+<FONT ID="LN">362 </FONT><A NAME="362"></A>                   <FONT ID="New">new</FONT> BufferedInputStream(fi));
+<FONT ID="LN">363 </FONT><A NAME="363"></A>    <A HREF="../../../weka/core/SerializedObject.java.html">Object</A> to = oi.readObject();
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    <FONT ID="If">if</FONT> (to <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>) {
+<FONT ID="LN">365 </FONT><A NAME="365"></A>      exp = (<A HREF="../../../weka/experiment/RemoteExperiment.java.html">RemoteExperiment</A>)to;
+<FONT ID="LN">366 </FONT><A NAME="366"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">367 </FONT><A NAME="367"></A>      exp = (<A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A>)to;
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    }
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    oi.close();
+<FONT ID="LN">370 </FONT><A NAME="370"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    exp = <FONT ID="New">new</FONT> <A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A>();
+<FONT ID="LN">372 </FONT><A NAME="372"></A>      }
+<FONT ID="LN">373 </FONT><A NAME="373"></A>      System.err.println(<FONT ID="StringLiteral">"Initial Experiment:\n"</FONT> + exp.toString());
+<FONT ID="LN">374 </FONT><A NAME="374"></A>      <FONT ID="Final">final</FONT> JFrame jf = <FONT ID="New">new</FONT> JFrame(<FONT ID="StringLiteral">"Run Weka Experiment"</FONT>);
+<FONT ID="LN">375 </FONT><A NAME="375"></A>      jf.getContentPane().setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">376 </FONT><A NAME="376"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../weka/gui/experiment/RunPanel.java.html">RunPanel</A> sp = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/experiment/RunPanel.java.html">RunPanel</A>(exp);
+<FONT ID="LN">377 </FONT><A NAME="377"></A>      <FONT ID="SingleLineComment">//sp.setBorder(BorderFactory.createTitledBorder("Setup"));
+<FONT ID="LN">378 </FONT><A NAME="378"></A></FONT>      jf.getContentPane().add(sp, BorderLayout.CENTER);
+<FONT ID="LN">379 </FONT><A NAME="379"></A>      jf.addWindowListener(<FONT ID="New">new</FONT> WindowAdapter() {
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> windowClosing(WindowEvent e) {
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      System.err.println(<FONT ID="StringLiteral">"\nExperiment Configuration\n"</FONT>
+<FONT ID="LN">382 </FONT><A NAME="382"></A>                 + sp.m_Exp.toString());
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      jf.dispose();
+<FONT ID="LN">384 </FONT><A NAME="384"></A>      System.exit(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    }
+<FONT ID="LN">386 </FONT><A NAME="386"></A>      });
+<FONT ID="LN">387 </FONT><A NAME="387"></A>      jf.pack();
+<FONT ID="LN">388 </FONT><A NAME="388"></A>      jf.setVisible(<FONT ID="True">true</FONT>);
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">390 </FONT><A NAME="390"></A>      ex.printStackTrace();
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      System.err.println(ex.getMessage());
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    }
+<FONT ID="LN">393 </FONT><A NAME="393"></A>  }
+<FONT ID="LN">394 </FONT><A NAME="394"></A>}
+<FONT ID="LN">395 </FONT><A NAME="395"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RunPanel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

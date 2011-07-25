@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.filters.supervised.attribute.ClassOrderTest (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ClassOrderTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * Copyright (C) 2005 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">19  </FONT><A NAME="19"></A> */</FONT>
+<FONT ID="LN">20  </FONT><A NAME="20"></A>
+<FONT ID="LN">21  </FONT><A NAME="21"></A><FONT ID="Package">package</FONT> weka.filters.supervised.attribute;
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/filters/AbstractFilterTest.java.html">weka.filters.AbstractFilterTest</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/filters/Filter.java.html">weka.filters.Filter</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> junit.framework.Test;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> junit.framework.TestSuite;
+<FONT ID="LN">29  </FONT><A NAME="29"></A>
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * Tests ClassOrder. Run from the command line with: &lt;p/&gt;
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * java weka.filters.supervised.attribute.ClassOrderTest
+<FONT ID="LN">33  </FONT><A NAME="33"></A> *
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * @author FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * @version $Revision: 1.2 $
+<FONT ID="LN">36  </FONT><A NAME="36"></A> */</FONT>
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ClassOrderTest 
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../../../weka/filters/AbstractFilterTest.java.html">AbstractFilterTest</A> {
+<FONT ID="LN">39  </FONT><A NAME="39"></A>  
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  <FONT ID="FormalComment">/** the class index to use for the tests */</FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_ClassIndex = <FONT ID="IntegerLiteral">4</FONT>;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="Public">public</FONT> ClassOrderTest(String name) { 
+<FONT ID="LN">44  </FONT><A NAME="44"></A>    <FONT ID="Super">super</FONT>(name);  
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  }
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="FormalComment">/** Need to set the class index */</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setUp() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="Super">super</FONT>.setUp();
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    m_Instances.setClassIndex(m_ClassIndex);
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  }
+<FONT ID="LN">52  </FONT><A NAME="52"></A>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  <FONT ID="FormalComment">/** Creates a default ClassOrder */</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../weka/filters/Filter.java.html">Filter</A> getFilter() {
+<FONT ID="LN">55  </FONT><A NAME="55"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../weka/filters/supervised/attribute/ClassOrder.java.html">ClassOrder</A>();
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  }
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">59  </FONT><A NAME="59"></A>   * compares the generated dataset with the original one
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   */</FONT>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> performTests(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> result) {
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    assertEquals(m_Instances.numAttributes(), result.numAttributes());
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    assertEquals(m_Instances.numInstances(), result.numInstances());
+<FONT ID="LN">64  </FONT><A NAME="64"></A>    <FONT ID="SingleLineComment">// None of the attributes should have changed
+<FONT ID="LN">65  </FONT><A NAME="65"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; result.numAttributes(); i++) {
+<FONT ID="LN">66  </FONT><A NAME="66"></A>      assertEquals(m_Instances.attribute(i).type(), result.attribute(i).type());
+<FONT ID="LN">67  </FONT><A NAME="67"></A>      assertEquals(m_Instances.attribute(i).name(), result.attribute(i).name());
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    }
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="SingleLineComment">// did the order change?
+<FONT ID="LN">70  </FONT><A NAME="70"></A></FONT>    <FONT ID="Boolean">boolean</FONT> orderEqual = <FONT ID="True">true</FONT>;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; result.numClasses(); i++) {
+<FONT ID="LN">72  </FONT><A NAME="72"></A>      <FONT ID="If">if</FONT> (!m_Instances.classAttribute().value(i).equals(
+<FONT ID="LN">73  </FONT><A NAME="73"></A>            result.classAttribute().value(i))) {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>        orderEqual = <FONT ID="False">false</FONT>;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">76  </FONT><A NAME="76"></A>      }
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    }
+<FONT ID="LN">78  </FONT><A NAME="78"></A>    <FONT ID="If">if</FONT> (orderEqual)
+<FONT ID="LN">79  </FONT><A NAME="79"></A>      fail(<FONT ID="StringLiteral">"Order wasn't changed!"</FONT>);
+<FONT ID="LN">80  </FONT><A NAME="80"></A>  }
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   * tests the RANDOM order
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   */</FONT>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testRandom() {
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    m_Filter = getFilter();
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    ((<A HREF="../../../../weka/filters/supervised/attribute/ClassOrder.java.html">ClassOrder</A>) m_Filter).setClassOrder(ClassOrder.RANDOM);
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <A HREF="../../../../weka/core/Instances.java.html">Instances</A> result = useFilter();
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    performTests(result);
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">93  </FONT><A NAME="93"></A>   * tests the FREQ_ASCEND order
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   */</FONT>
+<FONT ID="LN">95  </FONT><A NAME="95"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testFreqAscend() {
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    m_Filter = getFilter();
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    ((<A HREF="../../../../weka/filters/supervised/attribute/ClassOrder.java.html">ClassOrder</A>) m_Filter).setClassOrder(ClassOrder.FREQ_ASCEND);
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    <A HREF="../../../../weka/core/Instances.java.html">Instances</A> result = useFilter();
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    performTests(result);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  }
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * tests the FREQ_DESCEND order
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   */</FONT>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> testFreqDescend() {
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    m_Filter = getFilter();
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    ((<A HREF="../../../../weka/filters/supervised/attribute/ClassOrder.java.html">ClassOrder</A>) m_Filter).setClassOrder(ClassOrder.FREQ_DESCEND);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    <A HREF="../../../../weka/core/Instances.java.html">Instances</A> result = useFilter();
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    performTests(result);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  }
+<FONT ID="LN">111 </FONT><A NAME="111"></A>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../weka/filters/AbstractFilterTest.java.html">Test</A> suite() {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> TestSuite(<A HREF="../../../../weka/filters/supervised/attribute/ClassOrderTest.java.html">ClassOrderTest</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  }
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args){
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    junit.textui.TestRunner.run(suite());
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  }
+<FONT ID="LN">119 </FONT><A NAME="119"></A>}
+<FONT ID="LN">120 </FONT><A NAME="120"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ClassOrderTest.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

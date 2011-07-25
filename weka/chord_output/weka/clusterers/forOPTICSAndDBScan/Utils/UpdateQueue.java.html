@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.clusterers.forOPTICSAndDBScan.Utils.UpdateQueue (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">UpdateQueue.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    Copyright (C) 2004
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    &amp; Matthias Schubert (schubert@dbs.ifi.lmu.de)
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *    &amp; Zhanna Melnikova-Albrecht (melnikov@cip.ifi.lmu.de)
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *    &amp; Rainer Holzmann (holzmann@cip.ifi.lmu.de)
+<FONT ID="LN">22  </FONT><A NAME="22"></A> */</FONT>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Package">package</FONT> weka.clusterers.forOPTICSAndDBScan.Utils;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionHandler.java.html">weka.core.RevisionHandler</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A>
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.util.TreeMap;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * &lt;p&gt;
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * UpdateQueue.java &lt;br/&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * Authors: Rainer Holzmann, Zhanna Melnikova-Albrecht, Matthias Schubert &lt;br/&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * Date: Aug 27, 2004 &lt;br/&gt;
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * Time: 5:36:35 PM &lt;br/&gt;
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * $ Revision 1.4 $ &lt;br/&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * &lt;/p&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A> *
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * @author Matthias Schubert (schubert@dbs.ifi.lmu.de)
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * @author Zhanna Melnikova-Albrecht (melnikov@cip.ifi.lmu.de)
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * @author Rainer Holzmann (holzmann@cip.ifi.lmu.de)
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * @version $Revision: 1.3 $
+<FONT ID="LN">45  </FONT><A NAME="45"></A> */</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> UpdateQueue
+<FONT ID="LN">47  </FONT><A NAME="47"></A>    <FONT ID="Implements">implements</FONT> <A HREF="../../../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">50  </FONT><A NAME="50"></A>     * Used to store the binary heap
+<FONT ID="LN">51  </FONT><A NAME="51"></A>     */</FONT>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>    <FONT ID="Private">private</FONT> ArrayList queue;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">55  </FONT><A NAME="55"></A>     * Used to get efficient access to the stored Objects
+<FONT ID="LN">56  </FONT><A NAME="56"></A>     */</FONT>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>    <FONT ID="Private">private</FONT> TreeMap objectPositionsInHeap;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>    <FONT ID="SingleLineComment">// *****************************************************************************************************************
+<FONT ID="LN">60  </FONT><A NAME="60"></A></FONT>    <FONT ID="SingleLineComment">// constructors
+<FONT ID="LN">61  </FONT><A NAME="61"></A></FONT>    <FONT ID="SingleLineComment">// *****************************************************************************************************************
+<FONT ID="LN">62  </FONT><A NAME="62"></A></FONT>
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">64  </FONT><A NAME="64"></A>     * Creates a new PriorityQueue (backed on a binary heap) with the ability to efficiently
+<FONT ID="LN">65  </FONT><A NAME="65"></A>     * update the priority of the stored objects in the heap. The ascending (!) queue is
+<FONT ID="LN">66  </FONT><A NAME="66"></A>     * dynamically growing and shrinking.
+<FONT ID="LN">67  </FONT><A NAME="67"></A>     */</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="Public">public</FONT> UpdateQueue() {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>        queue = <FONT ID="New">new</FONT> ArrayList();
+<FONT ID="LN">70  </FONT><A NAME="70"></A>        objectPositionsInHeap = <FONT ID="New">new</FONT> TreeMap();
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    }
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    <FONT ID="SingleLineComment">// *****************************************************************************************************************
+<FONT ID="LN">74  </FONT><A NAME="74"></A></FONT>    <FONT ID="SingleLineComment">// methods
+<FONT ID="LN">75  </FONT><A NAME="75"></A></FONT>    <FONT ID="SingleLineComment">// *****************************************************************************************************************
+<FONT ID="LN">76  </FONT><A NAME="76"></A></FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">78  </FONT><A NAME="78"></A>     * Adds a new Object to the queue
+<FONT ID="LN">79  </FONT><A NAME="79"></A>     * @param priority The priority associated with the object (in this case: the reachability-distance)
+<FONT ID="LN">80  </FONT><A NAME="80"></A>     * @param objectKey The key for this object
+<FONT ID="LN">81  </FONT><A NAME="81"></A>     * @param o
+<FONT ID="LN">82  </FONT><A NAME="82"></A>     */</FONT>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(<FONT ID="Double">double</FONT> priority, Object o, String objectKey) {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        <FONT ID="Int">int</FONT> objectPosition = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>        <FONT ID="If">if</FONT> (objectPositionsInHeap.containsKey(objectKey)) {
+<FONT ID="LN">87  </FONT><A NAME="87"></A>            objectPosition = ((Integer) objectPositionsInHeap.get(objectKey)).intValue();
+<FONT ID="LN">88  </FONT><A NAME="88"></A>            <FONT ID="If">if</FONT> (((<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(objectPosition)).getPriority() &lt;= priority) <FONT ID="Return">return</FONT>;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>            queue.set(objectPosition++, <FONT ID="New">new</FONT> <A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>(priority, o, objectKey));
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">91  </FONT><A NAME="91"></A>            queue.add(<FONT ID="New">new</FONT> <A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>(priority, o, objectKey));
+<FONT ID="LN">92  </FONT><A NAME="92"></A>            objectPosition = size();
+<FONT ID="LN">93  </FONT><A NAME="93"></A>        }
+<FONT ID="LN">94  </FONT><A NAME="94"></A>        heapValueUpwards(objectPosition);
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    }
+<FONT ID="LN">96  </FONT><A NAME="96"></A>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">98  </FONT><A NAME="98"></A>     * Returns the priority for the object at the specified index
+<FONT ID="LN">99  </FONT><A NAME="99"></A>     * @param index the index of the object
+<FONT ID="LN">100 </FONT><A NAME="100"></A>     * @return priority
+<FONT ID="LN">101 </FONT><A NAME="101"></A>     */</FONT>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getPriority(<FONT ID="Int">int</FONT> index) {
+<FONT ID="LN">103 </FONT><A NAME="103"></A>        <FONT ID="Return">return</FONT> ((<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(index)).getPriority();
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">107 </FONT><A NAME="107"></A>     * Restores the heap after inserting a new object
+<FONT ID="LN">108 </FONT><A NAME="108"></A>     */</FONT>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> heapValueUpwards(<FONT ID="Int">int</FONT> pos) {
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        <FONT ID="Int">int</FONT> a = pos;
+<FONT ID="LN">111 </FONT><A NAME="111"></A>        <FONT ID="Int">int</FONT> c = a / <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">112 </FONT><A NAME="112"></A>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>        <A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A> recentlyInsertedElement = (<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(a - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>
+<FONT ID="LN">115 </FONT><A NAME="115"></A>        <FONT ID="FormalComment">/** ascending order! */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>        <FONT ID="While">while</FONT> (c &gt; <FONT ID="IntegerLiteral">0</FONT> &amp;&amp; getPriority(c - <FONT ID="IntegerLiteral">1</FONT>) &gt; recentlyInsertedElement.getPriority()) {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>            queue.set(a - <FONT ID="IntegerLiteral">1</FONT>, queue.get(c - <FONT ID="IntegerLiteral">1</FONT>));       <FONT ID="SingleLineComment">//shift parent-node down
+<FONT ID="LN">118 </FONT><A NAME="118"></A></FONT>            objectPositionsInHeap.put(((<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(a - <FONT ID="IntegerLiteral">1</FONT>)).getObjectKey(), <FONT ID="New">new</FONT> Integer(a - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">119 </FONT><A NAME="119"></A>            a = c;                                    <FONT ID="SingleLineComment">//(c &lt;= 0) =&gt; no parent-node remains
+<FONT ID="LN">120 </FONT><A NAME="120"></A></FONT>            c = a / <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>        }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>        queue.set(a - <FONT ID="IntegerLiteral">1</FONT>, recentlyInsertedElement);
+<FONT ID="LN">123 </FONT><A NAME="123"></A>        objectPositionsInHeap.put(((<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(a - <FONT ID="IntegerLiteral">1</FONT>)).getObjectKey(), <FONT ID="New">new</FONT> Integer(a - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    }
+<FONT ID="LN">125 </FONT><A NAME="125"></A>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">127 </FONT><A NAME="127"></A>     * Restores the heap after removing the next element
+<FONT ID="LN">128 </FONT><A NAME="128"></A>     */</FONT>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> heapValueDownwards() {
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        <FONT ID="Int">int</FONT> a = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">131 </FONT><A NAME="131"></A>        <FONT ID="Int">int</FONT> c = <FONT ID="IntegerLiteral">2</FONT> * a;           <FONT ID="SingleLineComment">//descendant
+<FONT ID="LN">132 </FONT><A NAME="132"></A></FONT>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>        <A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A> updateQueueElement = (<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(a - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>        <FONT ID="If">if</FONT> (c &lt; size() &amp;&amp; (getPriority(c) &lt; getPriority(c - <FONT ID="IntegerLiteral">1</FONT>))) c++;
+<FONT ID="LN">136 </FONT><A NAME="136"></A>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>        <FONT ID="While">while</FONT> (c &lt;= size() &amp;&amp; getPriority(c - <FONT ID="IntegerLiteral">1</FONT>) &lt; updateQueueElement.getPriority()) {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>            queue.set(a - <FONT ID="IntegerLiteral">1</FONT>, queue.get(c - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">139 </FONT><A NAME="139"></A>            objectPositionsInHeap.put(((<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(a - <FONT ID="IntegerLiteral">1</FONT>)).getObjectKey(), <FONT ID="New">new</FONT> Integer(a - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">140 </FONT><A NAME="140"></A>            a = c;
+<FONT ID="LN">141 </FONT><A NAME="141"></A>            c = <FONT ID="IntegerLiteral">2</FONT> * a;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>            <FONT ID="If">if</FONT> (c &lt; size() &amp;&amp; (getPriority(c) &lt; getPriority(c - <FONT ID="IntegerLiteral">1</FONT>))) c++;
+<FONT ID="LN">143 </FONT><A NAME="143"></A>        }
+<FONT ID="LN">144 </FONT><A NAME="144"></A>        queue.set(a - <FONT ID="IntegerLiteral">1</FONT>, updateQueueElement);
+<FONT ID="LN">145 </FONT><A NAME="145"></A>        objectPositionsInHeap.put(((<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(a - <FONT ID="IntegerLiteral">1</FONT>)).getObjectKey(), <FONT ID="New">new</FONT> Integer(a - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    }
+<FONT ID="LN">147 </FONT><A NAME="147"></A>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">149 </FONT><A NAME="149"></A>     * Returns the queue's size
+<FONT ID="LN">150 </FONT><A NAME="150"></A>     * @return size
+<FONT ID="LN">151 </FONT><A NAME="151"></A>     */</FONT>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> size() {
+<FONT ID="LN">153 </FONT><A NAME="153"></A>        <FONT ID="Return">return</FONT> queue.size();
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    }
+<FONT ID="LN">155 </FONT><A NAME="155"></A>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">157 </FONT><A NAME="157"></A>     * Tests, if the queue has some more elements left
+<FONT ID="LN">158 </FONT><A NAME="158"></A>     * @return true, if there are any elements left, else false
+<FONT ID="LN">159 </FONT><A NAME="159"></A>     */</FONT>
+<FONT ID="LN">160 </FONT><A NAME="160"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> hasNext() {
+<FONT ID="LN">161 </FONT><A NAME="161"></A>        <FONT ID="Return">return</FONT> !(queue.size() == <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">162 </FONT><A NAME="162"></A>    }
+<FONT ID="LN">163 </FONT><A NAME="163"></A>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">165 </FONT><A NAME="165"></A>     * Returns the element with the lowest priority
+<FONT ID="LN">166 </FONT><A NAME="166"></A>     * @return next element
+<FONT ID="LN">167 </FONT><A NAME="167"></A>     */</FONT>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    <FONT ID="Public">public</FONT> <A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A> next() {
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        <A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A> next = (<A HREF="../../../../weka/clusterers/forOPTICSAndDBScan/Utils/UpdateQueueElement.java.html">UpdateQueueElement</A>) queue.get(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        queue.set(<FONT ID="IntegerLiteral">0</FONT>, queue.get(size() - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">171 </FONT><A NAME="171"></A>        queue.remove(size() - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>        objectPositionsInHeap.remove(next.getObjectKey());
+<FONT ID="LN">173 </FONT><A NAME="173"></A>        <FONT ID="If">if</FONT> (hasNext()) {
+<FONT ID="LN">174 </FONT><A NAME="174"></A>            heapValueDownwards();
+<FONT ID="LN">175 </FONT><A NAME="175"></A>        }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>        <FONT ID="Return">return</FONT> next;
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    }
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">180 </FONT><A NAME="180"></A>     * Returns the revision string.
+<FONT ID="LN">181 </FONT><A NAME="181"></A>     * 
+<FONT ID="LN">182 </FONT><A NAME="182"></A>     * @return      the revision
+<FONT ID="LN">183 </FONT><A NAME="183"></A>     */</FONT>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">185 </FONT><A NAME="185"></A>      <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 1.3 $"</FONT>);
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>}
+<FONT ID="LN">188 </FONT><A NAME="188"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">UpdateQueue.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

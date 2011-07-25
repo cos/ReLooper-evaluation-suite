@@ -1,0 +1,137 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.attributeSelection.RankedOutputSearch (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RankedOutputSearch.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    RankedOutputSearch.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 1999 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Package">package</FONT> weka.attributeSelection;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="FormalComment">/** 
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * Interface for search methods capable of producing a
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * ranked list of attributes.
+<FONT ID="LN">30  </FONT><A NAME="30"></A> *
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * @author Mark Hall (mhall@cs.waikato.ac.nz)
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * @version $Revision: 1.11 $
+<FONT ID="LN">33  </FONT><A NAME="33"></A> */</FONT>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Public">public</FONT> <FONT ID="Interface">interface</FONT> RankedOutputSearch {
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A>  <FONT ID="SingleLineComment">// ===============
+<FONT ID="LN">38  </FONT><A NAME="38"></A></FONT>  <FONT ID="SingleLineComment">// Public methods.
+<FONT ID="LN">39  </FONT><A NAME="39"></A></FONT>  <FONT ID="SingleLineComment">// ===============
+<FONT ID="LN">40  </FONT><A NAME="40"></A></FONT>  
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">42  </FONT><A NAME="42"></A>   * Returns a X by 2 list of attribute indexes and corresponding
+<FONT ID="LN">43  </FONT><A NAME="43"></A>   * evaluations from best (highest) to worst.
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   * @return the ranked list of attribute indexes in an array of ints
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   * @exception Exception if the ranking can't be produced
+<FONT ID="LN">46  </FONT><A NAME="46"></A>   */</FONT>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="Double">double</FONT>[][] rankedAttributes() <FONT ID="Throws">throws</FONT> Exception;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">50  </FONT><A NAME="50"></A>   * Sets a threshold by which attributes can be discarded from the
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   * ranking. This threshold is used by the AttributeSelection module
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * which does the actual discarding of attributes---the implementer
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   * of this method needs only to provide a variable in which to store the
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   * supplied threshold. -Double.MAX_VALUE is reserved to mean no threshold,
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   * ie, retain all attributes.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   * @param threshold the threshold.
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="Void">void</FONT> setThreshold(<FONT ID="Double">double</FONT> threshold);
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * Gets the threshold by which attributes can be discarded. Discarding
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * of attributes is done by the AttributeSelection module using the
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * threshold returned by this method.
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   * @return a threshold by which to discard attributes
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   */</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="Double">double</FONT> getThreshold();
+<FONT ID="LN">67  </FONT><A NAME="67"></A>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">69  </FONT><A NAME="69"></A>   * Specify the number of attributes to select from the ranked list. &lt; 0
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   * indicates that all attributes are to be retained. NumToSelect has
+<FONT ID="LN">71  </FONT><A NAME="71"></A>   * precedence over threshold, ie. if there is a non -1 value for NumToSelect
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   * then this will take precedence over any threshold value.
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   * @param numToSelect the number of attributes to retain
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   */</FONT>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Void">void</FONT> setNumToSelect(<FONT ID="Int">int</FONT> numToSelect);
+<FONT ID="LN">76  </FONT><A NAME="76"></A>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">78  </FONT><A NAME="78"></A>   * Gets the user specified number of attributes to be retained.
+<FONT ID="LN">79  </FONT><A NAME="79"></A>   * @return the number of attributes to retain
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   */</FONT>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  <FONT ID="Int">int</FONT> getNumToSelect();
+<FONT ID="LN">82  </FONT><A NAME="82"></A>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   * Gets the calculated number of attributes to retain. This is the
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   * actual number of attributes to retain. This is the same as
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   * getNumToSelect if the user specifies a number which is not less
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   * than zero. Otherwise it should be the number of attributes in the
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   * (potentially transformed) data.
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   */</FONT>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  <FONT ID="Int">int</FONT> getCalculatedNumToSelect();
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">93  </FONT><A NAME="93"></A>   * Sets whether or not ranking is to be performed.
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * When a search method is capable of producing a ranked list
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * of attributes, the user has the choice of seeing the results of a
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * normal search or seeing a ranked list.
+<FONT ID="LN">97  </FONT><A NAME="97"></A>   * @param doRanking true if ranked list is to be produced
+<FONT ID="LN">98  </FONT><A NAME="98"></A>   */</FONT>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="Void">void</FONT> setGenerateRanking(<FONT ID="Boolean">boolean</FONT> doRanking);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">102 </FONT><A NAME="102"></A>   * Gets whether the user has opted to see a ranked list of
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * attributes rather than the normal result of the search
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * @return true if a ranked list has been requested.
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="Boolean">boolean</FONT> getGenerateRanking();
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>}
+<FONT ID="LN">109 </FONT><A NAME="109"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RankedOutputSearch.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

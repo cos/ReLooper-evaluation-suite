@@ -1,0 +1,812 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.classifiers.bayes.AODE (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AODE.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    AODE.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2003
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *    Algorithm developed by: Geoff Webb
+<FONT ID="LN">21  </FONT><A NAME="21"></A> *    Code written by: Janice Boughton &amp; Zhihai Wang
+<FONT ID="LN">22  </FONT><A NAME="22"></A> */</FONT>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Package">package</FONT> weka.classifiers.bayes;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/Classifier.java.html">weka.classifiers.Classifier</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/AbstractClassifier.java.html">weka.classifiers.AbstractClassifier</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/UpdateableClassifier.java.html">weka.classifiers.UpdateableClassifier</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Capabilities.java.html">weka.core.Capabilities</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Option.java.html">weka.core.Option</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/OptionHandler.java.html">weka.core.OptionHandler</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation</A>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformationHandler.java.html">weka.core.TechnicalInformationHandler</A>;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/WeightedInstancesHandler.java.html">weka.core.WeightedInstancesHandler</A>;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Capabilities.java.html">weka.core.Capabilities.Capability</A>;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Field</A>;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Type</A>;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">47  </FONT><A NAME="47"></A> &lt;!-- globalinfo-start --&gt;
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * AODE achieves highly accurate classification by averaging over all of a small space of alternative naive-Bayes-like models that have weaker (and hence less detrimental) independence assumptions than naive Bayes. The resulting algorithm is computationally efficient while delivering highly accurate classification on many learning  tasks.&lt;br/&gt;
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * &lt;br/&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * For more information, see&lt;br/&gt;
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * &lt;br/&gt;
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * G. Webb, J. Boughton, Z. Wang (2005). Not So Naive Bayes: Aggregating One-Dependence Estimators. Machine Learning. 58(1):5-24.&lt;br/&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * &lt;br/&gt;
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * Further papers are available at&lt;br/&gt;
+<FONT ID="LN">55  </FONT><A NAME="55"></A> *   http://www.csse.monash.edu.au/~webb/.&lt;br/&gt;
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * &lt;br/&gt;
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * Can use an m-estimate for smoothing base probability estimates in place of the Laplace correction (via option -M).&lt;br/&gt;
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * Default frequency limit set to 1.
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * &lt;p/&gt;
+<FONT ID="LN">60  </FONT><A NAME="60"></A> &lt;!-- globalinfo-end --&gt;
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * 
+<FONT ID="LN">62  </FONT><A NAME="62"></A> &lt;!-- technical-bibtex-start --&gt;
+<FONT ID="LN">63  </FONT><A NAME="63"></A> * BibTeX:
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * &lt;pre&gt;
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * &amp;#64;article{Webb2005,
+<FONT ID="LN">66  </FONT><A NAME="66"></A> *    author = {G. Webb and J. Boughton and Z. Wang},
+<FONT ID="LN">67  </FONT><A NAME="67"></A> *    journal = {Machine Learning},
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *    number = {1},
+<FONT ID="LN">69  </FONT><A NAME="69"></A> *    pages = {5-24},
+<FONT ID="LN">70  </FONT><A NAME="70"></A> *    title = {Not So Naive Bayes: Aggregating One-Dependence Estimators},
+<FONT ID="LN">71  </FONT><A NAME="71"></A> *    volume = {58},
+<FONT ID="LN">72  </FONT><A NAME="72"></A> *    year = {2005}
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * }
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * &lt;/pre&gt;
+<FONT ID="LN">75  </FONT><A NAME="75"></A> * &lt;p/&gt;
+<FONT ID="LN">76  </FONT><A NAME="76"></A> &lt;!-- technical-bibtex-end --&gt;
+<FONT ID="LN">77  </FONT><A NAME="77"></A> *
+<FONT ID="LN">78  </FONT><A NAME="78"></A> &lt;!-- options-start --&gt;
+<FONT ID="LN">79  </FONT><A NAME="79"></A> * Valid options are: &lt;p/&gt;
+<FONT ID="LN">80  </FONT><A NAME="80"></A> * 
+<FONT ID="LN">81  </FONT><A NAME="81"></A> * &lt;pre&gt; -D
+<FONT ID="LN">82  </FONT><A NAME="82"></A> *  Output debugging information
+<FONT ID="LN">83  </FONT><A NAME="83"></A> * &lt;/pre&gt;
+<FONT ID="LN">84  </FONT><A NAME="84"></A> * 
+<FONT ID="LN">85  </FONT><A NAME="85"></A> * &lt;pre&gt; -F &amp;lt;int&amp;gt;
+<FONT ID="LN">86  </FONT><A NAME="86"></A> *  Impose a frequency limit for superParents
+<FONT ID="LN">87  </FONT><A NAME="87"></A> *  (default is 1)&lt;/pre&gt;
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * 
+<FONT ID="LN">89  </FONT><A NAME="89"></A> * &lt;pre&gt; -M
+<FONT ID="LN">90  </FONT><A NAME="90"></A> *  Use m-estimate instead of laplace correction
+<FONT ID="LN">91  </FONT><A NAME="91"></A> * &lt;/pre&gt;
+<FONT ID="LN">92  </FONT><A NAME="92"></A> * 
+<FONT ID="LN">93  </FONT><A NAME="93"></A> * &lt;pre&gt; -W &amp;lt;int&amp;gt;
+<FONT ID="LN">94  </FONT><A NAME="94"></A> *  Specify a weight to use with m-estimate
+<FONT ID="LN">95  </FONT><A NAME="95"></A> *  (default is 1)&lt;/pre&gt;
+<FONT ID="LN">96  </FONT><A NAME="96"></A> * 
+<FONT ID="LN">97  </FONT><A NAME="97"></A> &lt;!-- options-end --&gt;
+<FONT ID="LN">98  </FONT><A NAME="98"></A> *
+<FONT ID="LN">99  </FONT><A NAME="99"></A> * @author Janice Boughton (jrbought@csse.monash.edu.au)
+<FONT ID="LN">100 </FONT><A NAME="100"></A> * @author Zhihai Wang (zhw@csse.monash.edu.au)
+<FONT ID="LN">101 </FONT><A NAME="101"></A> * @version $Revision: 5928 $
+<FONT ID="LN">102 </FONT><A NAME="102"></A> */</FONT>
+<FONT ID="LN">103 </FONT><A NAME="103"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> AODE
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="Extends">extends</FONT> <A HREF="../../../weka/classifiers/AbstractClassifier.java.html">AbstractClassifier</A>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    <FONT ID="Implements">implements</FONT> <A HREF="../../../weka/core/OptionHandler.java.html">OptionHandler</A>, <A HREF="../../../weka/core/WeightedInstancesHandler.java.html">WeightedInstancesHandler</A>, <A HREF="../../../weka/classifiers/UpdateableClassifier.java.html">UpdateableClassifier</A>, 
+<FONT ID="LN">106 </FONT><A NAME="106"></A>               <A HREF="../../../weka/core/TechnicalInformationHandler.java.html">TechnicalInformationHandler</A> {
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">9197439980415113523L</FONT>;
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   * 3D array (m_NumClasses * m_TotalAttValues * m_TotalAttValues)
+<FONT ID="LN">113 </FONT><A NAME="113"></A>   * of attribute counts, i.e., the number of times an attribute value occurs
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   * in conjunction with another attribute value and a class value.  
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> [][][] m_CondiCounts;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  <FONT ID="FormalComment">/** The number of times each class value occurs in the dataset */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> [] m_ClassCounts;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="FormalComment">/** The sums of attribute-class counts  
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   *    -- if there are no missing values for att, then
+<FONT ID="LN">123 </FONT><A NAME="123"></A>   *       m_SumForCounts[classVal][att] will be the same as
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   *       m_ClassCounts[classVal] 
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   */</FONT>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> [][] m_SumForCounts;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <FONT ID="FormalComment">/** The number of classes */</FONT>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_NumClasses;
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  <FONT ID="FormalComment">/** The number of attributes in dataset, including class */</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_NumAttributes;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/** The number of instances in the dataset */</FONT>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_NumInstances;
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="FormalComment">/** The index of the class attribute */</FONT>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_ClassIndex;
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="FormalComment">/** The dataset */</FONT>
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A> m_Instances;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * The total number of values (including an extra for each attribute's 
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * missing value, which are included in m_CondiCounts) for all attributes 
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   * (not including class). E.g., for three atts each with two possible values,
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   * m_TotalAttValues would be 9 (6 values + 3 missing).
+<FONT ID="LN">148 </FONT><A NAME="148"></A>   * This variable is used when allocating space for m_CondiCounts matrix.
+<FONT ID="LN">149 </FONT><A NAME="149"></A>   */</FONT>
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_TotalAttValues;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="FormalComment">/** The starting index (in the m_CondiCounts matrix) of the values for each
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * attribute */</FONT>
+<FONT ID="LN">154 </FONT><A NAME="154"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> [] m_StartAttIndex;
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  <FONT ID="FormalComment">/** The number of values for each attribute */</FONT>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> [] m_NumAttValues;
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="FormalComment">/** The frequency of each attribute value for the dataset */</FONT>
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> [] m_Frequencies;
+<FONT ID="LN">161 </FONT><A NAME="161"></A>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  <FONT ID="FormalComment">/** The number of valid class values observed in dataset 
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   *  -- with no missing classes, this number is the same as m_NumInstances.
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   */</FONT>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> m_SumInstances;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="FormalComment">/** An att's frequency must be this value or more to be a superParent */</FONT>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_Limit = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">169 </FONT><A NAME="169"></A>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  <FONT ID="FormalComment">/** If true, outputs debugging info */</FONT>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> m_Debug = <FONT ID="False">false</FONT>;
+<FONT ID="LN">172 </FONT><A NAME="172"></A>
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  <FONT ID="FormalComment">/** flag for using m-estimates */</FONT>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="Private">private</FONT> <FONT ID="Boolean">boolean</FONT> m_MEstimates = <FONT ID="False">false</FONT>;
+<FONT ID="LN">175 </FONT><A NAME="175"></A>
+<FONT ID="LN">176 </FONT><A NAME="176"></A>  <FONT ID="FormalComment">/** value for m in m-estimate */</FONT>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_Weight = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>
+<FONT ID="LN">179 </FONT><A NAME="179"></A> 
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * Returns a string describing this classifier
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * @return a description of the classifier suitable for
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">184 </FONT><A NAME="184"></A>   */</FONT>
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  <FONT ID="Public">public</FONT> String globalInfo() {
+<FONT ID="LN">186 </FONT><A NAME="186"></A>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"AODE achieves highly accurate classification by averaging over "</FONT>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>      +<FONT ID="StringLiteral">"all of a small space of alternative naive-Bayes-like models that have "</FONT>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>      +<FONT ID="StringLiteral">"weaker (and hence less detrimental) independence assumptions than "</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>      +<FONT ID="StringLiteral">"naive Bayes. The resulting algorithm is computationally efficient "</FONT>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      +<FONT ID="StringLiteral">"while delivering highly accurate classification on many learning  "</FONT>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      +<FONT ID="StringLiteral">"tasks.\n\n"</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>      +<FONT ID="StringLiteral">"For more information, see\n\n"</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      + getTechnicalInformation().toString() + <FONT ID="StringLiteral">"\n\n"</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>      +<FONT ID="StringLiteral">"Further papers are available at\n"</FONT>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>      +<FONT ID="StringLiteral">"  http://www.csse.monash.edu.au/~webb/.\n\n"</FONT>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>      + <FONT ID="StringLiteral">"Can use an m-estimate for smoothing base probability estimates "</FONT>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>      + <FONT ID="StringLiteral">"in place of the Laplace correction (via option -M).\n"</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>      + <FONT ID="StringLiteral">"Default frequency limit set to 1."</FONT>;
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  }
+<FONT ID="LN">201 </FONT><A NAME="201"></A>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">203 </FONT><A NAME="203"></A>   * Returns an instance of a TechnicalInformation object, containing 
+<FONT ID="LN">204 </FONT><A NAME="204"></A>   * detailed information about the technical background of this class,
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   * e.g., paper reference or book this class is based on.
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   * 
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   * @return the technical information about this class
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   */</FONT>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A> getTechnicalInformation() {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A>    result;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    result = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A>(Type.ARTICLE);
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    result.setValue(Field.AUTHOR, <FONT ID="StringLiteral">"G. Webb and J. Boughton and Z. Wang"</FONT>);
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    result.setValue(Field.YEAR, <FONT ID="StringLiteral">"2005"</FONT>);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    result.setValue(Field.TITLE, <FONT ID="StringLiteral">"Not So Naive Bayes: Aggregating One-Dependence Estimators"</FONT>);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    result.setValue(Field.JOURNAL, <FONT ID="StringLiteral">"Machine Learning"</FONT>);
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    result.setValue(Field.VOLUME, <FONT ID="StringLiteral">"58"</FONT>);
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    result.setValue(Field.NUMBER, <FONT ID="StringLiteral">"1"</FONT>);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    result.setValue(Field.PAGES, <FONT ID="StringLiteral">"5-24"</FONT>);
+<FONT ID="LN">220 </FONT><A NAME="220"></A>
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   * Returns default capabilities of the classifier.
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   *
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * @return      the capabilities of this classifier
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   */</FONT>
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/Capabilities.java.html">Capabilities</A> getCapabilities() {
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    <A HREF="../../../weka/core/Capabilities.java.html">Capabilities</A> result = <FONT ID="Super">super</FONT>.getCapabilities();
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    result.disableAll();
+<FONT ID="LN">232 </FONT><A NAME="232"></A>
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    <FONT ID="SingleLineComment">// attributes
+<FONT ID="LN">234 </FONT><A NAME="234"></A></FONT>    result.enable(Capability.NOMINAL_ATTRIBUTES);
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    result.enable(Capability.MISSING_VALUES);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    <FONT ID="SingleLineComment">// class
+<FONT ID="LN">238 </FONT><A NAME="238"></A></FONT>    result.enable(Capability.NOMINAL_CLASS);
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    result.enable(Capability.MISSING_CLASS_VALUES);
+<FONT ID="LN">240 </FONT><A NAME="240"></A>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="SingleLineComment">// instances
+<FONT ID="LN">242 </FONT><A NAME="242"></A></FONT>    result.setMinimumNumberInstances(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">245 </FONT><A NAME="245"></A>  }
+<FONT ID="LN">246 </FONT><A NAME="246"></A> 
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   * Generates the classifier.
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   *
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * @param instances set of instances serving as training data
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   * @throws Exception if the classifier has not been generated
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   * successfully
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> buildClassifier(<A HREF="../../../weka/core/Instances.java.html">Instances</A> instances) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">255 </FONT><A NAME="255"></A>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    <FONT ID="SingleLineComment">// can classifier handle the data?
+<FONT ID="LN">257 </FONT><A NAME="257"></A></FONT>    getCapabilities().testWithFail(instances);
+<FONT ID="LN">258 </FONT><A NAME="258"></A>
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    <FONT ID="SingleLineComment">// remove instances with missing class
+<FONT ID="LN">260 </FONT><A NAME="260"></A></FONT>    m_Instances = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A>(instances);
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    m_Instances.deleteWithMissingClass();
+<FONT ID="LN">262 </FONT><A NAME="262"></A>
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    <FONT ID="SingleLineComment">// reset variable for this fold
+<FONT ID="LN">264 </FONT><A NAME="264"></A></FONT>    m_SumInstances = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    m_ClassIndex = instances.classIndex();
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    m_NumInstances = m_Instances.numInstances();
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    m_NumAttributes = m_Instances.numAttributes();
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    m_NumClasses = m_Instances.numClasses();
+<FONT ID="LN">269 </FONT><A NAME="269"></A> 
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    <FONT ID="SingleLineComment">// allocate space for attribute reference arrays
+<FONT ID="LN">271 </FONT><A NAME="271"></A></FONT>    m_StartAttIndex = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_NumAttributes];
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    m_NumAttValues = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_NumAttributes];
+<FONT ID="LN">273 </FONT><A NAME="273"></A> 
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    m_TotalAttValues = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_NumAttributes; i++) {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>       <FONT ID="If">if</FONT>(i != m_ClassIndex) {
+<FONT ID="LN">277 </FONT><A NAME="277"></A>          m_StartAttIndex[i] = m_TotalAttValues;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>          m_NumAttValues[i] = m_Instances.attribute(i).numValues();
+<FONT ID="LN">279 </FONT><A NAME="279"></A>          m_TotalAttValues += m_NumAttValues[i] + <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">280 </FONT><A NAME="280"></A>          <FONT ID="SingleLineComment">// + 1 so room for missing value count
+<FONT ID="LN">281 </FONT><A NAME="281"></A></FONT>       } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">282 </FONT><A NAME="282"></A>          <FONT ID="SingleLineComment">// m_StartAttIndex[i] = -1;  // class isn't included
+<FONT ID="LN">283 </FONT><A NAME="283"></A></FONT>      m_NumAttValues[i] = m_NumClasses;
+<FONT ID="LN">284 </FONT><A NAME="284"></A>       }
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    }
+<FONT ID="LN">286 </FONT><A NAME="286"></A>
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    <FONT ID="SingleLineComment">// allocate space for counts and frequencies
+<FONT ID="LN">288 </FONT><A NAME="288"></A></FONT>    m_CondiCounts = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_NumClasses][m_TotalAttValues][m_TotalAttValues];
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    m_ClassCounts = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_NumClasses];
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    m_SumForCounts = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_NumClasses][m_NumAttributes];
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    m_Frequencies = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_TotalAttValues];
+<FONT ID="LN">292 </FONT><A NAME="292"></A>
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    <FONT ID="SingleLineComment">// calculate the counts
+<FONT ID="LN">294 </FONT><A NAME="294"></A></FONT>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> k = <FONT ID="IntegerLiteral">0</FONT>; k &lt; m_NumInstances; k++) {
+<FONT ID="LN">295 </FONT><A NAME="295"></A>       addToCounts((<A HREF="../../../weka/core/Instance.java.html">Instance</A>)m_Instances.instance(k));
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    }
+<FONT ID="LN">297 </FONT><A NAME="297"></A>
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    <FONT ID="SingleLineComment">// free up some space
+<FONT ID="LN">299 </FONT><A NAME="299"></A></FONT>    m_Instances = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A>(m_Instances, <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">300 </FONT><A NAME="300"></A>  }
+<FONT ID="LN">301 </FONT><A NAME="301"></A> 
+<FONT ID="LN">302 </FONT><A NAME="302"></A>
+<FONT ID="LN">303 </FONT><A NAME="303"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   * Updates the classifier with the given instance.
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   *
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   * @param instance the new training instance to include in the model 
+<FONT ID="LN">307 </FONT><A NAME="307"></A>   */</FONT>
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> updateClassifier(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance) {
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    <FONT ID="This">this</FONT>.addToCounts(instance);
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    }
+<FONT ID="LN">311 </FONT><A NAME="311"></A>
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">313 </FONT><A NAME="313"></A>     * Puts an instance's values into m_CondiCounts, m_ClassCounts and 
+<FONT ID="LN">314 </FONT><A NAME="314"></A>     * m_SumInstances.
+<FONT ID="LN">315 </FONT><A NAME="315"></A>     *
+<FONT ID="LN">316 </FONT><A NAME="316"></A>     * @param instance  the instance whose values are to be put into the counts
+<FONT ID="LN">317 </FONT><A NAME="317"></A>     *                  variables
+<FONT ID="LN">318 </FONT><A NAME="318"></A>     */</FONT>
+<FONT ID="LN">319 </FONT><A NAME="319"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> addToCounts(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance) {
+<FONT ID="LN">320 </FONT><A NAME="320"></A> 
+<FONT ID="LN">321 </FONT><A NAME="321"></A>    <FONT ID="Double">double</FONT> [] countsPointer;
+<FONT ID="LN">322 </FONT><A NAME="322"></A> 
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    <FONT ID="If">if</FONT>(instance.classIsMissing())
+<FONT ID="LN">324 </FONT><A NAME="324"></A>       <FONT ID="Return">return</FONT>;   <FONT ID="SingleLineComment">// ignore instances with missing class
+<FONT ID="LN">325 </FONT><A NAME="325"></A></FONT>
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    <FONT ID="Int">int</FONT> classVal = (<FONT ID="Int">int</FONT>)instance.classValue();
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    <FONT ID="Double">double</FONT> weight = instance.weight();
+<FONT ID="LN">328 </FONT><A NAME="328"></A> 
+<FONT ID="LN">329 </FONT><A NAME="329"></A>    m_ClassCounts[classVal] += weight;
+<FONT ID="LN">330 </FONT><A NAME="330"></A>    m_SumInstances += weight;
+<FONT ID="LN">331 </FONT><A NAME="331"></A>   
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    <FONT ID="SingleLineComment">// store instance's att val indexes in an array, b/c accessing it 
+<FONT ID="LN">333 </FONT><A NAME="333"></A></FONT>    <FONT ID="SingleLineComment">// in loop(s) is more efficient
+<FONT ID="LN">334 </FONT><A NAME="334"></A></FONT>    <FONT ID="Int">int</FONT> [] attIndex = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_NumAttributes];
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_NumAttributes; i++) {
+<FONT ID="LN">336 </FONT><A NAME="336"></A>       <FONT ID="If">if</FONT>(i == m_ClassIndex)
+<FONT ID="LN">337 </FONT><A NAME="337"></A>          attIndex[i] = -<FONT ID="IntegerLiteral">1</FONT>;  <FONT ID="SingleLineComment">// we don't use the class attribute in counts
+<FONT ID="LN">338 </FONT><A NAME="338"></A></FONT>       <FONT ID="Else">else</FONT> {
+<FONT ID="LN">339 </FONT><A NAME="339"></A>          <FONT ID="If">if</FONT>(instance.isMissing(i))
+<FONT ID="LN">340 </FONT><A NAME="340"></A>             attIndex[i] = m_StartAttIndex[i] + m_NumAttValues[i];
+<FONT ID="LN">341 </FONT><A NAME="341"></A>          <FONT ID="Else">else</FONT>
+<FONT ID="LN">342 </FONT><A NAME="342"></A>             attIndex[i] = m_StartAttIndex[i] + (<FONT ID="Int">int</FONT>)instance.value(i);
+<FONT ID="LN">343 </FONT><A NAME="343"></A>       }
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    }
+<FONT ID="LN">345 </FONT><A NAME="345"></A>
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> Att1 = <FONT ID="IntegerLiteral">0</FONT>; Att1 &lt; m_NumAttributes; Att1++) {
+<FONT ID="LN">347 </FONT><A NAME="347"></A>       <FONT ID="If">if</FONT>(attIndex[Att1] == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">348 </FONT><A NAME="348"></A>          <FONT ID="Continue">continue</FONT>;   <FONT ID="SingleLineComment">// avoid pointless looping as Att1 is currently the class attribute
+<FONT ID="LN">349 </FONT><A NAME="349"></A></FONT>
+<FONT ID="LN">350 </FONT><A NAME="350"></A>       m_Frequencies[attIndex[Att1]] += weight;
+<FONT ID="LN">351 </FONT><A NAME="351"></A>       
+<FONT ID="LN">352 </FONT><A NAME="352"></A>       <FONT ID="SingleLineComment">// if this is a missing value, we don't want to increase sumforcounts
+<FONT ID="LN">353 </FONT><A NAME="353"></A></FONT>       <FONT ID="If">if</FONT>(!instance.isMissing(Att1))
+<FONT ID="LN">354 </FONT><A NAME="354"></A>          m_SumForCounts[classVal][Att1] += weight;
+<FONT ID="LN">355 </FONT><A NAME="355"></A>
+<FONT ID="LN">356 </FONT><A NAME="356"></A>       <FONT ID="SingleLineComment">// save time by referencing this now, rather than do it repeatedly in the loop
+<FONT ID="LN">357 </FONT><A NAME="357"></A></FONT>       countsPointer = m_CondiCounts[classVal][attIndex[Att1]];
+<FONT ID="LN">358 </FONT><A NAME="358"></A>
+<FONT ID="LN">359 </FONT><A NAME="359"></A>       <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> Att2 = <FONT ID="IntegerLiteral">0</FONT>; Att2 &lt; m_NumAttributes; Att2++) {
+<FONT ID="LN">360 </FONT><A NAME="360"></A>          <FONT ID="If">if</FONT>(attIndex[Att2] != -<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">361 </FONT><A NAME="361"></A>             countsPointer[attIndex[Att2]] += weight;
+<FONT ID="LN">362 </FONT><A NAME="362"></A>          }
+<FONT ID="LN">363 </FONT><A NAME="363"></A>       }
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    }
+<FONT ID="LN">365 </FONT><A NAME="365"></A>  }
+<FONT ID="LN">366 </FONT><A NAME="366"></A> 
+<FONT ID="LN">367 </FONT><A NAME="367"></A> 
+<FONT ID="LN">368 </FONT><A NAME="368"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">369 </FONT><A NAME="369"></A>   * Calculates the class membership probabilities for the given test
+<FONT ID="LN">370 </FONT><A NAME="370"></A>   * instance.
+<FONT ID="LN">371 </FONT><A NAME="371"></A>   *
+<FONT ID="LN">372 </FONT><A NAME="372"></A>   * @param instance the instance to be classified
+<FONT ID="LN">373 </FONT><A NAME="373"></A>   * @return predicted class probability distribution
+<FONT ID="LN">374 </FONT><A NAME="374"></A>   * @throws Exception if there is a problem generating the prediction
+<FONT ID="LN">375 </FONT><A NAME="375"></A>   */</FONT>
+<FONT ID="LN">376 </FONT><A NAME="376"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> [] distributionForInstance(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">377 </FONT><A NAME="377"></A> 
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    <FONT ID="SingleLineComment">// accumulates posterior probabilities for each class
+<FONT ID="LN">379 </FONT><A NAME="379"></A></FONT>    <FONT ID="Double">double</FONT> [] probs = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_NumClasses];
+<FONT ID="LN">380 </FONT><A NAME="380"></A>
+<FONT ID="LN">381 </FONT><A NAME="381"></A>    <FONT ID="SingleLineComment">// index for parent attribute value, and a count of parents used
+<FONT ID="LN">382 </FONT><A NAME="382"></A></FONT>    <FONT ID="Int">int</FONT> pIndex, parentCount;
+<FONT ID="LN">383 </FONT><A NAME="383"></A> 
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    <FONT ID="SingleLineComment">// pointers for efficiency
+<FONT ID="LN">385 </FONT><A NAME="385"></A></FONT>    <FONT ID="SingleLineComment">// for current class, point to joint frequency for any pair of att values
+<FONT ID="LN">386 </FONT><A NAME="386"></A></FONT>    <FONT ID="Double">double</FONT> [][] countsForClass;
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    <FONT ID="SingleLineComment">// for current class &amp; parent, point to joint frequency for any att value
+<FONT ID="LN">388 </FONT><A NAME="388"></A></FONT>    <FONT ID="Double">double</FONT> [] countsForClassParent;
+<FONT ID="LN">389 </FONT><A NAME="389"></A>
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    <FONT ID="SingleLineComment">// store instance's att indexes in an int array, so accessing them 
+<FONT ID="LN">391 </FONT><A NAME="391"></A></FONT>    <FONT ID="SingleLineComment">// is more efficient in loop(s).
+<FONT ID="LN">392 </FONT><A NAME="392"></A></FONT>    <FONT ID="Int">int</FONT> [] attIndex = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_NumAttributes];
+<FONT ID="LN">393 </FONT><A NAME="393"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> att = <FONT ID="IntegerLiteral">0</FONT>; att &lt; m_NumAttributes; att++) {
+<FONT ID="LN">394 </FONT><A NAME="394"></A>       <FONT ID="If">if</FONT>(instance.isMissing(att) || att == m_ClassIndex)
+<FONT ID="LN">395 </FONT><A NAME="395"></A>          attIndex[att] = -<FONT ID="IntegerLiteral">1</FONT>;   <FONT ID="SingleLineComment">// can't use class or missing values in calculations
+<FONT ID="LN">396 </FONT><A NAME="396"></A></FONT>       <FONT ID="Else">else</FONT>
+<FONT ID="LN">397 </FONT><A NAME="397"></A>      attIndex[att] = m_StartAttIndex[att] + (<FONT ID="Int">int</FONT>)instance.value(att);
+<FONT ID="LN">398 </FONT><A NAME="398"></A>    }
+<FONT ID="LN">399 </FONT><A NAME="399"></A>
+<FONT ID="LN">400 </FONT><A NAME="400"></A>    <FONT ID="SingleLineComment">// calculate probabilities for each possible class value
+<FONT ID="LN">401 </FONT><A NAME="401"></A></FONT>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> classVal = <FONT ID="IntegerLiteral">0</FONT>; classVal &lt; m_NumClasses; classVal++) {
+<FONT ID="LN">402 </FONT><A NAME="402"></A> 
+<FONT ID="LN">403 </FONT><A NAME="403"></A>       probs[classVal] = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">404 </FONT><A NAME="404"></A>       <FONT ID="Double">double</FONT> spodeP = <FONT ID="IntegerLiteral">0</FONT>;  <FONT ID="SingleLineComment">// P(X,y) for current parent and class
+<FONT ID="LN">405 </FONT><A NAME="405"></A></FONT>       parentCount = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">406 </FONT><A NAME="406"></A> 
+<FONT ID="LN">407 </FONT><A NAME="407"></A>       countsForClass = m_CondiCounts[classVal];
+<FONT ID="LN">408 </FONT><A NAME="408"></A>
+<FONT ID="LN">409 </FONT><A NAME="409"></A>       <FONT ID="SingleLineComment">// each attribute has a turn of being the parent
+<FONT ID="LN">410 </FONT><A NAME="410"></A></FONT>       <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> parent = <FONT ID="IntegerLiteral">0</FONT>; parent &lt; m_NumAttributes; parent++) {
+<FONT ID="LN">411 </FONT><A NAME="411"></A>          <FONT ID="If">if</FONT>(attIndex[parent] == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">412 </FONT><A NAME="412"></A>             <FONT ID="Continue">continue</FONT>;  <FONT ID="SingleLineComment">// skip class attribute or missing value
+<FONT ID="LN">413 </FONT><A NAME="413"></A></FONT>
+<FONT ID="LN">414 </FONT><A NAME="414"></A>          <FONT ID="SingleLineComment">// determine correct index for the parent in m_CondiCounts matrix
+<FONT ID="LN">415 </FONT><A NAME="415"></A></FONT>          pIndex = attIndex[parent];
+<FONT ID="LN">416 </FONT><A NAME="416"></A>
+<FONT ID="LN">417 </FONT><A NAME="417"></A>          <FONT ID="SingleLineComment">// check that the att value has a frequency of m_Limit or greater
+<FONT ID="LN">418 </FONT><A NAME="418"></A></FONT>      <FONT ID="If">if</FONT>(m_Frequencies[pIndex] &lt; m_Limit) 
+<FONT ID="LN">419 </FONT><A NAME="419"></A>             <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">420 </FONT><A NAME="420"></A>
+<FONT ID="LN">421 </FONT><A NAME="421"></A>          countsForClassParent = countsForClass[pIndex];
+<FONT ID="LN">422 </FONT><A NAME="422"></A>
+<FONT ID="LN">423 </FONT><A NAME="423"></A>          <FONT ID="SingleLineComment">// block the parent from being its own child
+<FONT ID="LN">424 </FONT><A NAME="424"></A></FONT>          attIndex[parent] = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">425 </FONT><A NAME="425"></A>
+<FONT ID="LN">426 </FONT><A NAME="426"></A>          parentCount++;
+<FONT ID="LN">427 </FONT><A NAME="427"></A>
+<FONT ID="LN">428 </FONT><A NAME="428"></A>          <FONT ID="SingleLineComment">// joint frequency of class and parent
+<FONT ID="LN">429 </FONT><A NAME="429"></A></FONT>          <FONT ID="Double">double</FONT> classparentfreq = countsForClassParent[pIndex];
+<FONT ID="LN">430 </FONT><A NAME="430"></A>
+<FONT ID="LN">431 </FONT><A NAME="431"></A>          <FONT ID="SingleLineComment">// find the number of missing values for parent's attribute
+<FONT ID="LN">432 </FONT><A NAME="432"></A></FONT>          <FONT ID="Double">double</FONT> missing4ParentAtt = 
+<FONT ID="LN">433 </FONT><A NAME="433"></A>              m_Frequencies[m_StartAttIndex[parent] + m_NumAttValues[parent]];
+<FONT ID="LN">434 </FONT><A NAME="434"></A>
+<FONT ID="LN">435 </FONT><A NAME="435"></A>          <FONT ID="SingleLineComment">// calculate the prior probability -- P(parent &amp; classVal)
+<FONT ID="LN">436 </FONT><A NAME="436"></A></FONT>          <FONT ID="If">if</FONT> (!m_MEstimates) {
+<FONT ID="LN">437 </FONT><A NAME="437"></A>             spodeP = (classparentfreq + <FONT ID="FloatPointLiteral">1.0</FONT>)
+<FONT ID="LN">438 </FONT><A NAME="438"></A>                / ((m_SumInstances - missing4ParentAtt) + m_NumClasses
+<FONT ID="LN">439 </FONT><A NAME="439"></A>               * m_NumAttValues[parent]);
+<FONT ID="LN">440 </FONT><A NAME="440"></A>          } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">441 </FONT><A NAME="441"></A>             spodeP = (classparentfreq + ((<FONT ID="Double">double</FONT>)m_Weight
+<FONT ID="LN">442 </FONT><A NAME="442"></A>                        / (<FONT ID="Double">double</FONT>)(m_NumClasses * m_NumAttValues[parent])))
+<FONT ID="LN">443 </FONT><A NAME="443"></A>                / ((m_SumInstances - missing4ParentAtt) + m_Weight);
+<FONT ID="LN">444 </FONT><A NAME="444"></A>          }
+<FONT ID="LN">445 </FONT><A NAME="445"></A>
+<FONT ID="LN">446 </FONT><A NAME="446"></A>          <FONT ID="SingleLineComment">// take into account the value of each attribute
+<FONT ID="LN">447 </FONT><A NAME="447"></A></FONT>          <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> att = <FONT ID="IntegerLiteral">0</FONT>; att &lt; m_NumAttributes; att++) {
+<FONT ID="LN">448 </FONT><A NAME="448"></A>             <FONT ID="If">if</FONT>(attIndex[att] == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">449 </FONT><A NAME="449"></A>                <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">450 </FONT><A NAME="450"></A> 
+<FONT ID="LN">451 </FONT><A NAME="451"></A>             <FONT ID="Double">double</FONT> missingForParentandChildAtt = 
+<FONT ID="LN">452 </FONT><A NAME="452"></A>              countsForClassParent[m_StartAttIndex[att] + m_NumAttValues[att]];
+<FONT ID="LN">453 </FONT><A NAME="453"></A>
+<FONT ID="LN">454 </FONT><A NAME="454"></A>             <FONT ID="If">if</FONT>(!m_MEstimates) {
+<FONT ID="LN">455 </FONT><A NAME="455"></A>                spodeP *= (countsForClassParent[attIndex[att]] + <FONT ID="FloatPointLiteral">1.0</FONT>)
+<FONT ID="LN">456 </FONT><A NAME="456"></A>                    / ((classparentfreq - missingForParentandChildAtt)
+<FONT ID="LN">457 </FONT><A NAME="457"></A>                       + m_NumAttValues[att]);
+<FONT ID="LN">458 </FONT><A NAME="458"></A>             } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">459 </FONT><A NAME="459"></A>                spodeP *= (countsForClassParent[attIndex[att]]
+<FONT ID="LN">460 </FONT><A NAME="460"></A>                           + ((<FONT ID="Double">double</FONT>)m_Weight / (<FONT ID="Double">double</FONT>)m_NumAttValues[att]))
+<FONT ID="LN">461 </FONT><A NAME="461"></A>                    / ((classparentfreq - missingForParentandChildAtt)
+<FONT ID="LN">462 </FONT><A NAME="462"></A>                       + m_Weight);
+<FONT ID="LN">463 </FONT><A NAME="463"></A>             }
+<FONT ID="LN">464 </FONT><A NAME="464"></A>          }
+<FONT ID="LN">465 </FONT><A NAME="465"></A>
+<FONT ID="LN">466 </FONT><A NAME="466"></A>          <FONT ID="SingleLineComment">// add this probability to the overall probability
+<FONT ID="LN">467 </FONT><A NAME="467"></A></FONT>          probs[classVal] += spodeP;
+<FONT ID="LN">468 </FONT><A NAME="468"></A> 
+<FONT ID="LN">469 </FONT><A NAME="469"></A>          <FONT ID="SingleLineComment">// unblock the parent
+<FONT ID="LN">470 </FONT><A NAME="470"></A></FONT>          attIndex[parent] = pIndex;
+<FONT ID="LN">471 </FONT><A NAME="471"></A>       }
+<FONT ID="LN">472 </FONT><A NAME="472"></A> 
+<FONT ID="LN">473 </FONT><A NAME="473"></A>       <FONT ID="SingleLineComment">// check that at least one att was a parent
+<FONT ID="LN">474 </FONT><A NAME="474"></A></FONT>       <FONT ID="If">if</FONT>(parentCount &lt; <FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">475 </FONT><A NAME="475"></A>
+<FONT ID="LN">476 </FONT><A NAME="476"></A>          <FONT ID="SingleLineComment">// do plain naive bayes conditional prob
+<FONT ID="LN">477 </FONT><A NAME="477"></A></FONT>      probs[classVal] = NBconditionalProb(instance, classVal);
+<FONT ID="LN">478 </FONT><A NAME="478"></A>
+<FONT ID="LN">479 </FONT><A NAME="479"></A>       } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">480 </FONT><A NAME="480"></A> 
+<FONT ID="LN">481 </FONT><A NAME="481"></A>          <FONT ID="SingleLineComment">// divide by number of parent atts to get the mean
+<FONT ID="LN">482 </FONT><A NAME="482"></A></FONT>          probs[classVal] /= (<FONT ID="Double">double</FONT>)(parentCount);
+<FONT ID="LN">483 </FONT><A NAME="483"></A>       }
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    }
+<FONT ID="LN">485 </FONT><A NAME="485"></A> 
+<FONT ID="LN">486 </FONT><A NAME="486"></A>    Utils.normalize(probs);
+<FONT ID="LN">487 </FONT><A NAME="487"></A>    <FONT ID="Return">return</FONT> probs;
+<FONT ID="LN">488 </FONT><A NAME="488"></A>  }
+<FONT ID="LN">489 </FONT><A NAME="489"></A>
+<FONT ID="LN">490 </FONT><A NAME="490"></A>
+<FONT ID="LN">491 </FONT><A NAME="491"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">492 </FONT><A NAME="492"></A>   * Calculates the probability of the specified class for the given test
+<FONT ID="LN">493 </FONT><A NAME="493"></A>   * instance, using naive Bayes.
+<FONT ID="LN">494 </FONT><A NAME="494"></A>   *
+<FONT ID="LN">495 </FONT><A NAME="495"></A>   * @param instance the instance to be classified
+<FONT ID="LN">496 </FONT><A NAME="496"></A>   * @param classVal the class for which to calculate the probability
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   * @return predicted class probability
+<FONT ID="LN">498 </FONT><A NAME="498"></A>   */</FONT>
+<FONT ID="LN">499 </FONT><A NAME="499"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> NBconditionalProb(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Int">int</FONT> classVal) {
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    
+<FONT ID="LN">501 </FONT><A NAME="501"></A>    <FONT ID="Double">double</FONT> prob;
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    <FONT ID="Double">double</FONT> [][] pointer;
+<FONT ID="LN">503 </FONT><A NAME="503"></A>
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    <FONT ID="SingleLineComment">// calculate the prior probability
+<FONT ID="LN">505 </FONT><A NAME="505"></A></FONT>    <FONT ID="If">if</FONT>(!m_MEstimates) {
+<FONT ID="LN">506 </FONT><A NAME="506"></A>       prob = (m_ClassCounts[classVal] + <FONT ID="FloatPointLiteral">1.0</FONT>) / (m_SumInstances + m_NumClasses);
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">508 </FONT><A NAME="508"></A>       prob = (m_ClassCounts[classVal]
+<FONT ID="LN">509 </FONT><A NAME="509"></A>               + ((<FONT ID="Double">double</FONT>)m_Weight / (<FONT ID="Double">double</FONT>)m_NumClasses))
+<FONT ID="LN">510 </FONT><A NAME="510"></A>             / (m_SumInstances + m_Weight);
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    }
+<FONT ID="LN">512 </FONT><A NAME="512"></A>    pointer = m_CondiCounts[classVal];
+<FONT ID="LN">513 </FONT><A NAME="513"></A>    
+<FONT ID="LN">514 </FONT><A NAME="514"></A>    <FONT ID="SingleLineComment">// consider effect of each att value
+<FONT ID="LN">515 </FONT><A NAME="515"></A></FONT>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> att = <FONT ID="IntegerLiteral">0</FONT>; att &lt; m_NumAttributes; att++) {
+<FONT ID="LN">516 </FONT><A NAME="516"></A>       <FONT ID="If">if</FONT>(att == m_ClassIndex || instance.isMissing(att))
+<FONT ID="LN">517 </FONT><A NAME="517"></A>          <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">518 </FONT><A NAME="518"></A>
+<FONT ID="LN">519 </FONT><A NAME="519"></A>       <FONT ID="SingleLineComment">// determine correct index for att in m_CondiCounts
+<FONT ID="LN">520 </FONT><A NAME="520"></A></FONT>       <FONT ID="Int">int</FONT> aIndex = m_StartAttIndex[att] + (<FONT ID="Int">int</FONT>)instance.value(att);
+<FONT ID="LN">521 </FONT><A NAME="521"></A>
+<FONT ID="LN">522 </FONT><A NAME="522"></A>       <FONT ID="If">if</FONT>(!m_MEstimates) {
+<FONT ID="LN">523 </FONT><A NAME="523"></A>          prob *= (<FONT ID="Double">double</FONT>)(pointer[aIndex][aIndex] + <FONT ID="FloatPointLiteral">1.0</FONT>)
+<FONT ID="LN">524 </FONT><A NAME="524"></A>              / ((<FONT ID="Double">double</FONT>)m_SumForCounts[classVal][att] + m_NumAttValues[att]);
+<FONT ID="LN">525 </FONT><A NAME="525"></A>       } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">526 </FONT><A NAME="526"></A>          prob *= (<FONT ID="Double">double</FONT>)(pointer[aIndex][aIndex] 
+<FONT ID="LN">527 </FONT><A NAME="527"></A>                    + ((<FONT ID="Double">double</FONT>)m_Weight / (<FONT ID="Double">double</FONT>)m_NumAttValues[att]))
+<FONT ID="LN">528 </FONT><A NAME="528"></A>                 / (<FONT ID="Double">double</FONT>)(m_SumForCounts[classVal][att] + m_Weight);
+<FONT ID="LN">529 </FONT><A NAME="529"></A>       }
+<FONT ID="LN">530 </FONT><A NAME="530"></A>    }
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    <FONT ID="Return">return</FONT> prob;
+<FONT ID="LN">532 </FONT><A NAME="532"></A>  }
+<FONT ID="LN">533 </FONT><A NAME="533"></A>
+<FONT ID="LN">534 </FONT><A NAME="534"></A>
+<FONT ID="LN">535 </FONT><A NAME="535"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">536 </FONT><A NAME="536"></A>   * Returns an enumeration describing the available options
+<FONT ID="LN">537 </FONT><A NAME="537"></A>   *
+<FONT ID="LN">538 </FONT><A NAME="538"></A>   * @return an enumeration of all the available options
+<FONT ID="LN">539 </FONT><A NAME="539"></A>   */</FONT>
+<FONT ID="LN">540 </FONT><A NAME="540"></A>  <FONT ID="Public">public</FONT> Enumeration listOptions() {
+<FONT ID="LN">541 </FONT><A NAME="541"></A>        
+<FONT ID="LN">542 </FONT><A NAME="542"></A>    Vector newVector = <FONT ID="New">new</FONT> Vector(<FONT ID="IntegerLiteral">4</FONT>);
+<FONT ID="LN">543 </FONT><A NAME="543"></A>        
+<FONT ID="LN">544 </FONT><A NAME="544"></A>    newVector.addElement(
+<FONT ID="LN">545 </FONT><A NAME="545"></A>       <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(<FONT ID="StringLiteral">"\tOutput debugging information\n"</FONT>,
+<FONT ID="LN">546 </FONT><A NAME="546"></A>                  <FONT ID="StringLiteral">"D"</FONT>, <FONT ID="IntegerLiteral">0</FONT>,<FONT ID="StringLiteral">"-D"</FONT>));
+<FONT ID="LN">547 </FONT><A NAME="547"></A>    newVector.addElement(
+<FONT ID="LN">548 </FONT><A NAME="548"></A>       <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(<FONT ID="StringLiteral">"\tImpose a frequency limit for superParents\n"</FONT>
+<FONT ID="LN">549 </FONT><A NAME="549"></A>                  + <FONT ID="StringLiteral">"\t(default is 1)"</FONT>, <FONT ID="StringLiteral">"F"</FONT>, <FONT ID="IntegerLiteral">1</FONT>,<FONT ID="StringLiteral">"-F &lt;int&gt;"</FONT>));
+<FONT ID="LN">550 </FONT><A NAME="550"></A>    newVector.addElement(
+<FONT ID="LN">551 </FONT><A NAME="551"></A>       <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(<FONT ID="StringLiteral">"\tUse m-estimate instead of laplace correction\n"</FONT>,
+<FONT ID="LN">552 </FONT><A NAME="552"></A>                  <FONT ID="StringLiteral">"M"</FONT>, <FONT ID="IntegerLiteral">0</FONT>,<FONT ID="StringLiteral">"-M"</FONT>));
+<FONT ID="LN">553 </FONT><A NAME="553"></A>    newVector.addElement(
+<FONT ID="LN">554 </FONT><A NAME="554"></A>       <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(<FONT ID="StringLiteral">"\tSpecify a weight to use with m-estimate\n"</FONT>
+<FONT ID="LN">555 </FONT><A NAME="555"></A>                  + <FONT ID="StringLiteral">"\t(default is 1)"</FONT>, <FONT ID="StringLiteral">"W"</FONT>, <FONT ID="IntegerLiteral">1</FONT>,<FONT ID="StringLiteral">"-W &lt;int&gt;"</FONT>));
+<FONT ID="LN">556 </FONT><A NAME="556"></A>    <FONT ID="Return">return</FONT> newVector.elements();
+<FONT ID="LN">557 </FONT><A NAME="557"></A>  }
+<FONT ID="LN">558 </FONT><A NAME="558"></A>
+<FONT ID="LN">559 </FONT><A NAME="559"></A>    
+<FONT ID="LN">560 </FONT><A NAME="560"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">561 </FONT><A NAME="561"></A>   * Parses a given list of options. &lt;p/&gt;
+<FONT ID="LN">562 </FONT><A NAME="562"></A>   * 
+<FONT ID="LN">563 </FONT><A NAME="563"></A>   &lt;!-- options-start --&gt;
+<FONT ID="LN">564 </FONT><A NAME="564"></A>   * Valid options are: &lt;p/&gt;
+<FONT ID="LN">565 </FONT><A NAME="565"></A>   * 
+<FONT ID="LN">566 </FONT><A NAME="566"></A>   * &lt;pre&gt; -D
+<FONT ID="LN">567 </FONT><A NAME="567"></A>   *  Output debugging information
+<FONT ID="LN">568 </FONT><A NAME="568"></A>   * &lt;/pre&gt;
+<FONT ID="LN">569 </FONT><A NAME="569"></A>   * 
+<FONT ID="LN">570 </FONT><A NAME="570"></A>   * &lt;pre&gt; -F &amp;lt;int&amp;gt;
+<FONT ID="LN">571 </FONT><A NAME="571"></A>   *  Impose a frequency limit for superParents
+<FONT ID="LN">572 </FONT><A NAME="572"></A>   *  (default is 1)&lt;/pre&gt;
+<FONT ID="LN">573 </FONT><A NAME="573"></A>   * 
+<FONT ID="LN">574 </FONT><A NAME="574"></A>   * &lt;pre&gt; -M
+<FONT ID="LN">575 </FONT><A NAME="575"></A>   *  Use m-estimate instead of laplace correction
+<FONT ID="LN">576 </FONT><A NAME="576"></A>   * &lt;/pre&gt;
+<FONT ID="LN">577 </FONT><A NAME="577"></A>   * 
+<FONT ID="LN">578 </FONT><A NAME="578"></A>   * &lt;pre&gt; -W &amp;lt;int&amp;gt;
+<FONT ID="LN">579 </FONT><A NAME="579"></A>   *  Specify a weight to use with m-estimate
+<FONT ID="LN">580 </FONT><A NAME="580"></A>   *  (default is 1)&lt;/pre&gt;
+<FONT ID="LN">581 </FONT><A NAME="581"></A>   * 
+<FONT ID="LN">582 </FONT><A NAME="582"></A>   &lt;!-- options-end --&gt;
+<FONT ID="LN">583 </FONT><A NAME="583"></A>   *
+<FONT ID="LN">584 </FONT><A NAME="584"></A>   * @param options the list of options as an array of strings
+<FONT ID="LN">585 </FONT><A NAME="585"></A>   * @throws Exception if an option is not supported
+<FONT ID="LN">586 </FONT><A NAME="586"></A>   */</FONT>
+<FONT ID="LN">587 </FONT><A NAME="587"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOptions(String[] options) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">588 </FONT><A NAME="588"></A>
+<FONT ID="LN">589 </FONT><A NAME="589"></A>    m_Debug = Utils.getFlag(<FONT ID="CharacerLiteral">'D'</FONT>, options);
+<FONT ID="LN">590 </FONT><A NAME="590"></A>
+<FONT ID="LN">591 </FONT><A NAME="591"></A>    String Freq = Utils.getOption(<FONT ID="CharacerLiteral">'F'</FONT>, options);
+<FONT ID="LN">592 </FONT><A NAME="592"></A>    <FONT ID="If">if</FONT> (Freq.length() != <FONT ID="IntegerLiteral">0</FONT>) 
+<FONT ID="LN">593 </FONT><A NAME="593"></A>       m_Limit = Integer.parseInt(Freq);
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">595 </FONT><A NAME="595"></A>       m_Limit = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">596 </FONT><A NAME="596"></A> 
+<FONT ID="LN">597 </FONT><A NAME="597"></A>    m_MEstimates = Utils.getFlag(<FONT ID="CharacerLiteral">'M'</FONT>, options);
+<FONT ID="LN">598 </FONT><A NAME="598"></A>    String weight = Utils.getOption(<FONT ID="CharacerLiteral">'W'</FONT>, options);
+<FONT ID="LN">599 </FONT><A NAME="599"></A>    <FONT ID="If">if</FONT> (weight.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">600 </FONT><A NAME="600"></A>       <FONT ID="If">if</FONT> (!m_MEstimates)
+<FONT ID="LN">601 </FONT><A NAME="601"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Can't use Laplace AND m-estimate weight. Choose one."</FONT>);
+<FONT ID="LN">602 </FONT><A NAME="602"></A>       m_Weight = Integer.parseInt(weight);
+<FONT ID="LN">603 </FONT><A NAME="603"></A>    } 
+<FONT ID="LN">604 </FONT><A NAME="604"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">605 </FONT><A NAME="605"></A>       <FONT ID="If">if</FONT> (m_MEstimates)
+<FONT ID="LN">606 </FONT><A NAME="606"></A>          m_Weight = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    }
+<FONT ID="LN">608 </FONT><A NAME="608"></A>
+<FONT ID="LN">609 </FONT><A NAME="609"></A>    Utils.checkForRemainingOptions(options);
+<FONT ID="LN">610 </FONT><A NAME="610"></A>  }
+<FONT ID="LN">611 </FONT><A NAME="611"></A>    
+<FONT ID="LN">612 </FONT><A NAME="612"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">613 </FONT><A NAME="613"></A>   * Gets the current settings of the classifier.
+<FONT ID="LN">614 </FONT><A NAME="614"></A>   *
+<FONT ID="LN">615 </FONT><A NAME="615"></A>   * @return an array of strings suitable for passing to setOptions
+<FONT ID="LN">616 </FONT><A NAME="616"></A>   */</FONT>
+<FONT ID="LN">617 </FONT><A NAME="617"></A>  <FONT ID="Public">public</FONT> String [] getOptions() {
+<FONT ID="LN">618 </FONT><A NAME="618"></A>    Vector result  = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">619 </FONT><A NAME="619"></A>
+<FONT ID="LN">620 </FONT><A NAME="620"></A>    <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">621 </FONT><A NAME="621"></A>       result.add(<FONT ID="StringLiteral">"-D"</FONT>);
+<FONT ID="LN">622 </FONT><A NAME="622"></A>        
+<FONT ID="LN">623 </FONT><A NAME="623"></A>    result.add(<FONT ID="StringLiteral">"-F"</FONT>);
+<FONT ID="LN">624 </FONT><A NAME="624"></A>    result.add(<FONT ID="StringLiteral">""</FONT> + m_Limit);
+<FONT ID="LN">625 </FONT><A NAME="625"></A>
+<FONT ID="LN">626 </FONT><A NAME="626"></A>    <FONT ID="If">if</FONT> (m_MEstimates) {
+<FONT ID="LN">627 </FONT><A NAME="627"></A>       result.add(<FONT ID="StringLiteral">"-M"</FONT>);
+<FONT ID="LN">628 </FONT><A NAME="628"></A>       result.add(<FONT ID="StringLiteral">"-W"</FONT>);
+<FONT ID="LN">629 </FONT><A NAME="629"></A>       result.add(<FONT ID="StringLiteral">""</FONT> + m_Weight);
+<FONT ID="LN">630 </FONT><A NAME="630"></A>    }
+<FONT ID="LN">631 </FONT><A NAME="631"></A>    
+<FONT ID="LN">632 </FONT><A NAME="632"></A>    <FONT ID="Return">return</FONT> (String[]) result.toArray(<FONT ID="New">new</FONT> String[result.size()]);
+<FONT ID="LN">633 </FONT><A NAME="633"></A>  }
+<FONT ID="LN">634 </FONT><A NAME="634"></A>    
+<FONT ID="LN">635 </FONT><A NAME="635"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">636 </FONT><A NAME="636"></A>   * Returns the tip text for this property
+<FONT ID="LN">637 </FONT><A NAME="637"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">638 </FONT><A NAME="638"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">639 </FONT><A NAME="639"></A>   */</FONT>
+<FONT ID="LN">640 </FONT><A NAME="640"></A>  <FONT ID="Public">public</FONT> String weightTipText() {
+<FONT ID="LN">641 </FONT><A NAME="641"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Set the weight for m-estimate."</FONT>;
+<FONT ID="LN">642 </FONT><A NAME="642"></A>  }
+<FONT ID="LN">643 </FONT><A NAME="643"></A>
+<FONT ID="LN">644 </FONT><A NAME="644"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">645 </FONT><A NAME="645"></A>   * Sets the weight for m-estimate
+<FONT ID="LN">646 </FONT><A NAME="646"></A>   *
+<FONT ID="LN">647 </FONT><A NAME="647"></A>   * @param w the weight
+<FONT ID="LN">648 </FONT><A NAME="648"></A>   */</FONT>
+<FONT ID="LN">649 </FONT><A NAME="649"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setWeight(<FONT ID="Int">int</FONT> w) {
+<FONT ID="LN">650 </FONT><A NAME="650"></A>    <FONT ID="If">if</FONT> (!getUseMEstimates()) {
+<FONT ID="LN">651 </FONT><A NAME="651"></A>      System.out.println(
+<FONT ID="LN">652 </FONT><A NAME="652"></A>          <FONT ID="StringLiteral">"Weight is only used in conjunction with m-estimate - ignored!"</FONT>);
+<FONT ID="LN">653 </FONT><A NAME="653"></A>    }
+<FONT ID="LN">654 </FONT><A NAME="654"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">655 </FONT><A NAME="655"></A>      <FONT ID="If">if</FONT> (w &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">656 </FONT><A NAME="656"></A>        m_Weight = w;
+<FONT ID="LN">657 </FONT><A NAME="657"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">658 </FONT><A NAME="658"></A>        System.out.println(<FONT ID="StringLiteral">"Weight must be greater than 0!"</FONT>);
+<FONT ID="LN">659 </FONT><A NAME="659"></A>    }
+<FONT ID="LN">660 </FONT><A NAME="660"></A>  }
+<FONT ID="LN">661 </FONT><A NAME="661"></A>
+<FONT ID="LN">662 </FONT><A NAME="662"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">663 </FONT><A NAME="663"></A>   * Gets the weight used in m-estimate
+<FONT ID="LN">664 </FONT><A NAME="664"></A>   *
+<FONT ID="LN">665 </FONT><A NAME="665"></A>   * @return the frequency limit
+<FONT ID="LN">666 </FONT><A NAME="666"></A>   */</FONT>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getWeight() {
+<FONT ID="LN">668 </FONT><A NAME="668"></A>    <FONT ID="Return">return</FONT> m_Weight;
+<FONT ID="LN">669 </FONT><A NAME="669"></A>  }
+<FONT ID="LN">670 </FONT><A NAME="670"></A>
+<FONT ID="LN">671 </FONT><A NAME="671"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">672 </FONT><A NAME="672"></A>   * Returns the tip text for this property
+<FONT ID="LN">673 </FONT><A NAME="673"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">674 </FONT><A NAME="674"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">675 </FONT><A NAME="675"></A>   */</FONT>
+<FONT ID="LN">676 </FONT><A NAME="676"></A>  <FONT ID="Public">public</FONT> String useMEstimatesTipText() {
+<FONT ID="LN">677 </FONT><A NAME="677"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Use m-estimate instead of laplace correction."</FONT>;
+<FONT ID="LN">678 </FONT><A NAME="678"></A>  }
+<FONT ID="LN">679 </FONT><A NAME="679"></A>
+<FONT ID="LN">680 </FONT><A NAME="680"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">681 </FONT><A NAME="681"></A>   * Gets if m-estimaces is being used.
+<FONT ID="LN">682 </FONT><A NAME="682"></A>   *
+<FONT ID="LN">683 </FONT><A NAME="683"></A>   * @return Value of m_MEstimates.
+<FONT ID="LN">684 </FONT><A NAME="684"></A>   */</FONT>
+<FONT ID="LN">685 </FONT><A NAME="685"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getUseMEstimates() {
+<FONT ID="LN">686 </FONT><A NAME="686"></A>    <FONT ID="Return">return</FONT> m_MEstimates;
+<FONT ID="LN">687 </FONT><A NAME="687"></A>  }
+<FONT ID="LN">688 </FONT><A NAME="688"></A>
+<FONT ID="LN">689 </FONT><A NAME="689"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">690 </FONT><A NAME="690"></A>   * Sets if m-estimates is to be used.
+<FONT ID="LN">691 </FONT><A NAME="691"></A>   *
+<FONT ID="LN">692 </FONT><A NAME="692"></A>   * @param value     Value to assign to m_MEstimates.
+<FONT ID="LN">693 </FONT><A NAME="693"></A>   */</FONT>
+<FONT ID="LN">694 </FONT><A NAME="694"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setUseMEstimates(<FONT ID="Boolean">boolean</FONT> value) {
+<FONT ID="LN">695 </FONT><A NAME="695"></A>    m_MEstimates = value;
+<FONT ID="LN">696 </FONT><A NAME="696"></A>  }
+<FONT ID="LN">697 </FONT><A NAME="697"></A>
+<FONT ID="LN">698 </FONT><A NAME="698"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">699 </FONT><A NAME="699"></A>   * Returns the tip text for this property
+<FONT ID="LN">700 </FONT><A NAME="700"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">701 </FONT><A NAME="701"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">702 </FONT><A NAME="702"></A>   */</FONT>
+<FONT ID="LN">703 </FONT><A NAME="703"></A>  <FONT ID="Public">public</FONT> String frequencyLimitTipText() {
+<FONT ID="LN">704 </FONT><A NAME="704"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Attributes with a frequency in the train set below "</FONT>
+<FONT ID="LN">705 </FONT><A NAME="705"></A>           + <FONT ID="StringLiteral">"this value aren't used as parents."</FONT>;
+<FONT ID="LN">706 </FONT><A NAME="706"></A>  }
+<FONT ID="LN">707 </FONT><A NAME="707"></A>
+<FONT ID="LN">708 </FONT><A NAME="708"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">709 </FONT><A NAME="709"></A>   * Sets the frequency limit
+<FONT ID="LN">710 </FONT><A NAME="710"></A>   *
+<FONT ID="LN">711 </FONT><A NAME="711"></A>   * @param f the frequency limit
+<FONT ID="LN">712 </FONT><A NAME="712"></A>   */</FONT>
+<FONT ID="LN">713 </FONT><A NAME="713"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setFrequencyLimit(<FONT ID="Int">int</FONT> f) {
+<FONT ID="LN">714 </FONT><A NAME="714"></A>    m_Limit = f;
+<FONT ID="LN">715 </FONT><A NAME="715"></A>  }
+<FONT ID="LN">716 </FONT><A NAME="716"></A>
+<FONT ID="LN">717 </FONT><A NAME="717"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">718 </FONT><A NAME="718"></A>   * Gets the frequency limit.
+<FONT ID="LN">719 </FONT><A NAME="719"></A>   *
+<FONT ID="LN">720 </FONT><A NAME="720"></A>   * @return the frequency limit
+<FONT ID="LN">721 </FONT><A NAME="721"></A>   */</FONT>
+<FONT ID="LN">722 </FONT><A NAME="722"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getFrequencyLimit() {
+<FONT ID="LN">723 </FONT><A NAME="723"></A>    <FONT ID="Return">return</FONT> m_Limit;
+<FONT ID="LN">724 </FONT><A NAME="724"></A>  }
+<FONT ID="LN">725 </FONT><A NAME="725"></A>
+<FONT ID="LN">726 </FONT><A NAME="726"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">727 </FONT><A NAME="727"></A>   * Returns a description of the classifier.
+<FONT ID="LN">728 </FONT><A NAME="728"></A>   *
+<FONT ID="LN">729 </FONT><A NAME="729"></A>   * @return a description of the classifier as a string.
+<FONT ID="LN">730 </FONT><A NAME="730"></A>   */</FONT>
+<FONT ID="LN">731 </FONT><A NAME="731"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">732 </FONT><A NAME="732"></A> 
+<FONT ID="LN">733 </FONT><A NAME="733"></A>    StringBuffer text = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">734 </FONT><A NAME="734"></A>        
+<FONT ID="LN">735 </FONT><A NAME="735"></A>    text.append(<FONT ID="StringLiteral">"The AODE Classifier"</FONT>);
+<FONT ID="LN">736 </FONT><A NAME="736"></A>    <FONT ID="If">if</FONT> (m_Instances == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">737 </FONT><A NAME="737"></A>       text.append(<FONT ID="StringLiteral">": No model built yet."</FONT>);
+<FONT ID="LN">738 </FONT><A NAME="738"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">739 </FONT><A NAME="739"></A>       <FONT ID="Try">try</FONT> {
+<FONT ID="LN">740 </FONT><A NAME="740"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_NumClasses; i++) {
+<FONT ID="LN">741 </FONT><A NAME="741"></A>             <FONT ID="SingleLineComment">// print to string, the prior probabilities of class values
+<FONT ID="LN">742 </FONT><A NAME="742"></A></FONT>             text.append(<FONT ID="StringLiteral">"\nClass "</FONT> + m_Instances.classAttribute().value(i) +
+<FONT ID="LN">743 </FONT><A NAME="743"></A>                       <FONT ID="StringLiteral">": Prior probability = "</FONT> + Utils.
+<FONT ID="LN">744 </FONT><A NAME="744"></A>                          doubleToString(((m_ClassCounts[i] + <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">745 </FONT><A NAME="745"></A>                       /(m_SumInstances + m_NumClasses)), <FONT ID="IntegerLiteral">4</FONT>, <FONT ID="IntegerLiteral">2</FONT>)+<FONT ID="StringLiteral">"\n\n"</FONT>);
+<FONT ID="LN">746 </FONT><A NAME="746"></A>          }
+<FONT ID="LN">747 </FONT><A NAME="747"></A>                
+<FONT ID="LN">748 </FONT><A NAME="748"></A>          text.append(<FONT ID="StringLiteral">"Dataset: "</FONT> + m_Instances.relationName() + <FONT ID="StringLiteral">"\n"</FONT>
+<FONT ID="LN">749 </FONT><A NAME="749"></A>                      + <FONT ID="StringLiteral">"Instances: "</FONT> + m_NumInstances + <FONT ID="StringLiteral">"\n"</FONT>
+<FONT ID="LN">750 </FONT><A NAME="750"></A>                      + <FONT ID="StringLiteral">"Attributes: "</FONT> + m_NumAttributes + <FONT ID="StringLiteral">"\n"</FONT>
+<FONT ID="LN">751 </FONT><A NAME="751"></A>              + <FONT ID="StringLiteral">"Frequency limit for superParents: "</FONT> + m_Limit + <FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">752 </FONT><A NAME="752"></A>          text.append(<FONT ID="StringLiteral">"Correction: "</FONT>);
+<FONT ID="LN">753 </FONT><A NAME="753"></A>          <FONT ID="If">if</FONT> (!m_MEstimates)
+<FONT ID="LN">754 </FONT><A NAME="754"></A>             text.append(<FONT ID="StringLiteral">"laplace\n"</FONT>);
+<FONT ID="LN">755 </FONT><A NAME="755"></A>          <FONT ID="Else">else</FONT>
+<FONT ID="LN">756 </FONT><A NAME="756"></A>             text.append(<FONT ID="StringLiteral">"m-estimate (m="</FONT> + m_Weight + <FONT ID="StringLiteral">")\n"</FONT>);
+<FONT ID="LN">757 </FONT><A NAME="757"></A>                
+<FONT ID="LN">758 </FONT><A NAME="758"></A>       } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">759 </FONT><A NAME="759"></A>          text.append(ex.getMessage());
+<FONT ID="LN">760 </FONT><A NAME="760"></A>       }
+<FONT ID="LN">761 </FONT><A NAME="761"></A>    }
+<FONT ID="LN">762 </FONT><A NAME="762"></A>        
+<FONT ID="LN">763 </FONT><A NAME="763"></A>    <FONT ID="Return">return</FONT> text.toString();
+<FONT ID="LN">764 </FONT><A NAME="764"></A>  }
+<FONT ID="LN">765 </FONT><A NAME="765"></A>  
+<FONT ID="LN">766 </FONT><A NAME="766"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">767 </FONT><A NAME="767"></A>   * Returns the revision string.
+<FONT ID="LN">768 </FONT><A NAME="768"></A>   * 
+<FONT ID="LN">769 </FONT><A NAME="769"></A>   * @return        the revision
+<FONT ID="LN">770 </FONT><A NAME="770"></A>   */</FONT>
+<FONT ID="LN">771 </FONT><A NAME="771"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">772 </FONT><A NAME="772"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5928 $"</FONT>);
+<FONT ID="LN">773 </FONT><A NAME="773"></A>  }
+<FONT ID="LN">774 </FONT><A NAME="774"></A>    
+<FONT ID="LN">775 </FONT><A NAME="775"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">776 </FONT><A NAME="776"></A>   * Main method for testing this class.
+<FONT ID="LN">777 </FONT><A NAME="777"></A>   *
+<FONT ID="LN">778 </FONT><A NAME="778"></A>   * @param argv the options
+<FONT ID="LN">779 </FONT><A NAME="779"></A>   */</FONT>
+<FONT ID="LN">780 </FONT><A NAME="780"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String [] argv) {
+<FONT ID="LN">781 </FONT><A NAME="781"></A>    runClassifier(<FONT ID="New">new</FONT> <A HREF="../../../weka/classifiers/bayes/AODE.java.html">AODE</A>(), argv);
+<FONT ID="LN">782 </FONT><A NAME="782"></A>  }
+<FONT ID="LN">783 </FONT><A NAME="783"></A>}
+<FONT ID="LN">784 </FONT><A NAME="784"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AODE.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

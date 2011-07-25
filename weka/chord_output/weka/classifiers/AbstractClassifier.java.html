@@ -1,0 +1,339 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.classifiers.AbstractClassifier (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AbstractClassifier.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    AbstractClassifier.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 1999 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.classifiers;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Attribute.java.html">weka.core.Attribute</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Capabilities.java.html">weka.core.Capabilities</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/CapabilitiesHandler.java.html">weka.core.CapabilitiesHandler</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Option.java.html">weka.core.Option</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/OptionHandler.java.html">weka.core.OptionHandler</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/RevisionHandler.java.html">weka.core.RevisionHandler</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/SerializedObject.java.html">weka.core.SerializedObject</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * Abstract classifier. All schemes for numeric or nominal prediction in
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * Weka extend this class. Note that a classifier MUST either implement
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * distributionForInstance() or classifyInstance().
+<FONT ID="LN">45  </FONT><A NAME="45"></A> *
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * @author Eibe Frank (eibe@cs.waikato.ac.nz)
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * @author Len Trigg (trigg@cs.waikato.ac.nz)
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * @version $Revision: 6041 $
+<FONT ID="LN">49  </FONT><A NAME="49"></A> */</FONT>
+<FONT ID="LN">50  </FONT><A NAME="50"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> AbstractClassifier
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="Implements">implements</FONT> <A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A>, Cloneable, Serializable, <A HREF="../../weka/core/OptionHandler.java.html">OptionHandler</A>,
+<FONT ID="LN">52  </FONT><A NAME="52"></A>             <A HREF="../../weka/core/CapabilitiesHandler.java.html">CapabilitiesHandler</A>, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">53  </FONT><A NAME="53"></A>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">6502780192411755341L</FONT>;
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="FormalComment">/** Whether the classifier is run in debug mode. */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_Debug = <FONT ID="False">false</FONT>;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * Classifies the given test instance. The instance has to belong to a
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * dataset when it's being classified. Note that a classifier MUST
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * implement either this or distributionForInstance().
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   *
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   * @param instance the instance to be classified
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   * @return the predicted most likely class for the instance or
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   * Utils.missingValue() if no prediction is made
+<FONT ID="LN">68  </FONT><A NAME="68"></A>   * @exception Exception if an error occurred during the prediction
+<FONT ID="LN">69  </FONT><A NAME="69"></A>   */</FONT>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> classifyInstance(<A HREF="../../weka/core/Instance.java.html">Instance</A> instance) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="Double">double</FONT> [] dist = distributionForInstance(instance);
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    <FONT ID="If">if</FONT> (dist == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Null distribution predicted"</FONT>);
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    }
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="Switch">switch</FONT> (instance.classAttribute().type()) {
+<FONT ID="LN">77  </FONT><A NAME="77"></A>    <FONT ID="Case">case</FONT> Attribute.NOMINAL:
+<FONT ID="LN">78  </FONT><A NAME="78"></A>      <FONT ID="Double">double</FONT> max = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">79  </FONT><A NAME="79"></A>      <FONT ID="Int">int</FONT> maxIndex = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">80  </FONT><A NAME="80"></A>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; dist.length; i++) {
+<FONT ID="LN">82  </FONT><A NAME="82"></A>        <FONT ID="If">if</FONT> (dist[i] &gt; max) {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>          maxIndex = i;
+<FONT ID="LN">84  </FONT><A NAME="84"></A>          max = dist[i];
+<FONT ID="LN">85  </FONT><A NAME="85"></A>        }
+<FONT ID="LN">86  </FONT><A NAME="86"></A>      }
+<FONT ID="LN">87  </FONT><A NAME="87"></A>      <FONT ID="If">if</FONT> (max &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        <FONT ID="Return">return</FONT> maxIndex;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        <FONT ID="Return">return</FONT> Utils.missingValue();
+<FONT ID="LN">91  </FONT><A NAME="91"></A>      }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <FONT ID="Case">case</FONT> Attribute.NUMERIC:
+<FONT ID="LN">93  </FONT><A NAME="93"></A>      <FONT ID="Return">return</FONT> dist[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="Default">default</FONT>:
+<FONT ID="LN">95  </FONT><A NAME="95"></A>      <FONT ID="Return">return</FONT> Utils.missingValue();
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    }
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  }
+<FONT ID="LN">98  </FONT><A NAME="98"></A>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   * Predicts the class memberships for a given instance. If
+<FONT ID="LN">101 </FONT><A NAME="101"></A>   * an instance is unclassified, the returned array elements
+<FONT ID="LN">102 </FONT><A NAME="102"></A>   * must be all zero. If the class is numeric, the array
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * must consist of only one element, which contains the
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * predicted value. Note that a classifier MUST implement
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   * either this or classifyInstance().
+<FONT ID="LN">106 </FONT><A NAME="106"></A>   *
+<FONT ID="LN">107 </FONT><A NAME="107"></A>   * @param instance the instance to be classified
+<FONT ID="LN">108 </FONT><A NAME="108"></A>   * @return an array containing the estimated membership
+<FONT ID="LN">109 </FONT><A NAME="109"></A>   * probabilities of the test instance in each class
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   * or the numeric prediction
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   * @exception Exception if distribution could not be
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   * computed successfully
+<FONT ID="LN">113 </FONT><A NAME="113"></A>   */</FONT>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT>[] distributionForInstance(<A HREF="../../weka/core/Instance.java.html">Instance</A> instance) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="Double">double</FONT>[] dist = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[instance.numClasses()];
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="Switch">switch</FONT> (instance.classAttribute().type()) {
+<FONT ID="LN">118 </FONT><A NAME="118"></A>      <FONT ID="Case">case</FONT> Attribute.NOMINAL:
+<FONT ID="LN">119 </FONT><A NAME="119"></A>        <FONT ID="Double">double</FONT> classification = classifyInstance(instance);
+<FONT ID="LN">120 </FONT><A NAME="120"></A>        <FONT ID="If">if</FONT> (Utils.isMissingValue(classification)) {
+<FONT ID="LN">121 </FONT><A NAME="121"></A>          <FONT ID="Return">return</FONT> dist;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">123 </FONT><A NAME="123"></A>          dist[(<FONT ID="Int">int</FONT>)classification] = <FONT ID="FloatPointLiteral">1.0</FONT>;
+<FONT ID="LN">124 </FONT><A NAME="124"></A>        }
+<FONT ID="LN">125 </FONT><A NAME="125"></A>        <FONT ID="Return">return</FONT> dist;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>      <FONT ID="Case">case</FONT> Attribute.NUMERIC:
+<FONT ID="LN">127 </FONT><A NAME="127"></A>        dist[<FONT ID="IntegerLiteral">0</FONT>] = classifyInstance(instance);
+<FONT ID="LN">128 </FONT><A NAME="128"></A>        <FONT ID="Return">return</FONT> dist;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>      <FONT ID="Default">default</FONT>:
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        <FONT ID="Return">return</FONT> dist;
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  }
+<FONT ID="LN">133 </FONT><A NAME="133"></A>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * Creates a new instance of a classifier given it's class name and
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * (optional) arguments to pass to it's setOptions method. If the
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * classifier implements OptionHandler and the options parameter is
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   * non-null, the classifier will have it's options set.
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   *
+<FONT ID="LN">140 </FONT><A NAME="140"></A>   * @param classifierName the fully qualified class name of the classifier
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * @param options an array of options suitable for passing to setOptions. May
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   * be null.
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * @return the newly created classifier, ready for use.
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * @exception Exception if the classifier name is invalid, or the options
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * supplied are not acceptable to the classifier
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   */</FONT>
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> forName(String classifierName,
+<FONT ID="LN">148 </FONT><A NAME="148"></A>      String [] options) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    <FONT ID="Return">return</FONT> ((<A HREF="../../weka/classifiers/AbstractClassifier.java.html">AbstractClassifier</A>)Utils.forName(<A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A>.<FONT ID="Class">class</FONT>,
+<FONT ID="LN">151 </FONT><A NAME="151"></A>                                              classifierName,
+<FONT ID="LN">152 </FONT><A NAME="152"></A>                                              options));
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * Creates a deep copy of the given classifier using serialization.
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   *
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   * @param model the classifier to copy
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   * @return a deep copy of the classifier
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   * @exception Exception if an error occurs
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   */</FONT>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> makeCopy(<A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> model) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">163 </FONT><A NAME="163"></A>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    <FONT ID="Return">return</FONT> (<A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A>)<FONT ID="New">new</FONT> <A HREF="../../weka/core/SerializedObject.java.html">SerializedObject</A>(model).getObject();
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  }
+<FONT ID="LN">166 </FONT><A NAME="166"></A>
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * Creates a given number of deep copies of the given classifier using serialization.
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   *
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   * @param model the classifier to copy
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   * @param num the number of classifier copies to create.
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   * @return an array of classifiers.
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   * @exception Exception if an error occurs
+<FONT ID="LN">174 </FONT><A NAME="174"></A>   */</FONT>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> [] makeCopies(<A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> model, <FONT ID="Int">int</FONT> num) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="If">if</FONT> (model == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"No model classifier set"</FONT>);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    }
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    <A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> [] classifiers = <FONT ID="New">new</FONT> <A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> [num];
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    <A HREF="../../weka/core/SerializedObject.java.html">SerializedObject</A> so = <FONT ID="New">new</FONT> <A HREF="../../weka/core/SerializedObject.java.html">SerializedObject</A>(model);
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; classifiers.length; i++) {
+<FONT ID="LN">183 </FONT><A NAME="183"></A>      classifiers[i] = (<A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A>) so.getObject();
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    }
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    <FONT ID="Return">return</FONT> classifiers;
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">189 </FONT><A NAME="189"></A>   * Returns an enumeration describing the available options.
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   *
+<FONT ID="LN">191 </FONT><A NAME="191"></A>   * @return an enumeration of all the available options.
+<FONT ID="LN">192 </FONT><A NAME="192"></A>   */</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>  <FONT ID="Public">public</FONT> Enumeration listOptions() {
+<FONT ID="LN">194 </FONT><A NAME="194"></A>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    Vector newVector = <FONT ID="New">new</FONT> Vector(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">196 </FONT><A NAME="196"></A>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">198 </FONT><A NAME="198"></A>          <FONT ID="StringLiteral">"\tIf set, classifier is run in debug mode and\n"</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>          + <FONT ID="StringLiteral">"\tmay output additional info to the console"</FONT>,
+<FONT ID="LN">200 </FONT><A NAME="200"></A>          <FONT ID="StringLiteral">"D"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-D"</FONT>));
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    <FONT ID="Return">return</FONT> newVector.elements();
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  }
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   * Parses a given list of options. Valid options are:&lt;p&gt;
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   *
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   * -D  &lt;br&gt;
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   * If set, classifier is run in debug mode and
+<FONT ID="LN">209 </FONT><A NAME="209"></A>   * may output additional info to the console.&lt;p&gt;
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   *
+<FONT ID="LN">211 </FONT><A NAME="211"></A>   * @param options the list of options as an array of strings
+<FONT ID="LN">212 </FONT><A NAME="212"></A>   * @exception Exception if an option is not supported
+<FONT ID="LN">213 </FONT><A NAME="213"></A>   */</FONT>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOptions(String[] options) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">215 </FONT><A NAME="215"></A>
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    setDebug(Utils.getFlag(<FONT ID="CharacerLiteral">'D'</FONT>, options));
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  }
+<FONT ID="LN">218 </FONT><A NAME="218"></A>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">220 </FONT><A NAME="220"></A>   * Gets the current settings of the Classifier.
+<FONT ID="LN">221 </FONT><A NAME="221"></A>   *
+<FONT ID="LN">222 </FONT><A NAME="222"></A>   * @return an array of strings suitable for passing to setOptions
+<FONT ID="LN">223 </FONT><A NAME="223"></A>   */</FONT>
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  <FONT ID="Public">public</FONT> String [] getOptions() {
+<FONT ID="LN">225 </FONT><A NAME="225"></A>
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    String [] options;
+<FONT ID="LN">227 </FONT><A NAME="227"></A>    <FONT ID="If">if</FONT> (getDebug()) {
+<FONT ID="LN">228 </FONT><A NAME="228"></A>      options = <FONT ID="New">new</FONT> String[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">229 </FONT><A NAME="229"></A>      options[<FONT ID="IntegerLiteral">0</FONT>] = <FONT ID="StringLiteral">"-D"</FONT>;
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">231 </FONT><A NAME="231"></A>      options = <FONT ID="New">new</FONT> String[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    }
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    <FONT ID="Return">return</FONT> options;
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  }
+<FONT ID="LN">235 </FONT><A NAME="235"></A>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * Set debugging mode.
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   *
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   * @param debug true if debug output should be printed
+<FONT ID="LN">240 </FONT><A NAME="240"></A>   */</FONT>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDebug(<FONT ID="Boolean">boolean</FONT> debug) {
+<FONT ID="LN">242 </FONT><A NAME="242"></A>
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    m_Debug = debug;
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  }
+<FONT ID="LN">245 </FONT><A NAME="245"></A>
+<FONT ID="LN">246 </FONT><A NAME="246"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">247 </FONT><A NAME="247"></A>   * Get whether debugging is turned on.
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   *
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   * @return true if debugging output is on
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   */</FONT>
+<FONT ID="LN">251 </FONT><A NAME="251"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getDebug() {
+<FONT ID="LN">252 </FONT><A NAME="252"></A>
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    <FONT ID="Return">return</FONT> m_Debug;
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  }
+<FONT ID="LN">255 </FONT><A NAME="255"></A>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">257 </FONT><A NAME="257"></A>   * Returns the tip text for this property
+<FONT ID="LN">258 </FONT><A NAME="258"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">259 </FONT><A NAME="259"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">260 </FONT><A NAME="260"></A>   */</FONT>
+<FONT ID="LN">261 </FONT><A NAME="261"></A>  <FONT ID="Public">public</FONT> String debugTipText() {
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"If set to true, classifier may output additional info to "</FONT> +
+<FONT ID="LN">263 </FONT><A NAME="263"></A>      <FONT ID="StringLiteral">"the console."</FONT>;
+<FONT ID="LN">264 </FONT><A NAME="264"></A>  }
+<FONT ID="LN">265 </FONT><A NAME="265"></A>
+<FONT ID="LN">266 </FONT><A NAME="266"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">267 </FONT><A NAME="267"></A>   * Returns the Capabilities of this classifier. Maximally permissive
+<FONT ID="LN">268 </FONT><A NAME="268"></A>   * capabilities are allowed by default. Derived classifiers should
+<FONT ID="LN">269 </FONT><A NAME="269"></A>   * override this method and first disable all capabilities and then
+<FONT ID="LN">270 </FONT><A NAME="270"></A>   * enable just those capabilities that make sense for the scheme.
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   *
+<FONT ID="LN">272 </FONT><A NAME="272"></A>   * @return            the capabilities of this object
+<FONT ID="LN">273 </FONT><A NAME="273"></A>   * @see               Capabilities
+<FONT ID="LN">274 </FONT><A NAME="274"></A>   */</FONT>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>  <FONT ID="Public">public</FONT> <A HREF="../../weka/core/Capabilities.java.html">Capabilities</A> getCapabilities() {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <A HREF="../../weka/core/Capabilities.java.html">Capabilities</A> result = <FONT ID="New">new</FONT> <A HREF="../../weka/core/Capabilities.java.html">Capabilities</A>(<FONT ID="This">this</FONT>);
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    result.enableAll();
+<FONT ID="LN">278 </FONT><A NAME="278"></A>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">280 </FONT><A NAME="280"></A>  }
+<FONT ID="LN">281 </FONT><A NAME="281"></A>
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">283 </FONT><A NAME="283"></A>   * Returns the revision string.
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   *
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   * @return            the revision
+<FONT ID="LN">286 </FONT><A NAME="286"></A>   */</FONT>
+<FONT ID="LN">287 </FONT><A NAME="287"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 6041 $"</FONT>);
+<FONT ID="LN">289 </FONT><A NAME="289"></A>  }
+<FONT ID="LN">290 </FONT><A NAME="290"></A>
+<FONT ID="LN">291 </FONT><A NAME="291"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">292 </FONT><A NAME="292"></A>   * runs the classifier instance with the given options.
+<FONT ID="LN">293 </FONT><A NAME="293"></A>   *
+<FONT ID="LN">294 </FONT><A NAME="294"></A>   * @param classifier      the classifier to run
+<FONT ID="LN">295 </FONT><A NAME="295"></A>   * @param options the commandline options
+<FONT ID="LN">296 </FONT><A NAME="296"></A>   */</FONT>
+<FONT ID="LN">297 </FONT><A NAME="297"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> runClassifier(<A HREF="../../weka/classifiers/Classifier.java.html">Classifier</A> classifier, String[] options) {
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">299 </FONT><A NAME="299"></A>      System.out.println(Evaluation.evaluateModel(classifier, options));
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    }
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">302 </FONT><A NAME="302"></A>      <FONT ID="If">if</FONT> (    ((e.getMessage() != <FONT ID="Null">null</FONT>) &amp;&amp; (e.getMessage().indexOf(<FONT ID="StringLiteral">"General options"</FONT>) == -<FONT ID="IntegerLiteral">1</FONT>))
+<FONT ID="LN">303 </FONT><A NAME="303"></A>          || (e.getMessage() == <FONT ID="Null">null</FONT>) )
+<FONT ID="LN">304 </FONT><A NAME="304"></A>        e.printStackTrace();
+<FONT ID="LN">305 </FONT><A NAME="305"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">306 </FONT><A NAME="306"></A>        System.err.println(e.getMessage());
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    }
+<FONT ID="LN">308 </FONT><A NAME="308"></A>  }
+<FONT ID="LN">309 </FONT><A NAME="309"></A>}
+<FONT ID="LN">310 </FONT><A NAME="310"></A>
+<FONT ID="LN">311 </FONT><A NAME="311"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AbstractClassifier.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

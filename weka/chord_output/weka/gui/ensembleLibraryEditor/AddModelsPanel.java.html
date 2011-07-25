@@ -1,0 +1,524 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.gui.ensembleLibraryEditor.AddModelsPanel (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AddModelsPanel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    AddModelsPanel.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2006 Robert Jung
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.gui.ensembleLibraryEditor;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/Classifier.java.html">weka.classifiers.Classifier</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/AbstractClassifier.java.html">weka.classifiers.AbstractClassifier</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/EnsembleLibraryModel.java.html">weka.classifiers.EnsembleLibraryModel</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/classifiers/trees/J48.java.html">weka.classifiers.trees.J48</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/GenericObjectEditor.java.html">weka.gui.GenericObjectEditor</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/GenericObjectNode.java.html">weka.gui.ensembleLibraryEditor.tree.GenericObjectNode</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/ModelTreeNodeEditor.java.html">weka.gui.ensembleLibraryEditor.tree.ModelTreeNodeEditor</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/ModelTreeNodeRenderer.java.html">weka.gui.ensembleLibraryEditor.tree.ModelTreeNodeRenderer</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.awt.BorderLayout;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.awt.Dimension;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.awt.GridBagConstraints;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.awt.GridBagLayout;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.awt.event.ActionEvent;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.awt.event.ActionListener;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> javax.swing.AbstractAction;
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> javax.swing.BorderFactory;
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Import">import</FONT> javax.swing.JButton;
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="Import">import</FONT> javax.swing.JLabel;
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Import">import</FONT> javax.swing.JList;
+<FONT ID="LN">48  </FONT><A NAME="48"></A><FONT ID="Import">import</FONT> javax.swing.JPanel;
+<FONT ID="LN">49  </FONT><A NAME="49"></A><FONT ID="Import">import</FONT> javax.swing.JScrollPane;
+<FONT ID="LN">50  </FONT><A NAME="50"></A><FONT ID="Import">import</FONT> javax.swing.JTree;
+<FONT ID="LN">51  </FONT><A NAME="51"></A><FONT ID="Import">import</FONT> javax.swing.KeyStroke;
+<FONT ID="LN">52  </FONT><A NAME="52"></A><FONT ID="Import">import</FONT> javax.swing.ListSelectionModel;
+<FONT ID="LN">53  </FONT><A NAME="53"></A><FONT ID="Import">import</FONT> javax.swing.ToolTipManager;
+<FONT ID="LN">54  </FONT><A NAME="54"></A><FONT ID="Import">import</FONT> javax.swing.tree.DefaultTreeModel;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * The purpose of this class is to create a user interface that will
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * provide an intuitive method of building "playlists" of weka 
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * classifiers to be trained.  The main gui consists of two parts: the
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * top and bottom. The top will use a JTree to show all of the options
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * available for a particular classifier. The intent of showing these 
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * options in a tree is to allow users to collapse/expand tree nodes 
+<FONT ID="LN">63  </FONT><A NAME="63"></A> * to quickly access all of the available options at different levels.
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * The bottom half of the gui will show the current "playlist" of 
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * chosen models that the user can opt to add to the current library.  
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * &lt;p/&gt;
+<FONT ID="LN">67  </FONT><A NAME="67"></A> * The overall concept is that users will use the tree to specify 
+<FONT ID="LN">68  </FONT><A NAME="68"></A> * combinations of options to the currently selected classifier type.
+<FONT ID="LN">69  </FONT><A NAME="69"></A> * then they will use the "generate models" button to generate a set
+<FONT ID="LN">70  </FONT><A NAME="70"></A> * models from the selected options. This can be done many times with
+<FONT ID="LN">71  </FONT><A NAME="71"></A> * different sets of options for different model types to generate a
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * list in the bottom half of the gui.  Once the user is satisfied
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * with their list of models they are provided a button to "add all 
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * models" to the model library displayed by the ListModelsPanel.
+<FONT ID="LN">75  </FONT><A NAME="75"></A> * &lt;p/&gt;
+<FONT ID="LN">76  </FONT><A NAME="76"></A> * Note that there are currently 9 different classes that implement
+<FONT ID="LN">77  </FONT><A NAME="77"></A> * tree nodes and tree node editors created to support this class
+<FONT ID="LN">78  </FONT><A NAME="78"></A> * in modelling/rendering weka classifier parameters. see 
+<FONT ID="LN">79  </FONT><A NAME="79"></A> * appropriate classes for details.  They currently reside in the 
+<FONT ID="LN">80  </FONT><A NAME="80"></A> * weka.gui.libraryEditor.tree package.
+<FONT ID="LN">81  </FONT><A NAME="81"></A> * &lt;p/&gt;
+<FONT ID="LN">82  </FONT><A NAME="82"></A> * To instantiate the treeModel:
+<FONT ID="LN">83  </FONT><A NAME="83"></A> * &lt;ul&gt;
+<FONT ID="LN">84  </FONT><A NAME="84"></A> *   &lt;li&gt;ModelNodeEditor&lt;/li&gt;
+<FONT ID="LN">85  </FONT><A NAME="85"></A> *   &lt;li&gt;ModelNodeRenderer&lt;/li&gt;
+<FONT ID="LN">86  </FONT><A NAME="86"></A> * &lt;/ul&gt;
+<FONT ID="LN">87  </FONT><A NAME="87"></A> * 
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * To render/model weka objects:
+<FONT ID="LN">89  </FONT><A NAME="89"></A> * &lt;ul&gt;
+<FONT ID="LN">90  </FONT><A NAME="90"></A> *   &lt;li&gt;PropertyNode&lt;/li&gt;
+<FONT ID="LN">91  </FONT><A NAME="91"></A> *   &lt;li&gt;GenericObjectNode&lt;/li&gt;
+<FONT ID="LN">92  </FONT><A NAME="92"></A> *   &lt;li&gt;GenericObjectNodeEditor&lt;/li&gt;
+<FONT ID="LN">93  </FONT><A NAME="93"></A> *   &lt;li&gt;CheckBoxNode&lt;/li&gt;
+<FONT ID="LN">94  </FONT><A NAME="94"></A> *   &lt;li&gt;CheckBoxNodeEditor&lt;/li&gt;
+<FONT ID="LN">95  </FONT><A NAME="95"></A> *   &lt;li&gt;NumberNode&lt;/li&gt;
+<FONT ID="LN">96  </FONT><A NAME="96"></A> *   &lt;li&gt;NumberNodeEditor&lt;/li&gt;
+<FONT ID="LN">97  </FONT><A NAME="97"></A> *   &lt;li&gt;DefaultNode&lt;/li&gt;
+<FONT ID="LN">98  </FONT><A NAME="98"></A> * &lt;/ul&gt;
+<FONT ID="LN">99  </FONT><A NAME="99"></A> * 
+<FONT ID="LN">100 </FONT><A NAME="100"></A> * These classes are responsible for 
+<FONT ID="LN">101 </FONT><A NAME="101"></A> * representing the different kinds of tree nodes that will be 
+<FONT ID="LN">102 </FONT><A NAME="102"></A> * contained in the JTree object, as well as the renderers and editors
+<FONT ID="LN">103 </FONT><A NAME="103"></A> * that will be responsible for displaying their properties in the
+<FONT ID="LN">104 </FONT><A NAME="104"></A> * user interface.  
+<FONT ID="LN">105 </FONT><A NAME="105"></A> * &lt;p/&gt;
+<FONT ID="LN">106 </FONT><A NAME="106"></A> * Code for this class was inspired and partly borrowed from the 
+<FONT ID="LN">107 </FONT><A NAME="107"></A> * following excellent tutorial on creating custom JTree renderers 
+<FONT ID="LN">108 </FONT><A NAME="108"></A> * and editors authored by John Zukowski: &lt;br/&gt;
+<FONT ID="LN">109 </FONT><A NAME="109"></A> * &lt;a href="http://www.java2s.com/ExampleCode/Swing-JFC/CheckBoxNodeTreeSample.htm" target="_blank"&gt;http://www.java2s.com/ExampleCode/Swing-JFC/CheckBoxNodeTreeSample.htm&lt;/a&gt;
+<FONT ID="LN">110 </FONT><A NAME="110"></A> * 
+<FONT ID="LN">111 </FONT><A NAME="111"></A> * @author  Robert Jung (mrbobjung@gmail.com)
+<FONT ID="LN">112 </FONT><A NAME="112"></A> * @version $Revision: 5928 $
+<FONT ID="LN">113 </FONT><A NAME="113"></A> */</FONT>
+<FONT ID="LN">114 </FONT><A NAME="114"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> AddModelsPanel 
+<FONT ID="LN">115 </FONT><A NAME="115"></A>  <FONT ID="Extends">extends</FONT> JPanel
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Implements">implements</FONT> ActionListener {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">4874639416371962573L</FONT>;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   * This is a reference to the main gui object that is responsible 
+<FONT ID="LN">123 </FONT><A NAME="123"></A>   * for displaying the model library.  This panel will add models
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   * to the main panel through methods in this object.
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   */</FONT>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/ListModelsPanel.java.html">ListModelsPanel</A> m_ListModelsPanel;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>  
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">129 </FONT><A NAME="129"></A>   * The JTree that will display the classifier options available in
+<FONT ID="LN">130 </FONT><A NAME="130"></A>   * the currently select3ed model type
+<FONT ID="LN">131 </FONT><A NAME="131"></A>   */</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  <FONT ID="Private">private</FONT> JTree m_Tree;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * The tree model that will be used to add and remove nodes from 
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * the currently selected model type
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   */</FONT>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  <FONT ID="Private">private</FONT> DefaultTreeModel m_TreeModel;
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * This button will allow users to generate a group of models from
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   * the currently selected classifer options in the m_Tree object.
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   */</FONT>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  <FONT ID="Private">private</FONT> JButton m_GenerateButton;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>  
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   * This will display messages associated with model generation.
+<FONT ID="LN">148 </FONT><A NAME="148"></A>   * Currently the number of models generated and the number of
+<FONT ID="LN">149 </FONT><A NAME="149"></A>   * them that had errors.
+<FONT ID="LN">150 </FONT><A NAME="150"></A>   */</FONT>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  <FONT ID="Private">private</FONT> JLabel m_GenerateLabel;
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * This button will allow users to remove all of the models 
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * currently selected in the m_ModeList object
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   */</FONT>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>  <FONT ID="Private">private</FONT> JButton m_RemoveSelectedButton;
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   * This button will remove all of the models that had errors 
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   * during model generation.
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   */</FONT>
+<FONT ID="LN">163 </FONT><A NAME="163"></A>  <FONT ID="Private">private</FONT> JButton m_RemoveInvalidButton;
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * This button will add all of the models that had are 
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * currently selected in the model list.
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   */</FONT>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>  <FONT ID="Private">private</FONT> JButton m_AddSelectedButton;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  
+<FONT ID="LN">171 </FONT><A NAME="171"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   * This button will allow users to add all models currently in 
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   * the model list to the model library in the ListModelsPanel. 
+<FONT ID="LN">174 </FONT><A NAME="174"></A>   * Note that this operation will exclude any models that had 
+<FONT ID="LN">175 </FONT><A NAME="175"></A>   * errors
+<FONT ID="LN">176 </FONT><A NAME="176"></A>   */</FONT>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  <FONT ID="Private">private</FONT> JButton m_AddAllButton;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   * This object will store all of the model sets generated from the
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * m_Tree.  The ModelList class is a custom class in weka.gui that
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * knows how to display library model objects in a JList
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   */</FONT>
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/ModelList.java.html">ModelList</A> m_ModelList;
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  <FONT ID="FormalComment">/** the scroll pane holding our classifer parameters */</FONT>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  JScrollPane m_TreeView;
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   * This constructor simply stores the reference to the 
+<FONT ID="LN">191 </FONT><A NAME="191"></A>   * ListModelsPanel and builf the user interface.
+<FONT ID="LN">192 </FONT><A NAME="192"></A>   * 
+<FONT ID="LN">193 </FONT><A NAME="193"></A>   * @param listModelsPanel the reference to the panel
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   */</FONT>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  <FONT ID="Public">public</FONT> AddModelsPanel(<A HREF="../../../weka/gui/ensembleLibraryEditor/ListModelsPanel.java.html">ListModelsPanel</A> listModelsPanel) {
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    m_ListModelsPanel = listModelsPanel;
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    createAddModelsPanel();
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  }
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">202 </FONT><A NAME="202"></A>   * This method is responsible for building the use interface.
+<FONT ID="LN">203 </FONT><A NAME="203"></A>   */</FONT>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> createAddModelsPanel() {
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    GridBagConstraints gbc = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    setLayout(<FONT ID="New">new</FONT> GridBagLayout());
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    m_TreeView = <FONT ID="New">new</FONT> JScrollPane();
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    m_TreeView.setPreferredSize(<FONT ID="New">new</FONT> Dimension(<FONT ID="IntegerLiteral">150</FONT>, <FONT ID="IntegerLiteral">50</FONT>));
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    buildClassifierTree(<FONT ID="New">new</FONT> <A HREF="../../../weka/classifiers/trees/J48.java.html">J48</A>());
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    ToolTipManager.sharedInstance().registerComponent(m_Tree);
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    gbc.weightx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    gbc.weighty = <FONT ID="FloatPointLiteral">1.5</FONT>;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    gbc.fill = GridBagConstraints.BOTH;
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    gbc.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    gbc.gridy = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    add(m_TreeView, gbc);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>    
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    m_GenerateButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Generate Models"</FONT>);
+<FONT ID="LN">225 </FONT><A NAME="225"></A>    m_GenerateButton.setToolTipText(
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    <FONT ID="StringLiteral">"Generate a set of models from options specified in options tree"</FONT>);
+<FONT ID="LN">227 </FONT><A NAME="227"></A>    m_GenerateButton.addActionListener(<FONT ID="This">this</FONT>);
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    gbc.weightx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    gbc.weighty = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    gbc.fill = GridBagConstraints.NONE;
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    gbc.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    gbc.gridy = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    add(m_GenerateButton, gbc);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>    
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    m_GenerateLabel = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">""</FONT>);
+<FONT ID="LN">238 </FONT><A NAME="238"></A>    gbc.weightx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    gbc.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    gbc.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    gbc.gridy = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    add(m_GenerateLabel, gbc);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    m_RemoveInvalidButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Remove Invalid"</FONT>);
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    m_RemoveInvalidButton.setToolTipText(
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    <FONT ID="StringLiteral">"Remove all invalid (red) models from the above list"</FONT>);
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    m_RemoveInvalidButton.addActionListener(<FONT ID="This">this</FONT>);
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    gbc.weightx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    gbc.fill = GridBagConstraints.NONE;
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    gbc.gridx = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    gbc.gridy = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    <FONT ID="SingleLineComment">//OK, this button was removed because we thought it was a waste
+<FONT ID="LN">257 </FONT><A NAME="257"></A></FONT>    <FONT ID="SingleLineComment">//of space.  Instead of removing invalid models, we just explicitly
+<FONT ID="LN">258 </FONT><A NAME="258"></A></FONT>    <FONT ID="SingleLineComment">//prevent the user from adding them to the main list.  I'm going to
+<FONT ID="LN">259 </FONT><A NAME="259"></A></FONT>    <FONT ID="SingleLineComment">//leave the code in with this final "add" statement commented out
+<FONT ID="LN">260 </FONT><A NAME="260"></A></FONT>    <FONT ID="SingleLineComment">//because we are still on the fence as to whether this is a good 
+<FONT ID="LN">261 </FONT><A NAME="261"></A></FONT>    <FONT ID="SingleLineComment">//idea
+<FONT ID="LN">262 </FONT><A NAME="262"></A></FONT>    <FONT ID="SingleLineComment">//add(m_RemoveInvalidButton, gbc);
+<FONT ID="LN">263 </FONT><A NAME="263"></A></FONT>    
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    m_ModelList = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/ModelList.java.html">ModelList</A>();
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    m_ModelList.getInputMap().put(
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    KeyStroke.getKeyStroke(<FONT ID="StringLiteral">"released DELETE"</FONT>), <FONT ID="StringLiteral">"deleteSelected"</FONT>);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    m_ModelList.getActionMap().put(<FONT ID="StringLiteral">"deleteSelected"</FONT>,
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    <FONT ID="New">new</FONT> AbstractAction(<FONT ID="StringLiteral">"deleteSelected"</FONT>) {
+<FONT ID="LN">270 </FONT><A NAME="270"></A>      <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">271 </FONT><A NAME="271"></A>      <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">3351194234735560372L</FONT>;
+<FONT ID="LN">272 </FONT><A NAME="272"></A>      
+<FONT ID="LN">273 </FONT><A NAME="273"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent evt) {
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    Object[] currentModels = m_ModelList.getSelectedValues();
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    <A HREF="../../../weka/gui/ensembleLibraryEditor/ModelList.java.html">ModelList.SortedListModel</A> dataModel = ((<A HREF="../../../weka/gui/ensembleLibraryEditor/ModelList.java.html">ModelList.SortedListModel</A>) m_ModelList.getModel());
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; currentModels.length; i++) {
+<FONT ID="LN">280 </FONT><A NAME="280"></A>      dataModel.removeElement((<A HREF="../../../weka/classifiers/EnsembleLibraryModel.java.html">EnsembleLibraryModel</A>) currentModels[i]);
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    }
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    <FONT ID="SingleLineComment">//Shrink the selected range to the first index that was selected
+<FONT ID="LN">284 </FONT><A NAME="284"></A></FONT>    <FONT ID="Int">int</FONT> selected[] = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    selected[<FONT ID="IntegerLiteral">0</FONT>] = m_ModelList.getSelectedIndices()[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    m_ModelList.setSelectedIndices(selected);
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    
+<FONT ID="LN">288 </FONT><A NAME="288"></A>      }
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    });
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    m_ModelList
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    .setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    m_ModelList.setLayoutOrientation(JList.VERTICAL);
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    m_ModelList.setVisibleRowCount(-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    JPanel modelListPanel = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    modelListPanel.setBorder(
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    BorderFactory.createTitledBorder(<FONT ID="StringLiteral">"Working Set of Newly Generated Models"</FONT>));
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    JScrollPane listView = <FONT ID="New">new</FONT> JScrollPane(m_ModelList);
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    <FONT ID="SingleLineComment">//listView.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+<FONT ID="LN">302 </FONT><A NAME="302"></A></FONT>    listView.setPreferredSize(<FONT ID="New">new</FONT> Dimension(<FONT ID="IntegerLiteral">150</FONT>, <FONT ID="IntegerLiteral">50</FONT>));
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    modelListPanel.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    modelListPanel.add(listView, BorderLayout.CENTER);
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    gbc.weightx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    gbc.weighty = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    gbc.fill = GridBagConstraints.BOTH;
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    gbc.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    gbc.gridy = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    add(modelListPanel, gbc);
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    m_RemoveSelectedButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Remove Selected"</FONT>);
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    m_RemoveSelectedButton.setToolTipText(<FONT ID="StringLiteral">"Remove all currently selected models from the above list"</FONT>);
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    m_RemoveSelectedButton.addActionListener(<FONT ID="This">this</FONT>);
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    gbc.weightx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">320 </FONT><A NAME="320"></A>    gbc.weighty = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">321 </FONT><A NAME="321"></A>    gbc.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    gbc.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    gbc.gridy = <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">324 </FONT><A NAME="324"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    add(m_RemoveSelectedButton, gbc);
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    
+<FONT ID="LN">328 </FONT><A NAME="328"></A>    m_AddSelectedButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Add Selected"</FONT>);
+<FONT ID="LN">329 </FONT><A NAME="329"></A>    m_AddSelectedButton.setToolTipText(
+<FONT ID="LN">330 </FONT><A NAME="330"></A>    <FONT ID="StringLiteral">"Add selected models in the above list to the model library"</FONT>);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>    m_AddSelectedButton.addActionListener(<FONT ID="This">this</FONT>);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    gbc.weightx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">333 </FONT><A NAME="333"></A>    gbc.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    gbc.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    gbc.gridy = <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    add(m_AddSelectedButton, gbc);
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    m_AddAllButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Add All"</FONT>);
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    m_AddAllButton.setToolTipText(
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    <FONT ID="StringLiteral">"Add all models in the above list to the model library"</FONT>);
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    m_AddAllButton.addActionListener(<FONT ID="This">this</FONT>);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    gbc.weightx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    gbc.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    gbc.gridx = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">347 </FONT><A NAME="347"></A>    gbc.gridy = <FONT ID="IntegerLiteral">3</FONT>;
+<FONT ID="LN">348 </FONT><A NAME="348"></A>    gbc.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    gbc.gridwidth = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    add(m_AddAllButton, gbc);
+<FONT ID="LN">351 </FONT><A NAME="351"></A>  }
+<FONT ID="LN">352 </FONT><A NAME="352"></A>  
+<FONT ID="LN">353 </FONT><A NAME="353"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">354 </FONT><A NAME="354"></A>   * This method necessarily seperates the process of building the
+<FONT ID="LN">355 </FONT><A NAME="355"></A>   * tree object from the rest of the GUI construction.  In order to
+<FONT ID="LN">356 </FONT><A NAME="356"></A>   * prevent all kinds of strange garbage collection problems, we take
+<FONT ID="LN">357 </FONT><A NAME="357"></A>   * the conservative approach of gutting and rebuilding the JTree 
+<FONT ID="LN">358 </FONT><A NAME="358"></A>   * every time a new classifier is chosen for the root node.
+<FONT ID="LN">359 </FONT><A NAME="359"></A>   * 
+<FONT ID="LN">360 </FONT><A NAME="360"></A>   * @param classifier  the classifier to build the tree for
+<FONT ID="LN">361 </FONT><A NAME="361"></A>   */</FONT>
+<FONT ID="LN">362 </FONT><A NAME="362"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> buildClassifierTree(<A HREF="../../../weka/classifiers/Classifier.java.html">Classifier</A> classifier) {
+<FONT ID="LN">363 </FONT><A NAME="363"></A>    
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    <FONT ID="SingleLineComment">//This block sets up the root node of the tree.  Note that 
+<FONT ID="LN">365 </FONT><A NAME="365"></A></FONT>    <FONT ID="SingleLineComment">//the constructor for the GenericObjectNode will take care
+<FONT ID="LN">366 </FONT><A NAME="366"></A></FONT>    <FONT ID="SingleLineComment">//of creating all of the child nodes containing the node
+<FONT ID="LN">367 </FONT><A NAME="367"></A></FONT>    <FONT ID="SingleLineComment">//properties
+<FONT ID="LN">368 </FONT><A NAME="368"></A></FONT>    <A HREF="../../../weka/gui/GenericObjectEditor.java.html">GenericObjectEditor</A> classifierEditor = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/GenericObjectEditor.java.html">GenericObjectEditor</A>();
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    classifierEditor.setClassType(<A HREF="../../../weka/classifiers/Classifier.java.html">Classifier</A>.<FONT ID="Class">class</FONT>);
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    classifierEditor.setValue(classifier);
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/GenericObjectNode.java.html">GenericObjectNode</A> rootNode = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/GenericObjectNode.java.html">GenericObjectNode</A>(<FONT ID="This">this</FONT>, classifier,
+<FONT ID="LN">373 </FONT><A NAME="373"></A>    classifierEditor, <FONT ID="StringLiteral">"Current Classifier"</FONT>);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>    
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    m_TreeModel = <FONT ID="New">new</FONT> DefaultTreeModel(rootNode);
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    m_Tree = <FONT ID="New">new</FONT> JTree(m_TreeModel);
+<FONT ID="LN">377 </FONT><A NAME="377"></A>    rootNode.setTree(m_Tree);
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    rootNode.updateTree();
+<FONT ID="LN">379 </FONT><A NAME="379"></A>    
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    m_Tree.setRootVisible(<FONT ID="True">true</FONT>);
+<FONT ID="LN">381 </FONT><A NAME="381"></A>    
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/ModelTreeNodeRenderer.java.html">ModelTreeNodeRenderer</A> renderer = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/ModelTreeNodeRenderer.java.html">ModelTreeNodeRenderer</A>();
+<FONT ID="LN">383 </FONT><A NAME="383"></A>    m_Tree.setCellRenderer(renderer);
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    m_Tree.setCellEditor(<FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ensembleLibraryEditor/tree/ModelTreeNodeEditor.java.html">ModelTreeNodeEditor</A>(m_Tree));
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    m_Tree.setEditable(<FONT ID="True">true</FONT>);
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    m_Tree.setVisibleRowCount(<FONT ID="IntegerLiteral">8</FONT>);
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    <FONT ID="SingleLineComment">//ToolTipManager.sharedInstance().registerComponent(m_Tree);
+<FONT ID="LN">388 </FONT><A NAME="388"></A></FONT>    
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    <FONT ID="SingleLineComment">//This "tentatively seems to work better:
+<FONT ID="LN">390 </FONT><A NAME="390"></A></FONT>    m_Tree.setRowHeight(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    m_TreeView.setViewportView(m_Tree);
+<FONT ID="LN">393 </FONT><A NAME="393"></A>  }
+<FONT ID="LN">394 </FONT><A NAME="394"></A>  
+<FONT ID="LN">395 </FONT><A NAME="395"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">396 </FONT><A NAME="396"></A>   * This will support the button triggered events for this panel.
+<FONT ID="LN">397 </FONT><A NAME="397"></A>   * 
+<FONT ID="LN">398 </FONT><A NAME="398"></A>   * @param e   the event
+<FONT ID="LN">399 </FONT><A NAME="399"></A>   */</FONT>
+<FONT ID="LN">400 </FONT><A NAME="400"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">401 </FONT><A NAME="401"></A>    
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    <A HREF="../../../weka/gui/ensembleLibraryEditor/ModelList.java.html">ModelList.SortedListModel</A> dataModel = ((<A HREF="../../../weka/gui/ensembleLibraryEditor/ModelList.java.html">ModelList.SortedListModel</A>) m_ModelList.getModel());
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    <FONT ID="If">if</FONT> (e.getSource() == m_GenerateButton) {
+<FONT ID="LN">405 </FONT><A NAME="405"></A>      
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      <FONT ID="SingleLineComment">//here we want to generate all permutations of the 
+<FONT ID="LN">407 </FONT><A NAME="407"></A></FONT>      <FONT ID="SingleLineComment">//options specified and then add each of them to the 
+<FONT ID="LN">408 </FONT><A NAME="408"></A></FONT>      <FONT ID="SingleLineComment">//model list panel
+<FONT ID="LN">409 </FONT><A NAME="409"></A></FONT>      
+<FONT ID="LN">410 </FONT><A NAME="410"></A>      Vector models = ((<A HREF="../../../weka/gui/ensembleLibraryEditor/tree/GenericObjectNode.java.html">GenericObjectNode</A>) m_TreeModel.getRoot()).getValues();
+<FONT ID="LN">411 </FONT><A NAME="411"></A>      
+<FONT ID="LN">412 </FONT><A NAME="412"></A>      <FONT ID="Int">int</FONT> total = models.size();
+<FONT ID="LN">413 </FONT><A NAME="413"></A>      <FONT ID="Int">int</FONT> invalid = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">414 </FONT><A NAME="414"></A>      
+<FONT ID="LN">415 </FONT><A NAME="415"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; models.size(); i++) {
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    <A HREF="../../../weka/classifiers/Classifier.java.html">Classifier</A> classifier = (<A HREF="../../../weka/classifiers/Classifier.java.html">Classifier</A>) models.get(i);
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    <FONT ID="SingleLineComment">//This method will invoke the classifier's setOptions
+<FONT ID="LN">419 </FONT><A NAME="419"></A></FONT>    <FONT ID="SingleLineComment">//method to see if the current set of options was 
+<FONT ID="LN">420 </FONT><A NAME="420"></A></FONT>    <FONT ID="SingleLineComment">//valid.  
+<FONT ID="LN">421 </FONT><A NAME="421"></A></FONT>    
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    <A HREF="../../../weka/classifiers/EnsembleLibraryModel.java.html">EnsembleLibraryModel</A> model = m_ListModelsPanel.getLibrary().createModel(classifier);
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    model.testOptions();
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    <FONT ID="If">if</FONT> (!model.getOptionsWereValid())
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      invalid++;
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    dataModel.add(model);
+<FONT ID="LN">430 </FONT><A NAME="430"></A>      }
+<FONT ID="LN">431 </FONT><A NAME="431"></A>      
+<FONT ID="LN">432 </FONT><A NAME="432"></A>      <FONT ID="SingleLineComment">//update the message text with model generation info
+<FONT ID="LN">433 </FONT><A NAME="433"></A></FONT>      String generateString = <FONT ID="New">new</FONT> String(<FONT ID="StringLiteral">"  "</FONT> + total
+<FONT ID="LN">434 </FONT><A NAME="434"></A>      + <FONT ID="StringLiteral">" models generated"</FONT>);
+<FONT ID="LN">435 </FONT><A NAME="435"></A>      generateString += <FONT ID="StringLiteral">", "</FONT> + invalid + <FONT ID="StringLiteral">" had errors"</FONT>;
+<FONT ID="LN">436 </FONT><A NAME="436"></A>      m_GenerateLabel.setText(generateString);
+<FONT ID="LN">437 </FONT><A NAME="437"></A>      
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (e.getSource() == m_RemoveSelectedButton) {
+<FONT ID="LN">439 </FONT><A NAME="439"></A>      
+<FONT ID="LN">440 </FONT><A NAME="440"></A>      <FONT ID="SingleLineComment">//here we simply get the list of models that are 
+<FONT ID="LN">441 </FONT><A NAME="441"></A></FONT>      <FONT ID="SingleLineComment">//currently selected and ten remove them from the list
+<FONT ID="LN">442 </FONT><A NAME="442"></A></FONT>      
+<FONT ID="LN">443 </FONT><A NAME="443"></A>      Object[] currentModels = m_ModelList.getSelectedValues();
+<FONT ID="LN">444 </FONT><A NAME="444"></A>      
+<FONT ID="LN">445 </FONT><A NAME="445"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; currentModels.length; i++) {
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    dataModel.removeElement(currentModels[i]);
+<FONT ID="LN">447 </FONT><A NAME="447"></A>      }
+<FONT ID="LN">448 </FONT><A NAME="448"></A>      
+<FONT ID="LN">449 </FONT><A NAME="449"></A>      <FONT ID="SingleLineComment">//Shrink the selected range to the first index that was selected
+<FONT ID="LN">450 </FONT><A NAME="450"></A></FONT>      <FONT ID="If">if</FONT> (m_ModelList.getSelectedIndices().length &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    <FONT ID="Int">int</FONT> selected[] = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[<FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    selected[<FONT ID="IntegerLiteral">0</FONT>] = m_ModelList.getSelectedIndices()[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    m_ModelList.setSelectedIndices(selected);
+<FONT ID="LN">454 </FONT><A NAME="454"></A>      }
+<FONT ID="LN">455 </FONT><A NAME="455"></A>      
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (e.getSource() == m_RemoveInvalidButton) {
+<FONT ID="LN">457 </FONT><A NAME="457"></A>      
+<FONT ID="LN">458 </FONT><A NAME="458"></A>      <FONT ID="SingleLineComment">//here we simply remove all the models that were not
+<FONT ID="LN">459 </FONT><A NAME="459"></A></FONT>      <FONT ID="SingleLineComment">//valid
+<FONT ID="LN">460 </FONT><A NAME="460"></A></FONT>      
+<FONT ID="LN">461 </FONT><A NAME="461"></A>      Vector toRemove = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">462 </FONT><A NAME="462"></A>      
+<FONT ID="LN">463 </FONT><A NAME="463"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; dataModel.getSize(); i++) {
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    <A HREF="../../../weka/classifiers/EnsembleLibraryModel.java.html">EnsembleLibraryModel</A> currentModel = (<A HREF="../../../weka/classifiers/EnsembleLibraryModel.java.html">EnsembleLibraryModel</A>) dataModel.getElementAt(i);
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    <FONT ID="If">if</FONT> (!currentModel.getOptionsWereValid()) {
+<FONT ID="LN">467 </FONT><A NAME="467"></A>      toRemove.add(currentModel);
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    }
+<FONT ID="LN">469 </FONT><A NAME="469"></A>      }
+<FONT ID="LN">470 </FONT><A NAME="470"></A>      
+<FONT ID="LN">471 </FONT><A NAME="471"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; toRemove.size(); i++)
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    dataModel.removeElement(toRemove.get(i));
+<FONT ID="LN">473 </FONT><A NAME="473"></A>      
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (e.getSource() == m_AddAllButton) {
+<FONT ID="LN">475 </FONT><A NAME="475"></A>      
+<FONT ID="LN">476 </FONT><A NAME="476"></A>      <FONT ID="SingleLineComment">//here we just need to add all of the models to the 
+<FONT ID="LN">477 </FONT><A NAME="477"></A></FONT>      <FONT ID="SingleLineComment">//ListModelsPanel object
+<FONT ID="LN">478 </FONT><A NAME="478"></A></FONT>      
+<FONT ID="LN">479 </FONT><A NAME="479"></A>      Iterator it = dataModel.iterator();
+<FONT ID="LN">480 </FONT><A NAME="480"></A>      
+<FONT ID="LN">481 </FONT><A NAME="481"></A>      <FONT ID="While">while</FONT> (it.hasNext()) {
+<FONT ID="LN">482 </FONT><A NAME="482"></A>    <A HREF="../../../weka/classifiers/EnsembleLibraryModel.java.html">EnsembleLibraryModel</A> currentModel = (<A HREF="../../../weka/classifiers/EnsembleLibraryModel.java.html">EnsembleLibraryModel</A>) it.next();
+<FONT ID="LN">483 </FONT><A NAME="483"></A>    <FONT ID="If">if</FONT> (currentModel.getOptionsWereValid()) {
+<FONT ID="LN">484 </FONT><A NAME="484"></A>      m_ListModelsPanel.addModel(currentModel);
+<FONT ID="LN">485 </FONT><A NAME="485"></A>    }
+<FONT ID="LN">486 </FONT><A NAME="486"></A>      }
+<FONT ID="LN">487 </FONT><A NAME="487"></A>      
+<FONT ID="LN">488 </FONT><A NAME="488"></A>      <FONT ID="Int">int</FONT> size = dataModel.getSize();
+<FONT ID="LN">489 </FONT><A NAME="489"></A>      
+<FONT ID="LN">490 </FONT><A NAME="490"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; size; i++) {
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    dataModel.removeElement(dataModel.getElementAt(<FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">492 </FONT><A NAME="492"></A>      }
+<FONT ID="LN">493 </FONT><A NAME="493"></A>    }
+<FONT ID="LN">494 </FONT><A NAME="494"></A>  }
+<FONT ID="LN">495 </FONT><A NAME="495"></A>}
+<FONT ID="LN">496 </FONT><A NAME="496"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">AddModelsPanel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

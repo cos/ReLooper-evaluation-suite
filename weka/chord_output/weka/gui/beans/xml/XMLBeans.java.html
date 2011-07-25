@@ -1,0 +1,2084 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.gui.beans.xml.XMLBeans (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">XMLBeans.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * XMLBeans.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * Copyright (C) 2005 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Package">package</FONT> weka.gui.beans.xml;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/converters/ConverterUtils.java.html">weka.core.converters.ConverterUtils</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/xml/XMLBasicSerialization.java.html">weka.core.xml.XMLBasicSerialization</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/xml/XMLDocument.java.html">weka.core.xml.XMLDocument</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Environment.java.html">weka.core.Environment</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/EnvironmentHandler.java.html">weka.core.EnvironmentHandler</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/gui/beans/BeanConnection.java.html">weka.gui.beans.BeanConnection</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">weka.gui.beans.BeanInstance</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/gui/beans/BeanVisual.java.html">weka.gui.beans.BeanVisual</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">weka.gui.beans.MetaBean</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/gui/beans/Visible.java.html">weka.gui.beans.Visible</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/gui/beans/BeanCommon.java.html">weka.gui.beans.BeanCommon</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.awt.Color;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.awt.Dimension;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.awt.Font;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.awt.Point;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> java.beans.BeanInfo;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.beans.EventSetDescriptor;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> java.beans.Introspector;
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> java.beans.beancontext.BeanContextSupport;
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="Import">import</FONT> java.util.Hashtable;
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Import">import</FONT> java.util.StringTokenizer;
+<FONT ID="LN">48  </FONT><A NAME="48"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A><FONT ID="Import">import</FONT> javax.swing.JComponent;
+<FONT ID="LN">51  </FONT><A NAME="51"></A><FONT ID="Import">import</FONT> javax.swing.JPanel;
+<FONT ID="LN">52  </FONT><A NAME="52"></A><FONT ID="Import">import</FONT> javax.swing.plaf.ColorUIResource;
+<FONT ID="LN">53  </FONT><A NAME="53"></A><FONT ID="Import">import</FONT> javax.swing.plaf.FontUIResource;
+<FONT ID="LN">54  </FONT><A NAME="54"></A>
+<FONT ID="LN">55  </FONT><A NAME="55"></A><FONT ID="Import">import</FONT> org.w3c.dom.Document;
+<FONT ID="LN">56  </FONT><A NAME="56"></A><FONT ID="Import">import</FONT> org.w3c.dom.Element;
+<FONT ID="LN">57  </FONT><A NAME="57"></A><FONT ID="Import">import</FONT> org.w3c.dom.NodeList;
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * This class serializes and deserializes a KnowledgeFlow setup to and fro XML.
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * &lt;br&gt;
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * 
+<FONT ID="LN">63  </FONT><A NAME="63"></A> * @author FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * @version $Revision: 5235 $
+<FONT ID="LN">65  </FONT><A NAME="65"></A> */</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> XMLBeans 
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../../../weka/core/xml/XMLBasicSerialization.java.html">XMLBasicSerialization</A> {
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="FormalComment">/** the value of the id property */</FONT>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_ID = <FONT ID="StringLiteral">"id"</FONT>;
+<FONT ID="LN">71  </FONT><A NAME="71"></A>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="FormalComment">/** the value of the x property */</FONT>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_X = <FONT ID="StringLiteral">"x"</FONT>;
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="FormalComment">/** the value of the y property */</FONT>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_Y = <FONT ID="StringLiteral">"y"</FONT>;
+<FONT ID="LN">77  </FONT><A NAME="77"></A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  <FONT ID="FormalComment">/** the value of the bean property */</FONT>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_BEAN = <FONT ID="StringLiteral">"bean"</FONT>;
+<FONT ID="LN">80  </FONT><A NAME="80"></A>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  <FONT ID="FormalComment">/** the value of the customName property */</FONT>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_CUSTOM_NAME = <FONT ID="StringLiteral">"custom_name"</FONT>;
+<FONT ID="LN">83  </FONT><A NAME="83"></A> 
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  <FONT ID="FormalComment">/** the value of the source property */</FONT>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_SOURCEID = <FONT ID="StringLiteral">"source_id"</FONT>;
+<FONT ID="LN">86  </FONT><A NAME="86"></A> 
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  <FONT ID="FormalComment">/** the value of the target property */</FONT>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_TARGETID = <FONT ID="StringLiteral">"target_id"</FONT>;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  <FONT ID="FormalComment">/** the value of the eventname property */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_EVENTNAME = <FONT ID="StringLiteral">"eventname"</FONT>;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/** the value of the hidden property */</FONT>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_HIDDEN = <FONT ID="StringLiteral">"hidden"</FONT>;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>  
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  <FONT ID="FormalComment">/** the value of the file property */</FONT>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_FILE = <FONT ID="StringLiteral">"file"</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="FormalComment">/** the value of the dir property */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_DIR = <FONT ID="StringLiteral">"dir"</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="FormalComment">/** the value of the prefix property */</FONT>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_PREFIX = <FONT ID="StringLiteral">"prefix"</FONT>;
+<FONT ID="LN">104 </FONT><A NAME="104"></A>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_RELATIVE_PATH = <FONT ID="StringLiteral">"useRelativePath"</FONT>;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  <FONT ID="FormalComment">/** the value of the options property */</FONT>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_OPTIONS = <FONT ID="StringLiteral">"options"</FONT>;
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  <FONT ID="FormalComment">/** the value of the saver property */</FONT>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_SAVER = <FONT ID="StringLiteral">"saver"</FONT>;
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="FormalComment">/** the value of the loader property */</FONT>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_LOADER = <FONT ID="StringLiteral">"loader"</FONT>;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>  
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="FormalComment">/** the value of the text property */</FONT>
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_TEXT = <FONT ID="StringLiteral">"text"</FONT>;
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="FormalComment">/** the value of the beanContext property */</FONT>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_BEANCONTEXT = <FONT ID="StringLiteral">"beanContext"</FONT>;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  <FONT ID="FormalComment">/** the value of the width property */</FONT>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_WIDTH = <FONT ID="StringLiteral">"width"</FONT>;
+<FONT ID="LN">124 </FONT><A NAME="124"></A>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  <FONT ID="FormalComment">/** the value of the height property */</FONT>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_HEIGHT = <FONT ID="StringLiteral">"height"</FONT>;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  <FONT ID="FormalComment">/** the value of the red property */</FONT>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_RED = <FONT ID="StringLiteral">"red"</FONT>;
+<FONT ID="LN">130 </FONT><A NAME="130"></A>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>  <FONT ID="FormalComment">/** the value of the green property */</FONT>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_GREEN = <FONT ID="StringLiteral">"green"</FONT>;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="FormalComment">/** the value of the blue property */</FONT>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_BLUE = <FONT ID="StringLiteral">"blue"</FONT>;
+<FONT ID="LN">136 </FONT><A NAME="136"></A>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="FormalComment">/** the value of the value property */</FONT>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_NAME = <FONT ID="StringLiteral">"name"</FONT>;
+<FONT ID="LN">139 </FONT><A NAME="139"></A>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="FormalComment">/** the value of the style property */</FONT>
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_STYLE = <FONT ID="StringLiteral">"style"</FONT>;
+<FONT ID="LN">142 </FONT><A NAME="142"></A> 
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="FormalComment">/** the value of the location property */</FONT>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_LOCATION = <FONT ID="StringLiteral">"location"</FONT>;
+<FONT ID="LN">145 </FONT><A NAME="145"></A> 
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="FormalComment">/** the value of the size property */</FONT>
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_SIZE = <FONT ID="StringLiteral">"size"</FONT>;
+<FONT ID="LN">148 </FONT><A NAME="148"></A> 
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  <FONT ID="FormalComment">/** the value of the color property */</FONT>
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_COLOR = <FONT ID="StringLiteral">"color"</FONT>;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="FormalComment">/** the value of the font property */</FONT>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_FONT = <FONT ID="StringLiteral">"font"</FONT>;
+<FONT ID="LN">154 </FONT><A NAME="154"></A>  
+<FONT ID="LN">155 </FONT><A NAME="155"></A>  <FONT ID="FormalComment">/** the value of the iconpath property */</FONT>
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_ICONPATH = <FONT ID="StringLiteral">"iconPath"</FONT>;
+<FONT ID="LN">157 </FONT><A NAME="157"></A>  
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="FormalComment">/** the value of the animatedIconPath property */</FONT>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_ANIMATEDICONPATH = <FONT ID="StringLiteral">"animatedIconPath"</FONT>;
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="FormalComment">/** the value of the associatedConnections property */</FONT>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_ASSOCIATEDCONNECTIONS = <FONT ID="StringLiteral">"associatedConnections"</FONT>;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>  
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="FormalComment">/** the value of the input property */</FONT>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_INPUTS = <FONT ID="StringLiteral">"inputs"</FONT>;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>  
+<FONT ID="LN">167 </FONT><A NAME="167"></A>  <FONT ID="FormalComment">/** the value of the input id property */</FONT>
+<FONT ID="LN">168 </FONT><A NAME="168"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_INPUTSID = <FONT ID="StringLiteral">"inputs_id"</FONT>;
+<FONT ID="LN">169 </FONT><A NAME="169"></A>  
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  <FONT ID="FormalComment">/** the value of the outputs id property */</FONT>
+<FONT ID="LN">171 </FONT><A NAME="171"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_OUTPUTS = <FONT ID="StringLiteral">"outputs"</FONT>;
+<FONT ID="LN">172 </FONT><A NAME="172"></A>  
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  <FONT ID="FormalComment">/** the value of the outputs property */</FONT>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_OUTPUTSID = <FONT ID="StringLiteral">"outputs_id"</FONT>;
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  
+<FONT ID="LN">176 </FONT><A NAME="176"></A>  <FONT ID="FormalComment">/** the value of the subFlow property */</FONT>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_SUBFLOW = <FONT ID="StringLiteral">"subFlow"</FONT>;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="FormalComment">/** the value of the originalCoords property */</FONT>
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_ORIGINALCOORDS = <FONT ID="StringLiteral">"originalCoords"</FONT>;
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  <FONT ID="FormalComment">/** the value of the relationNameForFilename property (Saver) */</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String VAL_RELATIONNAMEFORFILENAME = <FONT ID="StringLiteral">"relationNameForFilename"</FONT>;
+<FONT ID="LN">184 </FONT><A NAME="184"></A>
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  <FONT ID="FormalComment">/** the index in the Vector, where the BeanInstances are stored 
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   * (Instances and Connections are stored in a Vector and then serialized) */</FONT>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> INDEX_BEANINSTANCES = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">188 </FONT><A NAME="188"></A>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="FormalComment">/** the index in the Vector, where the BeanConnections are stored
+<FONT ID="LN">190 </FONT><A NAME="190"></A>  * (Instances and Connections are stored in a Vector and then serialized) */</FONT>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> INDEX_BEANCONNECTIONS = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>  
+<FONT ID="LN">193 </FONT><A NAME="193"></A>  <FONT ID="FormalComment">/** the component that manages the layout of the beans */</FONT>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>  <FONT ID="Protected">protected</FONT> JComponent m_BeanLayout;
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  <FONT ID="FormalComment">/** keeps track of the BeanInstances read so far, used for the BeanConnections */</FONT>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  <FONT ID="Protected">protected</FONT> Vector m_BeanInstances;
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="FormalComment">/** keeps track of the BeanInstances read so far, used for the BeanConnections */</FONT>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  <FONT ID="Protected">protected</FONT> Vector m_BeanInstancesID;
+<FONT ID="LN">201 </FONT><A NAME="201"></A>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="FormalComment">/** whether to ignore the BeanConnection */</FONT>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_IgnoreBeanConnections;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  
+<FONT ID="LN">205 </FONT><A NAME="205"></A>  <FONT ID="FormalComment">/** the current MetaBean (for the BeanConnections) */</FONT>
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A> m_CurrentMetaBean;
+<FONT ID="LN">207 </FONT><A NAME="207"></A>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>  <FONT ID="FormalComment">/** the identifier for regular BeanConnections */</FONT>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String REGULAR_CONNECTION = <FONT ID="StringLiteral">"regular_connection"</FONT>;
+<FONT ID="LN">210 </FONT><A NAME="210"></A>  
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="FormalComment">/** the relation between Bean and connection, MetaBean BeanConnections
+<FONT ID="LN">212 </FONT><A NAME="212"></A>   * are stored under the reference of the MetaBean, regular connections 
+<FONT ID="LN">213 </FONT><A NAME="213"></A>   * are stored under REGULAR_CONNECTION. The relation has the following 
+<FONT ID="LN">214 </FONT><A NAME="214"></A>   * format (is a string): sourcePos,targetPos,event,hidden
+<FONT ID="LN">215 </FONT><A NAME="215"></A>   * @see #REGULAR_CONNECTION */</FONT>
+<FONT ID="LN">216 </FONT><A NAME="216"></A>  <FONT ID="Protected">protected</FONT> Hashtable m_BeanConnectionRelation;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  <FONT ID="FormalComment">/** the data that is about to be read/written contains a complete layout 
+<FONT ID="LN">219 </FONT><A NAME="219"></A>   * @see #m_DataType */</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> DATATYPE_LAYOUT = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">221 </FONT><A NAME="221"></A>  
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  <FONT ID="FormalComment">/** the data that is about to be read/written contains user-components, i.e., 
+<FONT ID="LN">223 </FONT><A NAME="223"></A>   * Metabeans 
+<FONT ID="LN">224 </FONT><A NAME="224"></A>   * @see #m_DataType */</FONT>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> DATATYPE_USERCOMPONENTS = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">226 </FONT><A NAME="226"></A>  
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  <FONT ID="FormalComment">/** the type of data that is be read/written
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * @see #DATATYPE_LAYOUT
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * @see #DATATYPE_USERCOMPONENTS */</FONT>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_DataType = DATATYPE_LAYOUT;
+<FONT ID="LN">231 </FONT><A NAME="231"></A>  
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="FormalComment">/** the beancontext to use for loading from XML and the beancontext is
+<FONT ID="LN">233 </FONT><A NAME="233"></A>   * null in the bean */</FONT>
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  <FONT ID="Protected">protected</FONT> BeanContextSupport m_BeanContextSupport = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">235 </FONT><A NAME="235"></A>  
+<FONT ID="LN">236 </FONT><A NAME="236"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * initializes the serialization for layouts
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * 
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   * @param layout      the component that manages the layout
+<FONT ID="LN">240 </FONT><A NAME="240"></A>   * @param context     the bean context support to use
+<FONT ID="LN">241 </FONT><A NAME="241"></A>   * @throws Exception  if initialization fails
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   */</FONT>
+<FONT ID="LN">243 </FONT><A NAME="243"></A>  <FONT ID="Public">public</FONT> XMLBeans(JComponent layout, BeanContextSupport context) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    <FONT ID="This">this</FONT>(layout, context, DATATYPE_LAYOUT);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>  }
+<FONT ID="LN">246 </FONT><A NAME="246"></A>  
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   * initializes the serialization for different types of data
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   * 
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * @param layout      the component that manages the layout
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   * @param context     the bean context support to use
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   * @param datatype    the type of data to read/write
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   * @throws Exception  if initialization fails
+<FONT ID="LN">254 </FONT><A NAME="254"></A>   */</FONT>
+<FONT ID="LN">255 </FONT><A NAME="255"></A>  <FONT ID="Public">public</FONT> XMLBeans(JComponent layout, BeanContextSupport context, <FONT ID="Int">int</FONT> datatype) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    <FONT ID="Super">super</FONT>();
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    m_BeanLayout = layout;
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    m_BeanContextSupport = context;
+<FONT ID="LN">260 </FONT><A NAME="260"></A>    setDataType(datatype);
+<FONT ID="LN">261 </FONT><A NAME="261"></A>  }
+<FONT ID="LN">262 </FONT><A NAME="262"></A>  
+<FONT ID="LN">263 </FONT><A NAME="263"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   * sets what kind of data is to be read/written
+<FONT ID="LN">265 </FONT><A NAME="265"></A>   * @param value       the type of data
+<FONT ID="LN">266 </FONT><A NAME="266"></A>   * @see #m_DataType
+<FONT ID="LN">267 </FONT><A NAME="267"></A>   */</FONT>
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDataType(<FONT ID="Int">int</FONT> value) {
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    <FONT ID="If">if</FONT> (value == DATATYPE_LAYOUT)
+<FONT ID="LN">270 </FONT><A NAME="270"></A>      m_DataType = value;
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (value == DATATYPE_USERCOMPONENTS)
+<FONT ID="LN">272 </FONT><A NAME="272"></A>      m_DataType = value;
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>      System.out.println(<FONT ID="StringLiteral">"DataType '"</FONT> + value + <FONT ID="StringLiteral">"' is unknown!"</FONT>);
+<FONT ID="LN">275 </FONT><A NAME="275"></A>  }
+<FONT ID="LN">276 </FONT><A NAME="276"></A>  
+<FONT ID="LN">277 </FONT><A NAME="277"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">278 </FONT><A NAME="278"></A>   * returns the type of data that is to be read/written
+<FONT ID="LN">279 </FONT><A NAME="279"></A>   * @return the type of data
+<FONT ID="LN">280 </FONT><A NAME="280"></A>   * @see #m_DataType
+<FONT ID="LN">281 </FONT><A NAME="281"></A>   */</FONT>
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getDataType() {
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    <FONT ID="Return">return</FONT> m_DataType;
+<FONT ID="LN">284 </FONT><A NAME="284"></A>  }
+<FONT ID="LN">285 </FONT><A NAME="285"></A>
+<FONT ID="LN">286 </FONT><A NAME="286"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">287 </FONT><A NAME="287"></A>   * generates internally a new XML document and clears also the IgnoreList and
+<FONT ID="LN">288 </FONT><A NAME="288"></A>   * the mappings for the Read/Write-Methods
+<FONT ID="LN">289 </FONT><A NAME="289"></A>   * 
+<FONT ID="LN">290 </FONT><A NAME="290"></A>   * @throws Exception if something goes wrong
+<FONT ID="LN">291 </FONT><A NAME="291"></A>   */</FONT>
+<FONT ID="LN">292 </FONT><A NAME="292"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> clear() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    Vector&lt;String&gt;  classnames;
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    <FONT ID="Super">super</FONT>.clear();
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    <FONT ID="SingleLineComment">// ignore: suppress unnecessary GUI stuff 
+<FONT ID="LN">299 </FONT><A NAME="299"></A></FONT>    <FONT ID="SingleLineComment">// needs to be checked for new Java versions (might introduce new properties) 
+<FONT ID="LN">300 </FONT><A NAME="300"></A></FONT>    <FONT ID="SingleLineComment">// - works with Java 1.5
+<FONT ID="LN">301 </FONT><A NAME="301"></A></FONT>    m_Properties.addIgnored(<FONT ID="StringLiteral">"UI"</FONT>);
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"actionMap"</FONT>);
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"alignmentX"</FONT>);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"alignmentY"</FONT>);
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"autoscrolls"</FONT>);
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"background"</FONT>);
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"border"</FONT>);
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"componentPopupMenu"</FONT>);
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"debugGraphicsOptions"</FONT>);
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"doubleBuffered"</FONT>);
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"enabled"</FONT>);
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"focusCycleRoot"</FONT>);
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"focusTraversalPolicy"</FONT>);
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"focusTraversalPolicyProvider"</FONT>);
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"focusable"</FONT>);
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"font"</FONT>);
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"foreground"</FONT>);
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"inheritsPopupMenu"</FONT>);
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"inputVerifier"</FONT>);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"layout"</FONT>);
+<FONT ID="LN">321 </FONT><A NAME="321"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"locale"</FONT>);
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"maximumSize"</FONT>);
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"minimumSize"</FONT>);
+<FONT ID="LN">324 </FONT><A NAME="324"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"nextFocusableComponent"</FONT>);
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"opaque"</FONT>);
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"preferredSize"</FONT>);
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"requestFocusEnabled"</FONT>);
+<FONT ID="LN">328 </FONT><A NAME="328"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"toolTipText"</FONT>);
+<FONT ID="LN">329 </FONT><A NAME="329"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"transferHandler"</FONT>);
+<FONT ID="LN">330 </FONT><A NAME="330"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"verifyInputWhenFocusTarget"</FONT>);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>    m_Properties.addIgnored(<FONT ID="StringLiteral">"visible"</FONT>);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>
+<FONT ID="LN">333 </FONT><A NAME="333"></A>    <FONT ID="SingleLineComment">// special ignore
+<FONT ID="LN">334 </FONT><A NAME="334"></A></FONT>    m_Properties.addIgnored(<FONT ID="StringLiteral">"size"</FONT>);  <FONT ID="SingleLineComment">// otherwise you get an endless loop with Dimension!
+<FONT ID="LN">335 </FONT><A NAME="335"></A></FONT>    m_Properties.addIgnored(<FONT ID="StringLiteral">"location"</FONT>);  <FONT ID="SingleLineComment">// otherwise you get an endless loop with Point!
+<FONT ID="LN">336 </FONT><A NAME="336"></A></FONT>
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    <FONT ID="SingleLineComment">// allow
+<FONT ID="LN">338 </FONT><A NAME="338"></A></FONT>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">weka.gui.beans.BeanInstance</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"x"</FONT>);
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">weka.gui.beans.BeanInstance</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"y"</FONT>);
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">weka.gui.beans.BeanInstance</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"bean"</FONT>);
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Saver.java.html">weka.gui.beans.Saver</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"saver"</FONT>);
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Loader.java.html">weka.gui.beans.Loader</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"loader"</FONT>);
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Saver.java.html">weka.gui.beans.Saver</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"relationNameForFilename"</FONT>);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    <FONT ID="If">if</FONT> (getDataType() == DATATYPE_LAYOUT)
+<FONT ID="LN">345 </FONT><A NAME="345"></A>      m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Loader.java.html">weka.gui.beans.Loader</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"beanContext"</FONT>);
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">347 </FONT><A NAME="347"></A>      m_Properties.addIgnored(<A HREF="../../../../weka/gui/beans/Loader.java.html">weka.gui.beans.Loader</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"beanContext"</FONT>);   <FONT ID="SingleLineComment">// TODO: more classes???
+<FONT ID="LN">348 </FONT><A NAME="348"></A></FONT>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Filter.java.html">weka.gui.beans.Filter</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"filter"</FONT>);
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Classifier.java.html">weka.gui.beans.Classifier</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"wrappedAlgorithm"</FONT>);
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Clusterer.java.html">weka.gui.beans.Clusterer</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"wrappedAlgorithm"</FONT>);
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Classifier.java.html">weka.gui.beans.Classifier</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"executionSlots"</FONT>);
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/gui/beans/Classifier.java.html">weka.gui.beans.Classifier</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"blockOnLastFold"</FONT>);
+<FONT ID="LN">353 </FONT><A NAME="353"></A>
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/classifiers/Classifier.java.html">weka.classifiers.Classifier</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"debug"</FONT>);
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/classifiers/Classifier.java.html">weka.classifiers.Classifier</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"options"</FONT>);
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/filters/Filter.java.html">weka.filters.Filter</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"options"</FONT>);
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/core/converters/DatabaseSaver.java.html">weka.core.converters.DatabaseSaver</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"options"</FONT>);
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/core/converters/DatabaseLoader.java.html">weka.core.converters.DatabaseLoader</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"options"</FONT>);
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    m_Properties.addAllowed(<A HREF="../../../../weka/core/converters/TextDirectoryLoader.java.html">weka.core.converters.TextDirectoryLoader</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"options"</FONT>);
+<FONT ID="LN">361 </FONT><A NAME="361"></A>
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    <FONT ID="SingleLineComment">// we assume that classes implementing SplitEvaluator also implement OptionHandler
+<FONT ID="LN">363 </FONT><A NAME="363"></A></FONT>    m_Properties.addAllowed(<A HREF="../../../../weka/experiment/SplitEvaluator.java.html">weka.experiment.SplitEvaluator</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"options"</FONT>);
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    <FONT ID="SingleLineComment">// we assume that classes implementing ResultProducer also implement OptionHandler
+<FONT ID="LN">365 </FONT><A NAME="365"></A></FONT>    m_Properties.addAllowed(<A HREF="../../../../weka/experiment/ResultProducer.java.html">weka.experiment.ResultProducer</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"options"</FONT>);
+<FONT ID="LN">366 </FONT><A NAME="366"></A>
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    <FONT ID="SingleLineComment">// read/write methods
+<FONT ID="LN">368 </FONT><A NAME="368"></A></FONT>    m_CustomMethods.register(<FONT ID="This">this</FONT>, Color.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"Color"</FONT>);
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, Dimension.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"Dimension"</FONT>);
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, Font.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"Font"</FONT>);
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, Point.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"Point"</FONT>);
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, ColorUIResource.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"ColorUIResource"</FONT>);
+<FONT ID="LN">373 </FONT><A NAME="373"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, FontUIResource.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"FontUIResource"</FONT>);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">weka.gui.beans.BeanInstance</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"BeanInstance"</FONT>);
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, <A HREF="../../../../weka/gui/beans/BeanConnection.java.html">weka.gui.beans.BeanConnection</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"BeanConnection"</FONT>);
+<FONT ID="LN">377 </FONT><A NAME="377"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, <A HREF="../../../../weka/gui/beans/BeanVisual.java.html">weka.gui.beans.BeanVisual</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"BeanVisual"</FONT>);
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, <A HREF="../../../../weka/gui/beans/Saver.java.html">weka.gui.beans.Saver</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"BeanSaver"</FONT>);
+<FONT ID="LN">379 </FONT><A NAME="379"></A>    m_CustomMethods.register(<FONT ID="This">this</FONT>, <A HREF="../../../../weka/gui/beans/MetaBean.java.html">weka.gui.beans.MetaBean</A>.<FONT ID="Class">class</FONT>, <FONT ID="StringLiteral">"MetaBean"</FONT>);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>
+<FONT ID="LN">381 </FONT><A NAME="381"></A>    classnames = ConverterUtils.getFileLoaders();
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; classnames.size(); i++)
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      m_CustomMethods.register(<FONT ID="This">this</FONT>, Class.forName(classnames.get(i)), <FONT ID="StringLiteral">"Loader"</FONT>);
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    classnames = ConverterUtils.getFileSavers();
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; classnames.size(); i++)
+<FONT ID="LN">386 </FONT><A NAME="386"></A>      m_CustomMethods.register(<FONT ID="This">this</FONT>, Class.forName(classnames.get(i)), <FONT ID="StringLiteral">"Saver"</FONT>);
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    
+<FONT ID="LN">388 </FONT><A NAME="388"></A>    <FONT ID="SingleLineComment">// other variables
+<FONT ID="LN">389 </FONT><A NAME="389"></A></FONT>    m_BeanInstances          = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    m_BeanInstancesID        = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    m_CurrentMetaBean        = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    m_IgnoreBeanConnections  = <FONT ID="True">true</FONT>;
+<FONT ID="LN">393 </FONT><A NAME="393"></A>    m_BeanConnectionRelation = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">394 </FONT><A NAME="394"></A>  }
+<FONT ID="LN">395 </FONT><A NAME="395"></A>  
+<FONT ID="LN">396 </FONT><A NAME="396"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">397 </FONT><A NAME="397"></A>   * traverses over all BeanInstances (or MetaBeans) and stores them in a vector 
+<FONT ID="LN">398 </FONT><A NAME="398"></A>   * (recurses into MetaBeans, since the sub-BeanInstances are not visible)
+<FONT ID="LN">399 </FONT><A NAME="399"></A>   * @param list       the BeanInstances/MetaBeans to traverse
+<FONT ID="LN">400 </FONT><A NAME="400"></A>   */</FONT>
+<FONT ID="LN">401 </FONT><A NAME="401"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> addBeanInstances(Vector list) {
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    <FONT ID="Int">int</FONT>             i;
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>    beaninst;
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    
+<FONT ID="LN">405 </FONT><A NAME="405"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; list.size(); i++) {
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      <FONT ID="If">if</FONT> (list.get(i) <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) {
+<FONT ID="LN">407 </FONT><A NAME="407"></A>        beaninst = (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) list.get(i);
+<FONT ID="LN">408 </FONT><A NAME="408"></A>        
+<FONT ID="LN">409 </FONT><A NAME="409"></A>        m_BeanInstancesID.add(<FONT ID="New">new</FONT> Integer(m_BeanInstances.size()));
+<FONT ID="LN">410 </FONT><A NAME="410"></A>        m_BeanInstances.add(beaninst);
+<FONT ID="LN">411 </FONT><A NAME="411"></A>        
+<FONT ID="LN">412 </FONT><A NAME="412"></A>        <FONT ID="If">if</FONT> (beaninst.getBean() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>)
+<FONT ID="LN">413 </FONT><A NAME="413"></A>          addBeanInstances(((<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) beaninst.getBean()).getBeansInSubFlow());
+<FONT ID="LN">414 </FONT><A NAME="414"></A>      }
+<FONT ID="LN">415 </FONT><A NAME="415"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (list.get(i) <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) {
+<FONT ID="LN">416 </FONT><A NAME="416"></A>        addBeanInstances(((<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) list.get(i)).getBeansInSubFlow());
+<FONT ID="LN">417 </FONT><A NAME="417"></A>      }
+<FONT ID="LN">418 </FONT><A NAME="418"></A>      <FONT ID="Else">else</FONT> {
+<FONT ID="LN">419 </FONT><A NAME="419"></A>        System.out.println(<FONT ID="StringLiteral">"addBeanInstances does not support Vectors of class '"</FONT> + list.get(i) + <FONT ID="StringLiteral">"'!"</FONT>);
+<FONT ID="LN">420 </FONT><A NAME="420"></A>      }
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    }
+<FONT ID="LN">422 </FONT><A NAME="422"></A>  }
+<FONT ID="LN">423 </FONT><A NAME="423"></A>  
+<FONT ID="LN">424 </FONT><A NAME="424"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">425 </FONT><A NAME="425"></A>   * enables derived classes to due some pre-processing on the objects, that's
+<FONT ID="LN">426 </FONT><A NAME="426"></A>   * about to be serialized. Right now it only returns the object.
+<FONT ID="LN">427 </FONT><A NAME="427"></A>   * 
+<FONT ID="LN">428 </FONT><A NAME="428"></A>   * @param o the object that is serialized into XML
+<FONT ID="LN">429 </FONT><A NAME="429"></A>   * @return the possibly altered object
+<FONT ID="LN">430 </FONT><A NAME="430"></A>   * @throws Exception if post-processing fails
+<FONT ID="LN">431 </FONT><A NAME="431"></A>   */</FONT>
+<FONT ID="LN">432 </FONT><A NAME="432"></A>  <FONT ID="Protected">protected</FONT> Object writePreProcess(Object o) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    o = <FONT ID="Super">super</FONT>.writePreProcess(o);
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    <FONT ID="SingleLineComment">// gather all BeanInstances, also the ones in MetaBeans
+<FONT ID="LN">436 </FONT><A NAME="436"></A></FONT>    m_BeanInstances   = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    m_BeanInstancesID = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    <FONT ID="Switch">switch</FONT> (getDataType()) {
+<FONT ID="LN">440 </FONT><A NAME="440"></A>      <FONT ID="Case">case</FONT> DATATYPE_LAYOUT:
+<FONT ID="LN">441 </FONT><A NAME="441"></A>        addBeanInstances(BeanInstance.getBeanInstances());
+<FONT ID="LN">442 </FONT><A NAME="442"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">443 </FONT><A NAME="443"></A>
+<FONT ID="LN">444 </FONT><A NAME="444"></A>      <FONT ID="Case">case</FONT> DATATYPE_USERCOMPONENTS:
+<FONT ID="LN">445 </FONT><A NAME="445"></A>        addBeanInstances((Vector) o);
+<FONT ID="LN">446 </FONT><A NAME="446"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">447 </FONT><A NAME="447"></A>        
+<FONT ID="LN">448 </FONT><A NAME="448"></A>      <FONT ID="Default">default</FONT>:
+<FONT ID="LN">449 </FONT><A NAME="449"></A>        System.out.println(<FONT ID="StringLiteral">"writePreProcess: data type '"</FONT> + getDataType() + <FONT ID="StringLiteral">"' is not recognized!"</FONT>);
+<FONT ID="LN">450 </FONT><A NAME="450"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    }
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    <FONT ID="Return">return</FONT> o;
+<FONT ID="LN">454 </FONT><A NAME="454"></A>  }
+<FONT ID="LN">455 </FONT><A NAME="455"></A>  
+<FONT ID="LN">456 </FONT><A NAME="456"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">457 </FONT><A NAME="457"></A>   * enables derived classes to add other properties to the DOM tree, e.g.
+<FONT ID="LN">458 </FONT><A NAME="458"></A>   * ones that do not apply to the get/set convention of beans. only implemented
+<FONT ID="LN">459 </FONT><A NAME="459"></A>   * with empty method body.
+<FONT ID="LN">460 </FONT><A NAME="460"></A>   * 
+<FONT ID="LN">461 </FONT><A NAME="461"></A>   * @param o the object that is serialized into XML
+<FONT ID="LN">462 </FONT><A NAME="462"></A>   * @throws Exception if post-processing fails
+<FONT ID="LN">463 </FONT><A NAME="463"></A>   */</FONT>
+<FONT ID="LN">464 </FONT><A NAME="464"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> writePostProcess(Object o) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    Element         root;
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    NodeList        list;
+<FONT ID="LN">467 </FONT><A NAME="467"></A>    Element         conns;
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    Element         child;
+<FONT ID="LN">469 </FONT><A NAME="469"></A>    <FONT ID="Int">int</FONT>             i;
+<FONT ID="LN">470 </FONT><A NAME="470"></A>
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    <FONT ID="SingleLineComment">// since not all BeanConnections get saved to XML (e.g., MetaBeans in the 
+<FONT ID="LN">472 </FONT><A NAME="472"></A></FONT>    <FONT ID="SingleLineComment">// UserToolBar) if one saves a layout, the numbering in the Vector of the 
+<FONT ID="LN">473 </FONT><A NAME="473"></A></FONT>    <FONT ID="SingleLineComment">// BeanConnections is not correct. The "name" attribute of the nodes has
+<FONT ID="LN">474 </FONT><A NAME="474"></A></FONT>    <FONT ID="SingleLineComment">// to be modified
+<FONT ID="LN">475 </FONT><A NAME="475"></A></FONT>    <FONT ID="If">if</FONT> (getDataType() == DATATYPE_LAYOUT) {
+<FONT ID="LN">476 </FONT><A NAME="476"></A>      root  = m_Document.getDocument().getDocumentElement();
+<FONT ID="LN">477 </FONT><A NAME="477"></A>      conns = (Element) root.getChildNodes().item(INDEX_BEANCONNECTIONS);
+<FONT ID="LN">478 </FONT><A NAME="478"></A>      list  = conns.getChildNodes();
+<FONT ID="LN">479 </FONT><A NAME="479"></A>      <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; list.getLength(); i++) {
+<FONT ID="LN">480 </FONT><A NAME="480"></A>        child = (Element) list.item(i);
+<FONT ID="LN">481 </FONT><A NAME="481"></A>        child.setAttribute(ATT_NAME, <FONT ID="StringLiteral">""</FONT> + i);
+<FONT ID="LN">482 </FONT><A NAME="482"></A>      }
+<FONT ID="LN">483 </FONT><A NAME="483"></A>    }
+<FONT ID="LN">484 </FONT><A NAME="484"></A>  }
+<FONT ID="LN">485 </FONT><A NAME="485"></A>  
+<FONT ID="LN">486 </FONT><A NAME="486"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">487 </FONT><A NAME="487"></A>   * additional pre-processing can happen in derived classes before the 
+<FONT ID="LN">488 </FONT><A NAME="488"></A>   * actual reading from XML (working on the raw XML). right now it does 
+<FONT ID="LN">489 </FONT><A NAME="489"></A>   * nothing with the document, only empties the help-vector for the
+<FONT ID="LN">490 </FONT><A NAME="490"></A>   * BeanInstances and reads the IDs for the BeanInstances, s.t. the correct
+<FONT ID="LN">491 </FONT><A NAME="491"></A>   * references can be set again
+<FONT ID="LN">492 </FONT><A NAME="492"></A>   * 
+<FONT ID="LN">493 </FONT><A NAME="493"></A>   * @param document the document to pre-process
+<FONT ID="LN">494 </FONT><A NAME="494"></A>   * @return the processed object
+<FONT ID="LN">495 </FONT><A NAME="495"></A>   * @throws Exception if post-processing fails
+<FONT ID="LN">496 </FONT><A NAME="496"></A>   * @see #m_BeanInstances
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   */</FONT>
+<FONT ID="LN">498 </FONT><A NAME="498"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../../weka/core/xml/XMLDocument.java.html">Document</A> readPreProcess(<A HREF="../../../../weka/core/xml/XMLDocument.java.html">Document</A> document) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">499 </FONT><A NAME="499"></A>    NodeList        list;
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    <FONT ID="Int">int</FONT>             i;
+<FONT ID="LN">501 </FONT><A NAME="501"></A>    Element         node;
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    String          clsName;
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    Vector          children;
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    <FONT ID="Int">int</FONT>             id;
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    <FONT ID="Int">int</FONT>             n;
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    Element         child;
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    
+<FONT ID="LN">508 </FONT><A NAME="508"></A>    m_BeanInstances   = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    m_BeanInstancesID = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">510 </FONT><A NAME="510"></A>    
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    <FONT ID="SingleLineComment">// get all BeanInstance nodes
+<FONT ID="LN">512 </FONT><A NAME="512"></A></FONT>    list    = document.getElementsByTagName(<FONT ID="StringLiteral">"*"</FONT>);
+<FONT ID="LN">513 </FONT><A NAME="513"></A>    clsName = <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>.<FONT ID="Class">class</FONT>.getName();
+<FONT ID="LN">514 </FONT><A NAME="514"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; list.getLength(); i++) {
+<FONT ID="LN">515 </FONT><A NAME="515"></A>      node = (Element) list.item(i);
+<FONT ID="LN">516 </FONT><A NAME="516"></A>      
+<FONT ID="LN">517 </FONT><A NAME="517"></A>      <FONT ID="SingleLineComment">// is it a BeanInstance?
+<FONT ID="LN">518 </FONT><A NAME="518"></A></FONT>      <FONT ID="If">if</FONT> (node.getAttribute(ATT_CLASS).equals(clsName)) {
+<FONT ID="LN">519 </FONT><A NAME="519"></A>        children = XMLDocument.getChildTags(node);
+<FONT ID="LN">520 </FONT><A NAME="520"></A>        id       = m_BeanInstancesID.size();
+<FONT ID="LN">521 </FONT><A NAME="521"></A>        
+<FONT ID="LN">522 </FONT><A NAME="522"></A>        <FONT ID="SingleLineComment">// get id-tag (if available)
+<FONT ID="LN">523 </FONT><A NAME="523"></A></FONT>        <FONT ID="For">for</FONT> (n = <FONT ID="IntegerLiteral">0</FONT>; n &lt; children.size(); n++) {
+<FONT ID="LN">524 </FONT><A NAME="524"></A>          child = (Element) children.get(n);
+<FONT ID="LN">525 </FONT><A NAME="525"></A>          <FONT ID="If">if</FONT> (child.getAttribute(ATT_NAME).equals(VAL_ID))
+<FONT ID="LN">526 </FONT><A NAME="526"></A>            id = readIntFromXML((Element) child);
+<FONT ID="LN">527 </FONT><A NAME="527"></A>        }
+<FONT ID="LN">528 </FONT><A NAME="528"></A>        
+<FONT ID="LN">529 </FONT><A NAME="529"></A>        m_BeanInstancesID.add(<FONT ID="New">new</FONT> Integer(id));
+<FONT ID="LN">530 </FONT><A NAME="530"></A>      }
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    }
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    
+<FONT ID="LN">533 </FONT><A NAME="533"></A>    m_BeanInstances.setSize(m_BeanInstancesID.size());
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    
+<FONT ID="LN">535 </FONT><A NAME="535"></A>    <FONT ID="SingleLineComment">// set MetaBean to null
+<FONT ID="LN">536 </FONT><A NAME="536"></A></FONT>    m_CurrentMetaBean = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">537 </FONT><A NAME="537"></A>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>    <FONT ID="SingleLineComment">// no BeanConnections -&gt; see readPostProcess(Object)
+<FONT ID="LN">539 </FONT><A NAME="539"></A></FONT>    m_IgnoreBeanConnections = <FONT ID="True">true</FONT>;
+<FONT ID="LN">540 </FONT><A NAME="540"></A>    
+<FONT ID="LN">541 </FONT><A NAME="541"></A>    <FONT ID="SingleLineComment">// reset BeanConnection-Relations
+<FONT ID="LN">542 </FONT><A NAME="542"></A></FONT>    m_BeanConnectionRelation = <FONT ID="New">new</FONT> Hashtable();
+<FONT ID="LN">543 </FONT><A NAME="543"></A>    
+<FONT ID="LN">544 </FONT><A NAME="544"></A>    <FONT ID="Return">return</FONT> document;
+<FONT ID="LN">545 </FONT><A NAME="545"></A>  }
+<FONT ID="LN">546 </FONT><A NAME="546"></A>  
+<FONT ID="LN">547 </FONT><A NAME="547"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">548 </FONT><A NAME="548"></A>   * puts the given BeanConnection onto the next null in the given Vector,
+<FONT ID="LN">549 </FONT><A NAME="549"></A>   * or at the end of the list, if no null is found.
+<FONT ID="LN">550 </FONT><A NAME="550"></A>   * (during the de-serializing, no BeanConnections are set, only nulls)
+<FONT ID="LN">551 </FONT><A NAME="551"></A>   * @param conn      the connection to add to the list
+<FONT ID="LN">552 </FONT><A NAME="552"></A>   * @param list      the list to add the BeanConnection to
+<FONT ID="LN">553 </FONT><A NAME="553"></A>   */</FONT>
+<FONT ID="LN">554 </FONT><A NAME="554"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setBeanConnection(<A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A> conn, Vector list) {
+<FONT ID="LN">555 </FONT><A NAME="555"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">556 </FONT><A NAME="556"></A>    <FONT ID="Boolean">boolean</FONT>     added;
+<FONT ID="LN">557 </FONT><A NAME="557"></A>    
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    added = <FONT ID="False">false</FONT>;
+<FONT ID="LN">559 </FONT><A NAME="559"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; list.size(); i++) {
+<FONT ID="LN">560 </FONT><A NAME="560"></A>      <FONT ID="If">if</FONT> (list.get(i) == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">561 </FONT><A NAME="561"></A>        list.set(i, conn);
+<FONT ID="LN">562 </FONT><A NAME="562"></A>        added = <FONT ID="True">true</FONT>;
+<FONT ID="LN">563 </FONT><A NAME="563"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">564 </FONT><A NAME="564"></A>      }
+<FONT ID="LN">565 </FONT><A NAME="565"></A>    }
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    
+<FONT ID="LN">567 </FONT><A NAME="567"></A>    <FONT ID="If">if</FONT> (!added)
+<FONT ID="LN">568 </FONT><A NAME="568"></A>      list.add(conn);
+<FONT ID="LN">569 </FONT><A NAME="569"></A>  }
+<FONT ID="LN">570 </FONT><A NAME="570"></A>  
+<FONT ID="LN">571 </FONT><A NAME="571"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">572 </FONT><A NAME="572"></A>   * generates a connection based on the given parameters
+<FONT ID="LN">573 </FONT><A NAME="573"></A>   * @param sourcePos the source position in the m_BeanInstances vector
+<FONT ID="LN">574 </FONT><A NAME="574"></A>   * @param targetPos the target position in the m_BeanInstances vector
+<FONT ID="LN">575 </FONT><A NAME="575"></A>   * @param event the name of the event, i.e., the connection
+<FONT ID="LN">576 </FONT><A NAME="576"></A>   * @param hidden true if the connection is hidden
+<FONT ID="LN">577 </FONT><A NAME="577"></A>   * @return the generated BeanConnection
+<FONT ID="LN">578 </FONT><A NAME="578"></A>   * @throws Exception if something goes wrong
+<FONT ID="LN">579 </FONT><A NAME="579"></A>   */</FONT>
+<FONT ID="LN">580 </FONT><A NAME="580"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A> createBeanConnection(<FONT ID="Int">int</FONT> sourcePos, <FONT ID="Int">int</FONT> targetPos, String event, <FONT ID="Boolean">boolean</FONT> hidden) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">581 </FONT><A NAME="581"></A>    <A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A>          result;
+<FONT ID="LN">582 </FONT><A NAME="582"></A>    BeanInfo                compInfo;
+<FONT ID="LN">583 </FONT><A NAME="583"></A>    EventSetDescriptor[]    esds;
+<FONT ID="LN">584 </FONT><A NAME="584"></A>    <FONT ID="Int">int</FONT>                     i;
+<FONT ID="LN">585 </FONT><A NAME="585"></A>    <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>            instSource;
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>            instTarget;
+<FONT ID="LN">587 </FONT><A NAME="587"></A>
+<FONT ID="LN">588 </FONT><A NAME="588"></A>    result = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">589 </FONT><A NAME="589"></A>    
+<FONT ID="LN">590 </FONT><A NAME="590"></A>    <FONT ID="SingleLineComment">// was there a connection?
+<FONT ID="LN">591 </FONT><A NAME="591"></A></FONT>    <FONT ID="If">if</FONT> ( (sourcePos == -<FONT ID="IntegerLiteral">1</FONT>) || (targetPos == -<FONT ID="IntegerLiteral">1</FONT>) )
+<FONT ID="LN">592 </FONT><A NAME="592"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">593 </FONT><A NAME="593"></A>    
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    instSource = (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) m_BeanInstances.get(sourcePos);
+<FONT ID="LN">595 </FONT><A NAME="595"></A>    instTarget = (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) m_BeanInstances.get(targetPos);
+<FONT ID="LN">596 </FONT><A NAME="596"></A>    
+<FONT ID="LN">597 </FONT><A NAME="597"></A>    compInfo = Introspector.getBeanInfo(((<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) m_BeanInstances.get(sourcePos)).getBean().getClass());
+<FONT ID="LN">598 </FONT><A NAME="598"></A>    esds     = compInfo.getEventSetDescriptors();
+<FONT ID="LN">599 </FONT><A NAME="599"></A>
+<FONT ID="LN">600 </FONT><A NAME="600"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; esds.length; i++) {
+<FONT ID="LN">601 </FONT><A NAME="601"></A>      <FONT ID="If">if</FONT> (esds[i].getName().equals(event)) {
+<FONT ID="LN">602 </FONT><A NAME="602"></A>        result = <FONT ID="New">new</FONT> <A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A>(instSource, instTarget, esds[i]);
+<FONT ID="LN">603 </FONT><A NAME="603"></A>        ((<A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A>) result).setHidden(hidden);
+<FONT ID="LN">604 </FONT><A NAME="604"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">605 </FONT><A NAME="605"></A>      }
+<FONT ID="LN">606 </FONT><A NAME="606"></A>    }
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    
+<FONT ID="LN">608 </FONT><A NAME="608"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">609 </FONT><A NAME="609"></A>  }
+<FONT ID="LN">610 </FONT><A NAME="610"></A>  
+<FONT ID="LN">611 </FONT><A NAME="611"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">612 </FONT><A NAME="612"></A>   * rebuilds all the connections for a certain key in the hashtable.
+<FONT ID="LN">613 </FONT><A NAME="613"></A>   * for the ones being part of a MetaBean, no new instance is built, but only
+<FONT ID="LN">614 </FONT><A NAME="614"></A>   * the reference to the actual BeanConnection set.
+<FONT ID="LN">615 </FONT><A NAME="615"></A>   * @param deserialized    the deserialized knowledgeflow
+<FONT ID="LN">616 </FONT><A NAME="616"></A>   * @param key             the key of the hashtable to rebuild all connections for
+<FONT ID="LN">617 </FONT><A NAME="617"></A>   * @throws Exception if something goes wrong
+<FONT ID="LN">618 </FONT><A NAME="618"></A>   */</FONT>
+<FONT ID="LN">619 </FONT><A NAME="619"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> rebuildBeanConnections(Vector deserialized, Object key) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">620 </FONT><A NAME="620"></A>    <FONT ID="Int">int</FONT>                     i;
+<FONT ID="LN">621 </FONT><A NAME="621"></A>    <FONT ID="Int">int</FONT>                     n;
+<FONT ID="LN">622 </FONT><A NAME="622"></A>    <FONT ID="Int">int</FONT>                     sourcePos;
+<FONT ID="LN">623 </FONT><A NAME="623"></A>    <FONT ID="Int">int</FONT>                     targetPos;
+<FONT ID="LN">624 </FONT><A NAME="624"></A>    String                  event;
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    <FONT ID="Boolean">boolean</FONT>                 hidden;
+<FONT ID="LN">626 </FONT><A NAME="626"></A>    Vector                  conns;
+<FONT ID="LN">627 </FONT><A NAME="627"></A>    <A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A>          conn;
+<FONT ID="LN">628 </FONT><A NAME="628"></A>    StringTokenizer         tok;
+<FONT ID="LN">629 </FONT><A NAME="629"></A>    Vector                  beanconns;
+<FONT ID="LN">630 </FONT><A NAME="630"></A>
+<FONT ID="LN">631 </FONT><A NAME="631"></A>    conns = (Vector) m_BeanConnectionRelation.get(key);
+<FONT ID="LN">632 </FONT><A NAME="632"></A>    
+<FONT ID="LN">633 </FONT><A NAME="633"></A>    <FONT ID="SingleLineComment">// no connections?
+<FONT ID="LN">634 </FONT><A NAME="634"></A></FONT>    <FONT ID="If">if</FONT> (conns == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">635 </FONT><A NAME="635"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">636 </FONT><A NAME="636"></A>    
+<FONT ID="LN">637 </FONT><A NAME="637"></A>    <FONT ID="For">for</FONT> (n = <FONT ID="IntegerLiteral">0</FONT>; n &lt; conns.size(); n++) {
+<FONT ID="LN">638 </FONT><A NAME="638"></A>      tok       = <FONT ID="New">new</FONT> StringTokenizer(conns.get(n).toString(), <FONT ID="StringLiteral">","</FONT>);
+<FONT ID="LN">639 </FONT><A NAME="639"></A>      conn      = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">640 </FONT><A NAME="640"></A>      sourcePos = Integer.parseInt(tok.nextToken());
+<FONT ID="LN">641 </FONT><A NAME="641"></A>      targetPos = Integer.parseInt(tok.nextToken());
+<FONT ID="LN">642 </FONT><A NAME="642"></A>      event     = tok.nextToken();
+<FONT ID="LN">643 </FONT><A NAME="643"></A>      hidden    = stringToBoolean(tok.nextToken());
+<FONT ID="LN">644 </FONT><A NAME="644"></A>
+<FONT ID="LN">645 </FONT><A NAME="645"></A>      <FONT ID="SingleLineComment">// regular connection? -&gt; new instance
+<FONT ID="LN">646 </FONT><A NAME="646"></A></FONT>      <FONT ID="SingleLineComment">// or MetaBean from user toolbar
+<FONT ID="LN">647 </FONT><A NAME="647"></A></FONT>      <FONT ID="If">if</FONT> ( (!(key <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>)) || (getDataType() == DATATYPE_USERCOMPONENTS)) {
+<FONT ID="LN">648 </FONT><A NAME="648"></A>        conn = createBeanConnection(sourcePos, targetPos, event, hidden);
+<FONT ID="LN">649 </FONT><A NAME="649"></A>      }
+<FONT ID="LN">650 </FONT><A NAME="650"></A>      <FONT ID="SingleLineComment">// MetaBean? -&gt; find BeanConnection 
+<FONT ID="LN">651 </FONT><A NAME="651"></A></FONT>      <FONT ID="Else">else</FONT> {
+<FONT ID="LN">652 </FONT><A NAME="652"></A>        beanconns = BeanConnection.getConnections();
+<FONT ID="LN">653 </FONT><A NAME="653"></A>        
+<FONT ID="LN">654 </FONT><A NAME="654"></A>        <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; beanconns.size(); i++) {
+<FONT ID="LN">655 </FONT><A NAME="655"></A>          conn = (<A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A>) beanconns.get(i);
+<FONT ID="LN">656 </FONT><A NAME="656"></A>          <FONT ID="If">if</FONT> (    (conn.getSource() == (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) m_BeanInstances.get(sourcePos))
+<FONT ID="LN">657 </FONT><A NAME="657"></A>               &amp;&amp; (conn.getTarget() == (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) m_BeanInstances.get(targetPos))
+<FONT ID="LN">658 </FONT><A NAME="658"></A>               &amp;&amp; (conn.getEventName().equals(event)) ) {
+<FONT ID="LN">659 </FONT><A NAME="659"></A>            <FONT ID="Break">break</FONT>;
+<FONT ID="LN">660 </FONT><A NAME="660"></A>          }
+<FONT ID="LN">661 </FONT><A NAME="661"></A>          conn = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">662 </FONT><A NAME="662"></A>        }
+<FONT ID="LN">663 </FONT><A NAME="663"></A>      }
+<FONT ID="LN">664 </FONT><A NAME="664"></A>      
+<FONT ID="LN">665 </FONT><A NAME="665"></A>      <FONT ID="SingleLineComment">// add the connection to the corresponding list/MetaBean
+<FONT ID="LN">666 </FONT><A NAME="666"></A></FONT>      <FONT ID="If">if</FONT> (key <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>)
+<FONT ID="LN">667 </FONT><A NAME="667"></A>        setBeanConnection(conn, ((<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) key).getAssociatedConnections());
+<FONT ID="LN">668 </FONT><A NAME="668"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">669 </FONT><A NAME="669"></A>        setBeanConnection(conn, (Vector) deserialized.get(INDEX_BEANCONNECTIONS));
+<FONT ID="LN">670 </FONT><A NAME="670"></A>    }
+<FONT ID="LN">671 </FONT><A NAME="671"></A>  }
+<FONT ID="LN">672 </FONT><A NAME="672"></A>  
+<FONT ID="LN">673 </FONT><A NAME="673"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">674 </FONT><A NAME="674"></A>   * removes the given meta beans from the layout, since they're only listed
+<FONT ID="LN">675 </FONT><A NAME="675"></A>   * in the user toolbar
+<FONT ID="LN">676 </FONT><A NAME="676"></A>   * 
+<FONT ID="LN">677 </FONT><A NAME="677"></A>   * @param metabeans         the list of MetaBeans in the user toolbar
+<FONT ID="LN">678 </FONT><A NAME="678"></A>   */</FONT>
+<FONT ID="LN">679 </FONT><A NAME="679"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> removeUserToolBarBeans(Vector metabeans) {
+<FONT ID="LN">680 </FONT><A NAME="680"></A>    <FONT ID="Int">int</FONT>           i;
+<FONT ID="LN">681 </FONT><A NAME="681"></A>    <FONT ID="Int">int</FONT>           n;
+<FONT ID="LN">682 </FONT><A NAME="682"></A>    <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>      meta;
+<FONT ID="LN">683 </FONT><A NAME="683"></A>    Vector        subflow;
+<FONT ID="LN">684 </FONT><A NAME="684"></A>    <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>  beaninst;
+<FONT ID="LN">685 </FONT><A NAME="685"></A>    
+<FONT ID="LN">686 </FONT><A NAME="686"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; metabeans.size(); i++) {
+<FONT ID="LN">687 </FONT><A NAME="687"></A>      meta    = (<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) metabeans.get(i);
+<FONT ID="LN">688 </FONT><A NAME="688"></A>      subflow = meta.getSubFlow();
+<FONT ID="LN">689 </FONT><A NAME="689"></A>      
+<FONT ID="LN">690 </FONT><A NAME="690"></A>      <FONT ID="For">for</FONT> (n = <FONT ID="IntegerLiteral">0</FONT>; n &lt; subflow.size(); n++) {
+<FONT ID="LN">691 </FONT><A NAME="691"></A>        beaninst = (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) subflow.get(n);
+<FONT ID="LN">692 </FONT><A NAME="692"></A>        beaninst.removeBean(m_BeanLayout);
+<FONT ID="LN">693 </FONT><A NAME="693"></A>      }
+<FONT ID="LN">694 </FONT><A NAME="694"></A>    }
+<FONT ID="LN">695 </FONT><A NAME="695"></A>  }
+<FONT ID="LN">696 </FONT><A NAME="696"></A>  
+<FONT ID="LN">697 </FONT><A NAME="697"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">698 </FONT><A NAME="698"></A>   * additional post-processing can happen in derived classes after reading 
+<FONT ID="LN">699 </FONT><A NAME="699"></A>   * from XML. re-builds the BeanConnections.
+<FONT ID="LN">700 </FONT><A NAME="700"></A>   * 
+<FONT ID="LN">701 </FONT><A NAME="701"></A>   * @param o the object to perform some additional processing on
+<FONT ID="LN">702 </FONT><A NAME="702"></A>   * @return the processed object
+<FONT ID="LN">703 </FONT><A NAME="703"></A>   * @throws Exception if post-processing fails
+<FONT ID="LN">704 </FONT><A NAME="704"></A>   */</FONT>
+<FONT ID="LN">705 </FONT><A NAME="705"></A>  <FONT ID="Protected">protected</FONT> Object readPostProcess(Object o) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">706 </FONT><A NAME="706"></A>    Enumeration             enm;
+<FONT ID="LN">707 </FONT><A NAME="707"></A>    Vector                  deserialized;
+<FONT ID="LN">708 </FONT><A NAME="708"></A>    Object                  key;
+<FONT ID="LN">709 </FONT><A NAME="709"></A>
+<FONT ID="LN">710 </FONT><A NAME="710"></A>    deserialized = (Vector) <FONT ID="Super">super</FONT>.readPostProcess(o);
+<FONT ID="LN">711 </FONT><A NAME="711"></A>    
+<FONT ID="LN">712 </FONT><A NAME="712"></A>    <FONT ID="SingleLineComment">// rebuild the actual connections
+<FONT ID="LN">713 </FONT><A NAME="713"></A></FONT>    rebuildBeanConnections(deserialized, REGULAR_CONNECTION);
+<FONT ID="LN">714 </FONT><A NAME="714"></A>
+<FONT ID="LN">715 </FONT><A NAME="715"></A>    <FONT ID="SingleLineComment">// rebuild the references in the MetaBeans
+<FONT ID="LN">716 </FONT><A NAME="716"></A></FONT>    enm = m_BeanConnectionRelation.keys();
+<FONT ID="LN">717 </FONT><A NAME="717"></A>    <FONT ID="While">while</FONT> (enm.hasMoreElements()) {
+<FONT ID="LN">718 </FONT><A NAME="718"></A>      key = enm.nextElement();
+<FONT ID="LN">719 </FONT><A NAME="719"></A>      
+<FONT ID="LN">720 </FONT><A NAME="720"></A>      <FONT ID="SingleLineComment">// skip the regular connections
+<FONT ID="LN">721 </FONT><A NAME="721"></A></FONT>      <FONT ID="If">if</FONT> (!(key <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>))
+<FONT ID="LN">722 </FONT><A NAME="722"></A>        <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">723 </FONT><A NAME="723"></A>      
+<FONT ID="LN">724 </FONT><A NAME="724"></A>      rebuildBeanConnections(deserialized, key);
+<FONT ID="LN">725 </FONT><A NAME="725"></A>    }
+<FONT ID="LN">726 </FONT><A NAME="726"></A>
+<FONT ID="LN">727 </FONT><A NAME="727"></A>    <FONT ID="SingleLineComment">// remove MetaBean and subflow from BeanInstance (not part of the flow!)
+<FONT ID="LN">728 </FONT><A NAME="728"></A></FONT>    <FONT ID="If">if</FONT> (getDataType() == DATATYPE_USERCOMPONENTS)
+<FONT ID="LN">729 </FONT><A NAME="729"></A>      removeUserToolBarBeans(deserialized);
+<FONT ID="LN">730 </FONT><A NAME="730"></A>    
+<FONT ID="LN">731 </FONT><A NAME="731"></A>    <FONT ID="Return">return</FONT> deserialized;
+<FONT ID="LN">732 </FONT><A NAME="732"></A>  }
+<FONT ID="LN">733 </FONT><A NAME="733"></A>
+<FONT ID="LN">734 </FONT><A NAME="734"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">735 </FONT><A NAME="735"></A>   * returns the relation for the given MetaBean, for the regular connections,
+<FONT ID="LN">736 </FONT><A NAME="736"></A>   * null has to be used
+<FONT ID="LN">737 </FONT><A NAME="737"></A>   * @param meta      the MetaBean (or null for regular connections) to retrieve
+<FONT ID="LN">738 </FONT><A NAME="738"></A>   *                  the connections for
+<FONT ID="LN">739 </FONT><A NAME="739"></A>   * @return          the associated connections
+<FONT ID="LN">740 </FONT><A NAME="740"></A>   * @see #REGULAR_CONNECTION
+<FONT ID="LN">741 </FONT><A NAME="741"></A>   */</FONT>
+<FONT ID="LN">742 </FONT><A NAME="742"></A>  <FONT ID="Protected">protected</FONT> Vector getBeanConnectionRelation(<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A> meta) {
+<FONT ID="LN">743 </FONT><A NAME="743"></A>    Vector      result;
+<FONT ID="LN">744 </FONT><A NAME="744"></A>    Object      key;
+<FONT ID="LN">745 </FONT><A NAME="745"></A>    
+<FONT ID="LN">746 </FONT><A NAME="746"></A>    <FONT ID="If">if</FONT> (meta == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">747 </FONT><A NAME="747"></A>      key = REGULAR_CONNECTION;
+<FONT ID="LN">748 </FONT><A NAME="748"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">749 </FONT><A NAME="749"></A>      key = meta;
+<FONT ID="LN">750 </FONT><A NAME="750"></A>    
+<FONT ID="LN">751 </FONT><A NAME="751"></A>    <FONT ID="SingleLineComment">// not yet in there?
+<FONT ID="LN">752 </FONT><A NAME="752"></A></FONT>    <FONT ID="If">if</FONT> (!m_BeanConnectionRelation.containsKey(key)) {
+<FONT ID="LN">753 </FONT><A NAME="753"></A>      m_BeanConnectionRelation.put(key, <FONT ID="New">new</FONT> Vector());
+<FONT ID="LN">754 </FONT><A NAME="754"></A>    }
+<FONT ID="LN">755 </FONT><A NAME="755"></A>
+<FONT ID="LN">756 </FONT><A NAME="756"></A>    result = (Vector) m_BeanConnectionRelation.get(key);
+<FONT ID="LN">757 </FONT><A NAME="757"></A>    
+<FONT ID="LN">758 </FONT><A NAME="758"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">759 </FONT><A NAME="759"></A>  }
+<FONT ID="LN">760 </FONT><A NAME="760"></A>  
+<FONT ID="LN">761 </FONT><A NAME="761"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">762 </FONT><A NAME="762"></A>   * adds the given connection-relation for the specified MetaBean (or null in 
+<FONT ID="LN">763 </FONT><A NAME="763"></A>   * case of regular connections)
+<FONT ID="LN">764 </FONT><A NAME="764"></A>   * @param meta        the MetaBean (or null for regular connections) to add
+<FONT ID="LN">765 </FONT><A NAME="765"></A>   *                    the relationship for
+<FONT ID="LN">766 </FONT><A NAME="766"></A>   * @param connection  the connection relation to add
+<FONT ID="LN">767 </FONT><A NAME="767"></A>   */</FONT>
+<FONT ID="LN">768 </FONT><A NAME="768"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> addBeanConnectionRelation(<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A> meta, String connection) {
+<FONT ID="LN">769 </FONT><A NAME="769"></A>    Vector      relations;
+<FONT ID="LN">770 </FONT><A NAME="770"></A>    Object      key;
+<FONT ID="LN">771 </FONT><A NAME="771"></A>    
+<FONT ID="LN">772 </FONT><A NAME="772"></A>    relations = getBeanConnectionRelation(meta);
+<FONT ID="LN">773 </FONT><A NAME="773"></A>    
+<FONT ID="LN">774 </FONT><A NAME="774"></A>    <FONT ID="SingleLineComment">// add relation
+<FONT ID="LN">775 </FONT><A NAME="775"></A></FONT>    relations.add(connection);
+<FONT ID="LN">776 </FONT><A NAME="776"></A>    
+<FONT ID="LN">777 </FONT><A NAME="777"></A>    <FONT ID="SingleLineComment">// update
+<FONT ID="LN">778 </FONT><A NAME="778"></A></FONT>    <FONT ID="If">if</FONT> (meta == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">779 </FONT><A NAME="779"></A>      key = REGULAR_CONNECTION;
+<FONT ID="LN">780 </FONT><A NAME="780"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">781 </FONT><A NAME="781"></A>      key = meta;
+<FONT ID="LN">782 </FONT><A NAME="782"></A>    m_BeanConnectionRelation.put(key, relations);
+<FONT ID="LN">783 </FONT><A NAME="783"></A>  }
+<FONT ID="LN">784 </FONT><A NAME="784"></A>  
+<FONT ID="LN">785 </FONT><A NAME="785"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">786 </FONT><A NAME="786"></A>   * adds the given Color to a DOM structure.
+<FONT ID="LN">787 </FONT><A NAME="787"></A>   * 
+<FONT ID="LN">788 </FONT><A NAME="788"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">789 </FONT><A NAME="789"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">790 </FONT><A NAME="790"></A>   * @param name the name of the object
+<FONT ID="LN">791 </FONT><A NAME="791"></A>   * @return the node that was created
+<FONT ID="LN">792 </FONT><A NAME="792"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">793 </FONT><A NAME="793"></A>   */</FONT>
+<FONT ID="LN">794 </FONT><A NAME="794"></A>  <FONT ID="Public">public</FONT> Element writeColor(Element parent, Object o, String name)
+<FONT ID="LN">795 </FONT><A NAME="795"></A>    <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">796 </FONT><A NAME="796"></A>    
+<FONT ID="LN">797 </FONT><A NAME="797"></A>    Element     node;
+<FONT ID="LN">798 </FONT><A NAME="798"></A>    Color       color;
+<FONT ID="LN">799 </FONT><A NAME="799"></A>
+<FONT ID="LN">800 </FONT><A NAME="800"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">801 </FONT><A NAME="801"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">802 </FONT><A NAME="802"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">803 </FONT><A NAME="803"></A>    
+<FONT ID="LN">804 </FONT><A NAME="804"></A>    m_CurrentNode = parent;
+<FONT ID="LN">805 </FONT><A NAME="805"></A>    
+<FONT ID="LN">806 </FONT><A NAME="806"></A>    color = (Color) o;
+<FONT ID="LN">807 </FONT><A NAME="807"></A>    node  = addElement(parent, name, color.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">808 </FONT><A NAME="808"></A>
+<FONT ID="LN">809 </FONT><A NAME="809"></A>    writeIntToXML(node, color.getRed(), VAL_RED);
+<FONT ID="LN">810 </FONT><A NAME="810"></A>    writeIntToXML(node, color.getGreen(), VAL_GREEN);
+<FONT ID="LN">811 </FONT><A NAME="811"></A>    writeIntToXML(node, color.getBlue(), VAL_BLUE);
+<FONT ID="LN">812 </FONT><A NAME="812"></A>    
+<FONT ID="LN">813 </FONT><A NAME="813"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">814 </FONT><A NAME="814"></A>  }
+<FONT ID="LN">815 </FONT><A NAME="815"></A>
+<FONT ID="LN">816 </FONT><A NAME="816"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">817 </FONT><A NAME="817"></A>   * builds the Color from the given DOM node.
+<FONT ID="LN">818 </FONT><A NAME="818"></A>   * 
+<FONT ID="LN">819 </FONT><A NAME="819"></A>   * @param node the associated XML node
+<FONT ID="LN">820 </FONT><A NAME="820"></A>   * @return the instance created from the XML description
+<FONT ID="LN">821 </FONT><A NAME="821"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">822 </FONT><A NAME="822"></A>   */</FONT>
+<FONT ID="LN">823 </FONT><A NAME="823"></A>  <FONT ID="Public">public</FONT> Object readColor(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">824 </FONT><A NAME="824"></A>    Object      result;
+<FONT ID="LN">825 </FONT><A NAME="825"></A>    Vector      children;
+<FONT ID="LN">826 </FONT><A NAME="826"></A>    Element     child;
+<FONT ID="LN">827 </FONT><A NAME="827"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">828 </FONT><A NAME="828"></A>    <FONT ID="Int">int</FONT>         red;
+<FONT ID="LN">829 </FONT><A NAME="829"></A>    <FONT ID="Int">int</FONT>         green;
+<FONT ID="LN">830 </FONT><A NAME="830"></A>    <FONT ID="Int">int</FONT>         blue;
+<FONT ID="LN">831 </FONT><A NAME="831"></A>    String      name;
+<FONT ID="LN">832 </FONT><A NAME="832"></A>
+<FONT ID="LN">833 </FONT><A NAME="833"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">834 </FONT><A NAME="834"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">835 </FONT><A NAME="835"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">836 </FONT><A NAME="836"></A>
+<FONT ID="LN">837 </FONT><A NAME="837"></A>    m_CurrentNode = node;
+<FONT ID="LN">838 </FONT><A NAME="838"></A>    
+<FONT ID="LN">839 </FONT><A NAME="839"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">840 </FONT><A NAME="840"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">841 </FONT><A NAME="841"></A>    red      = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">842 </FONT><A NAME="842"></A>    green    = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">843 </FONT><A NAME="843"></A>    blue     = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">844 </FONT><A NAME="844"></A>
+<FONT ID="LN">845 </FONT><A NAME="845"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">846 </FONT><A NAME="846"></A>      child = (Element) children.get(i);
+<FONT ID="LN">847 </FONT><A NAME="847"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">848 </FONT><A NAME="848"></A>
+<FONT ID="LN">849 </FONT><A NAME="849"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_RED))
+<FONT ID="LN">850 </FONT><A NAME="850"></A>        red = readIntFromXML(child);
+<FONT ID="LN">851 </FONT><A NAME="851"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_GREEN))
+<FONT ID="LN">852 </FONT><A NAME="852"></A>        green = readIntFromXML(child);
+<FONT ID="LN">853 </FONT><A NAME="853"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_BLUE))
+<FONT ID="LN">854 </FONT><A NAME="854"></A>        blue = readIntFromXML(child);
+<FONT ID="LN">855 </FONT><A NAME="855"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">856 </FONT><A NAME="856"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">857 </FONT><A NAME="857"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">858 </FONT><A NAME="858"></A>    }
+<FONT ID="LN">859 </FONT><A NAME="859"></A>    
+<FONT ID="LN">860 </FONT><A NAME="860"></A>    result = <FONT ID="New">new</FONT> Color(red, green, blue);
+<FONT ID="LN">861 </FONT><A NAME="861"></A>
+<FONT ID="LN">862 </FONT><A NAME="862"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">863 </FONT><A NAME="863"></A>  }
+<FONT ID="LN">864 </FONT><A NAME="864"></A>
+<FONT ID="LN">865 </FONT><A NAME="865"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">866 </FONT><A NAME="866"></A>   * adds the given Dimension to a DOM structure.
+<FONT ID="LN">867 </FONT><A NAME="867"></A>   * 
+<FONT ID="LN">868 </FONT><A NAME="868"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">869 </FONT><A NAME="869"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">870 </FONT><A NAME="870"></A>   * @param name the name of the object
+<FONT ID="LN">871 </FONT><A NAME="871"></A>   * @return the node that was created
+<FONT ID="LN">872 </FONT><A NAME="872"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">873 </FONT><A NAME="873"></A>   */</FONT>
+<FONT ID="LN">874 </FONT><A NAME="874"></A>  <FONT ID="Public">public</FONT> Element writeDimension(Element parent, Object o, String name)
+<FONT ID="LN">875 </FONT><A NAME="875"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">876 </FONT><A NAME="876"></A>    
+<FONT ID="LN">877 </FONT><A NAME="877"></A>    Element     node;
+<FONT ID="LN">878 </FONT><A NAME="878"></A>    Dimension   dim;
+<FONT ID="LN">879 </FONT><A NAME="879"></A>
+<FONT ID="LN">880 </FONT><A NAME="880"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">881 </FONT><A NAME="881"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">882 </FONT><A NAME="882"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">883 </FONT><A NAME="883"></A>    
+<FONT ID="LN">884 </FONT><A NAME="884"></A>    m_CurrentNode = parent;
+<FONT ID="LN">885 </FONT><A NAME="885"></A>    
+<FONT ID="LN">886 </FONT><A NAME="886"></A>    dim = (Dimension) o;
+<FONT ID="LN">887 </FONT><A NAME="887"></A>    node = addElement(parent, name, dim.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">888 </FONT><A NAME="888"></A>
+<FONT ID="LN">889 </FONT><A NAME="889"></A>    writeDoubleToXML(node, dim.getWidth(), VAL_WIDTH);
+<FONT ID="LN">890 </FONT><A NAME="890"></A>    writeDoubleToXML(node, dim.getHeight(), VAL_HEIGHT);
+<FONT ID="LN">891 </FONT><A NAME="891"></A>    
+<FONT ID="LN">892 </FONT><A NAME="892"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">893 </FONT><A NAME="893"></A>  }
+<FONT ID="LN">894 </FONT><A NAME="894"></A>
+<FONT ID="LN">895 </FONT><A NAME="895"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">896 </FONT><A NAME="896"></A>   * builds the Dimension from the given DOM node.
+<FONT ID="LN">897 </FONT><A NAME="897"></A>   * 
+<FONT ID="LN">898 </FONT><A NAME="898"></A>   * @param node the associated XML node
+<FONT ID="LN">899 </FONT><A NAME="899"></A>   * @return the instance created from the XML description
+<FONT ID="LN">900 </FONT><A NAME="900"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">901 </FONT><A NAME="901"></A>   */</FONT>
+<FONT ID="LN">902 </FONT><A NAME="902"></A>  <FONT ID="Public">public</FONT> Object readDimension(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">903 </FONT><A NAME="903"></A>    Object      result;
+<FONT ID="LN">904 </FONT><A NAME="904"></A>    Vector      children;
+<FONT ID="LN">905 </FONT><A NAME="905"></A>    Element     child;
+<FONT ID="LN">906 </FONT><A NAME="906"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">907 </FONT><A NAME="907"></A>    <FONT ID="Double">double</FONT>      width;
+<FONT ID="LN">908 </FONT><A NAME="908"></A>    <FONT ID="Double">double</FONT>      height;
+<FONT ID="LN">909 </FONT><A NAME="909"></A>    String      name;
+<FONT ID="LN">910 </FONT><A NAME="910"></A>
+<FONT ID="LN">911 </FONT><A NAME="911"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">912 </FONT><A NAME="912"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">913 </FONT><A NAME="913"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">914 </FONT><A NAME="914"></A>
+<FONT ID="LN">915 </FONT><A NAME="915"></A>    m_CurrentNode = node;
+<FONT ID="LN">916 </FONT><A NAME="916"></A>    
+<FONT ID="LN">917 </FONT><A NAME="917"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">918 </FONT><A NAME="918"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">919 </FONT><A NAME="919"></A>    width    = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">920 </FONT><A NAME="920"></A>    height   = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">921 </FONT><A NAME="921"></A>
+<FONT ID="LN">922 </FONT><A NAME="922"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">923 </FONT><A NAME="923"></A>      child = (Element) children.get(i);
+<FONT ID="LN">924 </FONT><A NAME="924"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">925 </FONT><A NAME="925"></A>
+<FONT ID="LN">926 </FONT><A NAME="926"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_WIDTH))
+<FONT ID="LN">927 </FONT><A NAME="927"></A>        width = readDoubleFromXML(child);
+<FONT ID="LN">928 </FONT><A NAME="928"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_HEIGHT))
+<FONT ID="LN">929 </FONT><A NAME="929"></A>        height = readDoubleFromXML(child);
+<FONT ID="LN">930 </FONT><A NAME="930"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">931 </FONT><A NAME="931"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">932 </FONT><A NAME="932"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">933 </FONT><A NAME="933"></A>    }
+<FONT ID="LN">934 </FONT><A NAME="934"></A>    
+<FONT ID="LN">935 </FONT><A NAME="935"></A>    result = <FONT ID="New">new</FONT> Dimension();
+<FONT ID="LN">936 </FONT><A NAME="936"></A>    ((Dimension) result).setSize(width, height);
+<FONT ID="LN">937 </FONT><A NAME="937"></A>
+<FONT ID="LN">938 </FONT><A NAME="938"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">939 </FONT><A NAME="939"></A>  }
+<FONT ID="LN">940 </FONT><A NAME="940"></A>
+<FONT ID="LN">941 </FONT><A NAME="941"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">942 </FONT><A NAME="942"></A>   * adds the given Font to a DOM structure.
+<FONT ID="LN">943 </FONT><A NAME="943"></A>   * 
+<FONT ID="LN">944 </FONT><A NAME="944"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">945 </FONT><A NAME="945"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">946 </FONT><A NAME="946"></A>   * @param name the name of the object
+<FONT ID="LN">947 </FONT><A NAME="947"></A>   * @return the node that was created
+<FONT ID="LN">948 </FONT><A NAME="948"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">949 </FONT><A NAME="949"></A>   */</FONT>
+<FONT ID="LN">950 </FONT><A NAME="950"></A>  <FONT ID="Public">public</FONT> Element writeFont(Element parent, Object o, String name)
+<FONT ID="LN">951 </FONT><A NAME="951"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">952 </FONT><A NAME="952"></A>    
+<FONT ID="LN">953 </FONT><A NAME="953"></A>    Element     node;
+<FONT ID="LN">954 </FONT><A NAME="954"></A>    Font        font;
+<FONT ID="LN">955 </FONT><A NAME="955"></A>
+<FONT ID="LN">956 </FONT><A NAME="956"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">957 </FONT><A NAME="957"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">958 </FONT><A NAME="958"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">959 </FONT><A NAME="959"></A>    
+<FONT ID="LN">960 </FONT><A NAME="960"></A>    m_CurrentNode = parent;
+<FONT ID="LN">961 </FONT><A NAME="961"></A>    
+<FONT ID="LN">962 </FONT><A NAME="962"></A>    font = (Font) o;
+<FONT ID="LN">963 </FONT><A NAME="963"></A>    node = addElement(parent, name, font.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">964 </FONT><A NAME="964"></A>
+<FONT ID="LN">965 </FONT><A NAME="965"></A>    invokeWriteToXML(node, font.getName(), VAL_NAME);
+<FONT ID="LN">966 </FONT><A NAME="966"></A>    writeIntToXML(node, font.getStyle(), VAL_STYLE);
+<FONT ID="LN">967 </FONT><A NAME="967"></A>    writeIntToXML(node, font.getSize(), VAL_SIZE);
+<FONT ID="LN">968 </FONT><A NAME="968"></A>    
+<FONT ID="LN">969 </FONT><A NAME="969"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">970 </FONT><A NAME="970"></A>  }
+<FONT ID="LN">971 </FONT><A NAME="971"></A>
+<FONT ID="LN">972 </FONT><A NAME="972"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">973 </FONT><A NAME="973"></A>   * builds the Font from the given DOM node.
+<FONT ID="LN">974 </FONT><A NAME="974"></A>   * 
+<FONT ID="LN">975 </FONT><A NAME="975"></A>   * @param node the associated XML node
+<FONT ID="LN">976 </FONT><A NAME="976"></A>   * @return the instance created from the XML description
+<FONT ID="LN">977 </FONT><A NAME="977"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">978 </FONT><A NAME="978"></A>   */</FONT>
+<FONT ID="LN">979 </FONT><A NAME="979"></A>  <FONT ID="Public">public</FONT> Object readFont(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">980 </FONT><A NAME="980"></A>    Object      result;
+<FONT ID="LN">981 </FONT><A NAME="981"></A>    Vector      children;
+<FONT ID="LN">982 </FONT><A NAME="982"></A>    Element     child;
+<FONT ID="LN">983 </FONT><A NAME="983"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">984 </FONT><A NAME="984"></A>    <FONT ID="Int">int</FONT>         style;
+<FONT ID="LN">985 </FONT><A NAME="985"></A>    <FONT ID="Int">int</FONT>         size;
+<FONT ID="LN">986 </FONT><A NAME="986"></A>    String      name;
+<FONT ID="LN">987 </FONT><A NAME="987"></A>    String      fontname;
+<FONT ID="LN">988 </FONT><A NAME="988"></A>
+<FONT ID="LN">989 </FONT><A NAME="989"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">990 </FONT><A NAME="990"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">991 </FONT><A NAME="991"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">992 </FONT><A NAME="992"></A>
+<FONT ID="LN">993 </FONT><A NAME="993"></A>    m_CurrentNode = node;
+<FONT ID="LN">994 </FONT><A NAME="994"></A>    
+<FONT ID="LN">995 </FONT><A NAME="995"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">996 </FONT><A NAME="996"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">997 </FONT><A NAME="997"></A>    fontname = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">998 </FONT><A NAME="998"></A>    style    = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">999 </FONT><A NAME="999"></A>    size     = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1000</FONT><A NAME="1000"></A>
+<FONT ID="LN">1001</FONT><A NAME="1001"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1002</FONT><A NAME="1002"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1003</FONT><A NAME="1003"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1004</FONT><A NAME="1004"></A>
+<FONT ID="LN">1005</FONT><A NAME="1005"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_NAME))
+<FONT ID="LN">1006</FONT><A NAME="1006"></A>        name = (String) invokeReadFromXML(child);
+<FONT ID="LN">1007</FONT><A NAME="1007"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_STYLE))
+<FONT ID="LN">1008</FONT><A NAME="1008"></A>        style = readIntFromXML(child);
+<FONT ID="LN">1009</FONT><A NAME="1009"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_SIZE))
+<FONT ID="LN">1010</FONT><A NAME="1010"></A>        size = readIntFromXML(child);
+<FONT ID="LN">1011</FONT><A NAME="1011"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">1012</FONT><A NAME="1012"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">1013</FONT><A NAME="1013"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">1014</FONT><A NAME="1014"></A>    }
+<FONT ID="LN">1015</FONT><A NAME="1015"></A>    
+<FONT ID="LN">1016</FONT><A NAME="1016"></A>    result = <FONT ID="New">new</FONT> Font(fontname, style, size);
+<FONT ID="LN">1017</FONT><A NAME="1017"></A>
+<FONT ID="LN">1018</FONT><A NAME="1018"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1019</FONT><A NAME="1019"></A>  }
+<FONT ID="LN">1020</FONT><A NAME="1020"></A>
+<FONT ID="LN">1021</FONT><A NAME="1021"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1022</FONT><A NAME="1022"></A>   * adds the given Point to a DOM structure.
+<FONT ID="LN">1023</FONT><A NAME="1023"></A>   * 
+<FONT ID="LN">1024</FONT><A NAME="1024"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1025</FONT><A NAME="1025"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1026</FONT><A NAME="1026"></A>   * @param name the name of the object
+<FONT ID="LN">1027</FONT><A NAME="1027"></A>   * @return the node that was created
+<FONT ID="LN">1028</FONT><A NAME="1028"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1029</FONT><A NAME="1029"></A>   */</FONT>
+<FONT ID="LN">1030</FONT><A NAME="1030"></A>  <FONT ID="Public">public</FONT> Element writePoint(Element parent, Object o, String name)
+<FONT ID="LN">1031</FONT><A NAME="1031"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1032</FONT><A NAME="1032"></A>    
+<FONT ID="LN">1033</FONT><A NAME="1033"></A>    Element     node;
+<FONT ID="LN">1034</FONT><A NAME="1034"></A>    Point       p;
+<FONT ID="LN">1035</FONT><A NAME="1035"></A>
+<FONT ID="LN">1036</FONT><A NAME="1036"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1037</FONT><A NAME="1037"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1038</FONT><A NAME="1038"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1039</FONT><A NAME="1039"></A>    
+<FONT ID="LN">1040</FONT><A NAME="1040"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1041</FONT><A NAME="1041"></A>    
+<FONT ID="LN">1042</FONT><A NAME="1042"></A>    p    = (Point) o;
+<FONT ID="LN">1043</FONT><A NAME="1043"></A>    node = addElement(parent, name, p.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1044</FONT><A NAME="1044"></A>
+<FONT ID="LN">1045</FONT><A NAME="1045"></A>    writeDoubleToXML(node, p.getX(), VAL_X);
+<FONT ID="LN">1046</FONT><A NAME="1046"></A>    writeDoubleToXML(node, p.getY(), VAL_Y);
+<FONT ID="LN">1047</FONT><A NAME="1047"></A>    
+<FONT ID="LN">1048</FONT><A NAME="1048"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1049</FONT><A NAME="1049"></A>  }
+<FONT ID="LN">1050</FONT><A NAME="1050"></A>
+<FONT ID="LN">1051</FONT><A NAME="1051"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1052</FONT><A NAME="1052"></A>   * builds the Point from the given DOM node.
+<FONT ID="LN">1053</FONT><A NAME="1053"></A>   * 
+<FONT ID="LN">1054</FONT><A NAME="1054"></A>   * @param node the associated XML node
+<FONT ID="LN">1055</FONT><A NAME="1055"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1056</FONT><A NAME="1056"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1057</FONT><A NAME="1057"></A>   */</FONT>
+<FONT ID="LN">1058</FONT><A NAME="1058"></A>  <FONT ID="Public">public</FONT> Object readPoint(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1059</FONT><A NAME="1059"></A>    Object      result;
+<FONT ID="LN">1060</FONT><A NAME="1060"></A>    Vector      children;
+<FONT ID="LN">1061</FONT><A NAME="1061"></A>    Element     child;
+<FONT ID="LN">1062</FONT><A NAME="1062"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">1063</FONT><A NAME="1063"></A>    <FONT ID="Double">double</FONT>      x;
+<FONT ID="LN">1064</FONT><A NAME="1064"></A>    <FONT ID="Double">double</FONT>      y;
+<FONT ID="LN">1065</FONT><A NAME="1065"></A>    String      name;
+<FONT ID="LN">1066</FONT><A NAME="1066"></A>
+<FONT ID="LN">1067</FONT><A NAME="1067"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1068</FONT><A NAME="1068"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1069</FONT><A NAME="1069"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1070</FONT><A NAME="1070"></A>
+<FONT ID="LN">1071</FONT><A NAME="1071"></A>    m_CurrentNode = node;
+<FONT ID="LN">1072</FONT><A NAME="1072"></A>    
+<FONT ID="LN">1073</FONT><A NAME="1073"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1074</FONT><A NAME="1074"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">1075</FONT><A NAME="1075"></A>    x        = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1076</FONT><A NAME="1076"></A>    y        = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1077</FONT><A NAME="1077"></A>
+<FONT ID="LN">1078</FONT><A NAME="1078"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1079</FONT><A NAME="1079"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1080</FONT><A NAME="1080"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1081</FONT><A NAME="1081"></A>
+<FONT ID="LN">1082</FONT><A NAME="1082"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_X))
+<FONT ID="LN">1083</FONT><A NAME="1083"></A>        x = readDoubleFromXML(child);
+<FONT ID="LN">1084</FONT><A NAME="1084"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_Y))
+<FONT ID="LN">1085</FONT><A NAME="1085"></A>        y = readDoubleFromXML(child);
+<FONT ID="LN">1086</FONT><A NAME="1086"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">1087</FONT><A NAME="1087"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">1088</FONT><A NAME="1088"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">1089</FONT><A NAME="1089"></A>    }
+<FONT ID="LN">1090</FONT><A NAME="1090"></A>    
+<FONT ID="LN">1091</FONT><A NAME="1091"></A>    result = <FONT ID="New">new</FONT> Point();
+<FONT ID="LN">1092</FONT><A NAME="1092"></A>    ((Point) result).setLocation(x, y);
+<FONT ID="LN">1093</FONT><A NAME="1093"></A>
+<FONT ID="LN">1094</FONT><A NAME="1094"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1095</FONT><A NAME="1095"></A>  }
+<FONT ID="LN">1096</FONT><A NAME="1096"></A>
+<FONT ID="LN">1097</FONT><A NAME="1097"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1098</FONT><A NAME="1098"></A>   * adds the given ColorUIResource to a DOM structure.
+<FONT ID="LN">1099</FONT><A NAME="1099"></A>   * 
+<FONT ID="LN">1100</FONT><A NAME="1100"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1101</FONT><A NAME="1101"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1102</FONT><A NAME="1102"></A>   * @param name the name of the object
+<FONT ID="LN">1103</FONT><A NAME="1103"></A>   * @return the node that was created
+<FONT ID="LN">1104</FONT><A NAME="1104"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1105</FONT><A NAME="1105"></A>   */</FONT>
+<FONT ID="LN">1106</FONT><A NAME="1106"></A>  <FONT ID="Public">public</FONT> Element writeColorUIResource(Element parent, Object o, String name)
+<FONT ID="LN">1107</FONT><A NAME="1107"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1108</FONT><A NAME="1108"></A>    
+<FONT ID="LN">1109</FONT><A NAME="1109"></A>    Element           node;
+<FONT ID="LN">1110</FONT><A NAME="1110"></A>    ColorUIResource   resource;
+<FONT ID="LN">1111</FONT><A NAME="1111"></A>
+<FONT ID="LN">1112</FONT><A NAME="1112"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1113</FONT><A NAME="1113"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1114</FONT><A NAME="1114"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1115</FONT><A NAME="1115"></A>    
+<FONT ID="LN">1116</FONT><A NAME="1116"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1117</FONT><A NAME="1117"></A>    
+<FONT ID="LN">1118</FONT><A NAME="1118"></A>    resource = (ColorUIResource) o;
+<FONT ID="LN">1119</FONT><A NAME="1119"></A>    node     = addElement(parent, name, resource.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1120</FONT><A NAME="1120"></A>    invokeWriteToXML(node, <FONT ID="New">new</FONT> Color(resource.getRGB()), VAL_COLOR);
+<FONT ID="LN">1121</FONT><A NAME="1121"></A>    
+<FONT ID="LN">1122</FONT><A NAME="1122"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1123</FONT><A NAME="1123"></A>  }
+<FONT ID="LN">1124</FONT><A NAME="1124"></A>
+<FONT ID="LN">1125</FONT><A NAME="1125"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1126</FONT><A NAME="1126"></A>   * builds the ColorUIResource from the given DOM node.
+<FONT ID="LN">1127</FONT><A NAME="1127"></A>   * 
+<FONT ID="LN">1128</FONT><A NAME="1128"></A>   * @param node the associated XML node
+<FONT ID="LN">1129</FONT><A NAME="1129"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1130</FONT><A NAME="1130"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1131</FONT><A NAME="1131"></A>   */</FONT>
+<FONT ID="LN">1132</FONT><A NAME="1132"></A>  <FONT ID="Public">public</FONT> Object readColorUIResource(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1133</FONT><A NAME="1133"></A>    Object      result;
+<FONT ID="LN">1134</FONT><A NAME="1134"></A>    Vector      children;
+<FONT ID="LN">1135</FONT><A NAME="1135"></A>    Element     child;
+<FONT ID="LN">1136</FONT><A NAME="1136"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">1137</FONT><A NAME="1137"></A>    String      name;
+<FONT ID="LN">1138</FONT><A NAME="1138"></A>    Color       color;
+<FONT ID="LN">1139</FONT><A NAME="1139"></A>
+<FONT ID="LN">1140</FONT><A NAME="1140"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1141</FONT><A NAME="1141"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1142</FONT><A NAME="1142"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1143</FONT><A NAME="1143"></A>
+<FONT ID="LN">1144</FONT><A NAME="1144"></A>    m_CurrentNode = node;
+<FONT ID="LN">1145</FONT><A NAME="1145"></A>    
+<FONT ID="LN">1146</FONT><A NAME="1146"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1147</FONT><A NAME="1147"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">1148</FONT><A NAME="1148"></A>    color    = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1149</FONT><A NAME="1149"></A>
+<FONT ID="LN">1150</FONT><A NAME="1150"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1151</FONT><A NAME="1151"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1152</FONT><A NAME="1152"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1153</FONT><A NAME="1153"></A>
+<FONT ID="LN">1154</FONT><A NAME="1154"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_COLOR))
+<FONT ID="LN">1155</FONT><A NAME="1155"></A>        color = (Color) invokeReadFromXML(child);
+<FONT ID="LN">1156</FONT><A NAME="1156"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">1157</FONT><A NAME="1157"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">1158</FONT><A NAME="1158"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">1159</FONT><A NAME="1159"></A>    }
+<FONT ID="LN">1160</FONT><A NAME="1160"></A>    
+<FONT ID="LN">1161</FONT><A NAME="1161"></A>    result = <FONT ID="New">new</FONT> ColorUIResource(color);
+<FONT ID="LN">1162</FONT><A NAME="1162"></A>
+<FONT ID="LN">1163</FONT><A NAME="1163"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1164</FONT><A NAME="1164"></A>  }
+<FONT ID="LN">1165</FONT><A NAME="1165"></A>
+<FONT ID="LN">1166</FONT><A NAME="1166"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1167</FONT><A NAME="1167"></A>   * adds the given FontUIResource to a DOM structure.
+<FONT ID="LN">1168</FONT><A NAME="1168"></A>   * 
+<FONT ID="LN">1169</FONT><A NAME="1169"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1170</FONT><A NAME="1170"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1171</FONT><A NAME="1171"></A>   * @param name the name of the object
+<FONT ID="LN">1172</FONT><A NAME="1172"></A>   * @return the node that was created
+<FONT ID="LN">1173</FONT><A NAME="1173"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1174</FONT><A NAME="1174"></A>   */</FONT>
+<FONT ID="LN">1175</FONT><A NAME="1175"></A>  <FONT ID="Public">public</FONT> Element writeFontUIResource(Element parent, Object o, String name)
+<FONT ID="LN">1176</FONT><A NAME="1176"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1177</FONT><A NAME="1177"></A>    
+<FONT ID="LN">1178</FONT><A NAME="1178"></A>    Element           node;
+<FONT ID="LN">1179</FONT><A NAME="1179"></A>    FontUIResource    resource;
+<FONT ID="LN">1180</FONT><A NAME="1180"></A>
+<FONT ID="LN">1181</FONT><A NAME="1181"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1182</FONT><A NAME="1182"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1183</FONT><A NAME="1183"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1184</FONT><A NAME="1184"></A>    
+<FONT ID="LN">1185</FONT><A NAME="1185"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1186</FONT><A NAME="1186"></A>    
+<FONT ID="LN">1187</FONT><A NAME="1187"></A>    resource = (FontUIResource) o;
+<FONT ID="LN">1188</FONT><A NAME="1188"></A>    node     = addElement(parent, name, resource.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1189</FONT><A NAME="1189"></A>    invokeWriteToXML(node, <FONT ID="New">new</FONT> Font(resource.getName(), resource.getStyle(), resource.getSize()), VAL_COLOR);
+<FONT ID="LN">1190</FONT><A NAME="1190"></A>    
+<FONT ID="LN">1191</FONT><A NAME="1191"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1192</FONT><A NAME="1192"></A>  }
+<FONT ID="LN">1193</FONT><A NAME="1193"></A>
+<FONT ID="LN">1194</FONT><A NAME="1194"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1195</FONT><A NAME="1195"></A>   * builds the FontUIResource from the given DOM node.
+<FONT ID="LN">1196</FONT><A NAME="1196"></A>   * 
+<FONT ID="LN">1197</FONT><A NAME="1197"></A>   * @param node the associated XML node
+<FONT ID="LN">1198</FONT><A NAME="1198"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1199</FONT><A NAME="1199"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1200</FONT><A NAME="1200"></A>   */</FONT>
+<FONT ID="LN">1201</FONT><A NAME="1201"></A>  <FONT ID="Public">public</FONT> Object readFontUIResource(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1202</FONT><A NAME="1202"></A>    Object      result;
+<FONT ID="LN">1203</FONT><A NAME="1203"></A>    Vector      children;
+<FONT ID="LN">1204</FONT><A NAME="1204"></A>    Element     child;
+<FONT ID="LN">1205</FONT><A NAME="1205"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">1206</FONT><A NAME="1206"></A>    String      name;
+<FONT ID="LN">1207</FONT><A NAME="1207"></A>    Font        font;
+<FONT ID="LN">1208</FONT><A NAME="1208"></A>
+<FONT ID="LN">1209</FONT><A NAME="1209"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1210</FONT><A NAME="1210"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1211</FONT><A NAME="1211"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1212</FONT><A NAME="1212"></A>
+<FONT ID="LN">1213</FONT><A NAME="1213"></A>    m_CurrentNode = node;
+<FONT ID="LN">1214</FONT><A NAME="1214"></A>    
+<FONT ID="LN">1215</FONT><A NAME="1215"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1216</FONT><A NAME="1216"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">1217</FONT><A NAME="1217"></A>    font     = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1218</FONT><A NAME="1218"></A>
+<FONT ID="LN">1219</FONT><A NAME="1219"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1220</FONT><A NAME="1220"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1221</FONT><A NAME="1221"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1222</FONT><A NAME="1222"></A>
+<FONT ID="LN">1223</FONT><A NAME="1223"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_FONT))
+<FONT ID="LN">1224</FONT><A NAME="1224"></A>        font = (Font) invokeReadFromXML(child);
+<FONT ID="LN">1225</FONT><A NAME="1225"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">1226</FONT><A NAME="1226"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">1227</FONT><A NAME="1227"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">1228</FONT><A NAME="1228"></A>    }
+<FONT ID="LN">1229</FONT><A NAME="1229"></A>    
+<FONT ID="LN">1230</FONT><A NAME="1230"></A>    result = <FONT ID="New">new</FONT> FontUIResource(font);
+<FONT ID="LN">1231</FONT><A NAME="1231"></A>
+<FONT ID="LN">1232</FONT><A NAME="1232"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1233</FONT><A NAME="1233"></A>  }
+<FONT ID="LN">1234</FONT><A NAME="1234"></A>
+<FONT ID="LN">1235</FONT><A NAME="1235"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1236</FONT><A NAME="1236"></A>   * adds the given BeanInstance to a DOM structure.
+<FONT ID="LN">1237</FONT><A NAME="1237"></A>   * 
+<FONT ID="LN">1238</FONT><A NAME="1238"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1239</FONT><A NAME="1239"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1240</FONT><A NAME="1240"></A>   * @param name the name of the object
+<FONT ID="LN">1241</FONT><A NAME="1241"></A>   * @return the node that was created
+<FONT ID="LN">1242</FONT><A NAME="1242"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1243</FONT><A NAME="1243"></A>   */</FONT>
+<FONT ID="LN">1244</FONT><A NAME="1244"></A>  <FONT ID="Public">public</FONT> Element writeBeanInstance(Element parent, Object o, String name)
+<FONT ID="LN">1245</FONT><A NAME="1245"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1246</FONT><A NAME="1246"></A>    
+<FONT ID="LN">1247</FONT><A NAME="1247"></A>    Element         node;
+<FONT ID="LN">1248</FONT><A NAME="1248"></A>    <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>    beaninst;
+<FONT ID="LN">1249</FONT><A NAME="1249"></A>
+<FONT ID="LN">1250</FONT><A NAME="1250"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1251</FONT><A NAME="1251"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1252</FONT><A NAME="1252"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1253</FONT><A NAME="1253"></A>    
+<FONT ID="LN">1254</FONT><A NAME="1254"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1255</FONT><A NAME="1255"></A>    
+<FONT ID="LN">1256</FONT><A NAME="1256"></A>    beaninst = (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) o;
+<FONT ID="LN">1257</FONT><A NAME="1257"></A>    node     = addElement(parent, name, beaninst.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1258</FONT><A NAME="1258"></A>
+<FONT ID="LN">1259</FONT><A NAME="1259"></A>    writeIntToXML(node, m_BeanInstances.indexOf(beaninst), VAL_ID);
+<FONT ID="LN">1260</FONT><A NAME="1260"></A>    writeIntToXML(node, beaninst.getX() + beaninst.getWidth()  / <FONT ID="IntegerLiteral">2</FONT>, VAL_X);   <FONT ID="SingleLineComment">// x is thought to be in the center?
+<FONT ID="LN">1261</FONT><A NAME="1261"></A></FONT>    writeIntToXML(node, beaninst.getY() + beaninst.getHeight() / <FONT ID="IntegerLiteral">2</FONT>, VAL_Y);   <FONT ID="SingleLineComment">// y is thought to be in the center?
+<FONT ID="LN">1262</FONT><A NAME="1262"></A></FONT>    <FONT ID="If">if</FONT> (beaninst.getBean() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/BeanCommon.java.html">BeanCommon</A>) {
+<FONT ID="LN">1263</FONT><A NAME="1263"></A>      <FONT ID="SingleLineComment">// write the custom name of this bean
+<FONT ID="LN">1264</FONT><A NAME="1264"></A></FONT>      String custName = ((<A HREF="../../../../weka/gui/beans/BeanCommon.java.html">BeanCommon</A>)beaninst.getBean()).getCustomName();
+<FONT ID="LN">1265</FONT><A NAME="1265"></A>      invokeWriteToXML(node, custName, VAL_CUSTOM_NAME);
+<FONT ID="LN">1266</FONT><A NAME="1266"></A>    }
+<FONT ID="LN">1267</FONT><A NAME="1267"></A>    invokeWriteToXML(node, beaninst.getBean(), VAL_BEAN);
+<FONT ID="LN">1268</FONT><A NAME="1268"></A>    
+<FONT ID="LN">1269</FONT><A NAME="1269"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1270</FONT><A NAME="1270"></A>  }
+<FONT ID="LN">1271</FONT><A NAME="1271"></A>
+<FONT ID="LN">1272</FONT><A NAME="1272"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1273</FONT><A NAME="1273"></A>   * builds the BeanInstance from the given DOM node.
+<FONT ID="LN">1274</FONT><A NAME="1274"></A>   * 
+<FONT ID="LN">1275</FONT><A NAME="1275"></A>   * @param node the associated XML node
+<FONT ID="LN">1276</FONT><A NAME="1276"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1277</FONT><A NAME="1277"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1278</FONT><A NAME="1278"></A>   */</FONT>
+<FONT ID="LN">1279</FONT><A NAME="1279"></A>  <FONT ID="Public">public</FONT> Object readBeanInstance(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1280</FONT><A NAME="1280"></A>    Object          result;
+<FONT ID="LN">1281</FONT><A NAME="1281"></A>    Vector          children;
+<FONT ID="LN">1282</FONT><A NAME="1282"></A>    Element         child;
+<FONT ID="LN">1283</FONT><A NAME="1283"></A>    String          name;
+<FONT ID="LN">1284</FONT><A NAME="1284"></A>    <FONT ID="Int">int</FONT>             i;
+<FONT ID="LN">1285</FONT><A NAME="1285"></A>    <FONT ID="Int">int</FONT>             x;
+<FONT ID="LN">1286</FONT><A NAME="1286"></A>    <FONT ID="Int">int</FONT>             y;
+<FONT ID="LN">1287</FONT><A NAME="1287"></A>    <FONT ID="Int">int</FONT>             id;
+<FONT ID="LN">1288</FONT><A NAME="1288"></A>    Object          bean;
+<FONT ID="LN">1289</FONT><A NAME="1289"></A>    <A HREF="../../../../weka/gui/beans/BeanVisual.java.html">BeanVisual</A>      visual;
+<FONT ID="LN">1290</FONT><A NAME="1290"></A>    <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>    beaninst;
+<FONT ID="LN">1291</FONT><A NAME="1291"></A>
+<FONT ID="LN">1292</FONT><A NAME="1292"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1293</FONT><A NAME="1293"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1294</FONT><A NAME="1294"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1295</FONT><A NAME="1295"></A>
+<FONT ID="LN">1296</FONT><A NAME="1296"></A>    m_CurrentNode = node;
+<FONT ID="LN">1297</FONT><A NAME="1297"></A>    
+<FONT ID="LN">1298</FONT><A NAME="1298"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1299</FONT><A NAME="1299"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">1300</FONT><A NAME="1300"></A>    id       = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">1301</FONT><A NAME="1301"></A>    x        = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1302</FONT><A NAME="1302"></A>    y        = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1303</FONT><A NAME="1303"></A>    bean     = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1304</FONT><A NAME="1304"></A>    String customName = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1305</FONT><A NAME="1305"></A>
+<FONT ID="LN">1306</FONT><A NAME="1306"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1307</FONT><A NAME="1307"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1308</FONT><A NAME="1308"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1309</FONT><A NAME="1309"></A>
+<FONT ID="LN">1310</FONT><A NAME="1310"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_ID)) {
+<FONT ID="LN">1311</FONT><A NAME="1311"></A>        id = readIntFromXML(child);
+<FONT ID="LN">1312</FONT><A NAME="1312"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_X)) {
+<FONT ID="LN">1313</FONT><A NAME="1313"></A>        x = readIntFromXML(child);
+<FONT ID="LN">1314</FONT><A NAME="1314"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_Y)) {
+<FONT ID="LN">1315</FONT><A NAME="1315"></A>        y = readIntFromXML(child);
+<FONT ID="LN">1316</FONT><A NAME="1316"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_CUSTOM_NAME)) {
+<FONT ID="LN">1317</FONT><A NAME="1317"></A>        customName = (String)invokeReadFromXML(child);
+<FONT ID="LN">1318</FONT><A NAME="1318"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_BEAN)) {
+<FONT ID="LN">1319</FONT><A NAME="1319"></A>        bean = invokeReadFromXML(child);
+<FONT ID="LN">1320</FONT><A NAME="1320"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1321</FONT><A NAME="1321"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">1322</FONT><A NAME="1322"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">1323</FONT><A NAME="1323"></A>      }
+<FONT ID="LN">1324</FONT><A NAME="1324"></A>    }
+<FONT ID="LN">1325</FONT><A NAME="1325"></A>    
+<FONT ID="LN">1326</FONT><A NAME="1326"></A>    result   = <FONT ID="New">new</FONT> <A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>(m_BeanLayout, bean, x, y);
+<FONT ID="LN">1327</FONT><A NAME="1327"></A>    beaninst = (<A HREF="../../../../weka/gui/beans/BeanInstance.java.html">BeanInstance</A>) result;
+<FONT ID="LN">1328</FONT><A NAME="1328"></A>    
+<FONT ID="LN">1329</FONT><A NAME="1329"></A>    <FONT ID="SingleLineComment">// set parent of BeanVisual
+<FONT ID="LN">1330</FONT><A NAME="1330"></A></FONT>    <FONT ID="If">if</FONT> (beaninst.getBean() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/Visible.java.html">weka.gui.beans.Visible</A>) {
+<FONT ID="LN">1331</FONT><A NAME="1331"></A>      visual = ((<A HREF="../../../../weka/gui/beans/Visible.java.html">Visible</A>) beaninst.getBean()).getVisual();
+<FONT ID="LN">1332</FONT><A NAME="1332"></A>      visual.setSize(visual.getPreferredSize());
+<FONT ID="LN">1333</FONT><A NAME="1333"></A>      <FONT ID="If">if</FONT> (visual.getParent() == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1334</FONT><A NAME="1334"></A>        ((JPanel) beaninst.getBean()).add(visual);
+<FONT ID="LN">1335</FONT><A NAME="1335"></A>      }
+<FONT ID="LN">1336</FONT><A NAME="1336"></A>    }
+<FONT ID="LN">1337</FONT><A NAME="1337"></A>
+<FONT ID="LN">1338</FONT><A NAME="1338"></A>    <FONT ID="If">if</FONT> (beaninst.getBean() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/gui/beans/BeanCommon.java.html">BeanCommon</A> &amp;&amp;
+<FONT ID="LN">1339</FONT><A NAME="1339"></A>        customName != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1340</FONT><A NAME="1340"></A>      ((<A HREF="../../../../weka/gui/beans/BeanCommon.java.html">BeanCommon</A>)beaninst.getBean()).setCustomName(customName);
+<FONT ID="LN">1341</FONT><A NAME="1341"></A>    }
+<FONT ID="LN">1342</FONT><A NAME="1342"></A>    
+<FONT ID="LN">1343</FONT><A NAME="1343"></A>    <FONT ID="SingleLineComment">// no IDs -&gt; get next null position
+<FONT ID="LN">1344</FONT><A NAME="1344"></A></FONT>    <FONT ID="If">if</FONT> (id == -<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">1345</FONT><A NAME="1345"></A>      <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_BeanInstances.size(); i++) {
+<FONT ID="LN">1346</FONT><A NAME="1346"></A>        <FONT ID="If">if</FONT> (m_BeanInstances.get(i) == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1347</FONT><A NAME="1347"></A>          id = ((Integer) m_BeanInstancesID.get(i)).intValue();
+<FONT ID="LN">1348</FONT><A NAME="1348"></A>          <FONT ID="Break">break</FONT>;
+<FONT ID="LN">1349</FONT><A NAME="1349"></A>        }
+<FONT ID="LN">1350</FONT><A NAME="1350"></A>      }
+<FONT ID="LN">1351</FONT><A NAME="1351"></A>    }
+<FONT ID="LN">1352</FONT><A NAME="1352"></A>    <FONT ID="SingleLineComment">// get position for id
+<FONT ID="LN">1353</FONT><A NAME="1353"></A></FONT>    i = m_BeanInstancesID.indexOf(<FONT ID="New">new</FONT> Integer(id));
+<FONT ID="LN">1354</FONT><A NAME="1354"></A>
+<FONT ID="LN">1355</FONT><A NAME="1355"></A>    <FONT ID="SingleLineComment">// keep track of the BeanInstances for reading the connections later on
+<FONT ID="LN">1356</FONT><A NAME="1356"></A></FONT>    m_BeanInstances.set(i, result);
+<FONT ID="LN">1357</FONT><A NAME="1357"></A>
+<FONT ID="LN">1358</FONT><A NAME="1358"></A>    <FONT ID="SingleLineComment">// no current MetaBean
+<FONT ID="LN">1359</FONT><A NAME="1359"></A></FONT>    m_CurrentMetaBean = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1360</FONT><A NAME="1360"></A>    
+<FONT ID="LN">1361</FONT><A NAME="1361"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1362</FONT><A NAME="1362"></A>  }
+<FONT ID="LN">1363</FONT><A NAME="1363"></A>
+<FONT ID="LN">1364</FONT><A NAME="1364"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1365</FONT><A NAME="1365"></A>   * adds the given BeanConncetion to a DOM structure.
+<FONT ID="LN">1366</FONT><A NAME="1366"></A>   * 
+<FONT ID="LN">1367</FONT><A NAME="1367"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1368</FONT><A NAME="1368"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1369</FONT><A NAME="1369"></A>   * @param name the name of the object
+<FONT ID="LN">1370</FONT><A NAME="1370"></A>   * @return the node that was created
+<FONT ID="LN">1371</FONT><A NAME="1371"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1372</FONT><A NAME="1372"></A>   */</FONT>
+<FONT ID="LN">1373</FONT><A NAME="1373"></A>  <FONT ID="Public">public</FONT> Element writeBeanConnection(Element parent, Object o, String name)
+<FONT ID="LN">1374</FONT><A NAME="1374"></A>    <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1375</FONT><A NAME="1375"></A>    
+<FONT ID="LN">1376</FONT><A NAME="1376"></A>    Element           node;
+<FONT ID="LN">1377</FONT><A NAME="1377"></A>    <A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A>    beanconn;
+<FONT ID="LN">1378</FONT><A NAME="1378"></A>    <FONT ID="Int">int</FONT>               source;
+<FONT ID="LN">1379</FONT><A NAME="1379"></A>    <FONT ID="Int">int</FONT>               target;
+<FONT ID="LN">1380</FONT><A NAME="1380"></A>    <FONT ID="Int">int</FONT>               sourcePos;
+<FONT ID="LN">1381</FONT><A NAME="1381"></A>    <FONT ID="Int">int</FONT>               targetPos;
+<FONT ID="LN">1382</FONT><A NAME="1382"></A>
+<FONT ID="LN">1383</FONT><A NAME="1383"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1384</FONT><A NAME="1384"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1385</FONT><A NAME="1385"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1386</FONT><A NAME="1386"></A>    
+<FONT ID="LN">1387</FONT><A NAME="1387"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1388</FONT><A NAME="1388"></A>    
+<FONT ID="LN">1389</FONT><A NAME="1389"></A>    beanconn = (<A HREF="../../../../weka/gui/beans/BeanConnection.java.html">BeanConnection</A>) o;
+<FONT ID="LN">1390</FONT><A NAME="1390"></A>    node     = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1391</FONT><A NAME="1391"></A>
+<FONT ID="LN">1392</FONT><A NAME="1392"></A>    <FONT ID="SingleLineComment">// get position
+<FONT ID="LN">1393</FONT><A NAME="1393"></A></FONT>    sourcePos = m_BeanInstances.indexOf(beanconn.getSource());
+<FONT ID="LN">1394</FONT><A NAME="1394"></A>    targetPos = m_BeanInstances.indexOf(beanconn.getTarget());
+<FONT ID="LN">1395</FONT><A NAME="1395"></A>    
+<FONT ID="LN">1396</FONT><A NAME="1396"></A>    <FONT ID="SingleLineComment">// get id (if Connection is from a Bean in the UserToolBar, it's not listed! -&gt; ignore it)
+<FONT ID="LN">1397</FONT><A NAME="1397"></A></FONT>    <FONT ID="If">if</FONT> ( (sourcePos &gt; -<FONT ID="IntegerLiteral">1</FONT>) &amp;&amp; (targetPos &gt; -<FONT ID="IntegerLiteral">1</FONT>) ) {
+<FONT ID="LN">1398</FONT><A NAME="1398"></A>      source = ((Integer) m_BeanInstancesID.get(sourcePos)).intValue();
+<FONT ID="LN">1399</FONT><A NAME="1399"></A>      target = ((Integer) m_BeanInstancesID.get(targetPos)).intValue();
+<FONT ID="LN">1400</FONT><A NAME="1400"></A>    }
+<FONT ID="LN">1401</FONT><A NAME="1401"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1402</FONT><A NAME="1402"></A>       source = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">1403</FONT><A NAME="1403"></A>       target = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">1404</FONT><A NAME="1404"></A>    }
+<FONT ID="LN">1405</FONT><A NAME="1405"></A>    
+<FONT ID="LN">1406</FONT><A NAME="1406"></A>    <FONT ID="SingleLineComment">// connection exists in the layout?
+<FONT ID="LN">1407</FONT><A NAME="1407"></A></FONT>    <FONT ID="If">if</FONT> ( (source &gt; -<FONT ID="IntegerLiteral">1</FONT>) &amp;&amp; (target &gt; -<FONT ID="IntegerLiteral">1</FONT>) ) {
+<FONT ID="LN">1408</FONT><A NAME="1408"></A>      node = addElement(parent, name, beanconn.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1409</FONT><A NAME="1409"></A>  
+<FONT ID="LN">1410</FONT><A NAME="1410"></A>      writeIntToXML(node, source, VAL_SOURCEID);
+<FONT ID="LN">1411</FONT><A NAME="1411"></A>      writeIntToXML(node, target, VAL_TARGETID);
+<FONT ID="LN">1412</FONT><A NAME="1412"></A>      invokeWriteToXML(node, beanconn.getEventName(), VAL_EVENTNAME);
+<FONT ID="LN">1413</FONT><A NAME="1413"></A>      writeBooleanToXML(node, beanconn.isHidden(), VAL_HIDDEN);
+<FONT ID="LN">1414</FONT><A NAME="1414"></A>    }
+<FONT ID="LN">1415</FONT><A NAME="1415"></A>    
+<FONT ID="LN">1416</FONT><A NAME="1416"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1417</FONT><A NAME="1417"></A>  }
+<FONT ID="LN">1418</FONT><A NAME="1418"></A>
+<FONT ID="LN">1419</FONT><A NAME="1419"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1420</FONT><A NAME="1420"></A>   * builds the BeanConnection from the given DOM node.
+<FONT ID="LN">1421</FONT><A NAME="1421"></A>   * 
+<FONT ID="LN">1422</FONT><A NAME="1422"></A>   * @param node the associated XML node
+<FONT ID="LN">1423</FONT><A NAME="1423"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1424</FONT><A NAME="1424"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1425</FONT><A NAME="1425"></A>   */</FONT>
+<FONT ID="LN">1426</FONT><A NAME="1426"></A>  <FONT ID="Public">public</FONT> Object readBeanConnection(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1427</FONT><A NAME="1427"></A>    Object                  result;
+<FONT ID="LN">1428</FONT><A NAME="1428"></A>    Vector                  children;
+<FONT ID="LN">1429</FONT><A NAME="1429"></A>    Element                 child;
+<FONT ID="LN">1430</FONT><A NAME="1430"></A>    String                  name;
+<FONT ID="LN">1431</FONT><A NAME="1431"></A>    <FONT ID="Int">int</FONT>                     i;
+<FONT ID="LN">1432</FONT><A NAME="1432"></A>    <FONT ID="Int">int</FONT>                     source;
+<FONT ID="LN">1433</FONT><A NAME="1433"></A>    <FONT ID="Int">int</FONT>                     target;
+<FONT ID="LN">1434</FONT><A NAME="1434"></A>    <FONT ID="Int">int</FONT>                     sourcePos;
+<FONT ID="LN">1435</FONT><A NAME="1435"></A>    <FONT ID="Int">int</FONT>                     targetPos;
+<FONT ID="LN">1436</FONT><A NAME="1436"></A>    String                  event;
+<FONT ID="LN">1437</FONT><A NAME="1437"></A>    <FONT ID="Boolean">boolean</FONT>                 hidden;
+<FONT ID="LN">1438</FONT><A NAME="1438"></A>
+<FONT ID="LN">1439</FONT><A NAME="1439"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1440</FONT><A NAME="1440"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1441</FONT><A NAME="1441"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1442</FONT><A NAME="1442"></A>
+<FONT ID="LN">1443</FONT><A NAME="1443"></A>    m_CurrentNode = node;
+<FONT ID="LN">1444</FONT><A NAME="1444"></A>    
+<FONT ID="LN">1445</FONT><A NAME="1445"></A>    result   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1446</FONT><A NAME="1446"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">1447</FONT><A NAME="1447"></A>    source   = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1448</FONT><A NAME="1448"></A>    target   = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">1449</FONT><A NAME="1449"></A>    event    = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1450</FONT><A NAME="1450"></A>    hidden   = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1451</FONT><A NAME="1451"></A>
+<FONT ID="LN">1452</FONT><A NAME="1452"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1453</FONT><A NAME="1453"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1454</FONT><A NAME="1454"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1455</FONT><A NAME="1455"></A>
+<FONT ID="LN">1456</FONT><A NAME="1456"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_SOURCEID))
+<FONT ID="LN">1457</FONT><A NAME="1457"></A>        source = readIntFromXML(child);
+<FONT ID="LN">1458</FONT><A NAME="1458"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_TARGETID))
+<FONT ID="LN">1459</FONT><A NAME="1459"></A>        target = readIntFromXML(child);
+<FONT ID="LN">1460</FONT><A NAME="1460"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_EVENTNAME))
+<FONT ID="LN">1461</FONT><A NAME="1461"></A>        event = (String) invokeReadFromXML(child);
+<FONT ID="LN">1462</FONT><A NAME="1462"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_HIDDEN))
+<FONT ID="LN">1463</FONT><A NAME="1463"></A>        hidden = readBooleanFromXML(child);
+<FONT ID="LN">1464</FONT><A NAME="1464"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">1465</FONT><A NAME="1465"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: '"</FONT> + name
+<FONT ID="LN">1466</FONT><A NAME="1466"></A>            + <FONT ID="StringLiteral">"' is not a recognized name for "</FONT> + node.getAttribute(ATT_NAME) + <FONT ID="StringLiteral">"!"</FONT>);
+<FONT ID="LN">1467</FONT><A NAME="1467"></A>    }
+<FONT ID="LN">1468</FONT><A NAME="1468"></A>
+<FONT ID="LN">1469</FONT><A NAME="1469"></A>    <FONT ID="SingleLineComment">// get position of id
+<FONT ID="LN">1470</FONT><A NAME="1470"></A></FONT>    sourcePos = m_BeanInstancesID.indexOf(<FONT ID="New">new</FONT> Integer(source));
+<FONT ID="LN">1471</FONT><A NAME="1471"></A>    targetPos = m_BeanInstancesID.indexOf(<FONT ID="New">new</FONT> Integer(target));
+<FONT ID="LN">1472</FONT><A NAME="1472"></A>    
+<FONT ID="LN">1473</FONT><A NAME="1473"></A>    <FONT ID="SingleLineComment">// do we currently ignore the connections?
+<FONT ID="LN">1474</FONT><A NAME="1474"></A></FONT>    <FONT ID="SingleLineComment">// Note: necessary because of the MetaBeans
+<FONT ID="LN">1475</FONT><A NAME="1475"></A></FONT>    <FONT ID="If">if</FONT> (m_IgnoreBeanConnections) {
+<FONT ID="LN">1476</FONT><A NAME="1476"></A>      addBeanConnectionRelation(m_CurrentMetaBean, sourcePos + <FONT ID="StringLiteral">","</FONT> + targetPos + <FONT ID="StringLiteral">","</FONT> + event + <FONT ID="StringLiteral">","</FONT> + hidden);
+<FONT ID="LN">1477</FONT><A NAME="1477"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1478</FONT><A NAME="1478"></A>    }
+<FONT ID="LN">1479</FONT><A NAME="1479"></A>
+<FONT ID="LN">1480</FONT><A NAME="1480"></A>    <FONT ID="SingleLineComment">// generate it normally
+<FONT ID="LN">1481</FONT><A NAME="1481"></A></FONT>    result = createBeanConnection(sourcePos, targetPos, event, hidden);
+<FONT ID="LN">1482</FONT><A NAME="1482"></A>
+<FONT ID="LN">1483</FONT><A NAME="1483"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1484</FONT><A NAME="1484"></A>  }
+<FONT ID="LN">1485</FONT><A NAME="1485"></A>  
+<FONT ID="LN">1486</FONT><A NAME="1486"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1487</FONT><A NAME="1487"></A>   * adds the given Loader (a bean) to a DOM structure.
+<FONT ID="LN">1488</FONT><A NAME="1488"></A>   * 
+<FONT ID="LN">1489</FONT><A NAME="1489"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1490</FONT><A NAME="1490"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1491</FONT><A NAME="1491"></A>   * @param name the name of the object
+<FONT ID="LN">1492</FONT><A NAME="1492"></A>   * @return the node that was created
+<FONT ID="LN">1493</FONT><A NAME="1493"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1494</FONT><A NAME="1494"></A>   */</FONT>
+<FONT ID="LN">1495</FONT><A NAME="1495"></A>  <FONT ID="Public">public</FONT> Element writeBeanLoader(Element parent, Object o, String name)
+<FONT ID="LN">1496</FONT><A NAME="1496"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1497</FONT><A NAME="1497"></A>    
+<FONT ID="LN">1498</FONT><A NAME="1498"></A>    Element                 node;
+<FONT ID="LN">1499</FONT><A NAME="1499"></A>    <A HREF="../../../../weka/gui/beans/Loader.java.html">weka.gui.beans.Loader</A>   loader;
+<FONT ID="LN">1500</FONT><A NAME="1500"></A>
+<FONT ID="LN">1501</FONT><A NAME="1501"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1502</FONT><A NAME="1502"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1503</FONT><A NAME="1503"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1504</FONT><A NAME="1504"></A>    
+<FONT ID="LN">1505</FONT><A NAME="1505"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1506</FONT><A NAME="1506"></A>    
+<FONT ID="LN">1507</FONT><A NAME="1507"></A>    loader = (<A HREF="../../../../weka/gui/beans/Loader.java.html">weka.gui.beans.Loader</A>) o;
+<FONT ID="LN">1508</FONT><A NAME="1508"></A>    node   = addElement(parent, name, loader.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1509</FONT><A NAME="1509"></A>
+<FONT ID="LN">1510</FONT><A NAME="1510"></A>    invokeWriteToXML(node, loader.getLoader(), VAL_LOADER);
+<FONT ID="LN">1511</FONT><A NAME="1511"></A>    invokeWriteToXML(node, loader.getBeanContext(), VAL_BEANCONTEXT);
+<FONT ID="LN">1512</FONT><A NAME="1512"></A>    
+<FONT ID="LN">1513</FONT><A NAME="1513"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1514</FONT><A NAME="1514"></A>  }
+<FONT ID="LN">1515</FONT><A NAME="1515"></A>
+<FONT ID="LN">1516</FONT><A NAME="1516"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1517</FONT><A NAME="1517"></A>   * adds the given Saver (a bean) to a DOM structure.
+<FONT ID="LN">1518</FONT><A NAME="1518"></A>   * 
+<FONT ID="LN">1519</FONT><A NAME="1519"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1520</FONT><A NAME="1520"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1521</FONT><A NAME="1521"></A>   * @param name the name of the object
+<FONT ID="LN">1522</FONT><A NAME="1522"></A>   * @return the node that was created
+<FONT ID="LN">1523</FONT><A NAME="1523"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1524</FONT><A NAME="1524"></A>   */</FONT>
+<FONT ID="LN">1525</FONT><A NAME="1525"></A>  <FONT ID="Public">public</FONT> Element writeBeanSaver(Element parent, Object o, String name)
+<FONT ID="LN">1526</FONT><A NAME="1526"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1527</FONT><A NAME="1527"></A>    
+<FONT ID="LN">1528</FONT><A NAME="1528"></A>    Element                 node;
+<FONT ID="LN">1529</FONT><A NAME="1529"></A>    <A HREF="../../../../weka/gui/beans/Saver.java.html">weka.gui.beans.Saver</A>    saver;
+<FONT ID="LN">1530</FONT><A NAME="1530"></A>
+<FONT ID="LN">1531</FONT><A NAME="1531"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1532</FONT><A NAME="1532"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1533</FONT><A NAME="1533"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1534</FONT><A NAME="1534"></A>    
+<FONT ID="LN">1535</FONT><A NAME="1535"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1536</FONT><A NAME="1536"></A>    
+<FONT ID="LN">1537</FONT><A NAME="1537"></A>    saver = (<A HREF="../../../../weka/gui/beans/Saver.java.html">weka.gui.beans.Saver</A>) o;
+<FONT ID="LN">1538</FONT><A NAME="1538"></A>    node   = addElement(parent, name, saver.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1539</FONT><A NAME="1539"></A>    invokeWriteToXML(node, saver.getRelationNameForFilename(), VAL_RELATIONNAMEFORFILENAME);
+<FONT ID="LN">1540</FONT><A NAME="1540"></A>
+<FONT ID="LN">1541</FONT><A NAME="1541"></A>    invokeWriteToXML(node, saver.getSaver(), VAL_SAVER);
+<FONT ID="LN">1542</FONT><A NAME="1542"></A>    
+<FONT ID="LN">1543</FONT><A NAME="1543"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1544</FONT><A NAME="1544"></A>  }
+<FONT ID="LN">1545</FONT><A NAME="1545"></A>  
+<FONT ID="LN">1546</FONT><A NAME="1546"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1547</FONT><A NAME="1547"></A>   * adds the given Loader to a DOM structure.
+<FONT ID="LN">1548</FONT><A NAME="1548"></A>   * 
+<FONT ID="LN">1549</FONT><A NAME="1549"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1550</FONT><A NAME="1550"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1551</FONT><A NAME="1551"></A>   * @param name the name of the object
+<FONT ID="LN">1552</FONT><A NAME="1552"></A>   * @return the node that was created
+<FONT ID="LN">1553</FONT><A NAME="1553"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1554</FONT><A NAME="1554"></A>   */</FONT>
+<FONT ID="LN">1555</FONT><A NAME="1555"></A>  <FONT ID="Public">public</FONT> Element writeLoader(Element parent, Object o, String name)
+<FONT ID="LN">1556</FONT><A NAME="1556"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1557</FONT><A NAME="1557"></A>    
+<FONT ID="LN">1558</FONT><A NAME="1558"></A>    Element                       node;
+<FONT ID="LN">1559</FONT><A NAME="1559"></A>    <A HREF="../../../../weka/core/converters/Loader.java.html">weka.core.converters.Loader</A>   loader;
+<FONT ID="LN">1560</FONT><A NAME="1560"></A>    File                          file;
+<FONT ID="LN">1561</FONT><A NAME="1561"></A>    <FONT ID="Boolean">boolean</FONT>                       known;
+<FONT ID="LN">1562</FONT><A NAME="1562"></A>
+<FONT ID="LN">1563</FONT><A NAME="1563"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1564</FONT><A NAME="1564"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1565</FONT><A NAME="1565"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1566</FONT><A NAME="1566"></A>    
+<FONT ID="LN">1567</FONT><A NAME="1567"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1568</FONT><A NAME="1568"></A>    
+<FONT ID="LN">1569</FONT><A NAME="1569"></A>    loader = (<A HREF="../../../../weka/core/converters/Loader.java.html">weka.core.converters.Loader</A>) o;
+<FONT ID="LN">1570</FONT><A NAME="1570"></A>    node   = addElement(parent, name, loader.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1571</FONT><A NAME="1571"></A>    known  = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1572</FONT><A NAME="1572"></A>    file   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1573</FONT><A NAME="1573"></A>
+<FONT ID="LN">1574</FONT><A NAME="1574"></A>    <FONT ID="SingleLineComment">// file
+<FONT ID="LN">1575</FONT><A NAME="1575"></A></FONT>    <FONT ID="If">if</FONT> (loader <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/core/converters/AbstractFileLoader.java.html">weka.core.converters.AbstractFileLoader</A>)
+<FONT ID="LN">1576</FONT><A NAME="1576"></A>      file = ((<A HREF="../../../../weka/core/converters/AbstractFileLoader.java.html">weka.core.converters.AbstractFileLoader</A>) loader).retrieveFile();
+<FONT ID="LN">1577</FONT><A NAME="1577"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">1578</FONT><A NAME="1578"></A>      known = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1579</FONT><A NAME="1579"></A>
+<FONT ID="LN">1580</FONT><A NAME="1580"></A>    <FONT ID="If">if</FONT> (!known)
+<FONT ID="LN">1581</FONT><A NAME="1581"></A>      System.out.println(<FONT ID="StringLiteral">"WARNING: unknown loader class '"</FONT> + loader.getClass().getName() + <FONT ID="StringLiteral">"' - cannot retrieve file!"</FONT>);
+<FONT ID="LN">1582</FONT><A NAME="1582"></A>
+<FONT ID="LN">1583</FONT><A NAME="1583"></A>    Boolean relativeB = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1584</FONT><A NAME="1584"></A>    <FONT ID="If">if</FONT> (loader <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>) {
+<FONT ID="LN">1585</FONT><A NAME="1585"></A>      <FONT ID="Boolean">boolean</FONT> relative = ((<A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>)loader).getUseRelativePath();
+<FONT ID="LN">1586</FONT><A NAME="1586"></A>      relativeB = <FONT ID="New">new</FONT> Boolean(relative);
+<FONT ID="LN">1587</FONT><A NAME="1587"></A>    }
+<FONT ID="LN">1588</FONT><A NAME="1588"></A>    
+<FONT ID="LN">1589</FONT><A NAME="1589"></A>    <FONT ID="SingleLineComment">// only save it, if it's a real file!
+<FONT ID="LN">1590</FONT><A NAME="1590"></A></FONT>    <FONT ID="If">if</FONT> ( (file == <FONT ID="Null">null</FONT>) || (file.isDirectory()) ) {
+<FONT ID="LN">1591</FONT><A NAME="1591"></A>      invokeWriteToXML(node, <FONT ID="StringLiteral">""</FONT>, VAL_FILE);
+<FONT ID="LN">1592</FONT><A NAME="1592"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1593</FONT><A NAME="1593"></A>      <FONT ID="Boolean">boolean</FONT> notAbsolute = 
+<FONT ID="LN">1594</FONT><A NAME="1594"></A>        (((<A HREF="../../../../weka/core/converters/AbstractFileLoader.java.html">weka.core.converters.AbstractFileLoader</A>) loader).getUseRelativePath() ||
+<FONT ID="LN">1595</FONT><A NAME="1595"></A>        (loader <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/core/EnvironmentHandler.java.html">EnvironmentHandler</A> 
+<FONT ID="LN">1596</FONT><A NAME="1596"></A>            &amp;&amp; Environment.containsEnvVariables(file.getPath())));
+<FONT ID="LN">1597</FONT><A NAME="1597"></A>      
+<FONT ID="LN">1598</FONT><A NAME="1598"></A>      String path = (notAbsolute)
+<FONT ID="LN">1599</FONT><A NAME="1599"></A>        ? file.getPath()
+<FONT ID="LN">1600</FONT><A NAME="1600"></A>        : file.getAbsolutePath();
+<FONT ID="LN">1601</FONT><A NAME="1601"></A>      <FONT ID="SingleLineComment">// Replace any windows file separators with forward slashes (Java under windows can
+<FONT ID="LN">1602</FONT><A NAME="1602"></A></FONT>      <FONT ID="SingleLineComment">// read paths with forward slashes (apparantly)
+<FONT ID="LN">1603</FONT><A NAME="1603"></A></FONT>      path = path.replace(<FONT ID="CharacerLiteral">'\\'</FONT>, <FONT ID="CharacerLiteral">'/'</FONT>);
+<FONT ID="LN">1604</FONT><A NAME="1604"></A>      invokeWriteToXML(node, path, VAL_FILE);
+<FONT ID="LN">1605</FONT><A NAME="1605"></A>    }
+<FONT ID="LN">1606</FONT><A NAME="1606"></A>    <FONT ID="If">if</FONT> (relativeB != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1607</FONT><A NAME="1607"></A>      invokeWriteToXML(node, relativeB.toString(), VAL_RELATIVE_PATH);
+<FONT ID="LN">1608</FONT><A NAME="1608"></A>    }
+<FONT ID="LN">1609</FONT><A NAME="1609"></A>    
+<FONT ID="LN">1610</FONT><A NAME="1610"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1611</FONT><A NAME="1611"></A>  }
+<FONT ID="LN">1612</FONT><A NAME="1612"></A>
+<FONT ID="LN">1613</FONT><A NAME="1613"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1614</FONT><A NAME="1614"></A>   * builds the Loader from the given DOM node.
+<FONT ID="LN">1615</FONT><A NAME="1615"></A>   * 
+<FONT ID="LN">1616</FONT><A NAME="1616"></A>   * @param node the associated XML node
+<FONT ID="LN">1617</FONT><A NAME="1617"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1618</FONT><A NAME="1618"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1619</FONT><A NAME="1619"></A>   */</FONT>
+<FONT ID="LN">1620</FONT><A NAME="1620"></A>  <FONT ID="Public">public</FONT> Object readLoader(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1621</FONT><A NAME="1621"></A>    Object      result;
+<FONT ID="LN">1622</FONT><A NAME="1622"></A>    Vector      children;
+<FONT ID="LN">1623</FONT><A NAME="1623"></A>    Element     child;
+<FONT ID="LN">1624</FONT><A NAME="1624"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">1625</FONT><A NAME="1625"></A>    String      name;
+<FONT ID="LN">1626</FONT><A NAME="1626"></A>    String      file;
+<FONT ID="LN">1627</FONT><A NAME="1627"></A>    File        fl;
+<FONT ID="LN">1628</FONT><A NAME="1628"></A>
+<FONT ID="LN">1629</FONT><A NAME="1629"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1630</FONT><A NAME="1630"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1631</FONT><A NAME="1631"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1632</FONT><A NAME="1632"></A>
+<FONT ID="LN">1633</FONT><A NAME="1633"></A>    m_CurrentNode = node;
+<FONT ID="LN">1634</FONT><A NAME="1634"></A>    
+<FONT ID="LN">1635</FONT><A NAME="1635"></A>    result   = Class.forName(node.getAttribute(ATT_CLASS)).newInstance();
+<FONT ID="LN">1636</FONT><A NAME="1636"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">1637</FONT><A NAME="1637"></A>    file     = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1638</FONT><A NAME="1638"></A>    Object relativeB = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1639</FONT><A NAME="1639"></A>    <FONT ID="Boolean">boolean</FONT> relative = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1640</FONT><A NAME="1640"></A>
+<FONT ID="LN">1641</FONT><A NAME="1641"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1642</FONT><A NAME="1642"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1643</FONT><A NAME="1643"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1644</FONT><A NAME="1644"></A>
+<FONT ID="LN">1645</FONT><A NAME="1645"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_FILE)) {
+<FONT ID="LN">1646</FONT><A NAME="1646"></A>        file = (String) invokeReadFromXML(child);
+<FONT ID="LN">1647</FONT><A NAME="1647"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_RELATIVE_PATH)) {
+<FONT ID="LN">1648</FONT><A NAME="1648"></A>        relativeB = readFromXML(child);
+<FONT ID="LN">1649</FONT><A NAME="1649"></A>        <FONT ID="If">if</FONT> (relativeB <FONT ID="InstanceOf">instanceof</FONT> Boolean) {
+<FONT ID="LN">1650</FONT><A NAME="1650"></A>          relative = ((Boolean)relativeB).booleanValue();
+<FONT ID="LN">1651</FONT><A NAME="1651"></A>        }
+<FONT ID="LN">1652</FONT><A NAME="1652"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1653</FONT><A NAME="1653"></A>        readFromXML(result, name, child);
+<FONT ID="LN">1654</FONT><A NAME="1654"></A>      }
+<FONT ID="LN">1655</FONT><A NAME="1655"></A>    }
+<FONT ID="LN">1656</FONT><A NAME="1656"></A>
+<FONT ID="LN">1657</FONT><A NAME="1657"></A>    <FONT ID="If">if</FONT> (result <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>) {
+<FONT ID="LN">1658</FONT><A NAME="1658"></A>      ((<A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>)result).setUseRelativePath(relative);
+<FONT ID="LN">1659</FONT><A NAME="1659"></A>    }
+<FONT ID="LN">1660</FONT><A NAME="1660"></A>
+<FONT ID="LN">1661</FONT><A NAME="1661"></A>    <FONT ID="If">if</FONT> (file.equals(<FONT ID="StringLiteral">""</FONT>))
+<FONT ID="LN">1662</FONT><A NAME="1662"></A>      file = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1663</FONT><A NAME="1663"></A>
+<FONT ID="LN">1664</FONT><A NAME="1664"></A>    <FONT ID="SingleLineComment">// set file only, if it exists
+<FONT ID="LN">1665</FONT><A NAME="1665"></A></FONT>    <FONT ID="If">if</FONT> (file != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1666</FONT><A NAME="1666"></A>      String tempFile = file;
+<FONT ID="LN">1667</FONT><A NAME="1667"></A>
+<FONT ID="LN">1668</FONT><A NAME="1668"></A>      <FONT ID="Boolean">boolean</FONT> containsEnv = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1669</FONT><A NAME="1669"></A>      containsEnv = Environment.containsEnvVariables(file);
+<FONT ID="LN">1670</FONT><A NAME="1670"></A>      
+<FONT ID="LN">1671</FONT><A NAME="1671"></A>      fl = <FONT ID="New">new</FONT> File(file);      
+<FONT ID="LN">1672</FONT><A NAME="1672"></A>      <FONT ID="SingleLineComment">// only test for existence if the path does not contain environment vars
+<FONT ID="LN">1673</FONT><A NAME="1673"></A></FONT>      <FONT ID="SingleLineComment">// (trust that after they are resolved that everything is hunky dory)
+<FONT ID="LN">1674</FONT><A NAME="1674"></A></FONT>      <FONT ID="If">if</FONT> (containsEnv || fl.exists()) {
+<FONT ID="LN">1675</FONT><A NAME="1675"></A>        ((<A HREF="../../../../weka/core/converters/AbstractFileLoader.java.html">weka.core.converters.AbstractFileLoader</A>) result).setSource(<FONT ID="New">new</FONT> File(file));
+<FONT ID="LN">1676</FONT><A NAME="1676"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1677</FONT><A NAME="1677"></A>        System.out.println(<FONT ID="StringLiteral">"WARNING: The file '"</FONT> + tempFile + <FONT ID="StringLiteral">"' does not exist!"</FONT>);
+<FONT ID="LN">1678</FONT><A NAME="1678"></A>      }
+<FONT ID="LN">1679</FONT><A NAME="1679"></A>    }
+<FONT ID="LN">1680</FONT><A NAME="1680"></A>    
+<FONT ID="LN">1681</FONT><A NAME="1681"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1682</FONT><A NAME="1682"></A>  }
+<FONT ID="LN">1683</FONT><A NAME="1683"></A>
+<FONT ID="LN">1684</FONT><A NAME="1684"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1685</FONT><A NAME="1685"></A>   * adds the given Saver to a DOM structure.
+<FONT ID="LN">1686</FONT><A NAME="1686"></A>   * 
+<FONT ID="LN">1687</FONT><A NAME="1687"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1688</FONT><A NAME="1688"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1689</FONT><A NAME="1689"></A>   * @param name the name of the object
+<FONT ID="LN">1690</FONT><A NAME="1690"></A>   * @return the node that was created
+<FONT ID="LN">1691</FONT><A NAME="1691"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1692</FONT><A NAME="1692"></A>   */</FONT>
+<FONT ID="LN">1693</FONT><A NAME="1693"></A>  <FONT ID="Public">public</FONT> Element writeSaver(Element parent, Object o, String name)
+<FONT ID="LN">1694</FONT><A NAME="1694"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1695</FONT><A NAME="1695"></A>    
+<FONT ID="LN">1696</FONT><A NAME="1696"></A>    Element                     node;
+<FONT ID="LN">1697</FONT><A NAME="1697"></A>    <A HREF="../../../../weka/core/converters/Saver.java.html">weka.core.converters.Saver</A>  saver;
+<FONT ID="LN">1698</FONT><A NAME="1698"></A>    File                        file;
+<FONT ID="LN">1699</FONT><A NAME="1699"></A>    String          prefix;
+<FONT ID="LN">1700</FONT><A NAME="1700"></A>    String          dir;
+<FONT ID="LN">1701</FONT><A NAME="1701"></A>    <FONT ID="Boolean">boolean</FONT>                     known;
+<FONT ID="LN">1702</FONT><A NAME="1702"></A>
+<FONT ID="LN">1703</FONT><A NAME="1703"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1704</FONT><A NAME="1704"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1705</FONT><A NAME="1705"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1706</FONT><A NAME="1706"></A>    
+<FONT ID="LN">1707</FONT><A NAME="1707"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1708</FONT><A NAME="1708"></A>    
+<FONT ID="LN">1709</FONT><A NAME="1709"></A>    saver  = (<A HREF="../../../../weka/core/converters/Saver.java.html">weka.core.converters.Saver</A>) o;
+<FONT ID="LN">1710</FONT><A NAME="1710"></A>    node   = addElement(parent, name, saver.getClass().getName(), <FONT ID="False">false</FONT>);
+<FONT ID="LN">1711</FONT><A NAME="1711"></A>    known  = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1712</FONT><A NAME="1712"></A>    file   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1713</FONT><A NAME="1713"></A>    prefix = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1714</FONT><A NAME="1714"></A>    dir    = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1715</FONT><A NAME="1715"></A>
+<FONT ID="LN">1716</FONT><A NAME="1716"></A>    <FONT ID="SingleLineComment">// file
+<FONT ID="LN">1717</FONT><A NAME="1717"></A></FONT>    <FONT ID="If">if</FONT> (saver <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/core/converters/AbstractFileSaver.java.html">weka.core.converters.AbstractFileSaver</A>) {
+<FONT ID="LN">1718</FONT><A NAME="1718"></A>      file   = ((<A HREF="../../../../weka/core/converters/AbstractFileSaver.java.html">weka.core.converters.AbstractFileSaver</A>) saver).retrieveFile();
+<FONT ID="LN">1719</FONT><A NAME="1719"></A>      prefix = ((<A HREF="../../../../weka/core/converters/AbstractFileSaver.java.html">weka.core.converters.AbstractFileSaver</A>) saver).filePrefix();
+<FONT ID="LN">1720</FONT><A NAME="1720"></A>      dir    = ((<A HREF="../../../../weka/core/converters/AbstractFileSaver.java.html">weka.core.converters.AbstractFileSaver</A>) saver).retrieveDir();
+<FONT ID="LN">1721</FONT><A NAME="1721"></A>      <FONT ID="SingleLineComment">// Replace any windows file separators with forward slashes (Java under windows can
+<FONT ID="LN">1722</FONT><A NAME="1722"></A></FONT>      <FONT ID="SingleLineComment">// read paths with forward slashes (apparantly)
+<FONT ID="LN">1723</FONT><A NAME="1723"></A></FONT>      dir = dir.replace(<FONT ID="CharacerLiteral">'\\'</FONT>, <FONT ID="CharacerLiteral">'/'</FONT>);
+<FONT ID="LN">1724</FONT><A NAME="1724"></A>    }
+<FONT ID="LN">1725</FONT><A NAME="1725"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1726</FONT><A NAME="1726"></A>      known = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1727</FONT><A NAME="1727"></A>    }
+<FONT ID="LN">1728</FONT><A NAME="1728"></A>    
+<FONT ID="LN">1729</FONT><A NAME="1729"></A>    <FONT ID="If">if</FONT> (!known)
+<FONT ID="LN">1730</FONT><A NAME="1730"></A>      System.out.println(<FONT ID="StringLiteral">"WARNING: unknown saver class '"</FONT> + saver.getClass().getName() + <FONT ID="StringLiteral">"' - cannot retrieve file!"</FONT>);
+<FONT ID="LN">1731</FONT><A NAME="1731"></A>
+<FONT ID="LN">1732</FONT><A NAME="1732"></A>    Boolean relativeB = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1733</FONT><A NAME="1733"></A>    <FONT ID="If">if</FONT> (saver <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>) {
+<FONT ID="LN">1734</FONT><A NAME="1734"></A>      <FONT ID="Boolean">boolean</FONT> relative = ((<A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>)saver).getUseRelativePath();
+<FONT ID="LN">1735</FONT><A NAME="1735"></A>      relativeB = <FONT ID="New">new</FONT> Boolean(relative);
+<FONT ID="LN">1736</FONT><A NAME="1736"></A>    }
+<FONT ID="LN">1737</FONT><A NAME="1737"></A>    
+<FONT ID="LN">1738</FONT><A NAME="1738"></A>
+<FONT ID="LN">1739</FONT><A NAME="1739"></A><FONT ID="SingleLineComment">//    if ( (file == null) || (file.isDirectory()) ) {
+<FONT ID="LN">1740</FONT><A NAME="1740"></A></FONT>      invokeWriteToXML(node, <FONT ID="StringLiteral">""</FONT>,     VAL_FILE);
+<FONT ID="LN">1741</FONT><A NAME="1741"></A>      invokeWriteToXML(node, dir,    VAL_DIR);
+<FONT ID="LN">1742</FONT><A NAME="1742"></A>      invokeWriteToXML(node, prefix, VAL_PREFIX);
+<FONT ID="LN">1743</FONT><A NAME="1743"></A><FONT ID="MultiLineComment">/*    }
+<FONT ID="LN">1744</FONT><A NAME="1744"></A>    else {
+<FONT ID="LN">1745</FONT><A NAME="1745"></A>      String path = (((weka.core.converters.FileSourcedConverter) saver).getUseRelativePath())
+<FONT ID="LN">1746</FONT><A NAME="1746"></A>        ? file.getPath()
+<FONT ID="LN">1747</FONT><A NAME="1747"></A>        : file.getAbsolutePath();
+<FONT ID="LN">1748</FONT><A NAME="1748"></A>      // Replace any windows file separators with forward slashes (Java under windows can
+<FONT ID="LN">1749</FONT><A NAME="1749"></A>      // read paths with forward slashes (apparantly)
+<FONT ID="LN">1750</FONT><A NAME="1750"></A>      path = path.replace('\\', '/');
+<FONT ID="LN">1751</FONT><A NAME="1751"></A>      invokeWriteToXML(node, path, VAL_FILE);
+<FONT ID="LN">1752</FONT><A NAME="1752"></A>      invokeWriteToXML(node, dir, VAL_DIR);
+<FONT ID="LN">1753</FONT><A NAME="1753"></A>      invokeWriteToXML(node, prefix, VAL_PREFIX);
+<FONT ID="LN">1754</FONT><A NAME="1754"></A>    }*/</FONT>
+<FONT ID="LN">1755</FONT><A NAME="1755"></A>
+<FONT ID="LN">1756</FONT><A NAME="1756"></A>    <FONT ID="If">if</FONT> (relativeB != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1757</FONT><A NAME="1757"></A>      invokeWriteToXML(node, relativeB.toString(), VAL_RELATIVE_PATH);
+<FONT ID="LN">1758</FONT><A NAME="1758"></A>    }
+<FONT ID="LN">1759</FONT><A NAME="1759"></A>    
+<FONT ID="LN">1760</FONT><A NAME="1760"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1761</FONT><A NAME="1761"></A>  }
+<FONT ID="LN">1762</FONT><A NAME="1762"></A>
+<FONT ID="LN">1763</FONT><A NAME="1763"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1764</FONT><A NAME="1764"></A>   * builds the Saver from the given DOM node.
+<FONT ID="LN">1765</FONT><A NAME="1765"></A>   * 
+<FONT ID="LN">1766</FONT><A NAME="1766"></A>   * @param node the associated XML node
+<FONT ID="LN">1767</FONT><A NAME="1767"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1768</FONT><A NAME="1768"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1769</FONT><A NAME="1769"></A>   */</FONT>
+<FONT ID="LN">1770</FONT><A NAME="1770"></A>  <FONT ID="Public">public</FONT> Object readSaver(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1771</FONT><A NAME="1771"></A>    Object      result;
+<FONT ID="LN">1772</FONT><A NAME="1772"></A>    Vector      children;
+<FONT ID="LN">1773</FONT><A NAME="1773"></A>    Element     child;
+<FONT ID="LN">1774</FONT><A NAME="1774"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">1775</FONT><A NAME="1775"></A>    String      name;
+<FONT ID="LN">1776</FONT><A NAME="1776"></A>    String      file;
+<FONT ID="LN">1777</FONT><A NAME="1777"></A>    String  dir;
+<FONT ID="LN">1778</FONT><A NAME="1778"></A>    String  prefix;
+<FONT ID="LN">1779</FONT><A NAME="1779"></A>
+<FONT ID="LN">1780</FONT><A NAME="1780"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1781</FONT><A NAME="1781"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1782</FONT><A NAME="1782"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1783</FONT><A NAME="1783"></A>
+<FONT ID="LN">1784</FONT><A NAME="1784"></A>    m_CurrentNode = node;
+<FONT ID="LN">1785</FONT><A NAME="1785"></A>    
+<FONT ID="LN">1786</FONT><A NAME="1786"></A>    result   = Class.forName(node.getAttribute(ATT_CLASS)).newInstance();
+<FONT ID="LN">1787</FONT><A NAME="1787"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">1788</FONT><A NAME="1788"></A>    file     = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1789</FONT><A NAME="1789"></A>    dir      = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1790</FONT><A NAME="1790"></A>    prefix   = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1791</FONT><A NAME="1791"></A>
+<FONT ID="LN">1792</FONT><A NAME="1792"></A>    Object relativeB = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1793</FONT><A NAME="1793"></A>    <FONT ID="Boolean">boolean</FONT> relative = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1794</FONT><A NAME="1794"></A>
+<FONT ID="LN">1795</FONT><A NAME="1795"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1796</FONT><A NAME="1796"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1797</FONT><A NAME="1797"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1798</FONT><A NAME="1798"></A>
+<FONT ID="LN">1799</FONT><A NAME="1799"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_FILE)) {
+<FONT ID="LN">1800</FONT><A NAME="1800"></A>        file = (String) invokeReadFromXML(child);
+<FONT ID="LN">1801</FONT><A NAME="1801"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_DIR)) {
+<FONT ID="LN">1802</FONT><A NAME="1802"></A>        dir = (String) invokeReadFromXML(child);
+<FONT ID="LN">1803</FONT><A NAME="1803"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_PREFIX)) {
+<FONT ID="LN">1804</FONT><A NAME="1804"></A>        prefix = (String) invokeReadFromXML(child);
+<FONT ID="LN">1805</FONT><A NAME="1805"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_RELATIVE_PATH)) {
+<FONT ID="LN">1806</FONT><A NAME="1806"></A>        relativeB = readFromXML(child);
+<FONT ID="LN">1807</FONT><A NAME="1807"></A>        <FONT ID="If">if</FONT> (relativeB <FONT ID="InstanceOf">instanceof</FONT> Boolean) {
+<FONT ID="LN">1808</FONT><A NAME="1808"></A>          relative = ((Boolean)relativeB).booleanValue();
+<FONT ID="LN">1809</FONT><A NAME="1809"></A>        }
+<FONT ID="LN">1810</FONT><A NAME="1810"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1811</FONT><A NAME="1811"></A>        readFromXML(result, name, child);
+<FONT ID="LN">1812</FONT><A NAME="1812"></A>      }
+<FONT ID="LN">1813</FONT><A NAME="1813"></A>    }
+<FONT ID="LN">1814</FONT><A NAME="1814"></A>
+<FONT ID="LN">1815</FONT><A NAME="1815"></A>    <FONT ID="If">if</FONT> ( (file != <FONT ID="Null">null</FONT>) &amp;&amp; (file.length() == <FONT ID="IntegerLiteral">0</FONT>) )
+<FONT ID="LN">1816</FONT><A NAME="1816"></A>      file = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1817</FONT><A NAME="1817"></A>
+<FONT ID="LN">1818</FONT><A NAME="1818"></A>    <FONT ID="SingleLineComment">// savers only get directory and prefix, not file (KnowledgeFlow sets the
+<FONT ID="LN">1819</FONT><A NAME="1819"></A></FONT>    <FONT ID="SingleLineComment">// file/destination based on the relation, dir and prefix)
+<FONT ID="LN">1820</FONT><A NAME="1820"></A></FONT>    <FONT ID="If">if</FONT> ( (dir != <FONT ID="Null">null</FONT>) &amp;&amp; (prefix != <FONT ID="Null">null</FONT>) ) {
+<FONT ID="LN">1821</FONT><A NAME="1821"></A>      ((<A HREF="../../../../weka/core/converters/AbstractFileSaver.java.html">weka.core.converters.AbstractFileSaver</A>) result).setDir(dir);
+<FONT ID="LN">1822</FONT><A NAME="1822"></A>      ((<A HREF="../../../../weka/core/converters/AbstractFileSaver.java.html">weka.core.converters.AbstractFileSaver</A>) result).setFilePrefix(prefix);
+<FONT ID="LN">1823</FONT><A NAME="1823"></A>    }
+<FONT ID="LN">1824</FONT><A NAME="1824"></A>
+<FONT ID="LN">1825</FONT><A NAME="1825"></A>    <FONT ID="If">if</FONT> (result <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>) {
+<FONT ID="LN">1826</FONT><A NAME="1826"></A>      ((<A HREF="../../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>)result).setUseRelativePath(relative);
+<FONT ID="LN">1827</FONT><A NAME="1827"></A>    }
+<FONT ID="LN">1828</FONT><A NAME="1828"></A>    
+<FONT ID="LN">1829</FONT><A NAME="1829"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1830</FONT><A NAME="1830"></A>  }
+<FONT ID="LN">1831</FONT><A NAME="1831"></A>
+<FONT ID="LN">1832</FONT><A NAME="1832"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1833</FONT><A NAME="1833"></A>   * adds the given BeanVisual to a DOM structure.
+<FONT ID="LN">1834</FONT><A NAME="1834"></A>   * 
+<FONT ID="LN">1835</FONT><A NAME="1835"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1836</FONT><A NAME="1836"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1837</FONT><A NAME="1837"></A>   * @param name the name of the object
+<FONT ID="LN">1838</FONT><A NAME="1838"></A>   * @return the node that was created
+<FONT ID="LN">1839</FONT><A NAME="1839"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1840</FONT><A NAME="1840"></A>   */</FONT>
+<FONT ID="LN">1841</FONT><A NAME="1841"></A>  <FONT ID="Public">public</FONT> Element writeBeanVisual(Element parent, Object o, String name)
+<FONT ID="LN">1842</FONT><A NAME="1842"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1843</FONT><A NAME="1843"></A>    
+<FONT ID="LN">1844</FONT><A NAME="1844"></A>    Element         node;
+<FONT ID="LN">1845</FONT><A NAME="1845"></A>    <A HREF="../../../../weka/gui/beans/BeanVisual.java.html">BeanVisual</A>      visual;
+<FONT ID="LN">1846</FONT><A NAME="1846"></A>
+<FONT ID="LN">1847</FONT><A NAME="1847"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1848</FONT><A NAME="1848"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1849</FONT><A NAME="1849"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1850</FONT><A NAME="1850"></A>    
+<FONT ID="LN">1851</FONT><A NAME="1851"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1852</FONT><A NAME="1852"></A>    
+<FONT ID="LN">1853</FONT><A NAME="1853"></A>    visual = (<A HREF="../../../../weka/gui/beans/BeanVisual.java.html">BeanVisual</A>) o;
+<FONT ID="LN">1854</FONT><A NAME="1854"></A>    node   = writeToXML(parent, o, name);
+<FONT ID="LN">1855</FONT><A NAME="1855"></A>
+<FONT ID="LN">1856</FONT><A NAME="1856"></A>    <FONT ID="SingleLineComment">// add icon paths
+<FONT ID="LN">1857</FONT><A NAME="1857"></A></FONT>    invokeWriteToXML(node, visual.getIconPath(),         VAL_ICONPATH);
+<FONT ID="LN">1858</FONT><A NAME="1858"></A>    invokeWriteToXML(node, visual.getAnimatedIconPath(), VAL_ANIMATEDICONPATH);
+<FONT ID="LN">1859</FONT><A NAME="1859"></A>    
+<FONT ID="LN">1860</FONT><A NAME="1860"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1861</FONT><A NAME="1861"></A>  }
+<FONT ID="LN">1862</FONT><A NAME="1862"></A>
+<FONT ID="LN">1863</FONT><A NAME="1863"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1864</FONT><A NAME="1864"></A>   * builds the BeanVisual from the given DOM node.
+<FONT ID="LN">1865</FONT><A NAME="1865"></A>   * 
+<FONT ID="LN">1866</FONT><A NAME="1866"></A>   * @param node the associated XML node
+<FONT ID="LN">1867</FONT><A NAME="1867"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1868</FONT><A NAME="1868"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1869</FONT><A NAME="1869"></A>   */</FONT>
+<FONT ID="LN">1870</FONT><A NAME="1870"></A>  <FONT ID="Public">public</FONT> Object readBeanVisual(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1871</FONT><A NAME="1871"></A>    Object      result;
+<FONT ID="LN">1872</FONT><A NAME="1872"></A>    Vector      children;
+<FONT ID="LN">1873</FONT><A NAME="1873"></A>    Element     child;
+<FONT ID="LN">1874</FONT><A NAME="1874"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">1875</FONT><A NAME="1875"></A>    String      name;
+<FONT ID="LN">1876</FONT><A NAME="1876"></A>    String      text;
+<FONT ID="LN">1877</FONT><A NAME="1877"></A>    String      iconPath;
+<FONT ID="LN">1878</FONT><A NAME="1878"></A>    String      animIconPath;
+<FONT ID="LN">1879</FONT><A NAME="1879"></A>
+<FONT ID="LN">1880</FONT><A NAME="1880"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1881</FONT><A NAME="1881"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1882</FONT><A NAME="1882"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">1883</FONT><A NAME="1883"></A>
+<FONT ID="LN">1884</FONT><A NAME="1884"></A>    m_CurrentNode = node;
+<FONT ID="LN">1885</FONT><A NAME="1885"></A>    
+<FONT ID="LN">1886</FONT><A NAME="1886"></A>    result       = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1887</FONT><A NAME="1887"></A>    children     = XMLDocument.getChildTags(node);
+<FONT ID="LN">1888</FONT><A NAME="1888"></A>    text         = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1889</FONT><A NAME="1889"></A>    iconPath     = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1890</FONT><A NAME="1890"></A>    animIconPath = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1891</FONT><A NAME="1891"></A>
+<FONT ID="LN">1892</FONT><A NAME="1892"></A>    <FONT ID="SingleLineComment">// find text
+<FONT ID="LN">1893</FONT><A NAME="1893"></A></FONT>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">1894</FONT><A NAME="1894"></A>      child = (Element) children.get(i);
+<FONT ID="LN">1895</FONT><A NAME="1895"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">1896</FONT><A NAME="1896"></A>
+<FONT ID="LN">1897</FONT><A NAME="1897"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_TEXT))
+<FONT ID="LN">1898</FONT><A NAME="1898"></A>        text = (String) invokeReadFromXML(child);
+<FONT ID="LN">1899</FONT><A NAME="1899"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_ICONPATH))
+<FONT ID="LN">1900</FONT><A NAME="1900"></A>        iconPath = (String) invokeReadFromXML(child);
+<FONT ID="LN">1901</FONT><A NAME="1901"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_ANIMATEDICONPATH))
+<FONT ID="LN">1902</FONT><A NAME="1902"></A>        animIconPath = (String) invokeReadFromXML(child);
+<FONT ID="LN">1903</FONT><A NAME="1903"></A>    }
+<FONT ID="LN">1904</FONT><A NAME="1904"></A>
+<FONT ID="LN">1905</FONT><A NAME="1905"></A>    result = <FONT ID="New">new</FONT> <A HREF="../../../../weka/gui/beans/BeanVisual.java.html">BeanVisual</A>(text, iconPath, animIconPath);
+<FONT ID="LN">1906</FONT><A NAME="1906"></A>    
+<FONT ID="LN">1907</FONT><A NAME="1907"></A>    <FONT ID="SingleLineComment">// set rest of properties
+<FONT ID="LN">1908</FONT><A NAME="1908"></A></FONT>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++)
+<FONT ID="LN">1909</FONT><A NAME="1909"></A>      readFromXML(result, node.getAttribute(ATT_NAME), (Element) children.get(i));
+<FONT ID="LN">1910</FONT><A NAME="1910"></A>    
+<FONT ID="LN">1911</FONT><A NAME="1911"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1912</FONT><A NAME="1912"></A>  }
+<FONT ID="LN">1913</FONT><A NAME="1913"></A>  
+<FONT ID="LN">1914</FONT><A NAME="1914"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1915</FONT><A NAME="1915"></A>   * returns the IDs for the given BeanInstances, i.e., the stored IDs
+<FONT ID="LN">1916</FONT><A NAME="1916"></A>   * in m_BeanInstancesID, based on m_BeanInstances
+<FONT ID="LN">1917</FONT><A NAME="1917"></A>   * 
+<FONT ID="LN">1918</FONT><A NAME="1918"></A>   * @param beans       the beans to retrieve the IDs for
+<FONT ID="LN">1919</FONT><A NAME="1919"></A>   * @return            the IDs for the given BeanInstances
+<FONT ID="LN">1920</FONT><A NAME="1920"></A>   * @see #m_BeanInstances
+<FONT ID="LN">1921</FONT><A NAME="1921"></A>   * @see #m_BeanInstancesID
+<FONT ID="LN">1922</FONT><A NAME="1922"></A>   */</FONT>
+<FONT ID="LN">1923</FONT><A NAME="1923"></A>  <FONT ID="Protected">protected</FONT> Vector getIDsForBeanInstances(Vector beans) {
+<FONT ID="LN">1924</FONT><A NAME="1924"></A>    Vector        result;
+<FONT ID="LN">1925</FONT><A NAME="1925"></A>    <FONT ID="Int">int</FONT>           i;
+<FONT ID="LN">1926</FONT><A NAME="1926"></A>    <FONT ID="Int">int</FONT>           pos;
+<FONT ID="LN">1927</FONT><A NAME="1927"></A>    
+<FONT ID="LN">1928</FONT><A NAME="1928"></A>    result = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">1929</FONT><A NAME="1929"></A>
+<FONT ID="LN">1930</FONT><A NAME="1930"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; beans.size(); i++) {
+<FONT ID="LN">1931</FONT><A NAME="1931"></A>      pos = m_BeanInstances.indexOf(beans.get(i));
+<FONT ID="LN">1932</FONT><A NAME="1932"></A>      result.add(m_BeanInstancesID.get(pos));
+<FONT ID="LN">1933</FONT><A NAME="1933"></A>    }
+<FONT ID="LN">1934</FONT><A NAME="1934"></A>    
+<FONT ID="LN">1935</FONT><A NAME="1935"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1936</FONT><A NAME="1936"></A>  }
+<FONT ID="LN">1937</FONT><A NAME="1937"></A>  
+<FONT ID="LN">1938</FONT><A NAME="1938"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1939</FONT><A NAME="1939"></A>   * adds the given MetaBean to a DOM structure.
+<FONT ID="LN">1940</FONT><A NAME="1940"></A>   * 
+<FONT ID="LN">1941</FONT><A NAME="1941"></A>   * @param parent the parent of this object, e.g. the class this object is a member of
+<FONT ID="LN">1942</FONT><A NAME="1942"></A>   * @param o the Object to describe in XML
+<FONT ID="LN">1943</FONT><A NAME="1943"></A>   * @param name the name of the object
+<FONT ID="LN">1944</FONT><A NAME="1944"></A>   * @return the node that was created
+<FONT ID="LN">1945</FONT><A NAME="1945"></A>   * @throws Exception if the DOM creation fails
+<FONT ID="LN">1946</FONT><A NAME="1946"></A>   */</FONT>
+<FONT ID="LN">1947</FONT><A NAME="1947"></A>  <FONT ID="Public">public</FONT> Element writeMetaBean(Element parent, Object o, String name)
+<FONT ID="LN">1948</FONT><A NAME="1948"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1949</FONT><A NAME="1949"></A>    
+<FONT ID="LN">1950</FONT><A NAME="1950"></A>    Element         node;
+<FONT ID="LN">1951</FONT><A NAME="1951"></A>    <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>        meta;
+<FONT ID="LN">1952</FONT><A NAME="1952"></A>
+<FONT ID="LN">1953</FONT><A NAME="1953"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">1954</FONT><A NAME="1954"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">1955</FONT><A NAME="1955"></A>       trace(<FONT ID="New">new</FONT> Throwable(), name);
+<FONT ID="LN">1956</FONT><A NAME="1956"></A>    
+<FONT ID="LN">1957</FONT><A NAME="1957"></A>    m_CurrentNode = parent;
+<FONT ID="LN">1958</FONT><A NAME="1958"></A>    
+<FONT ID="LN">1959</FONT><A NAME="1959"></A>    meta = (<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) o;
+<FONT ID="LN">1960</FONT><A NAME="1960"></A>    node = writeToXML(parent, o, name);
+<FONT ID="LN">1961</FONT><A NAME="1961"></A>
+<FONT ID="LN">1962</FONT><A NAME="1962"></A>    invokeWriteToXML(node, getIDsForBeanInstances(meta.getBeansInInputs()), VAL_INPUTSID);
+<FONT ID="LN">1963</FONT><A NAME="1963"></A>    invokeWriteToXML(node, getIDsForBeanInstances(meta.getBeansInOutputs()), VAL_OUTPUTSID);
+<FONT ID="LN">1964</FONT><A NAME="1964"></A>    
+<FONT ID="LN">1965</FONT><A NAME="1965"></A>    <FONT ID="Return">return</FONT> node;
+<FONT ID="LN">1966</FONT><A NAME="1966"></A>  }
+<FONT ID="LN">1967</FONT><A NAME="1967"></A>  
+<FONT ID="LN">1968</FONT><A NAME="1968"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1969</FONT><A NAME="1969"></A>   * returns a vector with references to BeanInstances according to the IDs
+<FONT ID="LN">1970</FONT><A NAME="1970"></A>   * in the given Vector.
+<FONT ID="LN">1971</FONT><A NAME="1971"></A>   * @param ids       contains the IDs of the BeanInstances
+<FONT ID="LN">1972</FONT><A NAME="1972"></A>   * @return          the corresponding BeanInstances
+<FONT ID="LN">1973</FONT><A NAME="1973"></A>   * @see #m_BeanInstances
+<FONT ID="LN">1974</FONT><A NAME="1974"></A>   * @see #m_BeanInstancesID
+<FONT ID="LN">1975</FONT><A NAME="1975"></A>   */</FONT>
+<FONT ID="LN">1976</FONT><A NAME="1976"></A>  <FONT ID="Protected">protected</FONT> Vector getBeanInstancesForIDs(Vector ids) {
+<FONT ID="LN">1977</FONT><A NAME="1977"></A>    Vector        result;
+<FONT ID="LN">1978</FONT><A NAME="1978"></A>    <FONT ID="Int">int</FONT>           i;
+<FONT ID="LN">1979</FONT><A NAME="1979"></A>    <FONT ID="Int">int</FONT>           pos;
+<FONT ID="LN">1980</FONT><A NAME="1980"></A>    
+<FONT ID="LN">1981</FONT><A NAME="1981"></A>    result = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">1982</FONT><A NAME="1982"></A>    
+<FONT ID="LN">1983</FONT><A NAME="1983"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; ids.size(); i++) {
+<FONT ID="LN">1984</FONT><A NAME="1984"></A>      pos = m_BeanInstancesID.indexOf(ids.get(i));
+<FONT ID="LN">1985</FONT><A NAME="1985"></A>      result.add(m_BeanInstances.get(pos));
+<FONT ID="LN">1986</FONT><A NAME="1986"></A>    }
+<FONT ID="LN">1987</FONT><A NAME="1987"></A>    
+<FONT ID="LN">1988</FONT><A NAME="1988"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1989</FONT><A NAME="1989"></A>  }
+<FONT ID="LN">1990</FONT><A NAME="1990"></A>
+<FONT ID="LN">1991</FONT><A NAME="1991"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1992</FONT><A NAME="1992"></A>   * builds the MetaBean from the given DOM node.
+<FONT ID="LN">1993</FONT><A NAME="1993"></A>   * 
+<FONT ID="LN">1994</FONT><A NAME="1994"></A>   * @param node the associated XML node
+<FONT ID="LN">1995</FONT><A NAME="1995"></A>   * @return the instance created from the XML description
+<FONT ID="LN">1996</FONT><A NAME="1996"></A>   * @throws Exception if instantiation fails
+<FONT ID="LN">1997</FONT><A NAME="1997"></A>   */</FONT>
+<FONT ID="LN">1998</FONT><A NAME="1998"></A>  <FONT ID="Public">public</FONT> Object readMetaBean(Element node) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1999</FONT><A NAME="1999"></A>    Object          result;
+<FONT ID="LN">2000</FONT><A NAME="2000"></A>    Vector          children;
+<FONT ID="LN">2001</FONT><A NAME="2001"></A>    Element         child;
+<FONT ID="LN">2002</FONT><A NAME="2002"></A>    <FONT ID="Int">int</FONT>             i;
+<FONT ID="LN">2003</FONT><A NAME="2003"></A>    String          name;
+<FONT ID="LN">2004</FONT><A NAME="2004"></A>    Vector          inputs;
+<FONT ID="LN">2005</FONT><A NAME="2005"></A>    Vector          outputs;
+<FONT ID="LN">2006</FONT><A NAME="2006"></A>    Vector          coords;
+<FONT ID="LN">2007</FONT><A NAME="2007"></A>    <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>        bean;
+<FONT ID="LN">2008</FONT><A NAME="2008"></A>
+<FONT ID="LN">2009</FONT><A NAME="2009"></A>    <FONT ID="SingleLineComment">// for debugging only
+<FONT ID="LN">2010</FONT><A NAME="2010"></A></FONT>    <FONT ID="If">if</FONT> (DEBUG)
+<FONT ID="LN">2011</FONT><A NAME="2011"></A>       trace(<FONT ID="New">new</FONT> Throwable(), node.getAttribute(ATT_NAME));
+<FONT ID="LN">2012</FONT><A NAME="2012"></A>
+<FONT ID="LN">2013</FONT><A NAME="2013"></A>    m_CurrentNode = node;
+<FONT ID="LN">2014</FONT><A NAME="2014"></A>    
+<FONT ID="LN">2015</FONT><A NAME="2015"></A>    result   = <FONT ID="New">new</FONT> <A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>();
+<FONT ID="LN">2016</FONT><A NAME="2016"></A>    children = XMLDocument.getChildTags(node);
+<FONT ID="LN">2017</FONT><A NAME="2017"></A>    inputs   = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">2018</FONT><A NAME="2018"></A>    outputs  = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">2019</FONT><A NAME="2019"></A>    coords   = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">2020</FONT><A NAME="2020"></A>    
+<FONT ID="LN">2021</FONT><A NAME="2021"></A>    <FONT ID="SingleLineComment">// the current MetaBean
+<FONT ID="LN">2022</FONT><A NAME="2022"></A></FONT>    m_CurrentMetaBean = (<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) result;
+<FONT ID="LN">2023</FONT><A NAME="2023"></A>
+<FONT ID="LN">2024</FONT><A NAME="2024"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; children.size(); i++) {
+<FONT ID="LN">2025</FONT><A NAME="2025"></A>      child = (Element) children.get(i);
+<FONT ID="LN">2026</FONT><A NAME="2026"></A>      name  = child.getAttribute(ATT_NAME);
+<FONT ID="LN">2027</FONT><A NAME="2027"></A>
+<FONT ID="LN">2028</FONT><A NAME="2028"></A>      <FONT ID="If">if</FONT> (name.equals(VAL_ASSOCIATEDCONNECTIONS))
+<FONT ID="LN">2029</FONT><A NAME="2029"></A>        ((<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) result).setAssociatedConnections((Vector) invokeReadFromXML(child));
+<FONT ID="LN">2030</FONT><A NAME="2030"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_INPUTSID))
+<FONT ID="LN">2031</FONT><A NAME="2031"></A>        inputs = (Vector) invokeReadFromXML(child);
+<FONT ID="LN">2032</FONT><A NAME="2032"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_OUTPUTSID))
+<FONT ID="LN">2033</FONT><A NAME="2033"></A>        outputs = (Vector) invokeReadFromXML(child);
+<FONT ID="LN">2034</FONT><A NAME="2034"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_SUBFLOW))
+<FONT ID="LN">2035</FONT><A NAME="2035"></A>        ((<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) result).setSubFlow((Vector) invokeReadFromXML(child));
+<FONT ID="LN">2036</FONT><A NAME="2036"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_ORIGINALCOORDS))
+<FONT ID="LN">2037</FONT><A NAME="2037"></A>        coords = (Vector) invokeReadFromXML(child);
+<FONT ID="LN">2038</FONT><A NAME="2038"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_INPUTS))
+<FONT ID="LN">2039</FONT><A NAME="2039"></A>        System.out.println(<FONT ID="StringLiteral">"INFO: '"</FONT> + name + <FONT ID="StringLiteral">"' will be restored later."</FONT>);
+<FONT ID="LN">2040</FONT><A NAME="2040"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.equals(VAL_OUTPUTS))
+<FONT ID="LN">2041</FONT><A NAME="2041"></A>        System.out.println(<FONT ID="StringLiteral">"INFO: '"</FONT> + name + <FONT ID="StringLiteral">"' will be restored later."</FONT>);
+<FONT ID="LN">2042</FONT><A NAME="2042"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">2043</FONT><A NAME="2043"></A>        readFromXML(result, name, child);
+<FONT ID="LN">2044</FONT><A NAME="2044"></A>    }
+<FONT ID="LN">2045</FONT><A NAME="2045"></A>
+<FONT ID="LN">2046</FONT><A NAME="2046"></A>    bean = (<A HREF="../../../../weka/gui/beans/MetaBean.java.html">MetaBean</A>) result;
+<FONT ID="LN">2047</FONT><A NAME="2047"></A>    
+<FONT ID="LN">2048</FONT><A NAME="2048"></A>    <FONT ID="SingleLineComment">// set inputs and outputs, after the beans have been instantiated
+<FONT ID="LN">2049</FONT><A NAME="2049"></A></FONT>    bean.setInputs(getBeanInstancesForIDs(inputs));
+<FONT ID="LN">2050</FONT><A NAME="2050"></A>    bean.setOutputs(getBeanInstancesForIDs(outputs));
+<FONT ID="LN">2051</FONT><A NAME="2051"></A>    bean.setOriginalCoords(coords);
+<FONT ID="LN">2052</FONT><A NAME="2052"></A>    
+<FONT ID="LN">2053</FONT><A NAME="2053"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">2054</FONT><A NAME="2054"></A>  }
+<FONT ID="LN">2055</FONT><A NAME="2055"></A>}
+<FONT ID="LN">2056</FONT><A NAME="2056"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">XMLBeans.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

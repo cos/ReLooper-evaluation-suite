@@ -1,0 +1,585 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.gui.beans.LoaderCustomizer (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">LoaderCustomizer.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    LoaderCustomizer.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2002 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.gui.beans;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Environment.java.html">weka.core.Environment</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/EnvironmentHandler.java.html">weka.core.EnvironmentHandler</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/converters/DatabaseConverter.java.html">weka.core.converters.DatabaseConverter</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/converters/DatabaseLoader.java.html">weka.core.converters.DatabaseLoader</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">weka.core.converters.FileSourcedConverter</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">weka.gui.ExtensionFileFilter</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/GenericObjectEditor.java.html">weka.gui.GenericObjectEditor</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/PropertySheetPanel.java.html">weka.gui.PropertySheetPanel</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.awt.BorderLayout;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.awt.Dimension;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.awt.FlowLayout;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.awt.Font;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.awt.GridBagConstraints;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.awt.GridBagLayout;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> java.awt.GridLayout;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.awt.event.ActionEvent;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> java.awt.event.ActionListener;
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> java.beans.Customizer;
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> java.beans.PropertyChangeEvent;
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Import">import</FONT> java.beans.PropertyChangeListener;
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="Import">import</FONT> java.beans.PropertyChangeSupport;
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">48  </FONT><A NAME="48"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A><FONT ID="Import">import</FONT> javax.swing.BorderFactory;
+<FONT ID="LN">51  </FONT><A NAME="51"></A><FONT ID="Import">import</FONT> javax.swing.JButton;
+<FONT ID="LN">52  </FONT><A NAME="52"></A><FONT ID="Import">import</FONT> javax.swing.JFileChooser;
+<FONT ID="LN">53  </FONT><A NAME="53"></A><FONT ID="Import">import</FONT> javax.swing.JFrame;
+<FONT ID="LN">54  </FONT><A NAME="54"></A><FONT ID="Import">import</FONT> javax.swing.JLabel;
+<FONT ID="LN">55  </FONT><A NAME="55"></A><FONT ID="Import">import</FONT> javax.swing.JPanel;
+<FONT ID="LN">56  </FONT><A NAME="56"></A><FONT ID="Import">import</FONT> javax.swing.JPasswordField;
+<FONT ID="LN">57  </FONT><A NAME="57"></A><FONT ID="Import">import</FONT> javax.swing.JTextField;
+<FONT ID="LN">58  </FONT><A NAME="58"></A><FONT ID="Import">import</FONT> javax.swing.SwingConstants;
+<FONT ID="LN">59  </FONT><A NAME="59"></A><FONT ID="Import">import</FONT> javax.swing.JCheckBox;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * GUI Customizer for the loader bean
+<FONT ID="LN">63  </FONT><A NAME="63"></A> *
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * @author &lt;a href="mailto:mhall@cs.waikato.ac.nz"&gt;Mark Hall&lt;/a&gt;
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * @version $Revision: 5406 $
+<FONT ID="LN">66  </FONT><A NAME="66"></A> */</FONT>
+<FONT ID="LN">67  </FONT><A NAME="67"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> LoaderCustomizer
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="Extends">extends</FONT> JPanel
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="Implements">implements</FONT> Customizer, <A HREF="../../../weka/gui/beans/CustomizerCloseRequester.java.html">CustomizerCloseRequester</A>, <A HREF="../../../weka/core/EnvironmentHandler.java.html">EnvironmentHandler</A> {
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">6990446313118930298L</FONT>;
+<FONT ID="LN">73  </FONT><A NAME="73"></A>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Static">static</FONT> {
+<FONT ID="LN">75  </FONT><A NAME="75"></A>     GenericObjectEditor.registerEditors();
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  }
+<FONT ID="LN">77  </FONT><A NAME="77"></A>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  <FONT ID="Private">private</FONT> PropertyChangeSupport m_pcSupport = 
+<FONT ID="LN">79  </FONT><A NAME="79"></A>    <FONT ID="New">new</FONT> PropertyChangeSupport(<FONT ID="This">this</FONT>);
+<FONT ID="LN">80  </FONT><A NAME="80"></A>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/beans/Loader.java.html">weka.gui.beans.Loader</A> m_dsLoader;
+<FONT ID="LN">82  </FONT><A NAME="82"></A>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/PropertySheetPanel.java.html">PropertySheetPanel</A> m_LoaderEditor = 
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/PropertySheetPanel.java.html">PropertySheetPanel</A>();
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="Private">private</FONT> JFileChooser m_fileChooser 
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    = <FONT ID="New">new</FONT> JFileChooser(<FONT ID="New">new</FONT> File(System.getProperty(<FONT ID="StringLiteral">"user.dir"</FONT>)));
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="MultiLineComment">/*  private JDialog m_chooserDialog = 
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    new JDialog((JFrame)getTopLevelAncestor(),
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    true); */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  <FONT ID="Private">private</FONT> JFrame m_parentFrame;
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="Private">private</FONT> JFrame m_fileChooserFrame;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  
+<FONT ID="LN">95  </FONT><A NAME="95"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A> m_dbaseURLText;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A> m_userNameText;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A> m_queryText;
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A> m_keyText;
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  
+<FONT ID="LN">103 </FONT><A NAME="103"></A>  <FONT ID="Private">private</FONT> JPasswordField m_passwordText;
+<FONT ID="LN">104 </FONT><A NAME="104"></A>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  <FONT ID="Private">private</FONT> JCheckBox m_relativeFilePath;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A> m_fileText;
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../weka/core/Environment.java.html">Environment</A> m_env = Environment.getSystemWide();
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  <FONT ID="Public">public</FONT> LoaderCustomizer() {
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    <FONT ID="MultiLineComment">/*    m_fileEditor.addPropertyChangeListener(new PropertyChangeListener() {
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    public void propertyChange(PropertyChangeEvent e) {
+<FONT ID="LN">114 </FONT><A NAME="114"></A>      if (m_dsLoader != null) {
+<FONT ID="LN">115 </FONT><A NAME="115"></A>        m_dsLoader.setDataSetFile((File)m_fileEditor.getValue());
+<FONT ID="LN">116 </FONT><A NAME="116"></A>      }
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    }
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    }); */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">121 </FONT><A NAME="121"></A>      <FONT ID="MultiLineComment">/*      m_LoaderEditor.setClassType(weka.core.converters.Loader.class);
+<FONT ID="LN">122 </FONT><A NAME="122"></A>          m_LoaderEditor.setValue(new weka.core.converters.ArffLoader()); */</FONT>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>      m_LoaderEditor.addPropertyChangeListener(
+<FONT ID="LN">124 </FONT><A NAME="124"></A>      <FONT ID="New">new</FONT> PropertyChangeListener() {
+<FONT ID="LN">125 </FONT><A NAME="125"></A>          <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> propertyChange(PropertyChangeEvent e) {
+<FONT ID="LN">126 </FONT><A NAME="126"></A>        repaint();
+<FONT ID="LN">127 </FONT><A NAME="127"></A>        <FONT ID="If">if</FONT> (m_dsLoader != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">128 </FONT><A NAME="128"></A>          System.err.println(<FONT ID="StringLiteral">"Property change!!"</FONT>);
+<FONT ID="LN">129 </FONT><A NAME="129"></A>          m_dsLoader.setLoader(m_dsLoader.getLoader());
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        }
+<FONT ID="LN">131 </FONT><A NAME="131"></A>          }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>        });
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      repaint();
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">135 </FONT><A NAME="135"></A>      ex.printStackTrace();
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    }
+<FONT ID="LN">137 </FONT><A NAME="137"></A>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    <FONT ID="SingleLineComment">//    add(m_fileEditor.getCustomEditor(), BorderLayout.CENTER);
+<FONT ID="LN">140 </FONT><A NAME="140"></A></FONT>    <FONT ID="SingleLineComment">//    add(m_LoaderEditor, BorderLayout.CENTER);
+<FONT ID="LN">141 </FONT><A NAME="141"></A></FONT>    m_fileChooser.setDialogType(JFileChooser.OPEN_DIALOG);
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    m_fileChooser.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">144 </FONT><A NAME="144"></A>      <FONT ID="If">if</FONT> (e.getActionCommand().equals(JFileChooser.APPROVE_SELECTION)) {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">146 </FONT><A NAME="146"></A>              File selectedFile = m_fileChooser.getSelectedFile();
+<FONT ID="LN">147 </FONT><A NAME="147"></A><FONT ID="MultiLineComment">/*              EnvironmentField ef = m_environmentFields.get(0);
+<FONT ID="LN">148 </FONT><A NAME="148"></A>              ef.setText(selectedFile.toString()); */</FONT>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>              m_fileText.setText(selectedFile.toString());
+<FONT ID="LN">150 </FONT><A NAME="150"></A>              
+<FONT ID="LN">151 </FONT><A NAME="151"></A><FONT ID="MultiLineComment">/*        ((FileSourcedConverter)m_dsLoader.getLoader()).
+<FONT ID="LN">152 </FONT><A NAME="152"></A>        setFile(selectedFile);
+<FONT ID="LN">153 </FONT><A NAME="153"></A>          // tell the loader that a new file has been selected so
+<FONT ID="LN">154 </FONT><A NAME="154"></A>          // that it can attempt to load the header
+<FONT ID="LN">155 </FONT><A NAME="155"></A>          //m_dsLoader.setLoader(m_dsLoader.getLoader());
+<FONT ID="LN">156 </FONT><A NAME="156"></A>          m_dsLoader.newFileSelected(); */</FONT>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>        } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">158 </FONT><A NAME="158"></A>          ex.printStackTrace();
+<FONT ID="LN">159 </FONT><A NAME="159"></A>        }
+<FONT ID="LN">160 </FONT><A NAME="160"></A>      }
+<FONT ID="LN">161 </FONT><A NAME="161"></A>      <FONT ID="SingleLineComment">// closing
+<FONT ID="LN">162 </FONT><A NAME="162"></A></FONT>      <FONT ID="If">if</FONT> (m_fileChooserFrame != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        <FONT ID="SingleLineComment">// m_parentFrame.dispose();
+<FONT ID="LN">164 </FONT><A NAME="164"></A></FONT>        m_fileChooserFrame.dispose();
+<FONT ID="LN">165 </FONT><A NAME="165"></A>      }
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    }
+<FONT ID="LN">167 </FONT><A NAME="167"></A>      });   
+<FONT ID="LN">168 </FONT><A NAME="168"></A>  }
+<FONT ID="LN">169 </FONT><A NAME="169"></A>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setParentFrame(JFrame parent) {
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    m_parentFrame = parent;
+<FONT ID="LN">172 </FONT><A NAME="172"></A>  }
+<FONT ID="LN">173 </FONT><A NAME="173"></A>  
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> setUpOther() {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    removeAll();
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    add(m_LoaderEditor, BorderLayout.CENTER);
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    validate();
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    repaint();
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  }
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  
+<FONT ID="LN">181 </FONT><A NAME="181"></A>  
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  <FONT ID="FormalComment">/** Sets up a customizer window for a Database Connection*/</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="Private">private</FONT> <FONT ID="Void">void</FONT> setUpDatabase() {
+<FONT ID="LN">184 </FONT><A NAME="184"></A>
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    removeAll();
+<FONT ID="LN">186 </FONT><A NAME="186"></A>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    JPanel db = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    GridBagLayout gbLayout = <FONT ID="New">new</FONT> GridBagLayout();
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    <FONT ID="SingleLineComment">//db.setLayout(new GridLayout(6, 1));
+<FONT ID="LN">190 </FONT><A NAME="190"></A></FONT>    db.setLayout(gbLayout);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    JLabel urlLab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Database URL"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    urlLab.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    GridBagConstraints gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">0</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    gbLayout.setConstraints(urlLab, gbConstraints);
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    db.add(urlLab);
+<FONT ID="LN">200 </FONT><A NAME="200"></A>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    m_dbaseURLText = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A>();
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    m_dbaseURLText.setEnvironment(m_env);
+<FONT ID="LN">203 </FONT><A NAME="203"></A><FONT ID="MultiLineComment">/*    int width = m_dbaseURLText.getPreferredSize().width;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    int height = m_dbaseURLText.getPreferredSize().height;
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    m_dbaseURLText.setMinimumSize(new Dimension(width * 2, height));
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    m_dbaseURLText.setPreferredSize(new Dimension(width * 2, height)); */</FONT>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    m_dbaseURLText.setText(((<A HREF="../../../weka/core/converters/DatabaseConverter.java.html">DatabaseConverter</A>)m_dsLoader.getLoader()).getUrl());
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">0</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    gbConstraints.weightx = <FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    gbLayout.setConstraints(m_dbaseURLText, gbConstraints);
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    db.add(m_dbaseURLText);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    JLabel userLab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Username"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    userLab.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">1</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    gbLayout.setConstraints(userLab, gbConstraints);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>    db.add(userLab);
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    
+<FONT ID="LN">225 </FONT><A NAME="225"></A>    m_userNameText = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A>();
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    m_userNameText.setEnvironment(m_env);
+<FONT ID="LN">227 </FONT><A NAME="227"></A><FONT ID="MultiLineComment">/*    m_userNameText.setMinimumSize(new Dimension(width * 2, height));
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    m_userNameText.setPreferredSize(new Dimension(width * 2, height)); */</FONT>
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    m_userNameText.setText(((<A HREF="../../../weka/core/converters/DatabaseConverter.java.html">DatabaseConverter</A>)m_dsLoader.getLoader()).getUser()); 
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">1</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    gbLayout.setConstraints(m_userNameText, gbConstraints);
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    db.add(m_userNameText);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    JLabel passwordLab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Password "</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">238 </FONT><A NAME="238"></A>    passwordLab.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">2</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    gbLayout.setConstraints(passwordLab, gbConstraints);
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    db.add(passwordLab);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    m_passwordText = <FONT ID="New">new</FONT> JPasswordField();     
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    JPanel passwordHolder = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    passwordHolder.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    passwordHolder.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">5</FONT>));
+<FONT ID="LN">250 </FONT><A NAME="250"></A><FONT ID="SingleLineComment">//    passwordHolder.add(passwordLab, BorderLayout.WEST);
+<FONT ID="LN">251 </FONT><A NAME="251"></A></FONT>    passwordHolder.add(m_passwordText, BorderLayout.CENTER);
+<FONT ID="LN">252 </FONT><A NAME="252"></A><FONT ID="MultiLineComment">/*    passwordHolder.setMinimumSize(new Dimension(width * 2, height));
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    passwordHolder.setPreferredSize(new Dimension(width * 2, height)); */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">2</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    gbLayout.setConstraints(passwordHolder, gbConstraints);
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    db.add(passwordHolder);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    JLabel queryLab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Query"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    queryLab.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">3</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    gbLayout.setConstraints(queryLab, gbConstraints);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    db.add(queryLab);
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    m_queryText = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A>();
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    m_queryText.setEnvironment(m_env);
+<FONT ID="LN">272 </FONT><A NAME="272"></A><FONT ID="MultiLineComment">/*    m_queryText.setMinimumSize(new Dimension(width * 2, height));
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    m_queryText.setPreferredSize(new Dimension(width * 2, height)); */</FONT>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    m_queryText.setText(((<A HREF="../../../weka/core/converters/DatabaseLoader.java.html">DatabaseLoader</A>)m_dsLoader.getLoader()).getQuery());
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">3</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    gbLayout.setConstraints(m_queryText, gbConstraints);
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    db.add(m_queryText);
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    JLabel keyLab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Key columns"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    keyLab.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">4</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    gbLayout.setConstraints(keyLab, gbConstraints);
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    db.add(keyLab);
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    m_keyText = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A>();
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    m_keyText.setEnvironment(m_env);
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    <FONT ID="MultiLineComment">/*m_keyText.setMinimumSize(new Dimension(width * 2, height));
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    m_keyText.setPreferredSize(new Dimension(width * 2, height)); */</FONT>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    m_keyText.setText(((<A HREF="../../../weka/core/converters/DatabaseLoader.java.html">DatabaseLoader</A>)m_dsLoader.getLoader()).getKeys());
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">4</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    gbLayout.setConstraints(m_keyText, gbConstraints);
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    db.add(m_keyText);
+<FONT ID="LN">302 </FONT><A NAME="302"></A>
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    JPanel buttonsP = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    buttonsP.setLayout(<FONT ID="New">new</FONT> FlowLayout());
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    JButton ok,cancel;
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    buttonsP.add(ok = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"OK"</FONT>));
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    buttonsP.add(cancel=<FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Cancel"</FONT>));
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    ok.addActionListener(<FONT ID="New">new</FONT> ActionListener(){
+<FONT ID="LN">309 </FONT><A NAME="309"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent evt){
+<FONT ID="LN">310 </FONT><A NAME="310"></A>        ((<A HREF="../../../weka/core/converters/DatabaseLoader.java.html">DatabaseLoader</A>)m_dsLoader.getLoader()).resetStructure();  
+<FONT ID="LN">311 </FONT><A NAME="311"></A>        ((<A HREF="../../../weka/core/converters/DatabaseConverter.java.html">DatabaseConverter</A>)m_dsLoader.getLoader()).setUrl(m_dbaseURLText.getText());
+<FONT ID="LN">312 </FONT><A NAME="312"></A>        ((<A HREF="../../../weka/core/converters/DatabaseConverter.java.html">DatabaseConverter</A>)m_dsLoader.getLoader()).setUser(m_userNameText.getText());
+<FONT ID="LN">313 </FONT><A NAME="313"></A>        ((<A HREF="../../../weka/core/converters/DatabaseConverter.java.html">DatabaseConverter</A>)m_dsLoader.getLoader()).setPassword(<FONT ID="New">new</FONT> String(m_passwordText.getPassword()));
+<FONT ID="LN">314 </FONT><A NAME="314"></A>        ((<A HREF="../../../weka/core/converters/DatabaseLoader.java.html">DatabaseLoader</A>)m_dsLoader.getLoader()).setQuery(m_queryText.getText());
+<FONT ID="LN">315 </FONT><A NAME="315"></A>        ((<A HREF="../../../weka/core/converters/DatabaseLoader.java.html">DatabaseLoader</A>)m_dsLoader.getLoader()).setKeys(m_keyText.getText());
+<FONT ID="LN">316 </FONT><A NAME="316"></A>        <FONT ID="Try">try</FONT>{
+<FONT ID="LN">317 </FONT><A NAME="317"></A>          m_dsLoader.notifyStructureAvailable(((<A HREF="../../../weka/core/converters/DatabaseLoader.java.html">DatabaseLoader</A>)m_dsLoader.getLoader()).getStructure());
+<FONT ID="LN">318 </FONT><A NAME="318"></A>          <FONT ID="SingleLineComment">//database connection has been configured
+<FONT ID="LN">319 </FONT><A NAME="319"></A></FONT>          m_dsLoader.setDB(<FONT ID="True">true</FONT>);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>        }<FONT ID="Catch">catch</FONT> (Exception ex){
+<FONT ID="LN">321 </FONT><A NAME="321"></A>        }
+<FONT ID="LN">322 </FONT><A NAME="322"></A>        <FONT ID="If">if</FONT> (m_parentFrame != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">323 </FONT><A NAME="323"></A>          m_parentFrame.dispose();
+<FONT ID="LN">324 </FONT><A NAME="324"></A>        }
+<FONT ID="LN">325 </FONT><A NAME="325"></A>      }
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    });
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    cancel.addActionListener(<FONT ID="New">new</FONT> ActionListener(){
+<FONT ID="LN">328 </FONT><A NAME="328"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent evt){
+<FONT ID="LN">329 </FONT><A NAME="329"></A>        <FONT ID="If">if</FONT> (m_parentFrame != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">330 </FONT><A NAME="330"></A>          m_parentFrame.dispose();
+<FONT ID="LN">331 </FONT><A NAME="331"></A>        }
+<FONT ID="LN">332 </FONT><A NAME="332"></A>      }
+<FONT ID="LN">333 </FONT><A NAME="333"></A>    });
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    JPanel holderP = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    holderP.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    holderP.add(db, BorderLayout.NORTH);
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    holderP.add(buttonsP, BorderLayout.SOUTH);
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    <FONT ID="SingleLineComment">//db.add(buttonsP);
+<FONT ID="LN">341 </FONT><A NAME="341"></A></FONT>    JPanel about = m_LoaderEditor.getAboutPanel();
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    <FONT ID="If">if</FONT> (about != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">343 </FONT><A NAME="343"></A>      add(about, BorderLayout.NORTH);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    }
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    add(holderP, BorderLayout.SOUTH);
+<FONT ID="LN">346 </FONT><A NAME="346"></A>  }
+<FONT ID="LN">347 </FONT><A NAME="347"></A>
+<FONT ID="LN">348 </FONT><A NAME="348"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setUpFile() {
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    removeAll();
+<FONT ID="LN">350 </FONT><A NAME="350"></A>
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    <FONT ID="Boolean">boolean</FONT> currentFileIsDir = <FONT ID="False">false</FONT>;
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    File tmp = ((<A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">FileSourcedConverter</A>)m_dsLoader.getLoader()).retrieveFile();
+<FONT ID="LN">353 </FONT><A NAME="353"></A>    String tmpString = tmp.toString();
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    <FONT ID="If">if</FONT> (Environment.containsEnvVariables(tmpString)) {
+<FONT ID="LN">355 </FONT><A NAME="355"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">356 </FONT><A NAME="356"></A>        tmpString = m_env.substitute(tmpString);
+<FONT ID="LN">357 </FONT><A NAME="357"></A>      } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">358 </FONT><A NAME="358"></A>        <FONT ID="SingleLineComment">// ignore
+<FONT ID="LN">359 </FONT><A NAME="359"></A></FONT>      }
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    }
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    File tmp2 = <FONT ID="New">new</FONT> File((<FONT ID="New">new</FONT> File(tmpString)).getAbsolutePath());
+<FONT ID="LN">362 </FONT><A NAME="362"></A>
+<FONT ID="LN">363 </FONT><A NAME="363"></A>    <FONT ID="If">if</FONT> (tmp2.isDirectory()) {
+<FONT ID="LN">364 </FONT><A NAME="364"></A>      m_fileChooser.setCurrentDirectory(tmp2);
+<FONT ID="LN">365 </FONT><A NAME="365"></A>      currentFileIsDir = <FONT ID="True">true</FONT>;
+<FONT ID="LN">366 </FONT><A NAME="366"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">367 </FONT><A NAME="367"></A>      m_fileChooser.setSelectedFile(tmp2);
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    }
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    <A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">FileSourcedConverter</A> loader = (<A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">FileSourcedConverter</A>) m_dsLoader.getLoader();
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    String[] ext = loader.getFileExtensions();
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">ExtensionFileFilter</A> firstFilter = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">373 </FONT><A NAME="373"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; ext.length; i++) {
+<FONT ID="LN">374 </FONT><A NAME="374"></A>      <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">ExtensionFileFilter</A> ff =
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">ExtensionFileFilter</A>(
+<FONT ID="LN">376 </FONT><A NAME="376"></A>        ext[i], loader.getFileDescription() + <FONT ID="StringLiteral">" (*"</FONT> + ext[i] + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">377 </FONT><A NAME="377"></A>      <FONT ID="If">if</FONT> (i == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    firstFilter = ff;
+<FONT ID="LN">379 </FONT><A NAME="379"></A>      m_fileChooser.addChoosableFileFilter(ff);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    }
+<FONT ID="LN">381 </FONT><A NAME="381"></A>    <FONT ID="If">if</FONT> (firstFilter != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">382 </FONT><A NAME="382"></A>      m_fileChooser.setFileFilter(firstFilter);
+<FONT ID="LN">383 </FONT><A NAME="383"></A>    JPanel about = m_LoaderEditor.getAboutPanel();
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    JPanel northPanel = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    northPanel.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    <FONT ID="If">if</FONT> (about != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">387 </FONT><A NAME="387"></A>      northPanel.add(about, BorderLayout.NORTH);
+<FONT ID="LN">388 </FONT><A NAME="388"></A>    }
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    add(northPanel, BorderLayout.NORTH);
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    <FONT ID="Final">final</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A> ef = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/beans/EnvironmentField.java.html">EnvironmentField</A>();
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    JPanel efHolder = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    efHolder.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">393 </FONT><A NAME="393"></A>
+<FONT ID="LN">394 </FONT><A NAME="394"></A>    ef.setEnvironment(m_env);
+<FONT ID="LN">395 </FONT><A NAME="395"></A>    <FONT ID="MultiLineComment">/*int width = ef.getPreferredSize().width;
+<FONT ID="LN">396 </FONT><A NAME="396"></A>    int height = ef.getPreferredSize().height;
+<FONT ID="LN">397 </FONT><A NAME="397"></A>//    ef.setMinimumSize(new Dimension(width * 2, height));
+<FONT ID="LN">398 </FONT><A NAME="398"></A>    ef.setPreferredSize(new Dimension(width * 2, height)); */</FONT>
+<FONT ID="LN">399 </FONT><A NAME="399"></A>    m_fileText = ef;
+<FONT ID="LN">400 </FONT><A NAME="400"></A>    
+<FONT ID="LN">401 </FONT><A NAME="401"></A>    <FONT ID="SingleLineComment">// only set the text on the EnvironmentField if the current file is not a directory
+<FONT ID="LN">402 </FONT><A NAME="402"></A></FONT>    <FONT ID="If">if</FONT> (!currentFileIsDir) {
+<FONT ID="LN">403 </FONT><A NAME="403"></A>      ef.setText(tmp.toString());
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    }
+<FONT ID="LN">405 </FONT><A NAME="405"></A>    
+<FONT ID="LN">406 </FONT><A NAME="406"></A>    efHolder.add(ef, BorderLayout.CENTER);
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    JButton browseBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Browse..."</FONT>);
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    browseBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">409 </FONT><A NAME="409"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">410 </FONT><A NAME="410"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">411 </FONT><A NAME="411"></A>          <FONT ID="Final">final</FONT> JFrame jf = <FONT ID="New">new</FONT> JFrame(<FONT ID="StringLiteral">"Choose file"</FONT>);
+<FONT ID="LN">412 </FONT><A NAME="412"></A>          jf.getContentPane().setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">413 </FONT><A NAME="413"></A>          jf.getContentPane().add(m_fileChooser, BorderLayout.CENTER);
+<FONT ID="LN">414 </FONT><A NAME="414"></A>          jf.pack();
+<FONT ID="LN">415 </FONT><A NAME="415"></A>          jf.setVisible(<FONT ID="True">true</FONT>);
+<FONT ID="LN">416 </FONT><A NAME="416"></A>          m_fileChooserFrame = jf;
+<FONT ID="LN">417 </FONT><A NAME="417"></A>        } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">418 </FONT><A NAME="418"></A>          ex.printStackTrace();
+<FONT ID="LN">419 </FONT><A NAME="419"></A>        }
+<FONT ID="LN">420 </FONT><A NAME="420"></A>      }
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    });
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    JPanel bP = <FONT ID="New">new</FONT> JPanel(); bP.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    bP.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">5</FONT>));
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    bP.add(browseBut, BorderLayout.CENTER);
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    efHolder.add(bP, BorderLayout.EAST);
+<FONT ID="LN">427 </FONT><A NAME="427"></A>    JPanel alignedP = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    GridBagLayout gbLayout = <FONT ID="New">new</FONT> GridBagLayout();
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    alignedP.setLayout(gbLayout);
+<FONT ID="LN">430 </FONT><A NAME="430"></A>    JLabel efLab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Filename"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    efLab.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">432 </FONT><A NAME="432"></A>    GridBagConstraints gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">0</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">436 </FONT><A NAME="436"></A>    gbLayout.setConstraints(efLab, gbConstraints);    
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    alignedP.add(efLab);
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">0</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    gbConstraints.weightx = <FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    gbLayout.setConstraints(efHolder, gbConstraints);
+<FONT ID="LN">445 </FONT><A NAME="445"></A>    alignedP.add(efHolder);
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    
+<FONT ID="LN">447 </FONT><A NAME="447"></A>    
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    northPanel.add(alignedP, BorderLayout.SOUTH);
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    
+<FONT ID="LN">450 </FONT><A NAME="450"></A>    <FONT ID="SingleLineComment">// add(m_fileChooser, BorderLayout.CENTER);
+<FONT ID="LN">451 </FONT><A NAME="451"></A></FONT>
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    <FONT ID="SingleLineComment">// m_relativeFilePath = new JCheckBox("Use relative file paths");
+<FONT ID="LN">453 </FONT><A NAME="453"></A></FONT>    m_relativeFilePath = <FONT ID="New">new</FONT> JCheckBox();
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    m_relativeFilePath.
+<FONT ID="LN">455 </FONT><A NAME="455"></A>      setSelected(((<A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">FileSourcedConverter</A>)m_dsLoader.getLoader()).getUseRelativePath());
+<FONT ID="LN">456 </FONT><A NAME="456"></A>
+<FONT ID="LN">457 </FONT><A NAME="457"></A>    m_relativeFilePath.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">458 </FONT><A NAME="458"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">459 </FONT><A NAME="459"></A>          ((<A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">FileSourcedConverter</A>)m_dsLoader.getLoader()).
+<FONT ID="LN">460 </FONT><A NAME="460"></A>            setUseRelativePath(m_relativeFilePath.isSelected());
+<FONT ID="LN">461 </FONT><A NAME="461"></A>        }
+<FONT ID="LN">462 </FONT><A NAME="462"></A>      });
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    JLabel relativeLab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Use relative file paths"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    relativeLab.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">0</FONT>));
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">467 </FONT><A NAME="467"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">469 </FONT><A NAME="469"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">1</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">470 </FONT><A NAME="470"></A>    gbLayout.setConstraints(relativeLab, gbConstraints);
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    alignedP.add(relativeLab);
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    gbConstraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    gbConstraints.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    gbConstraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    gbConstraints.gridy = <FONT ID="IntegerLiteral">1</FONT>; gbConstraints.gridx = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    gbLayout.setConstraints(m_relativeFilePath, gbConstraints);
+<FONT ID="LN">479 </FONT><A NAME="479"></A>    alignedP.add(m_relativeFilePath);
+<FONT ID="LN">480 </FONT><A NAME="480"></A>        
+<FONT ID="LN">481 </FONT><A NAME="481"></A>    JPanel butHolder = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">482 </FONT><A NAME="482"></A>    <FONT ID="SingleLineComment">//butHolder.setLayout(new GridLayout(1,2));
+<FONT ID="LN">483 </FONT><A NAME="483"></A></FONT>    butHolder.setLayout(<FONT ID="New">new</FONT> FlowLayout());
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    JButton OKBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"OK"</FONT>);
+<FONT ID="LN">485 </FONT><A NAME="485"></A>    OKBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">486 </FONT><A NAME="486"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">487 </FONT><A NAME="487"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">488 </FONT><A NAME="488"></A>          ((<A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">FileSourcedConverter</A>)m_dsLoader.getLoader()).
+<FONT ID="LN">489 </FONT><A NAME="489"></A>          setFile(<FONT ID="New">new</FONT> File(ef.getText()));
+<FONT ID="LN">490 </FONT><A NAME="490"></A>          <FONT ID="SingleLineComment">// tell the loader that a new file has been selected so
+<FONT ID="LN">491 </FONT><A NAME="491"></A></FONT>          <FONT ID="SingleLineComment">// that it can attempt to load the header
+<FONT ID="LN">492 </FONT><A NAME="492"></A></FONT>          m_dsLoader.setLoader(m_dsLoader.getLoader());
+<FONT ID="LN">493 </FONT><A NAME="493"></A>          m_dsLoader.newFileSelected();
+<FONT ID="LN">494 </FONT><A NAME="494"></A>        } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">495 </FONT><A NAME="495"></A>          ex.printStackTrace();
+<FONT ID="LN">496 </FONT><A NAME="496"></A>        }
+<FONT ID="LN">497 </FONT><A NAME="497"></A>        
+<FONT ID="LN">498 </FONT><A NAME="498"></A>        m_parentFrame.dispose();
+<FONT ID="LN">499 </FONT><A NAME="499"></A>      }
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    });
+<FONT ID="LN">501 </FONT><A NAME="501"></A>
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    JButton CancelBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Cancel"</FONT>);
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    CancelBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">504 </FONT><A NAME="504"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">505 </FONT><A NAME="505"></A>        m_parentFrame.dispose();
+<FONT ID="LN">506 </FONT><A NAME="506"></A>      }
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    });
+<FONT ID="LN">508 </FONT><A NAME="508"></A>    
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    butHolder.add(OKBut);
+<FONT ID="LN">510 </FONT><A NAME="510"></A>    butHolder.add(CancelBut);
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    
+<FONT ID="LN">512 </FONT><A NAME="512"></A>    add(butHolder, BorderLayout.SOUTH);
+<FONT ID="LN">513 </FONT><A NAME="513"></A>  }
+<FONT ID="LN">514 </FONT><A NAME="514"></A>
+<FONT ID="LN">515 </FONT><A NAME="515"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">516 </FONT><A NAME="516"></A>   * Set the loader to be customized
+<FONT ID="LN">517 </FONT><A NAME="517"></A>   *
+<FONT ID="LN">518 </FONT><A NAME="518"></A>   * @param object a weka.gui.beans.Loader
+<FONT ID="LN">519 </FONT><A NAME="519"></A>   */</FONT>
+<FONT ID="LN">520 </FONT><A NAME="520"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setObject(Object object) {
+<FONT ID="LN">521 </FONT><A NAME="521"></A>    m_dsLoader = (<A HREF="../../../weka/gui/beans/Loader.java.html">weka.gui.beans.Loader</A>)object;
+<FONT ID="LN">522 </FONT><A NAME="522"></A>    m_LoaderEditor.setTarget(m_dsLoader.getLoader());
+<FONT ID="LN">523 </FONT><A NAME="523"></A>    <FONT ID="SingleLineComment">//    m_fileEditor.setValue(m_dsLoader.getDataSetFile());
+<FONT ID="LN">524 </FONT><A NAME="524"></A></FONT>    <FONT ID="If">if</FONT> (m_dsLoader.getLoader() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/core/converters/FileSourcedConverter.java.html">FileSourcedConverter</A>) {
+<FONT ID="LN">525 </FONT><A NAME="525"></A>      setUpFile();
+<FONT ID="LN">526 </FONT><A NAME="526"></A>    } <FONT ID="Else">else</FONT>{ 
+<FONT ID="LN">527 </FONT><A NAME="527"></A>        <FONT ID="If">if</FONT>(m_dsLoader.getLoader() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/core/converters/DatabaseConverter.java.html">DatabaseConverter</A>) {
+<FONT ID="LN">528 </FONT><A NAME="528"></A>            setUpDatabase();
+<FONT ID="LN">529 </FONT><A NAME="529"></A>        }
+<FONT ID="LN">530 </FONT><A NAME="530"></A>        <FONT ID="Else">else</FONT>
+<FONT ID="LN">531 </FONT><A NAME="531"></A>      setUpOther();
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    }
+<FONT ID="LN">533 </FONT><A NAME="533"></A>  }
+<FONT ID="LN">534 </FONT><A NAME="534"></A>  
+<FONT ID="LN">535 </FONT><A NAME="535"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setEnvironment(<A HREF="../../../weka/core/Environment.java.html">Environment</A> env) {
+<FONT ID="LN">536 </FONT><A NAME="536"></A>    m_env = env;
+<FONT ID="LN">537 </FONT><A NAME="537"></A>  }
+<FONT ID="LN">538 </FONT><A NAME="538"></A>
+<FONT ID="LN">539 </FONT><A NAME="539"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">540 </FONT><A NAME="540"></A>   * Add a property change listener
+<FONT ID="LN">541 </FONT><A NAME="541"></A>   *
+<FONT ID="LN">542 </FONT><A NAME="542"></A>   * @param pcl a &lt;code&gt;PropertyChangeListener&lt;/code&gt; value
+<FONT ID="LN">543 </FONT><A NAME="543"></A>   */</FONT>
+<FONT ID="LN">544 </FONT><A NAME="544"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addPropertyChangeListener(PropertyChangeListener pcl) {
+<FONT ID="LN">545 </FONT><A NAME="545"></A>    m_pcSupport.addPropertyChangeListener(pcl);
+<FONT ID="LN">546 </FONT><A NAME="546"></A>  }
+<FONT ID="LN">547 </FONT><A NAME="547"></A>
+<FONT ID="LN">548 </FONT><A NAME="548"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">549 </FONT><A NAME="549"></A>   * Remove a property change listener
+<FONT ID="LN">550 </FONT><A NAME="550"></A>   *
+<FONT ID="LN">551 </FONT><A NAME="551"></A>   * @param pcl a &lt;code&gt;PropertyChangeListener&lt;/code&gt; value
+<FONT ID="LN">552 </FONT><A NAME="552"></A>   */</FONT>
+<FONT ID="LN">553 </FONT><A NAME="553"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> removePropertyChangeListener(PropertyChangeListener pcl) {
+<FONT ID="LN">554 </FONT><A NAME="554"></A>    m_pcSupport.removePropertyChangeListener(pcl);
+<FONT ID="LN">555 </FONT><A NAME="555"></A>  }
+<FONT ID="LN">556 </FONT><A NAME="556"></A>}
+<FONT ID="LN">557 </FONT><A NAME="557"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">LoaderCustomizer.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

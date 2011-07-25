@@ -1,0 +1,286 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.associations.CaRuleGeneration (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CaRuleGeneration.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    CaRuleGeneration.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2004 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.associations;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Attribute.java.html">weka.core.Attribute</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/FastVector.java.html">weka.core.FastVector</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/RevisionHandler.java.html">weka.core.RevisionHandler</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/UnassignedClassException.java.html">weka.core.UnassignedClassException</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> java.util.Hashtable;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.util.TreeSet;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * Class implementing the rule generation procedure of the predictive apriori algorithm for class association rules.
+<FONT ID="LN">39  </FONT><A NAME="39"></A> *
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * For association rules in gerneral the method is described in:
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * T. Scheffer (2001). &lt;i&gt;Finding Association Rules That Trade Support 
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * Optimally against Confidence&lt;/i&gt;. Proc of the 5th European Conf.
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * on Principles and Practice of Knowledge Discovery in Databases (PKDD'01),
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * pp. 424-435. Freiburg, Germany: Springer-Verlag. &lt;p&gt;
+<FONT ID="LN">45  </FONT><A NAME="45"></A> *
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * The implementation follows the paper expect for adding a rule to the output of the
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * &lt;i&gt;n&lt;/i&gt; best rules. A rule is added if:
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * the expected predictive accuracy of this rule is among the &lt;i&gt;n&lt;/i&gt; best and it is 
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * not subsumed by a rule with at least the same expected predictive accuracy
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * (out of an unpublished manuscript from T. Scheffer). 
+<FONT ID="LN">51  </FONT><A NAME="51"></A> *
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * @author Stefan Mutter (mutter@cs.waikato.ac.nz)
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * @version $Revision: 1.4 $ */</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> CaRuleGeneration
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../weka/associations/RuleGeneration.java.html">RuleGeneration</A>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">3065752149646517703L</FONT>;
+<FONT ID="LN">60  </FONT><A NAME="60"></A>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * Constructor
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * @param itemSet the item set that forms the premise of the rule
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Public">public</FONT> CaRuleGeneration(<A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A> itemSet){
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Super">super</FONT>(itemSet);  
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  }
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   * Generates all rules for an item set. The item set is the premise.
+<FONT ID="LN">71  </FONT><A NAME="71"></A>   * @param numRules the number of association rules the use wants to mine.
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   * This number equals the size &lt;i&gt;n&lt;/i&gt; of the list of the
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   * best rules.
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   * @param midPoints the mid points of the intervals
+<FONT ID="LN">75  </FONT><A NAME="75"></A>   * @param priors Hashtable that contains the prior probabilities
+<FONT ID="LN">76  </FONT><A NAME="76"></A>   * @param expectation the minimum value of the expected predictive accuracy
+<FONT ID="LN">77  </FONT><A NAME="77"></A>   * that is needed to get into the list of the best rules
+<FONT ID="LN">78  </FONT><A NAME="78"></A>   * @param instances the instances for which association rules are generated
+<FONT ID="LN">79  </FONT><A NAME="79"></A>   * @param best the list of the &lt;i&gt;n&lt;/i&gt; best rules.
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * The list is implemented as a TreeSet
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   * @param genTime the maximum time of generation
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   * @return all the rules with minimum confidence for the given item set
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   */</FONT>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  <FONT ID="Public">public</FONT> TreeSet generateRules(<FONT ID="Int">int</FONT> numRules, <FONT ID="Double">double</FONT>[] midPoints, Hashtable priors, <FONT ID="Double">double</FONT> expectation, <A HREF="../../weka/core/Instances.java.html">Instances</A> instances, TreeSet best, <FONT ID="Int">int</FONT> genTime) {
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="Boolean">boolean</FONT> redundant = <FONT ID="False">false</FONT>;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <A HREF="../../weka/core/FastVector.java.html">FastVector</A> consequences = <FONT ID="New">new</FONT> <A HREF="../../weka/core/FastVector.java.html">FastVector</A>();
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    <A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A> premise;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A> current = <FONT ID="Null">null</FONT>, old = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">90  </FONT><A NAME="90"></A>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    Hashtable hashtable;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    m_change = <FONT ID="False">false</FONT>;
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    m_midPoints = midPoints;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    m_priors = priors;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    m_best = best;
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    m_expectation = expectation;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    m_count = genTime;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    m_instances = instances;
+<FONT ID="LN">100 </FONT><A NAME="100"></A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="SingleLineComment">//create rule body
+<FONT ID="LN">102 </FONT><A NAME="102"></A></FONT>    premise =<FONT ID="Null">null</FONT>;
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    premise = <FONT ID="New">new</FONT> <A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A>(m_totalTransactions);
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    <FONT ID="Int">int</FONT>[] premiseItems = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_items.length];
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    System.arraycopy(m_items, <FONT ID="IntegerLiteral">0</FONT>, premiseItems, <FONT ID="IntegerLiteral">0</FONT>, m_items.length);
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    premise.setItem(premiseItems);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    premise.setCounter(m_counter);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    consequences = singleConsequence(instances);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    <FONT ID="SingleLineComment">//create n best rules
+<FONT ID="LN">112 </FONT><A NAME="112"></A></FONT>    <FONT ID="Do">do</FONT>{
+<FONT ID="LN">113 </FONT><A NAME="113"></A>      <FONT ID="If">if</FONT>(premise == <FONT ID="Null">null</FONT> || consequences.size() == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    <FONT ID="Return">return</FONT> m_best;
+<FONT ID="LN">115 </FONT><A NAME="115"></A>      m_minRuleCount = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">116 </FONT><A NAME="116"></A>      <FONT ID="While">while</FONT>(expectation((<FONT ID="Double">double</FONT>)m_minRuleCount,premise.counter(),m_midPoints,m_priors) &lt;= m_expectation){
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    m_minRuleCount++;
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="If">if</FONT>(m_minRuleCount &gt; premise.counter())
+<FONT ID="LN">119 </FONT><A NAME="119"></A>      <FONT ID="Return">return</FONT> m_best;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>      }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>      redundant = <FONT ID="False">false</FONT>;
+<FONT ID="LN">122 </FONT><A NAME="122"></A>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>      <FONT ID="SingleLineComment">//create possible heads  
+<FONT ID="LN">124 </FONT><A NAME="124"></A></FONT>      <A HREF="../../weka/core/FastVector.java.html">FastVector</A> allRuleItems = <FONT ID="New">new</FONT> <A HREF="../../weka/core/FastVector.java.html">FastVector</A>();
+<FONT ID="LN">125 </FONT><A NAME="125"></A>      <FONT ID="Int">int</FONT> h = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>      <FONT ID="While">while</FONT>(h &lt; consequences.size()){
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A> dummie = <FONT ID="New">new</FONT> <A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A>();
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    m_count++;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    current = dummie.generateRuleItem(premise,(<A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A>)consequences.elementAt(h),instances,m_count,m_minRuleCount,m_midPoints,m_priors);
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    <FONT ID="If">if</FONT>(current != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      allRuleItems.addElement(current);
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    h++;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      }
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>      <FONT ID="SingleLineComment">//update best
+<FONT ID="LN">136 </FONT><A NAME="136"></A></FONT>      <FONT ID="For">for</FONT>(h =<FONT ID="IntegerLiteral">0</FONT>; h&lt; allRuleItems.size();h++){
+<FONT ID="LN">137 </FONT><A NAME="137"></A>    current = (<A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A>)allRuleItems.elementAt(h);
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    <FONT ID="If">if</FONT>(m_best.size() &lt; numRules){
+<FONT ID="LN">139 </FONT><A NAME="139"></A>      m_change =<FONT ID="True">true</FONT>;
+<FONT ID="LN">140 </FONT><A NAME="140"></A>      redundant = removeRedundant(current);  
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    <FONT ID="Else">else</FONT>{
+<FONT ID="LN">143 </FONT><A NAME="143"></A>      m_expectation = ((<A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A>)(m_best.first())).accuracy();
+<FONT ID="LN">144 </FONT><A NAME="144"></A>      <FONT ID="If">if</FONT>(current.accuracy() &gt; m_expectation){
+<FONT ID="LN">145 </FONT><A NAME="145"></A>        <FONT ID="Boolean">boolean</FONT> remove = m_best.remove(m_best.first());
+<FONT ID="LN">146 </FONT><A NAME="146"></A>        m_change = <FONT ID="True">true</FONT>;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>        redundant = removeRedundant(current);
+<FONT ID="LN">148 </FONT><A NAME="148"></A>        m_expectation = ((<A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A>)(m_best.first())).accuracy();
+<FONT ID="LN">149 </FONT><A NAME="149"></A>        <FONT ID="While">while</FONT>(expectation((<FONT ID="Double">double</FONT>)m_minRuleCount, (current.premise()).counter(),m_midPoints,m_priors) &lt; m_expectation){
+<FONT ID="LN">150 </FONT><A NAME="150"></A>          m_minRuleCount++;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>          <FONT ID="If">if</FONT>(m_minRuleCount &gt; (current.premise()).counter())
+<FONT ID="LN">152 </FONT><A NAME="152"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>        } 
+<FONT ID="LN">154 </FONT><A NAME="154"></A>      }  
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    }   
+<FONT ID="LN">156 </FONT><A NAME="156"></A>      }   
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    }<FONT ID="While">while</FONT>(redundant); 
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="Return">return</FONT> m_best;
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  }
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   * Methods that decides whether or not rule a subsumes rule b.
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * The defintion of subsumption is:
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   * Rule a subsumes rule b, if a subsumes b
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * AND
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * a has got least the same expected predictive accuracy as b.
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * @param a an association rule stored as a RuleItem
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * @param b an association rule stored as a RuleItem
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   * @return true if rule a subsumes rule b or false otherwise.
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   */</FONT>  
+<FONT ID="LN">171 </FONT><A NAME="171"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> aSubsumesB(<A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A> a, <A HREF="../../weka/associations/RuleItem.java.html">RuleItem</A> b){
+<FONT ID="LN">172 </FONT><A NAME="172"></A>
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    <FONT ID="If">if</FONT>(!a.consequence().equals(b.consequence()))
+<FONT ID="LN">174 </FONT><A NAME="174"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    <FONT ID="If">if</FONT>(a.accuracy() &lt; b.accuracy())
+<FONT ID="LN">176 </FONT><A NAME="176"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> k = <FONT ID="IntegerLiteral">0</FONT>; k &lt; ((a.premise()).items()).length;k++){
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      <FONT ID="If">if</FONT>((a.premise()).itemAt(k) != (b.premise()).itemAt(k)){
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    <FONT ID="If">if</FONT>(((a.premise()).itemAt(k) != -<FONT ID="IntegerLiteral">1</FONT> &amp;&amp; (b.premise()).itemAt(k) != -<FONT ID="IntegerLiteral">1</FONT>) || (b.premise()).itemAt(k) == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">180 </FONT><A NAME="180"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">181 </FONT><A NAME="181"></A>      }
+<FONT ID="LN">182 </FONT><A NAME="182"></A>      <FONT ID="MultiLineComment">/*if(a.m_consequence.m_items[k] != b.m_consequence.m_items[k]){
+<FONT ID="LN">183 </FONT><A NAME="183"></A>            if((a.m_consequence.m_items[k] != -1 &amp;&amp; b.m_consequence.m_items[k] != -1) || a.m_consequence.m_items[k] == -1)
+<FONT ID="LN">184 </FONT><A NAME="184"></A>                return false;
+<FONT ID="LN">185 </FONT><A NAME="185"></A>        }*/</FONT>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    }
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">188 </FONT><A NAME="188"></A>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  }
+<FONT ID="LN">190 </FONT><A NAME="190"></A>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">192 </FONT><A NAME="192"></A>   * Converts the header info of the given set of instances into a set 
+<FONT ID="LN">193 </FONT><A NAME="193"></A>   * of item sets (singletons). The ordering of values in the header file 
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   * determines the lexicographic order.
+<FONT ID="LN">195 </FONT><A NAME="195"></A>   *
+<FONT ID="LN">196 </FONT><A NAME="196"></A>   * @param instances the set of instances whose header info is to be used
+<FONT ID="LN">197 </FONT><A NAME="197"></A>   * @return a set of item sets, each containing a single item
+<FONT ID="LN">198 </FONT><A NAME="198"></A>   * @exception Exception if singletons can't be generated successfully
+<FONT ID="LN">199 </FONT><A NAME="199"></A>   */</FONT>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../weka/core/FastVector.java.html">FastVector</A> singletons(<A HREF="../../weka/core/Instances.java.html">Instances</A> instances) <FONT ID="Throws">throws</FONT> <A HREF="../../weka/core/UnassignedClassException.java.html">Exception</A> {
+<FONT ID="LN">201 </FONT><A NAME="201"></A>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    <A HREF="../../weka/core/FastVector.java.html">FastVector</A> setOfItemSets = <FONT ID="New">new</FONT> <A HREF="../../weka/core/FastVector.java.html">FastVector</A>();
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    <A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A> current;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    <FONT ID="If">if</FONT>(instances.classIndex() == -<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">206 </FONT><A NAME="206"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../weka/core/UnassignedClassException.java.html">UnassignedClassException</A>(<FONT ID="StringLiteral">"Class index is negative (not set)!"</FONT>);
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    <A HREF="../../weka/core/Attribute.java.html">Attribute</A> att = instances.classAttribute();
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; instances.numAttributes(); i++) {
+<FONT ID="LN">209 </FONT><A NAME="209"></A>      <FONT ID="If">if</FONT> (instances.attribute(i).isNumeric())
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../weka/core/UnassignedClassException.java.html">Exception</A>(<FONT ID="StringLiteral">"Can't handle numeric attributes!"</FONT>);
+<FONT ID="LN">211 </FONT><A NAME="211"></A>      <FONT ID="If">if</FONT>(i != instances.classIndex()){
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; instances.attribute(i).numValues(); j++) {
+<FONT ID="LN">213 </FONT><A NAME="213"></A>      current = <FONT ID="New">new</FONT> <A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A>(instances.numInstances());
+<FONT ID="LN">214 </FONT><A NAME="214"></A>      <FONT ID="Int">int</FONT>[] currentItems = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[instances.numAttributes()];
+<FONT ID="LN">215 </FONT><A NAME="215"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> k = <FONT ID="IntegerLiteral">0</FONT>; k &lt; instances.numAttributes(); k++)
+<FONT ID="LN">216 </FONT><A NAME="216"></A>        currentItems[k] = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>      currentItems[i] = j;
+<FONT ID="LN">218 </FONT><A NAME="218"></A>      current.setItem(currentItems);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>      setOfItemSets.addElement(current);
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    }
+<FONT ID="LN">221 </FONT><A NAME="221"></A>      }
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    }
+<FONT ID="LN">223 </FONT><A NAME="223"></A>    <FONT ID="Return">return</FONT> setOfItemSets;
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  }
+<FONT ID="LN">225 </FONT><A NAME="225"></A>
+<FONT ID="LN">226 </FONT><A NAME="226"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * generates a consequence of length 1 for a class association rule.
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * @param instances the instances under consideration
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * @return FastVector with consequences of length 1
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   */</FONT>  
+<FONT ID="LN">231 </FONT><A NAME="231"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../weka/core/FastVector.java.html">FastVector</A> singleConsequence(<A HREF="../../weka/core/Instances.java.html">Instances</A> instances){
+<FONT ID="LN">232 </FONT><A NAME="232"></A>
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    <A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A> consequence;
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    <A HREF="../../weka/core/FastVector.java.html">FastVector</A> consequences = <FONT ID="New">new</FONT> <A HREF="../../weka/core/FastVector.java.html">FastVector</A>();
+<FONT ID="LN">235 </FONT><A NAME="235"></A>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; (instances.classAttribute()).numValues(); j++) {
+<FONT ID="LN">237 </FONT><A NAME="237"></A>      consequence = <FONT ID="New">new</FONT> <A HREF="../../weka/associations/ItemSet.java.html">ItemSet</A>(instances.numInstances());
+<FONT ID="LN">238 </FONT><A NAME="238"></A>      <FONT ID="Int">int</FONT>[] consequenceItems = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[instances.numAttributes()];
+<FONT ID="LN">239 </FONT><A NAME="239"></A>      consequence.setItem(consequenceItems);
+<FONT ID="LN">240 </FONT><A NAME="240"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> k = <FONT ID="IntegerLiteral">0</FONT>; k &lt; instances.numAttributes(); k++) 
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    consequence.setItemAt(-<FONT ID="IntegerLiteral">1</FONT>,k);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>      consequence.setItemAt(j,instances.classIndex());
+<FONT ID="LN">243 </FONT><A NAME="243"></A>      consequences.addElement(consequence);
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    }
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    <FONT ID="Return">return</FONT> consequences;
+<FONT ID="LN">246 </FONT><A NAME="246"></A>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  }
+<FONT ID="LN">248 </FONT><A NAME="248"></A>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * Returns the revision string.
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   * 
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   * @return        the revision
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 1.4 $"</FONT>);
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  }
+<FONT ID="LN">257 </FONT><A NAME="257"></A>}
+<FONT ID="LN">258 </FONT><A NAME="258"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CaRuleGeneration.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,272 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.matrix.QRDecomposition (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">QRDecomposition.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> * This software is a cooperative product of The MathWorks and the National
+<FONT ID="LN">3   </FONT><A NAME="3"></A> * Institute of Standards and Technology (NIST) which has been released to the
+<FONT ID="LN">4   </FONT><A NAME="4"></A> * public domain. Neither The MathWorks nor NIST assumes any responsibility
+<FONT ID="LN">5   </FONT><A NAME="5"></A> * whatsoever for its use by other parties, and makes no guarantees, expressed
+<FONT ID="LN">6   </FONT><A NAME="6"></A> * or implied, about its quality, reliability, or any other characteristic.
+<FONT ID="LN">7   </FONT><A NAME="7"></A> */</FONT>
+<FONT ID="LN">8   </FONT><A NAME="8"></A>
+<FONT ID="LN">9   </FONT><A NAME="9"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">10  </FONT><A NAME="10"></A> * QRDecomposition.java
+<FONT ID="LN">11  </FONT><A NAME="11"></A> * Copyright (C) 1999 The Mathworks and NIST
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *
+<FONT ID="LN">13  </FONT><A NAME="13"></A> */</FONT>
+<FONT ID="LN">14  </FONT><A NAME="14"></A>
+<FONT ID="LN">15  </FONT><A NAME="15"></A><FONT ID="Package">package</FONT> weka.core.matrix;
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/RevisionHandler.java.html">weka.core.RevisionHandler</A>;
+<FONT ID="LN">18  </FONT><A NAME="18"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">19  </FONT><A NAME="19"></A>
+<FONT ID="LN">20  </FONT><A NAME="20"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="FormalComment">/** 
+<FONT ID="LN">23  </FONT><A NAME="23"></A> * QR Decomposition.
+<FONT ID="LN">24  </FONT><A NAME="24"></A> * &lt;P&gt;
+<FONT ID="LN">25  </FONT><A NAME="25"></A> * For an m-by-n matrix A with m &amp;gt;= n, the QR decomposition is an m-by-n
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * orthogonal matrix Q and an n-by-n upper triangular matrix R so that A = Q*R.
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * &lt;P&gt;
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * The QR decompostion always exists, even if the matrix does not have full
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * rank, so the constructor will never fail.  The primary use of the QR
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * decomposition is in the least squares solution of nonsquare systems of
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * simultaneous linear equations.  This will fail if isFullRank() returns false.
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * &lt;p/&gt;
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * Adapted from the &lt;a href="http://math.nist.gov/javanumerics/jama/" target="_blank"&gt;JAMA&lt;/a&gt; package.
+<FONT ID="LN">34  </FONT><A NAME="34"></A> *
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * @author The Mathworks and NIST 
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * @author Fracpete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * @version $Revision: 5953 $
+<FONT ID="LN">38  </FONT><A NAME="38"></A> */</FONT>
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> QRDecomposition 
+<FONT ID="LN">40  </FONT><A NAME="40"></A>  <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">41  </FONT><A NAME="41"></A>
+<FONT ID="LN">42  </FONT><A NAME="42"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">5013090736132211418L</FONT>;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">46  </FONT><A NAME="46"></A>   * Array for internal storage of decomposition.
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   *    @serial internal array storage.
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT>[][] QR;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * Row and column dimensions.
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   *    @serial column dimension.
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   *    @serial row dimension.
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m, n;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">59  </FONT><A NAME="59"></A>   * Array for internal storage of diagonal of R.
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   *    @serial diagonal of R.
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT>[] Rdiag;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   * QR Decomposition, computed by Householder reflections.
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   * @param A    Rectangular matrix
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   */</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="Public">public</FONT> QRDecomposition(<A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> A) {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="SingleLineComment">// Initialize.
+<FONT ID="LN">70  </FONT><A NAME="70"></A></FONT>    QR = A.getArrayCopy();
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    m = A.getRowDimension();
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    n = A.getColumnDimension();
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    Rdiag = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[n];
+<FONT ID="LN">74  </FONT><A NAME="74"></A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    <FONT ID="SingleLineComment">// Main loop.
+<FONT ID="LN">76  </FONT><A NAME="76"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> k = <FONT ID="IntegerLiteral">0</FONT>; k &lt; n; k++) {
+<FONT ID="LN">77  </FONT><A NAME="77"></A>      <FONT ID="SingleLineComment">// Compute 2-norm of k-th column without under/overflow.
+<FONT ID="LN">78  </FONT><A NAME="78"></A></FONT>      <FONT ID="Double">double</FONT> nrm = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">79  </FONT><A NAME="79"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">80  </FONT><A NAME="80"></A>        nrm = Maths.hypot(nrm,QR[i][k]);
+<FONT ID="LN">81  </FONT><A NAME="81"></A>      }
+<FONT ID="LN">82  </FONT><A NAME="82"></A>
+<FONT ID="LN">83  </FONT><A NAME="83"></A>      <FONT ID="If">if</FONT> (nrm != <FONT ID="FloatPointLiteral">0.0</FONT>) {
+<FONT ID="LN">84  </FONT><A NAME="84"></A>        <FONT ID="SingleLineComment">// Form k-th Householder vector.
+<FONT ID="LN">85  </FONT><A NAME="85"></A></FONT>        <FONT ID="If">if</FONT> (QR[k][k] &lt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">86  </FONT><A NAME="86"></A>          nrm = -nrm;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>        }
+<FONT ID="LN">88  </FONT><A NAME="88"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">89  </FONT><A NAME="89"></A>          QR[i][k] /= nrm;
+<FONT ID="LN">90  </FONT><A NAME="90"></A>        }
+<FONT ID="LN">91  </FONT><A NAME="91"></A>        QR[k][k] += <FONT ID="FloatPointLiteral">1.0</FONT>;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>        <FONT ID="SingleLineComment">// Apply transformation to remaining columns.
+<FONT ID="LN">94  </FONT><A NAME="94"></A></FONT>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = k+<FONT ID="IntegerLiteral">1</FONT>; j &lt; n; j++) {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>          <FONT ID="Double">double</FONT> s = <FONT ID="FloatPointLiteral">0.0</FONT>; 
+<FONT ID="LN">96  </FONT><A NAME="96"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">97  </FONT><A NAME="97"></A>            s += QR[i][k]*QR[i][j];
+<FONT ID="LN">98  </FONT><A NAME="98"></A>          }
+<FONT ID="LN">99  </FONT><A NAME="99"></A>          s = -s/QR[k][k];
+<FONT ID="LN">100 </FONT><A NAME="100"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">101 </FONT><A NAME="101"></A>            QR[i][j] += s*QR[i][k];
+<FONT ID="LN">102 </FONT><A NAME="102"></A>          }
+<FONT ID="LN">103 </FONT><A NAME="103"></A>        }
+<FONT ID="LN">104 </FONT><A NAME="104"></A>      }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      Rdiag[k] = -nrm;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  }
+<FONT ID="LN">108 </FONT><A NAME="108"></A>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   * Is the matrix full rank?
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   * @return     true if R, and hence A, has full rank.
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   */</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isFullRank() {
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; n; j++) {
+<FONT ID="LN">115 </FONT><A NAME="115"></A>      <FONT ID="If">if</FONT> (Rdiag[j] == <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">116 </FONT><A NAME="116"></A>        <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    }
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  }
+<FONT ID="LN">120 </FONT><A NAME="120"></A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   * Return the Householder vectors
+<FONT ID="LN">123 </FONT><A NAME="123"></A>   * @return     Lower trapezoidal matrix whose columns define the reflections
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   */</FONT>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> getH() {
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> X = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A>(m,n);
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <FONT ID="Double">double</FONT>[][] H = X.getArray();
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m; i++) {
+<FONT ID="LN">129 </FONT><A NAME="129"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; n; j++) {
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        <FONT ID="If">if</FONT> (i &gt;= j) {
+<FONT ID="LN">131 </FONT><A NAME="131"></A>          H[i][j] = QR[i][j];
+<FONT ID="LN">132 </FONT><A NAME="132"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">133 </FONT><A NAME="133"></A>          H[i][j] = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>        }
+<FONT ID="LN">135 </FONT><A NAME="135"></A>      }
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    }
+<FONT ID="LN">137 </FONT><A NAME="137"></A>    <FONT ID="Return">return</FONT> X;
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  }
+<FONT ID="LN">139 </FONT><A NAME="139"></A>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * Return the upper triangular factor
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   * @return     R
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   */</FONT>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> getR() {
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> X = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A>(n,n);
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    <FONT ID="Double">double</FONT>[][] R = X.getArray();
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; n; i++) {
+<FONT ID="LN">148 </FONT><A NAME="148"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; n; j++) {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>        <FONT ID="If">if</FONT> (i &lt; j) {
+<FONT ID="LN">150 </FONT><A NAME="150"></A>          R[i][j] = QR[i][j];
+<FONT ID="LN">151 </FONT><A NAME="151"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (i == j) {
+<FONT ID="LN">152 </FONT><A NAME="152"></A>          R[i][j] = Rdiag[i];
+<FONT ID="LN">153 </FONT><A NAME="153"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">154 </FONT><A NAME="154"></A>          R[i][j] = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">155 </FONT><A NAME="155"></A>        }
+<FONT ID="LN">156 </FONT><A NAME="156"></A>      }
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    }
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="Return">return</FONT> X;
+<FONT ID="LN">159 </FONT><A NAME="159"></A>  }
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   * Generate and return the (economy-sized) orthogonal factor
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * @return     Q
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   */</FONT>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> getQ() {
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> X = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A>(m,n);
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    <FONT ID="Double">double</FONT>[][] Q = X.getArray();
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> k = n-<FONT ID="IntegerLiteral">1</FONT>; k &gt;= <FONT ID="IntegerLiteral">0</FONT>; k--) {
+<FONT ID="LN">169 </FONT><A NAME="169"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m; i++) {
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        Q[i][k] = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">171 </FONT><A NAME="171"></A>      }
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      Q[k][k] = <FONT ID="FloatPointLiteral">1.0</FONT>;
+<FONT ID="LN">173 </FONT><A NAME="173"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = k; j &lt; n; j++) {
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        <FONT ID="If">if</FONT> (QR[k][k] != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>          <FONT ID="Double">double</FONT> s = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">176 </FONT><A NAME="176"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">177 </FONT><A NAME="177"></A>            s += QR[i][k]*Q[i][j];
+<FONT ID="LN">178 </FONT><A NAME="178"></A>          }
+<FONT ID="LN">179 </FONT><A NAME="179"></A>          s = -s/QR[k][k];
+<FONT ID="LN">180 </FONT><A NAME="180"></A>          <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">181 </FONT><A NAME="181"></A>            Q[i][j] += s*QR[i][k];
+<FONT ID="LN">182 </FONT><A NAME="182"></A>          }
+<FONT ID="LN">183 </FONT><A NAME="183"></A>        }
+<FONT ID="LN">184 </FONT><A NAME="184"></A>      }
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    }
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    <FONT ID="Return">return</FONT> X;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  }
+<FONT ID="LN">188 </FONT><A NAME="188"></A>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   * Least squares solution of A*X = B
+<FONT ID="LN">191 </FONT><A NAME="191"></A>   * @param B    A Matrix with as many rows as A and any number of columns.
+<FONT ID="LN">192 </FONT><A NAME="192"></A>   * @return     X that minimizes the two norm of Q*R*X-B.
+<FONT ID="LN">193 </FONT><A NAME="193"></A>   * @exception  IllegalArgumentException  Matrix row dimensions must agree.
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   * @exception  RuntimeException  Matrix is rank deficient.
+<FONT ID="LN">195 </FONT><A NAME="195"></A>   */</FONT>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> solve(<A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A> B) {
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    <FONT ID="If">if</FONT> (B.getRowDimension() != m) {
+<FONT ID="LN">198 </FONT><A NAME="198"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"Matrix row dimensions must agree."</FONT>);
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    }
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    <FONT ID="If">if</FONT> (!<FONT ID="This">this</FONT>.isFullRank()) {
+<FONT ID="LN">201 </FONT><A NAME="201"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> RuntimeException(<FONT ID="StringLiteral">"Matrix is rank deficient."</FONT>);
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    }
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    <FONT ID="SingleLineComment">// Copy right hand side
+<FONT ID="LN">205 </FONT><A NAME="205"></A></FONT>    <FONT ID="Int">int</FONT> nx = B.getColumnDimension();
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    <FONT ID="Double">double</FONT>[][] X = B.getArrayCopy();
+<FONT ID="LN">207 </FONT><A NAME="207"></A>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    <FONT ID="SingleLineComment">// Compute Y = transpose(Q)*B
+<FONT ID="LN">209 </FONT><A NAME="209"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> k = <FONT ID="IntegerLiteral">0</FONT>; k &lt; n; k++) {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; nx; j++) {
+<FONT ID="LN">211 </FONT><A NAME="211"></A>        <FONT ID="Double">double</FONT> s = <FONT ID="FloatPointLiteral">0.0</FONT>; 
+<FONT ID="LN">212 </FONT><A NAME="212"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">213 </FONT><A NAME="213"></A>          s += QR[i][k]*X[i][j];
+<FONT ID="LN">214 </FONT><A NAME="214"></A>        }
+<FONT ID="LN">215 </FONT><A NAME="215"></A>        s = -s/QR[k][k];
+<FONT ID="LN">216 </FONT><A NAME="216"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = k; i &lt; m; i++) {
+<FONT ID="LN">217 </FONT><A NAME="217"></A>          X[i][j] += s*QR[i][k];
+<FONT ID="LN">218 </FONT><A NAME="218"></A>        }
+<FONT ID="LN">219 </FONT><A NAME="219"></A>      }
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    }
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="SingleLineComment">// Solve R*X = Y;
+<FONT ID="LN">222 </FONT><A NAME="222"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> k = n-<FONT ID="IntegerLiteral">1</FONT>; k &gt;= <FONT ID="IntegerLiteral">0</FONT>; k--) {
+<FONT ID="LN">223 </FONT><A NAME="223"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; nx; j++) {
+<FONT ID="LN">224 </FONT><A NAME="224"></A>        X[k][j] /= Rdiag[k];
+<FONT ID="LN">225 </FONT><A NAME="225"></A>      }
+<FONT ID="LN">226 </FONT><A NAME="226"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; k; i++) {
+<FONT ID="LN">227 </FONT><A NAME="227"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; nx; j++) {
+<FONT ID="LN">228 </FONT><A NAME="228"></A>          X[i][j] -= X[k][j]*QR[i][k];
+<FONT ID="LN">229 </FONT><A NAME="229"></A>        }
+<FONT ID="LN">230 </FONT><A NAME="230"></A>      }
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    }
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    <FONT ID="Return">return</FONT> (<FONT ID="New">new</FONT> <A HREF="../../../weka/core/matrix/Matrix.java.html">Matrix</A>(X,n,nx).getMatrix(<FONT ID="IntegerLiteral">0</FONT>,n-<FONT ID="IntegerLiteral">1</FONT>,<FONT ID="IntegerLiteral">0</FONT>,nx-<FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">233 </FONT><A NAME="233"></A>  }
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  
+<FONT ID="LN">235 </FONT><A NAME="235"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   * Returns the revision string.
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * 
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * @return        the revision
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   */</FONT>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>  }
+<FONT ID="LN">243 </FONT><A NAME="243"></A>}
+<FONT ID="LN">244 </FONT><A NAME="244"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">QRDecomposition.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

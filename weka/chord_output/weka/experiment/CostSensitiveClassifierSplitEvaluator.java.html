@@ -1,0 +1,590 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.experiment.CostSensitiveClassifierSplitEvaluator (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CostSensitiveClassifierSplitEvaluator.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    CostSensitiveClassifierSplitEvaluator.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2002 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Package">package</FONT> weka.experiment;
+<FONT ID="LN">25  </FONT><A NAME="25"></A>
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/classifiers/Classifier.java.html">weka.classifiers.Classifier</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/classifiers/AbstractClassifier.java.html">weka.classifiers.AbstractClassifier</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/classifiers/CostMatrix.java.html">weka.classifiers.CostMatrix</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/classifiers/Evaluation.java.html">weka.classifiers.Evaluation</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/AdditionalMeasureProducer.java.html">weka.core.AdditionalMeasureProducer</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Attribute.java.html">weka.core.Attribute</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Option.java.html">weka.core.Option</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Summarizable.java.html">weka.core.Summarizable</A>;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.io.BufferedReader;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> java.io.ByteArrayOutputStream;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> java.io.FileReader;
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> java.io.ObjectOutputStream;
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> java.lang.management.ManagementFactory;
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Import">import</FONT> java.lang.management.ThreadMXBean;
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">48  </FONT><A NAME="48"></A>
+<FONT ID="LN">49  </FONT><A NAME="49"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">50  </FONT><A NAME="50"></A> &lt;!-- globalinfo-start --&gt;
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * SplitEvaluator that produces results for a classification scheme on a nominal class attribute, including weighted misclassification costs.
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * &lt;p/&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> &lt;!-- globalinfo-end --&gt;
+<FONT ID="LN">54  </FONT><A NAME="54"></A> *
+<FONT ID="LN">55  </FONT><A NAME="55"></A> &lt;!-- options-start --&gt;
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * Valid options are: &lt;p/&gt;
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * 
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * &lt;pre&gt; -W &amp;lt;class name&amp;gt;
+<FONT ID="LN">59  </FONT><A NAME="59"></A> *  The full class name of the classifier.
+<FONT ID="LN">60  </FONT><A NAME="60"></A> *  eg: weka.classifiers.bayes.NaiveBayes&lt;/pre&gt;
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * 
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * &lt;pre&gt; -C &amp;lt;index&amp;gt;
+<FONT ID="LN">63  </FONT><A NAME="63"></A> *  The index of the class for which IR statistics
+<FONT ID="LN">64  </FONT><A NAME="64"></A> *  are to be output. (default 1)&lt;/pre&gt;
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * 
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * &lt;pre&gt; -I &amp;lt;index&amp;gt;
+<FONT ID="LN">67  </FONT><A NAME="67"></A> *  The index of an attribute to output in the
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *  results. This attribute should identify an
+<FONT ID="LN">69  </FONT><A NAME="69"></A> *  instance in order to know which instances are
+<FONT ID="LN">70  </FONT><A NAME="70"></A> *  in the test set of a cross validation. if 0
+<FONT ID="LN">71  </FONT><A NAME="71"></A> *  no output (default 0).&lt;/pre&gt;
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * 
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * &lt;pre&gt; -P
+<FONT ID="LN">74  </FONT><A NAME="74"></A> *  Add target and prediction columns to the result
+<FONT ID="LN">75  </FONT><A NAME="75"></A> *  for each fold.&lt;/pre&gt;
+<FONT ID="LN">76  </FONT><A NAME="76"></A> * 
+<FONT ID="LN">77  </FONT><A NAME="77"></A> * &lt;pre&gt; 
+<FONT ID="LN">78  </FONT><A NAME="78"></A> * Options specific to classifier weka.classifiers.rules.ZeroR:
+<FONT ID="LN">79  </FONT><A NAME="79"></A> * &lt;/pre&gt;
+<FONT ID="LN">80  </FONT><A NAME="80"></A> * 
+<FONT ID="LN">81  </FONT><A NAME="81"></A> * &lt;pre&gt; -D
+<FONT ID="LN">82  </FONT><A NAME="82"></A> *  If set, classifier is run in debug mode and
+<FONT ID="LN">83  </FONT><A NAME="83"></A> *  may output additional info to the console&lt;/pre&gt;
+<FONT ID="LN">84  </FONT><A NAME="84"></A> * 
+<FONT ID="LN">85  </FONT><A NAME="85"></A> * &lt;pre&gt; -D &amp;lt;directory&amp;gt;
+<FONT ID="LN">86  </FONT><A NAME="86"></A> *  Name of a directory to search for cost files when loading
+<FONT ID="LN">87  </FONT><A NAME="87"></A> *  costs on demand (default current directory).&lt;/pre&gt;
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * 
+<FONT ID="LN">89  </FONT><A NAME="89"></A> &lt;!-- options-end --&gt;
+<FONT ID="LN">90  </FONT><A NAME="90"></A> *
+<FONT ID="LN">91  </FONT><A NAME="91"></A> * All options after -- will be passed to the classifier.
+<FONT ID="LN">92  </FONT><A NAME="92"></A> *
+<FONT ID="LN">93  </FONT><A NAME="93"></A> * @author Len Trigg (len@reeltwo.com)
+<FONT ID="LN">94  </FONT><A NAME="94"></A> * @version $Revision: 5987 $
+<FONT ID="LN">95  </FONT><A NAME="95"></A> */</FONT>
+<FONT ID="LN">96  </FONT><A NAME="96"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> CostSensitiveClassifierSplitEvaluator 
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../weka/experiment/ClassifierSplitEvaluator.java.html">ClassifierSplitEvaluator</A> {
+<FONT ID="LN">98  </FONT><A NAME="98"></A>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">8069566663019501276L</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * The directory used when loading cost files on demand, null indicates
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * current directory 
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="Protected">protected</FONT> File m_OnDemandDirectory = <FONT ID="New">new</FONT> File(System.getProperty(<FONT ID="StringLiteral">"user.dir"</FONT>));
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  <FONT ID="FormalComment">/** The length of a result */</FONT>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> RESULT_SIZE = <FONT ID="IntegerLiteral">31</FONT>;
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   * Returns a string describing this split evaluator
+<FONT ID="LN">113 </FONT><A NAME="113"></A>   * @return a description of the split evaluator suitable for
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Public">public</FONT> String globalInfo() {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">" SplitEvaluator that produces results for a classification scheme "</FONT>
+<FONT ID="LN">118 </FONT><A NAME="118"></A>      +<FONT ID="StringLiteral">"on a nominal class attribute, including weighted misclassification "</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>      +<FONT ID="StringLiteral">"costs."</FONT>;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>  }
+<FONT ID="LN">121 </FONT><A NAME="121"></A>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">123 </FONT><A NAME="123"></A>   * Returns an enumeration describing the available options..
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   *
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * @return an enumeration of all the available options.
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   */</FONT>
+<FONT ID="LN">127 </FONT><A NAME="127"></A>  <FONT ID="Public">public</FONT> Enumeration listOptions() {
+<FONT ID="LN">128 </FONT><A NAME="128"></A>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    Vector newVector = <FONT ID="New">new</FONT> Vector(<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    Enumeration enu = <FONT ID="Super">super</FONT>.listOptions();
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    <FONT ID="While">while</FONT> (enu.hasMoreElements()) {
+<FONT ID="LN">132 </FONT><A NAME="132"></A>      newVector.addElement(enu.nextElement());
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    }
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">136 </FONT><A NAME="136"></A>              <FONT ID="StringLiteral">"\tName of a directory to search for cost files when loading\n"</FONT>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>              +<FONT ID="StringLiteral">"\tcosts on demand (default current directory)."</FONT>,
+<FONT ID="LN">138 </FONT><A NAME="138"></A>              <FONT ID="StringLiteral">"D"</FONT>, <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"-D &lt;directory&gt;"</FONT>));
+<FONT ID="LN">139 </FONT><A NAME="139"></A>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    <FONT ID="Return">return</FONT> newVector.elements();
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * Parses a given list of options. &lt;p/&gt;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   *
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   &lt;!-- options-start --&gt;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   * Valid options are: &lt;p/&gt;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>   * 
+<FONT ID="LN">149 </FONT><A NAME="149"></A>   * &lt;pre&gt; -W &amp;lt;class name&amp;gt;
+<FONT ID="LN">150 </FONT><A NAME="150"></A>   *  The full class name of the classifier.
+<FONT ID="LN">151 </FONT><A NAME="151"></A>   *  eg: weka.classifiers.bayes.NaiveBayes&lt;/pre&gt;
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * 
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * &lt;pre&gt; -C &amp;lt;index&amp;gt;
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   *  The index of the class for which IR statistics
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   *  are to be output. (default 1)&lt;/pre&gt;
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * 
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * &lt;pre&gt; -I &amp;lt;index&amp;gt;
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   *  The index of an attribute to output in the
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   *  results. This attribute should identify an
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   *  instance in order to know which instances are
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   *  in the test set of a cross validation. if 0
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   *  no output (default 0).&lt;/pre&gt;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * 
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   * &lt;pre&gt; -P
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   *  Add target and prediction columns to the result
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   *  for each fold.&lt;/pre&gt;
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * 
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * &lt;pre&gt; 
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   * Options specific to classifier weka.classifiers.rules.ZeroR:
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   * &lt;/pre&gt;
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   * 
+<FONT ID="LN">172 </FONT><A NAME="172"></A>   * &lt;pre&gt; -D
+<FONT ID="LN">173 </FONT><A NAME="173"></A>   *  If set, classifier is run in debug mode and
+<FONT ID="LN">174 </FONT><A NAME="174"></A>   *  may output additional info to the console&lt;/pre&gt;
+<FONT ID="LN">175 </FONT><A NAME="175"></A>   * 
+<FONT ID="LN">176 </FONT><A NAME="176"></A>   * &lt;pre&gt; -D &amp;lt;directory&amp;gt;
+<FONT ID="LN">177 </FONT><A NAME="177"></A>   *  Name of a directory to search for cost files when loading
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   *  costs on demand (default current directory).&lt;/pre&gt;
+<FONT ID="LN">179 </FONT><A NAME="179"></A>   * 
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   &lt;!-- options-end --&gt;
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   *
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * All options after -- will be passed to the classifier.
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   *
+<FONT ID="LN">184 </FONT><A NAME="184"></A>   * @param options the list of options as an array of strings
+<FONT ID="LN">185 </FONT><A NAME="185"></A>   * @throws Exception if an option is not supported
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   */</FONT>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOptions(String[] options) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    String demandDir = Utils.getOption(<FONT ID="CharacerLiteral">'D'</FONT>, options);
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="If">if</FONT> (demandDir.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      setOnDemandDirectory(<FONT ID="New">new</FONT> File(demandDir));
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    }
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    <FONT ID="Super">super</FONT>.setOptions(options);
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  }
+<FONT ID="LN">196 </FONT><A NAME="196"></A>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">198 </FONT><A NAME="198"></A>   * Gets the current settings of the Classifier.
+<FONT ID="LN">199 </FONT><A NAME="199"></A>   *
+<FONT ID="LN">200 </FONT><A NAME="200"></A>   * @return an array of strings suitable for passing to setOptions
+<FONT ID="LN">201 </FONT><A NAME="201"></A>   */</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="Public">public</FONT> String [] getOptions() {
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    String [] superOptions = <FONT ID="Super">super</FONT>.getOptions();
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    String [] options = <FONT ID="New">new</FONT> String [superOptions.length + <FONT ID="IntegerLiteral">3</FONT>];
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    <FONT ID="Int">int</FONT> current = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">207 </FONT><A NAME="207"></A>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    options[current++] = <FONT ID="StringLiteral">"-D"</FONT>;
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    options[current++] = <FONT ID="StringLiteral">""</FONT> + getOnDemandDirectory();
+<FONT ID="LN">210 </FONT><A NAME="210"></A>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    System.arraycopy(superOptions, <FONT ID="IntegerLiteral">0</FONT>, options, current, 
+<FONT ID="LN">212 </FONT><A NAME="212"></A>             superOptions.length);
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    current += superOptions.length;
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    <FONT ID="While">while</FONT> (current &lt; options.length) {
+<FONT ID="LN">215 </FONT><A NAME="215"></A>      options[current++] = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    }
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    <FONT ID="Return">return</FONT> options;
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  }
+<FONT ID="LN">219 </FONT><A NAME="219"></A>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">221 </FONT><A NAME="221"></A>   * Returns the tip text for this property
+<FONT ID="LN">222 </FONT><A NAME="222"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">223 </FONT><A NAME="223"></A>   * displaying in the explorer/experimenter gui
+<FONT ID="LN">224 </FONT><A NAME="224"></A>   */</FONT>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  <FONT ID="Public">public</FONT> String onDemandDirectoryTipText() {
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"The directory to look in for cost files. This directory will be "</FONT>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>      +<FONT ID="StringLiteral">"searched for cost files when loading on demand."</FONT>;
+<FONT ID="LN">228 </FONT><A NAME="228"></A>  }
+<FONT ID="LN">229 </FONT><A NAME="229"></A>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   * Returns the directory that will be searched for cost files when
+<FONT ID="LN">232 </FONT><A NAME="232"></A>   * loading on demand.
+<FONT ID="LN">233 </FONT><A NAME="233"></A>   *
+<FONT ID="LN">234 </FONT><A NAME="234"></A>   * @return The cost file search directory.
+<FONT ID="LN">235 </FONT><A NAME="235"></A>   */</FONT>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>  <FONT ID="Public">public</FONT> File getOnDemandDirectory() {
+<FONT ID="LN">237 </FONT><A NAME="237"></A>
+<FONT ID="LN">238 </FONT><A NAME="238"></A>    <FONT ID="Return">return</FONT> m_OnDemandDirectory;
+<FONT ID="LN">239 </FONT><A NAME="239"></A>  }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   * Sets the directory that will be searched for cost files when
+<FONT ID="LN">243 </FONT><A NAME="243"></A>   * loading on demand.
+<FONT ID="LN">244 </FONT><A NAME="244"></A>   *
+<FONT ID="LN">245 </FONT><A NAME="245"></A>   * @param newDir The cost file search directory.
+<FONT ID="LN">246 </FONT><A NAME="246"></A>   */</FONT>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOnDemandDirectory(File newDir) {
+<FONT ID="LN">248 </FONT><A NAME="248"></A>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    <FONT ID="If">if</FONT> (newDir.isDirectory()) {
+<FONT ID="LN">250 </FONT><A NAME="250"></A>      m_OnDemandDirectory = newDir;
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">252 </FONT><A NAME="252"></A>      m_OnDemandDirectory = <FONT ID="New">new</FONT> File(newDir.getParent());
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    }
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  }
+<FONT ID="LN">255 </FONT><A NAME="255"></A>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">257 </FONT><A NAME="257"></A>   * Gets the data types of each of the result columns produced for a 
+<FONT ID="LN">258 </FONT><A NAME="258"></A>   * single run. The number of result fields must be constant
+<FONT ID="LN">259 </FONT><A NAME="259"></A>   * for a given SplitEvaluator.
+<FONT ID="LN">260 </FONT><A NAME="260"></A>   *
+<FONT ID="LN">261 </FONT><A NAME="261"></A>   * @return an array containing objects of the type of each result column. 
+<FONT ID="LN">262 </FONT><A NAME="262"></A>   * The objects should be Strings, or Doubles.
+<FONT ID="LN">263 </FONT><A NAME="263"></A>   */</FONT>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>  <FONT ID="Public">public</FONT> Object [] getResultTypes() {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    <FONT ID="Int">int</FONT> addm = (m_AdditionalMeasures != <FONT ID="Null">null</FONT>) 
+<FONT ID="LN">266 </FONT><A NAME="266"></A>      ? m_AdditionalMeasures.length 
+<FONT ID="LN">267 </FONT><A NAME="267"></A>      : <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    Object [] resultTypes = <FONT ID="New">new</FONT> Object[RESULT_SIZE+addm];
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    Double doub = <FONT ID="New">new</FONT> Double(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    <FONT ID="Int">int</FONT> current = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">273 </FONT><A NAME="273"></A>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">282 </FONT><A NAME="282"></A>
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">287 </FONT><A NAME="287"></A>
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">298 </FONT><A NAME="298"></A>
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    <FONT ID="SingleLineComment">// Timing stats
+<FONT ID="LN">300 </FONT><A NAME="300"></A></FONT>    resultTypes[current++] = doub;
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    <FONT ID="SingleLineComment">// sizes
+<FONT ID="LN">306 </FONT><A NAME="306"></A></FONT>    resultTypes[current++] = doub;
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    resultTypes[current++] = doub;
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    resultTypes[current++] = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">311 </FONT><A NAME="311"></A>
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    <FONT ID="SingleLineComment">// add any additional measures
+<FONT ID="LN">313 </FONT><A NAME="313"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;addm;i++) {
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      resultTypes[current++] = doub;
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    }
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    <FONT ID="If">if</FONT> (current != RESULT_SIZE+addm) {
+<FONT ID="LN">317 </FONT><A NAME="317"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Error(<FONT ID="StringLiteral">"ResultTypes didn't fit RESULT_SIZE"</FONT>);
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    }
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    <FONT ID="Return">return</FONT> resultTypes;
+<FONT ID="LN">320 </FONT><A NAME="320"></A>  }
+<FONT ID="LN">321 </FONT><A NAME="321"></A>
+<FONT ID="LN">322 </FONT><A NAME="322"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">323 </FONT><A NAME="323"></A>   * Gets the names of each of the result columns produced for a single run.
+<FONT ID="LN">324 </FONT><A NAME="324"></A>   * The number of result fields must be constant
+<FONT ID="LN">325 </FONT><A NAME="325"></A>   * for a given SplitEvaluator.
+<FONT ID="LN">326 </FONT><A NAME="326"></A>   *
+<FONT ID="LN">327 </FONT><A NAME="327"></A>   * @return an array containing the name of each result column
+<FONT ID="LN">328 </FONT><A NAME="328"></A>   */</FONT>
+<FONT ID="LN">329 </FONT><A NAME="329"></A>  <FONT ID="Public">public</FONT> String [] getResultNames() {
+<FONT ID="LN">330 </FONT><A NAME="330"></A>    <FONT ID="Int">int</FONT> addm = (m_AdditionalMeasures != <FONT ID="Null">null</FONT>) 
+<FONT ID="LN">331 </FONT><A NAME="331"></A>      ? m_AdditionalMeasures.length 
+<FONT ID="LN">332 </FONT><A NAME="332"></A>      : <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">333 </FONT><A NAME="333"></A>    String [] resultNames = <FONT ID="New">new</FONT> String[RESULT_SIZE+addm];
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    <FONT ID="Int">int</FONT> current = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Number_of_training_instances"</FONT>;
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Number_of_testing_instances"</FONT>;
+<FONT ID="LN">337 </FONT><A NAME="337"></A>
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    <FONT ID="SingleLineComment">// Basic performance stats - right vs wrong
+<FONT ID="LN">339 </FONT><A NAME="339"></A></FONT>    resultNames[current++] = <FONT ID="StringLiteral">"Number_correct"</FONT>;
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Number_incorrect"</FONT>;
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Number_unclassified"</FONT>;
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Percent_correct"</FONT>;
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Percent_incorrect"</FONT>;
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Percent_unclassified"</FONT>;
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Total_cost"</FONT>;
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Average_cost"</FONT>;
+<FONT ID="LN">347 </FONT><A NAME="347"></A>
+<FONT ID="LN">348 </FONT><A NAME="348"></A>    <FONT ID="SingleLineComment">// Sensitive stats - certainty of predictions
+<FONT ID="LN">349 </FONT><A NAME="349"></A></FONT>    resultNames[current++] = <FONT ID="StringLiteral">"Mean_absolute_error"</FONT>;
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Root_mean_squared_error"</FONT>;
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Relative_absolute_error"</FONT>;
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Root_relative_squared_error"</FONT>;
+<FONT ID="LN">353 </FONT><A NAME="353"></A>
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    <FONT ID="SingleLineComment">// SF stats
+<FONT ID="LN">355 </FONT><A NAME="355"></A></FONT>    resultNames[current++] = <FONT ID="StringLiteral">"SF_prior_entropy"</FONT>;
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    resultNames[current++] = <FONT ID="StringLiteral">"SF_scheme_entropy"</FONT>;
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    resultNames[current++] = <FONT ID="StringLiteral">"SF_entropy_gain"</FONT>;
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    resultNames[current++] = <FONT ID="StringLiteral">"SF_mean_prior_entropy"</FONT>;
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    resultNames[current++] = <FONT ID="StringLiteral">"SF_mean_scheme_entropy"</FONT>;
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    resultNames[current++] = <FONT ID="StringLiteral">"SF_mean_entropy_gain"</FONT>;
+<FONT ID="LN">361 </FONT><A NAME="361"></A>
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    <FONT ID="SingleLineComment">// K&amp;B stats
+<FONT ID="LN">363 </FONT><A NAME="363"></A></FONT>    resultNames[current++] = <FONT ID="StringLiteral">"KB_information"</FONT>;
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    resultNames[current++] = <FONT ID="StringLiteral">"KB_mean_information"</FONT>;
+<FONT ID="LN">365 </FONT><A NAME="365"></A>    resultNames[current++] = <FONT ID="StringLiteral">"KB_relative_information"</FONT>;
+<FONT ID="LN">366 </FONT><A NAME="366"></A>
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    <FONT ID="SingleLineComment">// Timing stats
+<FONT ID="LN">368 </FONT><A NAME="368"></A></FONT>    resultNames[current++] = <FONT ID="StringLiteral">"Elapsed_Time_training"</FONT>;
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Elapsed_Time_testing"</FONT>;
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    resultNames[current++] = <FONT ID="StringLiteral">"UserCPU_Time_training"</FONT>;
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    resultNames[current++] = <FONT ID="StringLiteral">"UserCPU_Time_testing"</FONT>;
+<FONT ID="LN">372 </FONT><A NAME="372"></A>
+<FONT ID="LN">373 </FONT><A NAME="373"></A>    <FONT ID="SingleLineComment">// sizes
+<FONT ID="LN">374 </FONT><A NAME="374"></A></FONT>    resultNames[current++] = <FONT ID="StringLiteral">"Serialized_Model_Size"</FONT>;
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Serialized_Train_Set_Size"</FONT>;
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    resultNames[current++] = <FONT ID="StringLiteral">"Serialized_Test_Set_Size"</FONT>;
+<FONT ID="LN">377 </FONT><A NAME="377"></A>
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    <FONT ID="SingleLineComment">// Classifier defined extras
+<FONT ID="LN">379 </FONT><A NAME="379"></A></FONT>    resultNames[current++] = <FONT ID="StringLiteral">"Summary"</FONT>;
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    <FONT ID="SingleLineComment">// add any additional measures
+<FONT ID="LN">381 </FONT><A NAME="381"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;addm;i++) {
+<FONT ID="LN">382 </FONT><A NAME="382"></A>      resultNames[current++] = m_AdditionalMeasures[i];
+<FONT ID="LN">383 </FONT><A NAME="383"></A>    }
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    <FONT ID="If">if</FONT> (current != RESULT_SIZE+addm) {
+<FONT ID="LN">385 </FONT><A NAME="385"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Error(<FONT ID="StringLiteral">"ResultNames didn't fit RESULT_SIZE"</FONT>);
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    }
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    <FONT ID="Return">return</FONT> resultNames;
+<FONT ID="LN">388 </FONT><A NAME="388"></A>  }
+<FONT ID="LN">389 </FONT><A NAME="389"></A>
+<FONT ID="LN">390 </FONT><A NAME="390"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">391 </FONT><A NAME="391"></A>   * Gets the results for the supplied train and test datasets. Now performs
+<FONT ID="LN">392 </FONT><A NAME="392"></A>   * a deep copy of the classifier before it is built and evaluated (just in case
+<FONT ID="LN">393 </FONT><A NAME="393"></A>   * the classifier is not initialized properly in buildClassifier()).
+<FONT ID="LN">394 </FONT><A NAME="394"></A>   *
+<FONT ID="LN">395 </FONT><A NAME="395"></A>   * @param train the training Instances.
+<FONT ID="LN">396 </FONT><A NAME="396"></A>   * @param test the testing Instances.
+<FONT ID="LN">397 </FONT><A NAME="397"></A>   * @return the results stored in an array. The objects stored in
+<FONT ID="LN">398 </FONT><A NAME="398"></A>   * the array may be Strings, Doubles, or null (for the missing value).
+<FONT ID="LN">399 </FONT><A NAME="399"></A>   * @throws Exception if a problem occurs while getting the results
+<FONT ID="LN">400 </FONT><A NAME="400"></A>   */</FONT>
+<FONT ID="LN">401 </FONT><A NAME="401"></A>  <FONT ID="Public">public</FONT> Object [] getResult(<A HREF="../../weka/core/Instances.java.html">Instances</A> train, <A HREF="../../weka/core/Instances.java.html">Instances</A> test)
+<FONT ID="LN">402 </FONT><A NAME="402"></A>  <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    <FONT ID="If">if</FONT> (train.classAttribute().type() != Attribute.NOMINAL) {
+<FONT ID="LN">405 </FONT><A NAME="405"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Class attribute is not nominal!"</FONT>);
+<FONT ID="LN">406 </FONT><A NAME="406"></A>    }
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    <FONT ID="If">if</FONT> (m_Template == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">408 </FONT><A NAME="408"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"No classifier has been specified"</FONT>);
+<FONT ID="LN">409 </FONT><A NAME="409"></A>    }
+<FONT ID="LN">410 </FONT><A NAME="410"></A>    ThreadMXBean thMonitor = ManagementFactory.getThreadMXBean();
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    <FONT ID="Boolean">boolean</FONT> canMeasureCPUTime = thMonitor.isThreadCpuTimeSupported();
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    <FONT ID="If">if</FONT>(!thMonitor.isThreadCpuTimeEnabled())
+<FONT ID="LN">413 </FONT><A NAME="413"></A>      thMonitor.setThreadCpuTimeEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">414 </FONT><A NAME="414"></A>    
+<FONT ID="LN">415 </FONT><A NAME="415"></A>    <FONT ID="Int">int</FONT> addm = (m_AdditionalMeasures != <FONT ID="Null">null</FONT>) ? m_AdditionalMeasures.length : <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    Object [] result = <FONT ID="New">new</FONT> Object[RESULT_SIZE+addm];
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    <FONT ID="Long">long</FONT> thID = Thread.currentThread().getId();
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    <FONT ID="Long">long</FONT> CPUStartTime=-<FONT ID="IntegerLiteral">1</FONT>, trainCPUTimeElapsed=-<FONT ID="IntegerLiteral">1</FONT>, testCPUTimeElapsed=-<FONT ID="IntegerLiteral">1</FONT>,
+<FONT ID="LN">419 </FONT><A NAME="419"></A>         trainTimeStart, trainTimeElapsed, testTimeStart, testTimeElapsed;    
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    String costName = train.relationName() + CostMatrix.FILE_EXTENSION;
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    File costFile = <FONT ID="New">new</FONT> File(getOnDemandDirectory(), costName);
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    <FONT ID="If">if</FONT> (!costFile.exists()) {
+<FONT ID="LN">424 </FONT><A NAME="424"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"On-demand cost file doesn't exist: "</FONT> + costFile);
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    }
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    <A HREF="../../weka/classifiers/CostMatrix.java.html">CostMatrix</A> costMatrix = <FONT ID="New">new</FONT> <A HREF="../../weka/classifiers/CostMatrix.java.html">CostMatrix</A>(<FONT ID="New">new</FONT> BufferedReader(
+<FONT ID="LN">427 </FONT><A NAME="427"></A>    <FONT ID="New">new</FONT> FileReader(costFile)));
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    <A HREF="../../weka/classifiers/Evaluation.java.html">Evaluation</A> eval = <FONT ID="New">new</FONT> <A HREF="../../weka/classifiers/Evaluation.java.html">Evaluation</A>(train, costMatrix);    
+<FONT ID="LN">430 </FONT><A NAME="430"></A>    m_Classifier = AbstractClassifier.makeCopy(m_Template);
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    
+<FONT ID="LN">432 </FONT><A NAME="432"></A>    trainTimeStart = System.currentTimeMillis();
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    <FONT ID="If">if</FONT>(canMeasureCPUTime)
+<FONT ID="LN">434 </FONT><A NAME="434"></A>      CPUStartTime = thMonitor.getThreadUserTime(thID);
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    m_Classifier.buildClassifier(train);
+<FONT ID="LN">436 </FONT><A NAME="436"></A>    <FONT ID="If">if</FONT>(canMeasureCPUTime)
+<FONT ID="LN">437 </FONT><A NAME="437"></A>      trainCPUTimeElapsed = thMonitor.getThreadUserTime(thID) - CPUStartTime;
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    trainTimeElapsed = System.currentTimeMillis() - trainTimeStart;
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    testTimeStart = System.currentTimeMillis();
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    <FONT ID="If">if</FONT>(canMeasureCPUTime)
+<FONT ID="LN">441 </FONT><A NAME="441"></A>      CPUStartTime = thMonitor.getThreadUserTime(thID);
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    eval.evaluateModel(m_Classifier, test);
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    <FONT ID="If">if</FONT>(canMeasureCPUTime)
+<FONT ID="LN">444 </FONT><A NAME="444"></A>      testCPUTimeElapsed = thMonitor.getThreadUserTime(thID) - CPUStartTime;
+<FONT ID="LN">445 </FONT><A NAME="445"></A>    testTimeElapsed = System.currentTimeMillis() - testTimeStart;
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    thMonitor = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">447 </FONT><A NAME="447"></A>    
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    m_result = eval.toSummaryString();
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    <FONT ID="SingleLineComment">// The results stored are all per instance -- can be multiplied by the
+<FONT ID="LN">450 </FONT><A NAME="450"></A></FONT>    <FONT ID="SingleLineComment">// number of instances to get absolute numbers
+<FONT ID="LN">451 </FONT><A NAME="451"></A></FONT>    <FONT ID="Int">int</FONT> current = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    result[current++] = <FONT ID="New">new</FONT> Double(train.numInstances());
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.numInstances());
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.correct());
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.incorrect());
+<FONT ID="LN">457 </FONT><A NAME="457"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.unclassified());
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.pctCorrect());
+<FONT ID="LN">459 </FONT><A NAME="459"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.pctIncorrect());
+<FONT ID="LN">460 </FONT><A NAME="460"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.pctUnclassified());
+<FONT ID="LN">461 </FONT><A NAME="461"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.totalCost());
+<FONT ID="LN">462 </FONT><A NAME="462"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.avgCost());
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.meanAbsoluteError());
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.rootMeanSquaredError());
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.relativeAbsoluteError());
+<FONT ID="LN">467 </FONT><A NAME="467"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.rootRelativeSquaredError());
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    
+<FONT ID="LN">469 </FONT><A NAME="469"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.SFPriorEntropy());
+<FONT ID="LN">470 </FONT><A NAME="470"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.SFSchemeEntropy());
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.SFEntropyGain());
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.SFMeanPriorEntropy());
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.SFMeanSchemeEntropy());
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.SFMeanEntropyGain());
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    <FONT ID="SingleLineComment">// K&amp;B stats
+<FONT ID="LN">477 </FONT><A NAME="477"></A></FONT>    result[current++] = <FONT ID="New">new</FONT> Double(eval.KBInformation());
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.KBMeanInformation());
+<FONT ID="LN">479 </FONT><A NAME="479"></A>    result[current++] = <FONT ID="New">new</FONT> Double(eval.KBRelativeInformation());
+<FONT ID="LN">480 </FONT><A NAME="480"></A>    
+<FONT ID="LN">481 </FONT><A NAME="481"></A>    <FONT ID="SingleLineComment">// Timing stats
+<FONT ID="LN">482 </FONT><A NAME="482"></A></FONT>    result[current++] = <FONT ID="New">new</FONT> Double(trainTimeElapsed / <FONT ID="FloatPointLiteral">1000.0</FONT>);
+<FONT ID="LN">483 </FONT><A NAME="483"></A>    result[current++] = <FONT ID="New">new</FONT> Double(testTimeElapsed / <FONT ID="FloatPointLiteral">1000.0</FONT>);
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    <FONT ID="If">if</FONT>(canMeasureCPUTime) {
+<FONT ID="LN">485 </FONT><A NAME="485"></A>      result[current++] = <FONT ID="New">new</FONT> Double((trainCPUTimeElapsed/<FONT ID="FloatPointLiteral">1000000.0</FONT>) / <FONT ID="FloatPointLiteral">1000.0</FONT>);
+<FONT ID="LN">486 </FONT><A NAME="486"></A>      result[current++] = <FONT ID="New">new</FONT> Double((testCPUTimeElapsed /<FONT ID="FloatPointLiteral">1000000.0</FONT>) / <FONT ID="FloatPointLiteral">1000.0</FONT>);
+<FONT ID="LN">487 </FONT><A NAME="487"></A>    }
+<FONT ID="LN">488 </FONT><A NAME="488"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">489 </FONT><A NAME="489"></A>      result[current++] = <FONT ID="New">new</FONT> Double(Utils.missingValue());
+<FONT ID="LN">490 </FONT><A NAME="490"></A>      result[current++] = <FONT ID="New">new</FONT> Double(Utils.missingValue());
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    }
+<FONT ID="LN">492 </FONT><A NAME="492"></A>    
+<FONT ID="LN">493 </FONT><A NAME="493"></A>    <FONT ID="SingleLineComment">// sizes
+<FONT ID="LN">494 </FONT><A NAME="494"></A></FONT>    ByteArrayOutputStream bastream = <FONT ID="New">new</FONT> ByteArrayOutputStream();
+<FONT ID="LN">495 </FONT><A NAME="495"></A>    ObjectOutputStream oostream = <FONT ID="New">new</FONT> ObjectOutputStream(bastream);
+<FONT ID="LN">496 </FONT><A NAME="496"></A>    oostream.writeObject(m_Classifier);
+<FONT ID="LN">497 </FONT><A NAME="497"></A>    result[current++] = <FONT ID="New">new</FONT> Double(bastream.size());
+<FONT ID="LN">498 </FONT><A NAME="498"></A>    bastream = <FONT ID="New">new</FONT> ByteArrayOutputStream();
+<FONT ID="LN">499 </FONT><A NAME="499"></A>    oostream = <FONT ID="New">new</FONT> ObjectOutputStream(bastream);
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    oostream.writeObject(train);
+<FONT ID="LN">501 </FONT><A NAME="501"></A>    result[current++] = <FONT ID="New">new</FONT> Double(bastream.size());
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    bastream = <FONT ID="New">new</FONT> ByteArrayOutputStream();
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    oostream = <FONT ID="New">new</FONT> ObjectOutputStream(bastream);
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    oostream.writeObject(test);
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    result[current++] = <FONT ID="New">new</FONT> Double(bastream.size());
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    <FONT ID="If">if</FONT> (m_Classifier <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../weka/core/Summarizable.java.html">Summarizable</A>) {
+<FONT ID="LN">508 </FONT><A NAME="508"></A>      result[current++] = ((<A HREF="../../weka/core/Summarizable.java.html">Summarizable</A>)m_Classifier).toSummaryString();
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">510 </FONT><A NAME="510"></A>      result[current++] = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    }
+<FONT ID="LN">512 </FONT><A NAME="512"></A>    
+<FONT ID="LN">513 </FONT><A NAME="513"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>;i&lt;addm;i++) {
+<FONT ID="LN">514 </FONT><A NAME="514"></A>      <FONT ID="If">if</FONT> (m_doesProduce[i]) {
+<FONT ID="LN">515 </FONT><A NAME="515"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">516 </FONT><A NAME="516"></A>          <FONT ID="Double">double</FONT> dv = ((<A HREF="../../weka/core/AdditionalMeasureProducer.java.html">AdditionalMeasureProducer</A>)m_Classifier).
+<FONT ID="LN">517 </FONT><A NAME="517"></A>          getMeasure(m_AdditionalMeasures[i]);
+<FONT ID="LN">518 </FONT><A NAME="518"></A>          <FONT ID="If">if</FONT> (!Utils.isMissingValue(dv)) {
+<FONT ID="LN">519 </FONT><A NAME="519"></A>            Double value = <FONT ID="New">new</FONT> Double(dv);
+<FONT ID="LN">520 </FONT><A NAME="520"></A>            result[current++] = value;
+<FONT ID="LN">521 </FONT><A NAME="521"></A>          } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">522 </FONT><A NAME="522"></A>            result[current++] = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">523 </FONT><A NAME="523"></A>          }
+<FONT ID="LN">524 </FONT><A NAME="524"></A>        } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">525 </FONT><A NAME="525"></A>          System.err.println(ex);
+<FONT ID="LN">526 </FONT><A NAME="526"></A>        }
+<FONT ID="LN">527 </FONT><A NAME="527"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">528 </FONT><A NAME="528"></A>        result[current++] = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">529 </FONT><A NAME="529"></A>      }
+<FONT ID="LN">530 </FONT><A NAME="530"></A>    }
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    <FONT ID="If">if</FONT> (current != RESULT_SIZE+addm) {
+<FONT ID="LN">533 </FONT><A NAME="533"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Error(<FONT ID="StringLiteral">"Results didn't fit RESULT_SIZE"</FONT>);
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    }
+<FONT ID="LN">535 </FONT><A NAME="535"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">536 </FONT><A NAME="536"></A>  }
+<FONT ID="LN">537 </FONT><A NAME="537"></A>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">539 </FONT><A NAME="539"></A>   * Returns a text description of the split evaluator.
+<FONT ID="LN">540 </FONT><A NAME="540"></A>   *
+<FONT ID="LN">541 </FONT><A NAME="541"></A>   * @return a text description of the split evaluator.
+<FONT ID="LN">542 </FONT><A NAME="542"></A>   */</FONT>
+<FONT ID="LN">543 </FONT><A NAME="543"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">544 </FONT><A NAME="544"></A>
+<FONT ID="LN">545 </FONT><A NAME="545"></A>    String result = <FONT ID="StringLiteral">"CostSensitiveClassifierSplitEvaluator: "</FONT>;
+<FONT ID="LN">546 </FONT><A NAME="546"></A>    <FONT ID="If">if</FONT> (m_Template == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">547 </FONT><A NAME="547"></A>      <FONT ID="Return">return</FONT> result + <FONT ID="StringLiteral">"&lt;null&gt; classifier"</FONT>;
+<FONT ID="LN">548 </FONT><A NAME="548"></A>    }
+<FONT ID="LN">549 </FONT><A NAME="549"></A>    <FONT ID="Return">return</FONT> result + m_Template.getClass().getName() + <FONT ID="StringLiteral">" "</FONT> 
+<FONT ID="LN">550 </FONT><A NAME="550"></A>      + m_ClassifierOptions + <FONT ID="StringLiteral">"(version "</FONT> + m_ClassifierVersion + <FONT ID="StringLiteral">")"</FONT>;
+<FONT ID="LN">551 </FONT><A NAME="551"></A>  }
+<FONT ID="LN">552 </FONT><A NAME="552"></A>  
+<FONT ID="LN">553 </FONT><A NAME="553"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">554 </FONT><A NAME="554"></A>   * Returns the revision string.
+<FONT ID="LN">555 </FONT><A NAME="555"></A>   * 
+<FONT ID="LN">556 </FONT><A NAME="556"></A>   * @return        the revision
+<FONT ID="LN">557 </FONT><A NAME="557"></A>   */</FONT>
+<FONT ID="LN">558 </FONT><A NAME="558"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">559 </FONT><A NAME="559"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5987 $"</FONT>);
+<FONT ID="LN">560 </FONT><A NAME="560"></A>  }
+<FONT ID="LN">561 </FONT><A NAME="561"></A>} <FONT ID="SingleLineComment">// CostSensitiveClassifierSplitEvaluator
+<FONT ID="LN">562 </FONT><A NAME="562"></A></FONT></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">CostSensitiveClassifierSplitEvaluator.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

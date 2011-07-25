@@ -1,0 +1,1687 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.Debug (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Debug.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * Debug.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * Copyright (C) 2006 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Package">package</FONT> weka.core;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> java.io.BufferedWriter;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.io.FileWriter;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.io.PrintWriter;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.io.StringWriter;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.lang.management.ManagementFactory;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.lang.management.ThreadMXBean;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> java.text.SimpleDateFormat;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> java.util.Date;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> java.util.logging.FileHandler;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.util.logging.Handler;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.util.logging.Level;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.util.logging.Logger;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.util.logging.SimpleFormatter;
+<FONT ID="LN">38  </FONT><A NAME="38"></A>
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * A helper class for debug output, logging, clocking, etc.
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * 
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * @author  fracpete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * @version $Revision: 5953 $
+<FONT ID="LN">44  </FONT><A NAME="44"></A> */</FONT>
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Debug
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">47  </FONT><A NAME="47"></A>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">66171861743328020L</FONT>;
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  <FONT ID="FormalComment">/** the log level All */</FONT>
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level ALL = Level.ALL;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  <FONT ID="FormalComment">/** the log level Vonfig */</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level CONFIG = Level.CONFIG;
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="FormalComment">/** the log level Fine */</FONT>
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level FINE = Level.FINE;
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="FormalComment">/** the log level Finer */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level FINER = Level.FINER;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="FormalComment">/** the log level Finest */</FONT>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level FINEST = Level.FINEST;
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  <FONT ID="FormalComment">/** the log level Info */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level INFO = Level.INFO;
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="FormalComment">/** the log level Off - i.e., no logging */</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level OFF = Level.OFF;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="FormalComment">/** the log level Severe */</FONT>
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level SEVERE = Level.SEVERE;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="FormalComment">/** the log level Warning */</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> Level WARNING = Level.WARNING;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  <FONT ID="FormalComment">/** whether logging is enabled */</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_Enabled = <FONT ID="True">true</FONT>;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  <FONT ID="FormalComment">/** for logging */</FONT>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Protected">protected</FONT> Log m_Log;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="FormalComment">/** for clocking */</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="Protected">protected</FONT> Clock m_Clock = <FONT ID="New">new</FONT> Clock();
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * A little helper class for clocking and outputting times. It measures the
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   * CPU time if possible, otherwise it's just based on the system time. In 
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   * case one just wants to measure time (e.g., database queries don't take up
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   * much CPU time, but still might take a long time to finish), then one can
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   * disable the use of CPU time as well.
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   *
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   * @author FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   * @version $Revision: 5953 $ 
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   * @see ThreadMXBean#isThreadCpuTimeEnabled()
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   */</FONT>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Clock 
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">4622161807307942201L</FONT>;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    <FONT ID="FormalComment">/** the output format in milli-seconds */</FONT>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> FORMAT_MILLISECONDS = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    <FONT ID="FormalComment">/** the output format in seconds, with fraction of msecs */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> FORMAT_SECONDS = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="FormalComment">/** the output format in hours:minutes:seconds, with fraction of msecs */</FONT>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> FORMAT_HHMMSS = <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    <FONT ID="FormalComment">/** the output formats */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <A HREF="../../weka/core/Tag.java.html">Tag</A>[] TAGS_FORMAT = {
+<FONT ID="LN">107 </FONT><A NAME="107"></A>      <FONT ID="New">new</FONT> <A HREF="../../weka/core/Tag.java.html">Tag</A>(FORMAT_MILLISECONDS, <FONT ID="StringLiteral">"milli-seconds"</FONT>),
+<FONT ID="LN">108 </FONT><A NAME="108"></A>      <FONT ID="New">new</FONT> <A HREF="../../weka/core/Tag.java.html">Tag</A>(FORMAT_SECONDS, <FONT ID="StringLiteral">"seconds"</FONT>),
+<FONT ID="LN">109 </FONT><A NAME="109"></A>      <FONT ID="New">new</FONT> <A HREF="../../weka/core/Tag.java.html">Tag</A>(FORMAT_HHMMSS, <FONT ID="StringLiteral">"hh:mm:ss"</FONT>)
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    };
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    <FONT ID="FormalComment">/** the format of the output */</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> m_OutputFormat = FORMAT_SECONDS;
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    <FONT ID="FormalComment">/** the start time */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Long">long</FONT> m_Start;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    <FONT ID="FormalComment">/** the end time */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Long">long</FONT> m_Stop;
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    <FONT ID="FormalComment">/** whether the time is still clocked */</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_Running;
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    <FONT ID="FormalComment">/** the thread ID */</FONT>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Long">long</FONT> m_ThreadID;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <FONT ID="FormalComment">/** whether the system can measure the CPU time */</FONT>
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_CanMeasureCpuTime;
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    <FONT ID="FormalComment">/** whether to use the CPU time (by default TRUE) */</FONT>
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_UseCpuTime;
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    <FONT ID="FormalComment">/** the thread monitor, if the system can measure the CPU time */</FONT>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Transient">transient</FONT> ThreadMXBean m_ThreadMonitor;
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">137 </FONT><A NAME="137"></A>     * automatically starts the clock with FORMAT_SECONDS format and CPU
+<FONT ID="LN">138 </FONT><A NAME="138"></A>     * time if available
+<FONT ID="LN">139 </FONT><A NAME="139"></A>     * 
+<FONT ID="LN">140 </FONT><A NAME="140"></A>     * @see     #m_OutputFormat
+<FONT ID="LN">141 </FONT><A NAME="141"></A>     */</FONT>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    <FONT ID="Public">public</FONT> Clock() {
+<FONT ID="LN">143 </FONT><A NAME="143"></A>      <FONT ID="This">this</FONT>(<FONT ID="True">true</FONT>);
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    }
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">147 </FONT><A NAME="147"></A>     * automatically starts the clock with the given output format and CPU
+<FONT ID="LN">148 </FONT><A NAME="148"></A>     * time if available
+<FONT ID="LN">149 </FONT><A NAME="149"></A>     * 
+<FONT ID="LN">150 </FONT><A NAME="150"></A>     * @param format    the output format
+<FONT ID="LN">151 </FONT><A NAME="151"></A>     * @see     #m_OutputFormat
+<FONT ID="LN">152 </FONT><A NAME="152"></A>     */</FONT>
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    <FONT ID="Public">public</FONT> Clock(<FONT ID="Int">int</FONT> format) {
+<FONT ID="LN">154 </FONT><A NAME="154"></A>      <FONT ID="This">this</FONT>(<FONT ID="True">true</FONT>, format);
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    }
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">158 </FONT><A NAME="158"></A>     * starts the clock depending on &lt;code&gt;start&lt;/code&gt; immediately with the
+<FONT ID="LN">159 </FONT><A NAME="159"></A>     * FORMAT_SECONDS output format and CPU time if available
+<FONT ID="LN">160 </FONT><A NAME="160"></A>     * 
+<FONT ID="LN">161 </FONT><A NAME="161"></A>     * @param start whether to start the clock immediately
+<FONT ID="LN">162 </FONT><A NAME="162"></A>     * @see     #m_OutputFormat
+<FONT ID="LN">163 </FONT><A NAME="163"></A>     */</FONT>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    <FONT ID="Public">public</FONT> Clock(<FONT ID="Boolean">boolean</FONT> start) {
+<FONT ID="LN">165 </FONT><A NAME="165"></A>      <FONT ID="This">this</FONT>(start, FORMAT_SECONDS);
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    }
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">169 </FONT><A NAME="169"></A>     * starts the clock depending on &lt;code&gt;start&lt;/code&gt; immediately, using
+<FONT ID="LN">170 </FONT><A NAME="170"></A>     * CPU time if available
+<FONT ID="LN">171 </FONT><A NAME="171"></A>     * 
+<FONT ID="LN">172 </FONT><A NAME="172"></A>     * @param start whether to start the clock immediately
+<FONT ID="LN">173 </FONT><A NAME="173"></A>     * @param format    the format
+<FONT ID="LN">174 </FONT><A NAME="174"></A>     * @see     #m_OutputFormat
+<FONT ID="LN">175 </FONT><A NAME="175"></A>     */</FONT>
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    <FONT ID="Public">public</FONT> Clock(<FONT ID="Boolean">boolean</FONT> start, <FONT ID="Int">int</FONT> format) {
+<FONT ID="LN">177 </FONT><A NAME="177"></A>      m_Running    = <FONT ID="False">false</FONT>;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      m_Start      = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">179 </FONT><A NAME="179"></A>      m_Stop       = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">180 </FONT><A NAME="180"></A>      m_UseCpuTime = <FONT ID="True">true</FONT>;
+<FONT ID="LN">181 </FONT><A NAME="181"></A>      setOutputFormat(format);
+<FONT ID="LN">182 </FONT><A NAME="182"></A>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>      <FONT ID="If">if</FONT> (start)
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    start();
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    }
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">188 </FONT><A NAME="188"></A>     * initializes the clocking, ensure to get the correct thread ID.
+<FONT ID="LN">189 </FONT><A NAME="189"></A>     */</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> init() {
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      m_ThreadMonitor = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      m_ThreadMonitor = getThreadMonitor();
+<FONT ID="LN">193 </FONT><A NAME="193"></A>
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      <FONT ID="SingleLineComment">// can we measure cpu time?
+<FONT ID="LN">195 </FONT><A NAME="195"></A></FONT>      m_CanMeasureCpuTime = m_ThreadMonitor.isThreadCpuTimeSupported();
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    }
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">199 </FONT><A NAME="199"></A>     * whether the measurement is based on the msecs returned from the System
+<FONT ID="LN">200 </FONT><A NAME="200"></A>     * class or on the more accurate CPU time. Also depends on whether the 
+<FONT ID="LN">201 </FONT><A NAME="201"></A>     * usage of the CPU time was disabled or enabled.
+<FONT ID="LN">202 </FONT><A NAME="202"></A>     * 
+<FONT ID="LN">203 </FONT><A NAME="203"></A>     * @return      true if the more accurate CPU time of the thread is 
+<FONT ID="LN">204 </FONT><A NAME="204"></A>     *          used and the use of CPU time hasn't been disabled
+<FONT ID="LN">205 </FONT><A NAME="205"></A>     * @see System#currentTimeMillis()
+<FONT ID="LN">206 </FONT><A NAME="206"></A>     * @see ThreadMXBean#isThreadCpuTimeEnabled()
+<FONT ID="LN">207 </FONT><A NAME="207"></A>     * @see #getUseCpuTime()
+<FONT ID="LN">208 </FONT><A NAME="208"></A>     */</FONT>
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isCpuTime() {
+<FONT ID="LN">210 </FONT><A NAME="210"></A>      <FONT ID="Return">return</FONT> m_UseCpuTime &amp;&amp; m_CanMeasureCpuTime;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    }
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">214 </FONT><A NAME="214"></A>     * enables/disables the use of CPU time (if measurement of CPU time is 
+<FONT ID="LN">215 </FONT><A NAME="215"></A>     * available). The actual use of CPU time still depends on whether the 
+<FONT ID="LN">216 </FONT><A NAME="216"></A>     * system supports it. Resets the current timer, if running.
+<FONT ID="LN">217 </FONT><A NAME="217"></A>     * 
+<FONT ID="LN">218 </FONT><A NAME="218"></A>     * @param value if true the CPU time is used (if possible)
+<FONT ID="LN">219 </FONT><A NAME="219"></A>     */</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setUseCpuTime(<FONT ID="Boolean">boolean</FONT> value) {
+<FONT ID="LN">221 </FONT><A NAME="221"></A>      m_UseCpuTime = value;
+<FONT ID="LN">222 </FONT><A NAME="222"></A>      
+<FONT ID="LN">223 </FONT><A NAME="223"></A>      <FONT ID="SingleLineComment">// we have to re-initialize the start time, otherwise we get bogus
+<FONT ID="LN">224 </FONT><A NAME="224"></A></FONT>      <FONT ID="SingleLineComment">// results
+<FONT ID="LN">225 </FONT><A NAME="225"></A></FONT>      <FONT ID="If">if</FONT> (m_Running) {
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    stop();
+<FONT ID="LN">227 </FONT><A NAME="227"></A>    start();
+<FONT ID="LN">228 </FONT><A NAME="228"></A>      }
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    }
+<FONT ID="LN">230 </FONT><A NAME="230"></A>
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">232 </FONT><A NAME="232"></A>     * returns whether the use of CPU is time is enabled/disabled (regardless
+<FONT ID="LN">233 </FONT><A NAME="233"></A>     * whether the system supports it or not)
+<FONT ID="LN">234 </FONT><A NAME="234"></A>     * 
+<FONT ID="LN">235 </FONT><A NAME="235"></A>     * @return      true the CPU time is used (if possible)
+<FONT ID="LN">236 </FONT><A NAME="236"></A>     */</FONT>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getUseCpuTime() {
+<FONT ID="LN">238 </FONT><A NAME="238"></A>      <FONT ID="Return">return</FONT> m_UseCpuTime;
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">242 </FONT><A NAME="242"></A>     * Returns a new thread monitor if the current one is null (e.g., due to
+<FONT ID="LN">243 </FONT><A NAME="243"></A>     * serialization) or the currently set one. The thread ID is also updated
+<FONT ID="LN">244 </FONT><A NAME="244"></A>     * if necessary.
+<FONT ID="LN">245 </FONT><A NAME="245"></A>     * 
+<FONT ID="LN">246 </FONT><A NAME="246"></A>     * @return      the thread monitor to use
+<FONT ID="LN">247 </FONT><A NAME="247"></A>     */</FONT>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    <FONT ID="Protected">protected</FONT> ThreadMXBean getThreadMonitor() {
+<FONT ID="LN">249 </FONT><A NAME="249"></A>      <FONT ID="If">if</FONT> (m_ThreadMonitor == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    m_ThreadMonitor = ManagementFactory.getThreadMXBean();
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    <FONT ID="If">if</FONT> (!m_ThreadMonitor.isThreadCpuTimeEnabled())
+<FONT ID="LN">252 </FONT><A NAME="252"></A>      m_ThreadMonitor.setThreadCpuTimeEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    m_ThreadID = Thread.currentThread().getId();
+<FONT ID="LN">254 </FONT><A NAME="254"></A>      }
+<FONT ID="LN">255 </FONT><A NAME="255"></A>      
+<FONT ID="LN">256 </FONT><A NAME="256"></A>      <FONT ID="Return">return</FONT> m_ThreadMonitor;
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    }
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">260 </FONT><A NAME="260"></A>     * returns the current time in msec
+<FONT ID="LN">261 </FONT><A NAME="261"></A>     * 
+<FONT ID="LN">262 </FONT><A NAME="262"></A>     * @return      the current time
+<FONT ID="LN">263 </FONT><A NAME="263"></A>     */</FONT>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Long">long</FONT> getCurrentTime() {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>      <FONT ID="Long">long</FONT>  result;
+<FONT ID="LN">266 </FONT><A NAME="266"></A>      
+<FONT ID="LN">267 </FONT><A NAME="267"></A>      <FONT ID="If">if</FONT> (isCpuTime())
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    result = getThreadMonitor().getThreadUserTime(m_ThreadID) / <FONT ID="IntegerLiteral">1000000</FONT>;
+<FONT ID="LN">269 </FONT><A NAME="269"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    result = System.currentTimeMillis();
+<FONT ID="LN">271 </FONT><A NAME="271"></A>      
+<FONT ID="LN">272 </FONT><A NAME="272"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    }
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">276 </FONT><A NAME="276"></A>     * saves the current system time (or CPU time) in msec as start time
+<FONT ID="LN">277 </FONT><A NAME="277"></A>     * 
+<FONT ID="LN">278 </FONT><A NAME="278"></A>     * @see       #m_Start
+<FONT ID="LN">279 </FONT><A NAME="279"></A>     */</FONT>
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> start() {
+<FONT ID="LN">281 </FONT><A NAME="281"></A>      <FONT ID="SingleLineComment">// make sure that we get the right thread ID!
+<FONT ID="LN">282 </FONT><A NAME="282"></A></FONT>      init();
+<FONT ID="LN">283 </FONT><A NAME="283"></A>
+<FONT ID="LN">284 </FONT><A NAME="284"></A>      m_Start   = getCurrentTime();
+<FONT ID="LN">285 </FONT><A NAME="285"></A>      m_Stop    = m_Start;
+<FONT ID="LN">286 </FONT><A NAME="286"></A>      m_Running = <FONT ID="True">true</FONT>;
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    }
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">290 </FONT><A NAME="290"></A>     * saves the current system (or CPU time) in msec as stop time
+<FONT ID="LN">291 </FONT><A NAME="291"></A>     * 
+<FONT ID="LN">292 </FONT><A NAME="292"></A>     * @see       #m_Stop
+<FONT ID="LN">293 </FONT><A NAME="293"></A>     */</FONT>
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> stop() {
+<FONT ID="LN">295 </FONT><A NAME="295"></A>      m_Stop    = getCurrentTime();
+<FONT ID="LN">296 </FONT><A NAME="296"></A>      m_Running = <FONT ID="False">false</FONT>;
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    }
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">300 </FONT><A NAME="300"></A>     * returns the start time
+<FONT ID="LN">301 </FONT><A NAME="301"></A>     * 
+<FONT ID="LN">302 </FONT><A NAME="302"></A>     * @return  the start time
+<FONT ID="LN">303 </FONT><A NAME="303"></A>     */</FONT>
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> getStart() {
+<FONT ID="LN">305 </FONT><A NAME="305"></A>      <FONT ID="Return">return</FONT> m_Start;
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    }
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">309 </FONT><A NAME="309"></A>     * returns the stop time or, if still running, the current time
+<FONT ID="LN">310 </FONT><A NAME="310"></A>     * 
+<FONT ID="LN">311 </FONT><A NAME="311"></A>     * @return  the stop time
+<FONT ID="LN">312 </FONT><A NAME="312"></A>     */</FONT>
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> getStop() {
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      <FONT ID="Long">long</FONT>  result;
+<FONT ID="LN">315 </FONT><A NAME="315"></A>      
+<FONT ID="LN">316 </FONT><A NAME="316"></A>      <FONT ID="If">if</FONT> (isRunning())
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    result = getCurrentTime();
+<FONT ID="LN">318 </FONT><A NAME="318"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    result = m_Stop;
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      
+<FONT ID="LN">321 </FONT><A NAME="321"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    }
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    
+<FONT ID="LN">324 </FONT><A NAME="324"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">325 </FONT><A NAME="325"></A>     * whether the time is still being clocked
+<FONT ID="LN">326 </FONT><A NAME="326"></A>     * 
+<FONT ID="LN">327 </FONT><A NAME="327"></A>     * @return      true if the time is still being clocked
+<FONT ID="LN">328 </FONT><A NAME="328"></A>     */</FONT>
+<FONT ID="LN">329 </FONT><A NAME="329"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> isRunning() {
+<FONT ID="LN">330 </FONT><A NAME="330"></A>      <FONT ID="Return">return</FONT> m_Running;
+<FONT ID="LN">331 </FONT><A NAME="331"></A>    }
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    
+<FONT ID="LN">333 </FONT><A NAME="333"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">334 </FONT><A NAME="334"></A>     * sets the format of the output
+<FONT ID="LN">335 </FONT><A NAME="335"></A>     * 
+<FONT ID="LN">336 </FONT><A NAME="336"></A>     * @param value       the format of the output
+<FONT ID="LN">337 </FONT><A NAME="337"></A>     * @see               #m_OutputFormat
+<FONT ID="LN">338 </FONT><A NAME="338"></A>     */</FONT>
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOutputFormat(<FONT ID="Int">int</FONT> value) {
+<FONT ID="LN">340 </FONT><A NAME="340"></A>      <FONT ID="If">if</FONT> (value == FORMAT_MILLISECONDS)
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    m_OutputFormat = value;
+<FONT ID="LN">342 </FONT><A NAME="342"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (value == FORMAT_SECONDS)
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    m_OutputFormat = value;
+<FONT ID="LN">344 </FONT><A NAME="344"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (value == FORMAT_HHMMSS)
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    m_OutputFormat = value;
+<FONT ID="LN">346 </FONT><A NAME="346"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">347 </FONT><A NAME="347"></A>    System.out.println(<FONT ID="StringLiteral">"Format '"</FONT> + value + <FONT ID="StringLiteral">"' is not recognized!"</FONT>);
+<FONT ID="LN">348 </FONT><A NAME="348"></A>    }
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">351 </FONT><A NAME="351"></A>     * returns the output format
+<FONT ID="LN">352 </FONT><A NAME="352"></A>     * 
+<FONT ID="LN">353 </FONT><A NAME="353"></A>     * @return      the output format
+<FONT ID="LN">354 </FONT><A NAME="354"></A>     * @see     #m_OutputFormat
+<FONT ID="LN">355 </FONT><A NAME="355"></A>     */</FONT>
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getOutputFormat() {
+<FONT ID="LN">357 </FONT><A NAME="357"></A>      <FONT ID="Return">return</FONT> m_OutputFormat;
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    }
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">361 </FONT><A NAME="361"></A>     * returns the elapsed time, getStop() - getStart(), as string
+<FONT ID="LN">362 </FONT><A NAME="362"></A>     * 
+<FONT ID="LN">363 </FONT><A NAME="363"></A>     * @return  the elapsed time as string
+<FONT ID="LN">364 </FONT><A NAME="364"></A>     * @see       #getStart()
+<FONT ID="LN">365 </FONT><A NAME="365"></A>     * @see       #getStop()
+<FONT ID="LN">366 </FONT><A NAME="366"></A>     */</FONT>
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      String    result;
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      <FONT ID="Long">long</FONT>      elapsed;
+<FONT ID="LN">370 </FONT><A NAME="370"></A>      <FONT ID="Long">long</FONT>      hours;
+<FONT ID="LN">371 </FONT><A NAME="371"></A>      <FONT ID="Long">long</FONT>      mins;
+<FONT ID="LN">372 </FONT><A NAME="372"></A>      <FONT ID="Long">long</FONT>      secs;
+<FONT ID="LN">373 </FONT><A NAME="373"></A>      <FONT ID="Long">long</FONT>      msecs;
+<FONT ID="LN">374 </FONT><A NAME="374"></A>      
+<FONT ID="LN">375 </FONT><A NAME="375"></A>      result  = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">376 </FONT><A NAME="376"></A>      elapsed = getStop() - getStart();
+<FONT ID="LN">377 </FONT><A NAME="377"></A>      
+<FONT ID="LN">378 </FONT><A NAME="378"></A>      <FONT ID="Switch">switch</FONT> (getOutputFormat()) {
+<FONT ID="LN">379 </FONT><A NAME="379"></A>    <FONT ID="Case">case</FONT> FORMAT_HHMMSS:
+<FONT ID="LN">380 </FONT><A NAME="380"></A>      hours   = elapsed / (<FONT ID="IntegerLiteral">3600</FONT> * <FONT ID="IntegerLiteral">1000</FONT>);
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      elapsed = elapsed % (<FONT ID="IntegerLiteral">3600</FONT> * <FONT ID="IntegerLiteral">1000</FONT>);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>      mins    = elapsed / (<FONT ID="IntegerLiteral">60</FONT> * <FONT ID="IntegerLiteral">1000</FONT>);
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      elapsed = elapsed % (<FONT ID="IntegerLiteral">60</FONT> * <FONT ID="IntegerLiteral">1000</FONT>);
+<FONT ID="LN">384 </FONT><A NAME="384"></A>      secs    = elapsed / <FONT ID="IntegerLiteral">1000</FONT>;
+<FONT ID="LN">385 </FONT><A NAME="385"></A>      msecs   = elapsed % <FONT ID="IntegerLiteral">1000</FONT>;
+<FONT ID="LN">386 </FONT><A NAME="386"></A>      
+<FONT ID="LN">387 </FONT><A NAME="387"></A>      <FONT ID="If">if</FONT> (hours &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">388 </FONT><A NAME="388"></A>        result += <FONT ID="StringLiteral">""</FONT> + hours + <FONT ID="StringLiteral">":"</FONT>;
+<FONT ID="LN">389 </FONT><A NAME="389"></A>      
+<FONT ID="LN">390 </FONT><A NAME="390"></A>      <FONT ID="If">if</FONT> (mins &lt; <FONT ID="IntegerLiteral">10</FONT>)
+<FONT ID="LN">391 </FONT><A NAME="391"></A>        result += <FONT ID="StringLiteral">"0"</FONT> + mins + <FONT ID="StringLiteral">":"</FONT>;
+<FONT ID="LN">392 </FONT><A NAME="392"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">393 </FONT><A NAME="393"></A>        result += <FONT ID="StringLiteral">""</FONT>  + mins + <FONT ID="StringLiteral">":"</FONT>;
+<FONT ID="LN">394 </FONT><A NAME="394"></A>      
+<FONT ID="LN">395 </FONT><A NAME="395"></A>      <FONT ID="If">if</FONT> (secs &lt; <FONT ID="IntegerLiteral">10</FONT>)
+<FONT ID="LN">396 </FONT><A NAME="396"></A>        result += <FONT ID="StringLiteral">"0"</FONT> + secs + <FONT ID="StringLiteral">"."</FONT>;
+<FONT ID="LN">397 </FONT><A NAME="397"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">398 </FONT><A NAME="398"></A>        result += <FONT ID="StringLiteral">""</FONT> + secs + <FONT ID="StringLiteral">"."</FONT>;
+<FONT ID="LN">399 </FONT><A NAME="399"></A>      
+<FONT ID="LN">400 </FONT><A NAME="400"></A>      result += Utils.doubleToString(
+<FONT ID="LN">401 </FONT><A NAME="401"></A>          (<FONT ID="Double">double</FONT>) msecs / (<FONT ID="Double">double</FONT>) <FONT ID="IntegerLiteral">1000</FONT>, <FONT ID="IntegerLiteral">3</FONT>).replaceAll(<FONT ID="StringLiteral">".*\\."</FONT>, <FONT ID="StringLiteral">""</FONT>);
+<FONT ID="LN">402 </FONT><A NAME="402"></A>      <FONT ID="Break">break</FONT>;
+<FONT ID="LN">403 </FONT><A NAME="403"></A>      
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    <FONT ID="Case">case</FONT> FORMAT_SECONDS:
+<FONT ID="LN">405 </FONT><A NAME="405"></A>      result = Utils.doubleToString((<FONT ID="Double">double</FONT>) elapsed / (<FONT ID="Double">double</FONT>) <FONT ID="IntegerLiteral">1000</FONT>, <FONT ID="IntegerLiteral">3</FONT>) + <FONT ID="StringLiteral">"s"</FONT>;
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      <FONT ID="Break">break</FONT>;
+<FONT ID="LN">407 </FONT><A NAME="407"></A>      
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    <FONT ID="Case">case</FONT> FORMAT_MILLISECONDS:
+<FONT ID="LN">409 </FONT><A NAME="409"></A>      result = <FONT ID="StringLiteral">""</FONT> + elapsed + <FONT ID="StringLiteral">"ms"</FONT>;
+<FONT ID="LN">410 </FONT><A NAME="410"></A>      <FONT ID="Break">break</FONT>;
+<FONT ID="LN">411 </FONT><A NAME="411"></A>      
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    <FONT ID="Default">default</FONT>:
+<FONT ID="LN">413 </FONT><A NAME="413"></A>      result = <FONT ID="StringLiteral">"&lt;unknown time format&gt;"</FONT>;
+<FONT ID="LN">414 </FONT><A NAME="414"></A>      }
+<FONT ID="LN">415 </FONT><A NAME="415"></A>      
+<FONT ID="LN">416 </FONT><A NAME="416"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    }
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">420 </FONT><A NAME="420"></A>     * Returns the revision string.
+<FONT ID="LN">421 </FONT><A NAME="421"></A>     * 
+<FONT ID="LN">422 </FONT><A NAME="422"></A>     * @return      the revision
+<FONT ID="LN">423 </FONT><A NAME="423"></A>     */</FONT>
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">425 </FONT><A NAME="425"></A>      <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    }
+<FONT ID="LN">427 </FONT><A NAME="427"></A>  }
+<FONT ID="LN">428 </FONT><A NAME="428"></A>  
+<FONT ID="LN">429 </FONT><A NAME="429"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">430 </FONT><A NAME="430"></A>   * A class that can be used for timestamps in files, The toString() method
+<FONT ID="LN">431 </FONT><A NAME="431"></A>   * simply returns the associated Date object in a timestamp format. For
+<FONT ID="LN">432 </FONT><A NAME="432"></A>   * formatting options, see java.text.SimpleDateFormat.
+<FONT ID="LN">433 </FONT><A NAME="433"></A>   *
+<FONT ID="LN">434 </FONT><A NAME="434"></A>   * @author FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">435 </FONT><A NAME="435"></A>   * @version $Revision: 5953 $ 
+<FONT ID="LN">436 </FONT><A NAME="436"></A>   * @see SimpleDateFormat
+<FONT ID="LN">437 </FONT><A NAME="437"></A>   */</FONT>
+<FONT ID="LN">438 </FONT><A NAME="438"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Timestamp
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">6099868388466922753L</FONT>;
+<FONT ID="LN">443 </FONT><A NAME="443"></A>
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    <FONT ID="FormalComment">/** the default format */</FONT>
+<FONT ID="LN">445 </FONT><A NAME="445"></A>    <FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Static">static</FONT> String DEFAULT_FORMAT = <FONT ID="StringLiteral">"yyyy-MM-dd HH:mm:ss"</FONT>;
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    
+<FONT ID="LN">447 </FONT><A NAME="447"></A>    <FONT ID="FormalComment">/** the actual date */</FONT>
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    <FONT ID="Protected">protected</FONT> Date m_Stamp;
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    
+<FONT ID="LN">450 </FONT><A NAME="450"></A>    <FONT ID="FormalComment">/** the format of the timestamp */</FONT>
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    <FONT ID="Protected">protected</FONT> String m_Format;
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    <FONT ID="FormalComment">/** handles the format of the output */</FONT>
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    <FONT ID="Protected">protected</FONT> SimpleDateFormat m_Formatter;
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">457 </FONT><A NAME="457"></A>     * creates a timestamp with the current date and time and the default
+<FONT ID="LN">458 </FONT><A NAME="458"></A>     * format.
+<FONT ID="LN">459 </FONT><A NAME="459"></A>     */</FONT>
+<FONT ID="LN">460 </FONT><A NAME="460"></A>    <FONT ID="Public">public</FONT> Timestamp() {
+<FONT ID="LN">461 </FONT><A NAME="461"></A>      <FONT ID="This">this</FONT>(DEFAULT_FORMAT);
+<FONT ID="LN">462 </FONT><A NAME="462"></A>    }
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">465 </FONT><A NAME="465"></A>     * creates a timestamp with the current date and time and the specified
+<FONT ID="LN">466 </FONT><A NAME="466"></A>     * format.
+<FONT ID="LN">467 </FONT><A NAME="467"></A>     * 
+<FONT ID="LN">468 </FONT><A NAME="468"></A>     * @param format    the format of the timestamp
+<FONT ID="LN">469 </FONT><A NAME="469"></A>     * @see     SimpleDateFormat
+<FONT ID="LN">470 </FONT><A NAME="470"></A>     */</FONT>
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    <FONT ID="Public">public</FONT> Timestamp(String format) {
+<FONT ID="LN">472 </FONT><A NAME="472"></A>      <FONT ID="This">this</FONT>(<FONT ID="New">new</FONT> Date(), format);
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    }
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">476 </FONT><A NAME="476"></A>     * creates a timestamp with the given date and the default format.
+<FONT ID="LN">477 </FONT><A NAME="477"></A>     * 
+<FONT ID="LN">478 </FONT><A NAME="478"></A>     * @param stamp the associated date/time for the timestamp
+<FONT ID="LN">479 </FONT><A NAME="479"></A>     */</FONT>
+<FONT ID="LN">480 </FONT><A NAME="480"></A>    <FONT ID="Public">public</FONT> Timestamp(Date stamp) {
+<FONT ID="LN">481 </FONT><A NAME="481"></A>      <FONT ID="This">this</FONT>(stamp, DEFAULT_FORMAT);
+<FONT ID="LN">482 </FONT><A NAME="482"></A>    }
+<FONT ID="LN">483 </FONT><A NAME="483"></A>    
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">485 </FONT><A NAME="485"></A>     * creates a timestamp with the given date and format.
+<FONT ID="LN">486 </FONT><A NAME="486"></A>     * 
+<FONT ID="LN">487 </FONT><A NAME="487"></A>     * @param stamp the associated date/time for the timestamp
+<FONT ID="LN">488 </FONT><A NAME="488"></A>     * @param format    the format of the timestamp
+<FONT ID="LN">489 </FONT><A NAME="489"></A>     * @see     SimpleDateFormat
+<FONT ID="LN">490 </FONT><A NAME="490"></A>     */</FONT>
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    <FONT ID="Public">public</FONT> Timestamp(Date stamp, String format) {
+<FONT ID="LN">492 </FONT><A NAME="492"></A>      <FONT ID="Super">super</FONT>();
+<FONT ID="LN">493 </FONT><A NAME="493"></A>      
+<FONT ID="LN">494 </FONT><A NAME="494"></A>      m_Stamp = stamp;
+<FONT ID="LN">495 </FONT><A NAME="495"></A>      setFormat(format);
+<FONT ID="LN">496 </FONT><A NAME="496"></A>    }
+<FONT ID="LN">497 </FONT><A NAME="497"></A>    
+<FONT ID="LN">498 </FONT><A NAME="498"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">499 </FONT><A NAME="499"></A>     * sets the format for the timestamp
+<FONT ID="LN">500 </FONT><A NAME="500"></A>     * 
+<FONT ID="LN">501 </FONT><A NAME="501"></A>     * @param value the format string
+<FONT ID="LN">502 </FONT><A NAME="502"></A>     * @see     SimpleDateFormat
+<FONT ID="LN">503 </FONT><A NAME="503"></A>     */</FONT>
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setFormat(String value) {
+<FONT ID="LN">505 </FONT><A NAME="505"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    m_Formatter = <FONT ID="New">new</FONT> SimpleDateFormat(value);
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    m_Format    = value;
+<FONT ID="LN">508 </FONT><A NAME="508"></A>      }
+<FONT ID="LN">509 </FONT><A NAME="509"></A>      <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">510 </FONT><A NAME="510"></A>    m_Formatter = <FONT ID="New">new</FONT> SimpleDateFormat(DEFAULT_FORMAT);
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    m_Format    = DEFAULT_FORMAT;
+<FONT ID="LN">512 </FONT><A NAME="512"></A>      }
+<FONT ID="LN">513 </FONT><A NAME="513"></A>    }
+<FONT ID="LN">514 </FONT><A NAME="514"></A>    
+<FONT ID="LN">515 </FONT><A NAME="515"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">516 </FONT><A NAME="516"></A>     * returns the current timestamp format
+<FONT ID="LN">517 </FONT><A NAME="517"></A>     * 
+<FONT ID="LN">518 </FONT><A NAME="518"></A>     * @return      the current format
+<FONT ID="LN">519 </FONT><A NAME="519"></A>     */</FONT>
+<FONT ID="LN">520 </FONT><A NAME="520"></A>    <FONT ID="Public">public</FONT> String getFormat() {
+<FONT ID="LN">521 </FONT><A NAME="521"></A>      <FONT ID="Return">return</FONT> m_Format;
+<FONT ID="LN">522 </FONT><A NAME="522"></A>    }
+<FONT ID="LN">523 </FONT><A NAME="523"></A>    
+<FONT ID="LN">524 </FONT><A NAME="524"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">525 </FONT><A NAME="525"></A>     * returns the associated date/time
+<FONT ID="LN">526 </FONT><A NAME="526"></A>     * 
+<FONT ID="LN">527 </FONT><A NAME="527"></A>     * @return      the timestamp value
+<FONT ID="LN">528 </FONT><A NAME="528"></A>     */</FONT>
+<FONT ID="LN">529 </FONT><A NAME="529"></A>    <FONT ID="Public">public</FONT> Date getStamp() {
+<FONT ID="LN">530 </FONT><A NAME="530"></A>      <FONT ID="Return">return</FONT> m_Stamp;
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    }
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    
+<FONT ID="LN">533 </FONT><A NAME="533"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">534 </FONT><A NAME="534"></A>     * returns the timestamp as string in the specified format
+<FONT ID="LN">535 </FONT><A NAME="535"></A>     * 
+<FONT ID="LN">536 </FONT><A NAME="536"></A>     * @return      the timestamp as string
+<FONT ID="LN">537 </FONT><A NAME="537"></A>     */</FONT>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">539 </FONT><A NAME="539"></A>      <FONT ID="Return">return</FONT> m_Formatter.format(getStamp());
+<FONT ID="LN">540 </FONT><A NAME="540"></A>    }
+<FONT ID="LN">541 </FONT><A NAME="541"></A>    
+<FONT ID="LN">542 </FONT><A NAME="542"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">543 </FONT><A NAME="543"></A>     * Returns the revision string.
+<FONT ID="LN">544 </FONT><A NAME="544"></A>     * 
+<FONT ID="LN">545 </FONT><A NAME="545"></A>     * @return      the revision
+<FONT ID="LN">546 </FONT><A NAME="546"></A>     */</FONT>
+<FONT ID="LN">547 </FONT><A NAME="547"></A>    <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">548 </FONT><A NAME="548"></A>      <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">549 </FONT><A NAME="549"></A>    }
+<FONT ID="LN">550 </FONT><A NAME="550"></A>  }
+<FONT ID="LN">551 </FONT><A NAME="551"></A>  
+<FONT ID="LN">552 </FONT><A NAME="552"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">553 </FONT><A NAME="553"></A>   * A little, simple helper class for logging stuff. Uses simple file access
+<FONT ID="LN">554 </FONT><A NAME="554"></A>   * and not the java.util.logging stuff (see Log for that). Uses the 
+<FONT ID="LN">555 </FONT><A NAME="555"></A>   * writeToFile methods of the Debug class.
+<FONT ID="LN">556 </FONT><A NAME="556"></A>   * 
+<FONT ID="LN">557 </FONT><A NAME="557"></A>   * @see Debug.Log
+<FONT ID="LN">558 </FONT><A NAME="558"></A>   * @see Debug#writeToFile(String, String)
+<FONT ID="LN">559 </FONT><A NAME="559"></A>   * @see Debug#writeToFile(String, String, boolean)
+<FONT ID="LN">560 </FONT><A NAME="560"></A>   */</FONT>
+<FONT ID="LN">561 </FONT><A NAME="561"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> SimpleLog 
+<FONT ID="LN">562 </FONT><A NAME="562"></A>    <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">563 </FONT><A NAME="563"></A>    
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">565 </FONT><A NAME="565"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">2671928223819510830L</FONT>;
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    
+<FONT ID="LN">567 </FONT><A NAME="567"></A>    <FONT ID="FormalComment">/** the file to write to (if null then only stdout is used) */</FONT>
+<FONT ID="LN">568 </FONT><A NAME="568"></A>    <FONT ID="Protected">protected</FONT> String m_Filename = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">569 </FONT><A NAME="569"></A>    
+<FONT ID="LN">570 </FONT><A NAME="570"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">571 </FONT><A NAME="571"></A>     * default constructor, uses only stdout
+<FONT ID="LN">572 </FONT><A NAME="572"></A>     */</FONT>
+<FONT ID="LN">573 </FONT><A NAME="573"></A>    <FONT ID="Public">public</FONT> SimpleLog() {
+<FONT ID="LN">574 </FONT><A NAME="574"></A>      <FONT ID="This">this</FONT>(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">575 </FONT><A NAME="575"></A>    }
+<FONT ID="LN">576 </FONT><A NAME="576"></A>    
+<FONT ID="LN">577 </FONT><A NAME="577"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">578 </FONT><A NAME="578"></A>     * Creates a logger that writes into the specified file. Appends to the 
+<FONT ID="LN">579 </FONT><A NAME="579"></A>     * file by default.
+<FONT ID="LN">580 </FONT><A NAME="580"></A>     * 
+<FONT ID="LN">581 </FONT><A NAME="581"></A>     * @param filename  the file to write to, if null then only stdout is used
+<FONT ID="LN">582 </FONT><A NAME="582"></A>     */</FONT>
+<FONT ID="LN">583 </FONT><A NAME="583"></A>    <FONT ID="Public">public</FONT> SimpleLog(String filename) {
+<FONT ID="LN">584 </FONT><A NAME="584"></A>      <FONT ID="This">this</FONT>(filename, <FONT ID="True">true</FONT>);
+<FONT ID="LN">585 </FONT><A NAME="585"></A>    }
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    
+<FONT ID="LN">587 </FONT><A NAME="587"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">588 </FONT><A NAME="588"></A>     * Creates a logger that writes into the specified file. Appends to the 
+<FONT ID="LN">589 </FONT><A NAME="589"></A>     * file by default.
+<FONT ID="LN">590 </FONT><A NAME="590"></A>     * 
+<FONT ID="LN">591 </FONT><A NAME="591"></A>     * @param filename  the file to write to, if null then only stdout is used
+<FONT ID="LN">592 </FONT><A NAME="592"></A>     * @param append    if false, the file will be deleted first
+<FONT ID="LN">593 </FONT><A NAME="593"></A>     */</FONT>
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    <FONT ID="Public">public</FONT> SimpleLog(String filename, <FONT ID="Boolean">boolean</FONT> append) {
+<FONT ID="LN">595 </FONT><A NAME="595"></A>      <FONT ID="Super">super</FONT>();
+<FONT ID="LN">596 </FONT><A NAME="596"></A>      
+<FONT ID="LN">597 </FONT><A NAME="597"></A>      m_Filename = filename;
+<FONT ID="LN">598 </FONT><A NAME="598"></A>      
+<FONT ID="LN">599 </FONT><A NAME="599"></A>      Debug.writeToFile(m_Filename, <FONT ID="StringLiteral">"--&gt; Log started"</FONT>, append);
+<FONT ID="LN">600 </FONT><A NAME="600"></A>    }
+<FONT ID="LN">601 </FONT><A NAME="601"></A>    
+<FONT ID="LN">602 </FONT><A NAME="602"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">603 </FONT><A NAME="603"></A>     * returns the filename of the log, can be null
+<FONT ID="LN">604 </FONT><A NAME="604"></A>     * 
+<FONT ID="LN">605 </FONT><A NAME="605"></A>     * @return      the filename of the log
+<FONT ID="LN">606 </FONT><A NAME="606"></A>     */</FONT>
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    <FONT ID="Public">public</FONT> String getFilename() {
+<FONT ID="LN">608 </FONT><A NAME="608"></A>      <FONT ID="Return">return</FONT> m_Filename;
+<FONT ID="LN">609 </FONT><A NAME="609"></A>    }
+<FONT ID="LN">610 </FONT><A NAME="610"></A>    
+<FONT ID="LN">611 </FONT><A NAME="611"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">612 </FONT><A NAME="612"></A>     * logs the given message to the file
+<FONT ID="LN">613 </FONT><A NAME="613"></A>     * 
+<FONT ID="LN">614 </FONT><A NAME="614"></A>     * @param message   the message to log
+<FONT ID="LN">615 </FONT><A NAME="615"></A>     */</FONT>
+<FONT ID="LN">616 </FONT><A NAME="616"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(String message) {
+<FONT ID="LN">617 </FONT><A NAME="617"></A>      String    log;
+<FONT ID="LN">618 </FONT><A NAME="618"></A>      
+<FONT ID="LN">619 </FONT><A NAME="619"></A>      log = <FONT ID="New">new</FONT> Timestamp() + <FONT ID="StringLiteral">" "</FONT> + message;
+<FONT ID="LN">620 </FONT><A NAME="620"></A>      
+<FONT ID="LN">621 </FONT><A NAME="621"></A>      <FONT ID="If">if</FONT> (getFilename() != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">622 </FONT><A NAME="622"></A>    Debug.writeToFile(getFilename(), log);
+<FONT ID="LN">623 </FONT><A NAME="623"></A>
+<FONT ID="LN">624 </FONT><A NAME="624"></A>      System.out.println(log);
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    }
+<FONT ID="LN">626 </FONT><A NAME="626"></A>    
+<FONT ID="LN">627 </FONT><A NAME="627"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">628 </FONT><A NAME="628"></A>     * a convenience method for dumping the current system info in the 
+<FONT ID="LN">629 </FONT><A NAME="629"></A>     * log file
+<FONT ID="LN">630 </FONT><A NAME="630"></A>     * 
+<FONT ID="LN">631 </FONT><A NAME="631"></A>     * @see SystemInfo
+<FONT ID="LN">632 </FONT><A NAME="632"></A>     */</FONT>
+<FONT ID="LN">633 </FONT><A NAME="633"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> logSystemInfo() {
+<FONT ID="LN">634 </FONT><A NAME="634"></A>      log(<FONT ID="StringLiteral">"SystemInfo:\n"</FONT> + <FONT ID="New">new</FONT> <A HREF="../../weka/core/SystemInfo.java.html">SystemInfo</A>().toString());
+<FONT ID="LN">635 </FONT><A NAME="635"></A>    }
+<FONT ID="LN">636 </FONT><A NAME="636"></A>    
+<FONT ID="LN">637 </FONT><A NAME="637"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">638 </FONT><A NAME="638"></A>     * returns a string representation of the logger
+<FONT ID="LN">639 </FONT><A NAME="639"></A>     * 
+<FONT ID="LN">640 </FONT><A NAME="640"></A>     * @return      a string representation of the logger
+<FONT ID="LN">641 </FONT><A NAME="641"></A>     */</FONT>
+<FONT ID="LN">642 </FONT><A NAME="642"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">643 </FONT><A NAME="643"></A>      String    result;
+<FONT ID="LN">644 </FONT><A NAME="644"></A>      
+<FONT ID="LN">645 </FONT><A NAME="645"></A>      result =   <FONT ID="StringLiteral">"Filename: "</FONT> + getFilename();
+<FONT ID="LN">646 </FONT><A NAME="646"></A>      
+<FONT ID="LN">647 </FONT><A NAME="647"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">648 </FONT><A NAME="648"></A>    }
+<FONT ID="LN">649 </FONT><A NAME="649"></A>    
+<FONT ID="LN">650 </FONT><A NAME="650"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">651 </FONT><A NAME="651"></A>     * Returns the revision string.
+<FONT ID="LN">652 </FONT><A NAME="652"></A>     * 
+<FONT ID="LN">653 </FONT><A NAME="653"></A>     * @return      the revision
+<FONT ID="LN">654 </FONT><A NAME="654"></A>     */</FONT>
+<FONT ID="LN">655 </FONT><A NAME="655"></A>    <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">656 </FONT><A NAME="656"></A>      <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">657 </FONT><A NAME="657"></A>    }
+<FONT ID="LN">658 </FONT><A NAME="658"></A>  }
+<FONT ID="LN">659 </FONT><A NAME="659"></A>  
+<FONT ID="LN">660 </FONT><A NAME="660"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">661 </FONT><A NAME="661"></A>   * A helper class for logging stuff. Uses the java.util.logging
+<FONT ID="LN">662 </FONT><A NAME="662"></A>   * package. If this approach seems an "overkill" (it can create quite a few 
+<FONT ID="LN">663 </FONT><A NAME="663"></A>   * log files if used in different threads), one can use the 
+<FONT ID="LN">664 </FONT><A NAME="664"></A>   * Debug.SimpleLog class.
+<FONT ID="LN">665 </FONT><A NAME="665"></A>   *
+<FONT ID="LN">666 </FONT><A NAME="666"></A>   * @author FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">667 </FONT><A NAME="667"></A>   * @version $Revision: 5953 $ 
+<FONT ID="LN">668 </FONT><A NAME="668"></A>   * @see Debug.SimpleLog
+<FONT ID="LN">669 </FONT><A NAME="669"></A>   */</FONT>
+<FONT ID="LN">670 </FONT><A NAME="670"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Log
+<FONT ID="LN">671 </FONT><A NAME="671"></A>    <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">672 </FONT><A NAME="672"></A>    
+<FONT ID="LN">673 </FONT><A NAME="673"></A>    <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">674 </FONT><A NAME="674"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">1458435732111675823L</FONT>;
+<FONT ID="LN">675 </FONT><A NAME="675"></A>
+<FONT ID="LN">676 </FONT><A NAME="676"></A>    <FONT ID="FormalComment">/** the actual logger, if null only stdout is used */</FONT>
+<FONT ID="LN">677 </FONT><A NAME="677"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Transient">transient</FONT> Logger m_Logger = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">678 </FONT><A NAME="678"></A>    
+<FONT ID="LN">679 </FONT><A NAME="679"></A>    <FONT ID="FormalComment">/** the filename, if any */</FONT>
+<FONT ID="LN">680 </FONT><A NAME="680"></A>    <FONT ID="Protected">protected</FONT> String m_Filename = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">681 </FONT><A NAME="681"></A>    
+<FONT ID="LN">682 </FONT><A NAME="682"></A>    <FONT ID="FormalComment">/** the size of the file (in bytes) */</FONT>
+<FONT ID="LN">683 </FONT><A NAME="683"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_Size;
+<FONT ID="LN">684 </FONT><A NAME="684"></A>    
+<FONT ID="LN">685 </FONT><A NAME="685"></A>    <FONT ID="FormalComment">/** the number of files for rotating the logs */</FONT>
+<FONT ID="LN">686 </FONT><A NAME="686"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_NumFiles;
+<FONT ID="LN">687 </FONT><A NAME="687"></A>
+<FONT ID="LN">688 </FONT><A NAME="688"></A>    <FONT ID="FormalComment">/** whether the initialization of the logger failed */</FONT>
+<FONT ID="LN">689 </FONT><A NAME="689"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_LoggerInitFailed = <FONT ID="False">false</FONT>;
+<FONT ID="LN">690 </FONT><A NAME="690"></A>    
+<FONT ID="LN">691 </FONT><A NAME="691"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">692 </FONT><A NAME="692"></A>     * default constructor, uses only stdout
+<FONT ID="LN">693 </FONT><A NAME="693"></A>     */</FONT>
+<FONT ID="LN">694 </FONT><A NAME="694"></A>    <FONT ID="Public">public</FONT> Log() {
+<FONT ID="LN">695 </FONT><A NAME="695"></A>      <FONT ID="This">this</FONT>(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">696 </FONT><A NAME="696"></A>    }
+<FONT ID="LN">697 </FONT><A NAME="697"></A>    
+<FONT ID="LN">698 </FONT><A NAME="698"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">699 </FONT><A NAME="699"></A>     * creates a logger that logs into the specified file, if null then only
+<FONT ID="LN">700 </FONT><A NAME="700"></A>     * stdout is used. It uses 1,000,000 bytes for file size and 1 file.
+<FONT ID="LN">701 </FONT><A NAME="701"></A>     * 
+<FONT ID="LN">702 </FONT><A NAME="702"></A>     * @param filename  the file to log into
+<FONT ID="LN">703 </FONT><A NAME="703"></A>     */</FONT>
+<FONT ID="LN">704 </FONT><A NAME="704"></A>    <FONT ID="Public">public</FONT> Log(String filename) {
+<FONT ID="LN">705 </FONT><A NAME="705"></A>      <FONT ID="This">this</FONT>(filename, <FONT ID="IntegerLiteral">1000000</FONT>, <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">706 </FONT><A NAME="706"></A>    }
+<FONT ID="LN">707 </FONT><A NAME="707"></A>    
+<FONT ID="LN">708 </FONT><A NAME="708"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">709 </FONT><A NAME="709"></A>     * creates a logger that logs into the specified file, if null then only
+<FONT ID="LN">710 </FONT><A NAME="710"></A>     * stdout is used.
+<FONT ID="LN">711 </FONT><A NAME="711"></A>     * 
+<FONT ID="LN">712 </FONT><A NAME="712"></A>     * @param filename  the file to log into
+<FONT ID="LN">713 </FONT><A NAME="713"></A>     * @param size  the size of the files in bytes
+<FONT ID="LN">714 </FONT><A NAME="714"></A>     * @param numFiles  the number of files for rotating
+<FONT ID="LN">715 </FONT><A NAME="715"></A>     */</FONT>
+<FONT ID="LN">716 </FONT><A NAME="716"></A>    <FONT ID="Public">public</FONT> Log(String filename, <FONT ID="Int">int</FONT> size, <FONT ID="Int">int</FONT> numFiles) {
+<FONT ID="LN">717 </FONT><A NAME="717"></A>      m_Filename = filename;
+<FONT ID="LN">718 </FONT><A NAME="718"></A>      m_Size     = size;
+<FONT ID="LN">719 </FONT><A NAME="719"></A>      m_NumFiles = numFiles;
+<FONT ID="LN">720 </FONT><A NAME="720"></A>    }
+<FONT ID="LN">721 </FONT><A NAME="721"></A>    
+<FONT ID="LN">722 </FONT><A NAME="722"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">723 </FONT><A NAME="723"></A>     * initializes and returns the logger if necessary (e.g., due to 
+<FONT ID="LN">724 </FONT><A NAME="724"></A>     * serialization).
+<FONT ID="LN">725 </FONT><A NAME="725"></A>     * 
+<FONT ID="LN">726 </FONT><A NAME="726"></A>     * @return      the logger, can be null, e.g., if no filename provided
+<FONT ID="LN">727 </FONT><A NAME="727"></A>     */</FONT>
+<FONT ID="LN">728 </FONT><A NAME="728"></A>    <FONT ID="Protected">protected</FONT> Logger getLogger() {
+<FONT ID="LN">729 </FONT><A NAME="729"></A>      <FONT ID="If">if</FONT> ( (m_Logger == <FONT ID="Null">null</FONT>) &amp;&amp; (!m_LoggerInitFailed) ) {
+<FONT ID="LN">730 </FONT><A NAME="730"></A>    <FONT ID="If">if</FONT> (m_Filename != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">731 </FONT><A NAME="731"></A>      m_Logger = Logger.getLogger(m_Filename);
+<FONT ID="LN">732 </FONT><A NAME="732"></A>      Handler fh = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">733 </FONT><A NAME="733"></A>      <FONT ID="Try">try</FONT>{       
+<FONT ID="LN">734 </FONT><A NAME="734"></A>        fh = <FONT ID="New">new</FONT> FileHandler(m_Filename, m_Size, m_NumFiles);
+<FONT ID="LN">735 </FONT><A NAME="735"></A>        fh.setFormatter(<FONT ID="New">new</FONT> SimpleFormatter());
+<FONT ID="LN">736 </FONT><A NAME="736"></A>        m_Logger.addHandler(fh);      
+<FONT ID="LN">737 </FONT><A NAME="737"></A>        m_LoggerInitFailed = <FONT ID="False">false</FONT>;
+<FONT ID="LN">738 </FONT><A NAME="738"></A>      }
+<FONT ID="LN">739 </FONT><A NAME="739"></A>      <FONT ID="Catch">catch</FONT>(Exception e) {
+<FONT ID="LN">740 </FONT><A NAME="740"></A>        System.out.println(<FONT ID="StringLiteral">"Cannot init fileHandler for logger:"</FONT> + e.toString());
+<FONT ID="LN">741 </FONT><A NAME="741"></A>        m_Logger = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">742 </FONT><A NAME="742"></A>        m_LoggerInitFailed = <FONT ID="True">true</FONT>;
+<FONT ID="LN">743 </FONT><A NAME="743"></A>      }  
+<FONT ID="LN">744 </FONT><A NAME="744"></A>    }
+<FONT ID="LN">745 </FONT><A NAME="745"></A>      }
+<FONT ID="LN">746 </FONT><A NAME="746"></A>      
+<FONT ID="LN">747 </FONT><A NAME="747"></A>      <FONT ID="Return">return</FONT> m_Logger;
+<FONT ID="LN">748 </FONT><A NAME="748"></A>    }
+<FONT ID="LN">749 </FONT><A NAME="749"></A>    
+<FONT ID="LN">750 </FONT><A NAME="750"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">751 </FONT><A NAME="751"></A>     * turns the string representing a level, e.g., "FINE" or "ALL" into
+<FONT ID="LN">752 </FONT><A NAME="752"></A>     * the corresponding level (case-insensitive). The default is ALL.
+<FONT ID="LN">753 </FONT><A NAME="753"></A>     * 
+<FONT ID="LN">754 </FONT><A NAME="754"></A>     * @param level the string to return a level for
+<FONT ID="LN">755 </FONT><A NAME="755"></A>     * @return      the corresponding level or the default
+<FONT ID="LN">756 </FONT><A NAME="756"></A>     */</FONT>
+<FONT ID="LN">757 </FONT><A NAME="757"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Level stringToLevel(String level) {
+<FONT ID="LN">758 </FONT><A NAME="758"></A>      Level result;
+<FONT ID="LN">759 </FONT><A NAME="759"></A>      
+<FONT ID="LN">760 </FONT><A NAME="760"></A>      <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"ALL"</FONT>))
+<FONT ID="LN">761 </FONT><A NAME="761"></A>        result = ALL;
+<FONT ID="LN">762 </FONT><A NAME="762"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"CONFIG"</FONT>))
+<FONT ID="LN">763 </FONT><A NAME="763"></A>        result = CONFIG;
+<FONT ID="LN">764 </FONT><A NAME="764"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"FINE"</FONT>))
+<FONT ID="LN">765 </FONT><A NAME="765"></A>        result = FINE;
+<FONT ID="LN">766 </FONT><A NAME="766"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"FINER"</FONT>))
+<FONT ID="LN">767 </FONT><A NAME="767"></A>        result = FINER;
+<FONT ID="LN">768 </FONT><A NAME="768"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"FINEST"</FONT>))
+<FONT ID="LN">769 </FONT><A NAME="769"></A>        result = FINEST;
+<FONT ID="LN">770 </FONT><A NAME="770"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"INFO"</FONT>))
+<FONT ID="LN">771 </FONT><A NAME="771"></A>        result = INFO;
+<FONT ID="LN">772 </FONT><A NAME="772"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"OFF"</FONT>))
+<FONT ID="LN">773 </FONT><A NAME="773"></A>        result = OFF;
+<FONT ID="LN">774 </FONT><A NAME="774"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"SEVERE"</FONT>))
+<FONT ID="LN">775 </FONT><A NAME="775"></A>        result = SEVERE;
+<FONT ID="LN">776 </FONT><A NAME="776"></A>      <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (level.equalsIgnoreCase(<FONT ID="StringLiteral">"WARNING"</FONT>))
+<FONT ID="LN">777 </FONT><A NAME="777"></A>        result = WARNING;
+<FONT ID="LN">778 </FONT><A NAME="778"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">779 </FONT><A NAME="779"></A>        result = ALL;
+<FONT ID="LN">780 </FONT><A NAME="780"></A>      
+<FONT ID="LN">781 </FONT><A NAME="781"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">782 </FONT><A NAME="782"></A>    }
+<FONT ID="LN">783 </FONT><A NAME="783"></A>    
+<FONT ID="LN">784 </FONT><A NAME="784"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">785 </FONT><A NAME="785"></A>     * returns the filename of the log, can be null
+<FONT ID="LN">786 </FONT><A NAME="786"></A>     * 
+<FONT ID="LN">787 </FONT><A NAME="787"></A>     * @return      the filename of the log
+<FONT ID="LN">788 </FONT><A NAME="788"></A>     */</FONT>
+<FONT ID="LN">789 </FONT><A NAME="789"></A>    <FONT ID="Public">public</FONT> String getFilename() {
+<FONT ID="LN">790 </FONT><A NAME="790"></A>      <FONT ID="Return">return</FONT> m_Filename;
+<FONT ID="LN">791 </FONT><A NAME="791"></A>    }
+<FONT ID="LN">792 </FONT><A NAME="792"></A>    
+<FONT ID="LN">793 </FONT><A NAME="793"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">794 </FONT><A NAME="794"></A>     * returns the size of the files
+<FONT ID="LN">795 </FONT><A NAME="795"></A>     * 
+<FONT ID="LN">796 </FONT><A NAME="796"></A>     * @return      the size of a file
+<FONT ID="LN">797 </FONT><A NAME="797"></A>     */</FONT>
+<FONT ID="LN">798 </FONT><A NAME="798"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getSize() {
+<FONT ID="LN">799 </FONT><A NAME="799"></A>      <FONT ID="Return">return</FONT> m_Size;
+<FONT ID="LN">800 </FONT><A NAME="800"></A>    }
+<FONT ID="LN">801 </FONT><A NAME="801"></A>    
+<FONT ID="LN">802 </FONT><A NAME="802"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">803 </FONT><A NAME="803"></A>     * returns the number of files being used
+<FONT ID="LN">804 </FONT><A NAME="804"></A>     * 
+<FONT ID="LN">805 </FONT><A NAME="805"></A>     * @return      the number of files
+<FONT ID="LN">806 </FONT><A NAME="806"></A>     */</FONT>
+<FONT ID="LN">807 </FONT><A NAME="807"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getNumFiles() {
+<FONT ID="LN">808 </FONT><A NAME="808"></A>      <FONT ID="Return">return</FONT> m_NumFiles;
+<FONT ID="LN">809 </FONT><A NAME="809"></A>    }
+<FONT ID="LN">810 </FONT><A NAME="810"></A>
+<FONT ID="LN">811 </FONT><A NAME="811"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">812 </FONT><A NAME="812"></A>     * logs the given message
+<FONT ID="LN">813 </FONT><A NAME="813"></A>     * 
+<FONT ID="LN">814 </FONT><A NAME="814"></A>     * @param level the level of severity
+<FONT ID="LN">815 </FONT><A NAME="815"></A>     * @param message   the message to log
+<FONT ID="LN">816 </FONT><A NAME="816"></A>     */</FONT>
+<FONT ID="LN">817 </FONT><A NAME="817"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(Level level, String message) {
+<FONT ID="LN">818 </FONT><A NAME="818"></A>      log(level, <FONT ID="StringLiteral">""</FONT>, message);
+<FONT ID="LN">819 </FONT><A NAME="819"></A>    }
+<FONT ID="LN">820 </FONT><A NAME="820"></A>    
+<FONT ID="LN">821 </FONT><A NAME="821"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">822 </FONT><A NAME="822"></A>     * prints the given message with the specified level
+<FONT ID="LN">823 </FONT><A NAME="823"></A>     * 
+<FONT ID="LN">824 </FONT><A NAME="824"></A>     * @param level the level of logging
+<FONT ID="LN">825 </FONT><A NAME="825"></A>     * @param sourceclass   the class that logs the message
+<FONT ID="LN">826 </FONT><A NAME="826"></A>     * @param message   the message to print
+<FONT ID="LN">827 </FONT><A NAME="827"></A>     */</FONT>
+<FONT ID="LN">828 </FONT><A NAME="828"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(Level level, String sourceclass, String message) {
+<FONT ID="LN">829 </FONT><A NAME="829"></A>      log(level, sourceclass, <FONT ID="StringLiteral">""</FONT>, message);
+<FONT ID="LN">830 </FONT><A NAME="830"></A>    }
+<FONT ID="LN">831 </FONT><A NAME="831"></A>    
+<FONT ID="LN">832 </FONT><A NAME="832"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">833 </FONT><A NAME="833"></A>     * prints the given message with the specified level
+<FONT ID="LN">834 </FONT><A NAME="834"></A>     * 
+<FONT ID="LN">835 </FONT><A NAME="835"></A>     * @param level     the level of logging
+<FONT ID="LN">836 </FONT><A NAME="836"></A>     * @param sourceclass       the class that logs the message
+<FONT ID="LN">837 </FONT><A NAME="837"></A>     * @param sourcemethod  the method that logs the message
+<FONT ID="LN">838 </FONT><A NAME="838"></A>     * @param message       the message to print
+<FONT ID="LN">839 </FONT><A NAME="839"></A>     */</FONT>
+<FONT ID="LN">840 </FONT><A NAME="840"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(Level level, String sourceclass, String sourcemethod, String message) {
+<FONT ID="LN">841 </FONT><A NAME="841"></A>      Logger    logger;
+<FONT ID="LN">842 </FONT><A NAME="842"></A>      
+<FONT ID="LN">843 </FONT><A NAME="843"></A>      logger = getLogger();
+<FONT ID="LN">844 </FONT><A NAME="844"></A>      
+<FONT ID="LN">845 </FONT><A NAME="845"></A>      <FONT ID="If">if</FONT> (logger != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">846 </FONT><A NAME="846"></A>        logger.logp(level, sourceclass, sourcemethod, message);
+<FONT ID="LN">847 </FONT><A NAME="847"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">848 </FONT><A NAME="848"></A>    System.out.println(message);
+<FONT ID="LN">849 </FONT><A NAME="849"></A>    }
+<FONT ID="LN">850 </FONT><A NAME="850"></A>    
+<FONT ID="LN">851 </FONT><A NAME="851"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">852 </FONT><A NAME="852"></A>     * a convenience method for dumping the current system info in the 
+<FONT ID="LN">853 </FONT><A NAME="853"></A>     * log file
+<FONT ID="LN">854 </FONT><A NAME="854"></A>     * 
+<FONT ID="LN">855 </FONT><A NAME="855"></A>     * @see SystemInfo
+<FONT ID="LN">856 </FONT><A NAME="856"></A>     */</FONT>
+<FONT ID="LN">857 </FONT><A NAME="857"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> logSystemInfo() {
+<FONT ID="LN">858 </FONT><A NAME="858"></A>      log(INFO, <FONT ID="StringLiteral">"SystemInfo:\n"</FONT> + <FONT ID="New">new</FONT> <A HREF="../../weka/core/SystemInfo.java.html">SystemInfo</A>().toString());
+<FONT ID="LN">859 </FONT><A NAME="859"></A>    }
+<FONT ID="LN">860 </FONT><A NAME="860"></A>    
+<FONT ID="LN">861 </FONT><A NAME="861"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">862 </FONT><A NAME="862"></A>     * returns a string representation of the logger
+<FONT ID="LN">863 </FONT><A NAME="863"></A>     * 
+<FONT ID="LN">864 </FONT><A NAME="864"></A>     * @return      a string representation of the logger
+<FONT ID="LN">865 </FONT><A NAME="865"></A>     */</FONT>
+<FONT ID="LN">866 </FONT><A NAME="866"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">867 </FONT><A NAME="867"></A>      String    result;
+<FONT ID="LN">868 </FONT><A NAME="868"></A>      
+<FONT ID="LN">869 </FONT><A NAME="869"></A>      result =   <FONT ID="StringLiteral">"Filename: "</FONT> + getFilename() + <FONT ID="StringLiteral">", "</FONT>
+<FONT ID="LN">870 </FONT><A NAME="870"></A>               + <FONT ID="StringLiteral">"Size: "</FONT> + getSize() + <FONT ID="StringLiteral">", "</FONT>
+<FONT ID="LN">871 </FONT><A NAME="871"></A>               + <FONT ID="StringLiteral">"# Files: "</FONT> + getNumFiles();
+<FONT ID="LN">872 </FONT><A NAME="872"></A>      
+<FONT ID="LN">873 </FONT><A NAME="873"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">874 </FONT><A NAME="874"></A>    }
+<FONT ID="LN">875 </FONT><A NAME="875"></A>    
+<FONT ID="LN">876 </FONT><A NAME="876"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">877 </FONT><A NAME="877"></A>     * Returns the revision string.
+<FONT ID="LN">878 </FONT><A NAME="878"></A>     * 
+<FONT ID="LN">879 </FONT><A NAME="879"></A>     * @return      the revision
+<FONT ID="LN">880 </FONT><A NAME="880"></A>     */</FONT>
+<FONT ID="LN">881 </FONT><A NAME="881"></A>    <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">882 </FONT><A NAME="882"></A>      <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">883 </FONT><A NAME="883"></A>    }
+<FONT ID="LN">884 </FONT><A NAME="884"></A>  }
+<FONT ID="LN">885 </FONT><A NAME="885"></A>
+<FONT ID="LN">886 </FONT><A NAME="886"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">887 </FONT><A NAME="887"></A>   * This extended Random class enables one to print the generated random
+<FONT ID="LN">888 </FONT><A NAME="888"></A>   * numbers etc., before they are returned. It can either use stdout (default)
+<FONT ID="LN">889 </FONT><A NAME="889"></A>   * for outputting the logging information or a Log object (level is then 
+<FONT ID="LN">890 </FONT><A NAME="890"></A>   * INFO).
+<FONT ID="LN">891 </FONT><A NAME="891"></A>   *
+<FONT ID="LN">892 </FONT><A NAME="892"></A>   * @author  FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">893 </FONT><A NAME="893"></A>   * @version $Revision: 5953 $
+<FONT ID="LN">894 </FONT><A NAME="894"></A>   */</FONT>
+<FONT ID="LN">895 </FONT><A NAME="895"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> Random
+<FONT ID="LN">896 </FONT><A NAME="896"></A>    <FONT ID="Extends">extends</FONT> java.util.Random
+<FONT ID="LN">897 </FONT><A NAME="897"></A>    <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">898 </FONT><A NAME="898"></A>
+<FONT ID="LN">899 </FONT><A NAME="899"></A>    <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">900 </FONT><A NAME="900"></A>    <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">1256846887618333956L</FONT>;
+<FONT ID="LN">901 </FONT><A NAME="901"></A>
+<FONT ID="LN">902 </FONT><A NAME="902"></A>    <FONT ID="FormalComment">/** whether to output debug information */</FONT>
+<FONT ID="LN">903 </FONT><A NAME="903"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_Debug = <FONT ID="False">false</FONT>;
+<FONT ID="LN">904 </FONT><A NAME="904"></A>
+<FONT ID="LN">905 </FONT><A NAME="905"></A>    <FONT ID="FormalComment">/** the unique ID for this number generator */</FONT>
+<FONT ID="LN">906 </FONT><A NAME="906"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Long">long</FONT> m_ID;
+<FONT ID="LN">907 </FONT><A NAME="907"></A>    
+<FONT ID="LN">908 </FONT><A NAME="908"></A>    <FONT ID="FormalComment">/** for keeping track of unique IDs */</FONT>
+<FONT ID="LN">909 </FONT><A NAME="909"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> m_CurrentID;
+<FONT ID="LN">910 </FONT><A NAME="910"></A>    
+<FONT ID="LN">911 </FONT><A NAME="911"></A>    <FONT ID="FormalComment">/** the log to use for outputting the data, otherwise just stdout */</FONT>
+<FONT ID="LN">912 </FONT><A NAME="912"></A>    <FONT ID="Protected">protected</FONT> Log m_Log = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">913 </FONT><A NAME="913"></A>    
+<FONT ID="LN">914 </FONT><A NAME="914"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">915 </FONT><A NAME="915"></A>     * Creates a new random number generator. With no debugging.
+<FONT ID="LN">916 </FONT><A NAME="916"></A>     */</FONT>
+<FONT ID="LN">917 </FONT><A NAME="917"></A>    <FONT ID="Public">public</FONT> Random() {
+<FONT ID="LN">918 </FONT><A NAME="918"></A>      <FONT ID="This">this</FONT>(<FONT ID="False">false</FONT>);
+<FONT ID="LN">919 </FONT><A NAME="919"></A>    }
+<FONT ID="LN">920 </FONT><A NAME="920"></A>
+<FONT ID="LN">921 </FONT><A NAME="921"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">922 </FONT><A NAME="922"></A>     * Creates a new random number generator using a single long seed.
+<FONT ID="LN">923 </FONT><A NAME="923"></A>     * With no debugging
+<FONT ID="LN">924 </FONT><A NAME="924"></A>     * 
+<FONT ID="LN">925 </FONT><A NAME="925"></A>     * @param seed  the seed value
+<FONT ID="LN">926 </FONT><A NAME="926"></A>     */</FONT>
+<FONT ID="LN">927 </FONT><A NAME="927"></A>    <FONT ID="Public">public</FONT> Random(<FONT ID="Long">long</FONT> seed) {
+<FONT ID="LN">928 </FONT><A NAME="928"></A>      <FONT ID="This">this</FONT>(seed, <FONT ID="False">false</FONT>);
+<FONT ID="LN">929 </FONT><A NAME="929"></A>    }
+<FONT ID="LN">930 </FONT><A NAME="930"></A>
+<FONT ID="LN">931 </FONT><A NAME="931"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">932 </FONT><A NAME="932"></A>     * Creates a new random number generator. With optional debugging.
+<FONT ID="LN">933 </FONT><A NAME="933"></A>     * 
+<FONT ID="LN">934 </FONT><A NAME="934"></A>     * @param debug if true, debugging output is enabled
+<FONT ID="LN">935 </FONT><A NAME="935"></A>     */</FONT>
+<FONT ID="LN">936 </FONT><A NAME="936"></A>    <FONT ID="Public">public</FONT> Random(<FONT ID="Boolean">boolean</FONT> debug) {
+<FONT ID="LN">937 </FONT><A NAME="937"></A>      <FONT ID="Super">super</FONT>();
+<FONT ID="LN">938 </FONT><A NAME="938"></A>      setDebug(debug);
+<FONT ID="LN">939 </FONT><A NAME="939"></A>      m_ID = nextID();
+<FONT ID="LN">940 </FONT><A NAME="940"></A>      <FONT ID="If">if</FONT> (getDebug())
+<FONT ID="LN">941 </FONT><A NAME="941"></A>        printStackTrace();
+<FONT ID="LN">942 </FONT><A NAME="942"></A>    }
+<FONT ID="LN">943 </FONT><A NAME="943"></A>
+<FONT ID="LN">944 </FONT><A NAME="944"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">945 </FONT><A NAME="945"></A>     * Creates a new random number generator using a single long seed.
+<FONT ID="LN">946 </FONT><A NAME="946"></A>     * With optional debugging
+<FONT ID="LN">947 </FONT><A NAME="947"></A>     * 
+<FONT ID="LN">948 </FONT><A NAME="948"></A>     * @param seed  the seed value
+<FONT ID="LN">949 </FONT><A NAME="949"></A>     * @param debug if true, debugging output is enabled
+<FONT ID="LN">950 </FONT><A NAME="950"></A>     */</FONT>
+<FONT ID="LN">951 </FONT><A NAME="951"></A>    <FONT ID="Public">public</FONT> Random(<FONT ID="Long">long</FONT> seed, <FONT ID="Boolean">boolean</FONT> debug) {
+<FONT ID="LN">952 </FONT><A NAME="952"></A>      <FONT ID="Super">super</FONT>(seed);
+<FONT ID="LN">953 </FONT><A NAME="953"></A>      setDebug(debug);
+<FONT ID="LN">954 </FONT><A NAME="954"></A>      m_ID = nextID();
+<FONT ID="LN">955 </FONT><A NAME="955"></A>      <FONT ID="If">if</FONT> (getDebug())
+<FONT ID="LN">956 </FONT><A NAME="956"></A>        printStackTrace();
+<FONT ID="LN">957 </FONT><A NAME="957"></A>    }
+<FONT ID="LN">958 </FONT><A NAME="958"></A>
+<FONT ID="LN">959 </FONT><A NAME="959"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">960 </FONT><A NAME="960"></A>     * sets whether to print the generated random values or not
+<FONT ID="LN">961 </FONT><A NAME="961"></A>     * 
+<FONT ID="LN">962 </FONT><A NAME="962"></A>     * @param value if true debugging output is enabled
+<FONT ID="LN">963 </FONT><A NAME="963"></A>     */</FONT>
+<FONT ID="LN">964 </FONT><A NAME="964"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDebug(<FONT ID="Boolean">boolean</FONT> value) {
+<FONT ID="LN">965 </FONT><A NAME="965"></A>      m_Debug = value;
+<FONT ID="LN">966 </FONT><A NAME="966"></A>    }
+<FONT ID="LN">967 </FONT><A NAME="967"></A>
+<FONT ID="LN">968 </FONT><A NAME="968"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">969 </FONT><A NAME="969"></A>     * returns whether to print the generated random values or not
+<FONT ID="LN">970 </FONT><A NAME="970"></A>     * 
+<FONT ID="LN">971 </FONT><A NAME="971"></A>     * @return      true if debugging output is enabled
+<FONT ID="LN">972 </FONT><A NAME="972"></A>     */</FONT>
+<FONT ID="LN">973 </FONT><A NAME="973"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getDebug() {
+<FONT ID="LN">974 </FONT><A NAME="974"></A>      <FONT ID="Return">return</FONT> m_Debug;
+<FONT ID="LN">975 </FONT><A NAME="975"></A>    }
+<FONT ID="LN">976 </FONT><A NAME="976"></A>    
+<FONT ID="LN">977 </FONT><A NAME="977"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">978 </FONT><A NAME="978"></A>     * the log to use, if it is null then stdout is used
+<FONT ID="LN">979 </FONT><A NAME="979"></A>     * 
+<FONT ID="LN">980 </FONT><A NAME="980"></A>     * @param value the log to use
+<FONT ID="LN">981 </FONT><A NAME="981"></A>     */</FONT>
+<FONT ID="LN">982 </FONT><A NAME="982"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setLog(Log value) {
+<FONT ID="LN">983 </FONT><A NAME="983"></A>      m_Log = value;
+<FONT ID="LN">984 </FONT><A NAME="984"></A>    }
+<FONT ID="LN">985 </FONT><A NAME="985"></A>    
+<FONT ID="LN">986 </FONT><A NAME="986"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">987 </FONT><A NAME="987"></A>     * the currently used log, if null then stdout is used for outputting
+<FONT ID="LN">988 </FONT><A NAME="988"></A>     * the debugging information
+<FONT ID="LN">989 </FONT><A NAME="989"></A>     * 
+<FONT ID="LN">990 </FONT><A NAME="990"></A>     * @return      the log, can be null
+<FONT ID="LN">991 </FONT><A NAME="991"></A>     */</FONT>
+<FONT ID="LN">992 </FONT><A NAME="992"></A>    <FONT ID="Public">public</FONT> Log getLog() {
+<FONT ID="LN">993 </FONT><A NAME="993"></A>      <FONT ID="Return">return</FONT> m_Log;
+<FONT ID="LN">994 </FONT><A NAME="994"></A>    }
+<FONT ID="LN">995 </FONT><A NAME="995"></A>
+<FONT ID="LN">996 </FONT><A NAME="996"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">997 </FONT><A NAME="997"></A>     * returns the next unique ID for a number generator
+<FONT ID="LN">998 </FONT><A NAME="998"></A>     * 
+<FONT ID="LN">999 </FONT><A NAME="999"></A>     * @return      the next unique ID
+<FONT ID="LN">1000</FONT><A NAME="1000"></A>     */</FONT>
+<FONT ID="LN">1001</FONT><A NAME="1001"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Long">long</FONT> nextID() {
+<FONT ID="LN">1002</FONT><A NAME="1002"></A>      m_CurrentID++;
+<FONT ID="LN">1003</FONT><A NAME="1003"></A>      
+<FONT ID="LN">1004</FONT><A NAME="1004"></A>      <FONT ID="Return">return</FONT> m_CurrentID;
+<FONT ID="LN">1005</FONT><A NAME="1005"></A>    }
+<FONT ID="LN">1006</FONT><A NAME="1006"></A>
+<FONT ID="LN">1007</FONT><A NAME="1007"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1008</FONT><A NAME="1008"></A>     * returns the unique ID of this number generator
+<FONT ID="LN">1009</FONT><A NAME="1009"></A>     * 
+<FONT ID="LN">1010</FONT><A NAME="1010"></A>     * @return      the unique ID of this number generator
+<FONT ID="LN">1011</FONT><A NAME="1011"></A>     */</FONT>
+<FONT ID="LN">1012</FONT><A NAME="1012"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> getID() {
+<FONT ID="LN">1013</FONT><A NAME="1013"></A>      <FONT ID="Return">return</FONT> m_ID;
+<FONT ID="LN">1014</FONT><A NAME="1014"></A>    }
+<FONT ID="LN">1015</FONT><A NAME="1015"></A>
+<FONT ID="LN">1016</FONT><A NAME="1016"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1017</FONT><A NAME="1017"></A>     * prints the given message only if m_Debug is TRUE
+<FONT ID="LN">1018</FONT><A NAME="1018"></A>     * 
+<FONT ID="LN">1019</FONT><A NAME="1019"></A>     * @param msg   the message to print
+<FONT ID="LN">1020</FONT><A NAME="1020"></A>     * @see         #m_Debug
+<FONT ID="LN">1021</FONT><A NAME="1021"></A>     */</FONT>
+<FONT ID="LN">1022</FONT><A NAME="1022"></A>    <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> println(String msg) {
+<FONT ID="LN">1023</FONT><A NAME="1023"></A>      <FONT ID="If">if</FONT> (getDebug()) {
+<FONT ID="LN">1024</FONT><A NAME="1024"></A>    <FONT ID="If">if</FONT> (getLog() != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1025</FONT><A NAME="1025"></A>      getLog().log(Level.INFO, m_ID + <FONT ID="StringLiteral">": "</FONT> + msg);
+<FONT ID="LN">1026</FONT><A NAME="1026"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">1027</FONT><A NAME="1027"></A>      System.out.println(m_ID + <FONT ID="StringLiteral">": "</FONT> + msg);
+<FONT ID="LN">1028</FONT><A NAME="1028"></A>      }
+<FONT ID="LN">1029</FONT><A NAME="1029"></A>    }
+<FONT ID="LN">1030</FONT><A NAME="1030"></A>
+<FONT ID="LN">1031</FONT><A NAME="1031"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1032</FONT><A NAME="1032"></A>     * prints the current stacktrace
+<FONT ID="LN">1033</FONT><A NAME="1033"></A>     */</FONT>
+<FONT ID="LN">1034</FONT><A NAME="1034"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> printStackTrace() {
+<FONT ID="LN">1035</FONT><A NAME="1035"></A>      Throwable     t;
+<FONT ID="LN">1036</FONT><A NAME="1036"></A>      StringWriter  writer;
+<FONT ID="LN">1037</FONT><A NAME="1037"></A>
+<FONT ID="LN">1038</FONT><A NAME="1038"></A>      writer = <FONT ID="New">new</FONT> StringWriter();
+<FONT ID="LN">1039</FONT><A NAME="1039"></A>      
+<FONT ID="LN">1040</FONT><A NAME="1040"></A>      <FONT ID="SingleLineComment">// generate stacktrace
+<FONT ID="LN">1041</FONT><A NAME="1041"></A></FONT>      t = <FONT ID="New">new</FONT> Throwable();
+<FONT ID="LN">1042</FONT><A NAME="1042"></A>      t.fillInStackTrace();
+<FONT ID="LN">1043</FONT><A NAME="1043"></A>      t.printStackTrace(<FONT ID="New">new</FONT> PrintWriter(writer));
+<FONT ID="LN">1044</FONT><A NAME="1044"></A>
+<FONT ID="LN">1045</FONT><A NAME="1045"></A>      println(writer.toString());
+<FONT ID="LN">1046</FONT><A NAME="1046"></A>    }
+<FONT ID="LN">1047</FONT><A NAME="1047"></A>
+<FONT ID="LN">1048</FONT><A NAME="1048"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1049</FONT><A NAME="1049"></A>     * Returns the next pseudorandom, uniformly distributed boolean value from
+<FONT ID="LN">1050</FONT><A NAME="1050"></A>     * this random number generator's sequence.
+<FONT ID="LN">1051</FONT><A NAME="1051"></A>     * 
+<FONT ID="LN">1052</FONT><A NAME="1052"></A>     * @return      random boolean
+<FONT ID="LN">1053</FONT><A NAME="1053"></A>     */</FONT>
+<FONT ID="LN">1054</FONT><A NAME="1054"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> nextBoolean() {
+<FONT ID="LN">1055</FONT><A NAME="1055"></A>      <FONT ID="Boolean">boolean</FONT> result = <FONT ID="Super">super</FONT>.nextBoolean();
+<FONT ID="LN">1056</FONT><A NAME="1056"></A>      println(<FONT ID="StringLiteral">"nextBoolean="</FONT> + result);
+<FONT ID="LN">1057</FONT><A NAME="1057"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1058</FONT><A NAME="1058"></A>    }
+<FONT ID="LN">1059</FONT><A NAME="1059"></A>
+<FONT ID="LN">1060</FONT><A NAME="1060"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1061</FONT><A NAME="1061"></A>     * Generates random bytes and places them into a user-supplied byte array.
+<FONT ID="LN">1062</FONT><A NAME="1062"></A>     * 
+<FONT ID="LN">1063</FONT><A NAME="1063"></A>     * @param bytes array to fill with random bytes
+<FONT ID="LN">1064</FONT><A NAME="1064"></A>     */</FONT>
+<FONT ID="LN">1065</FONT><A NAME="1065"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> nextBytes(<FONT ID="Byte">byte</FONT>[] bytes) {
+<FONT ID="LN">1066</FONT><A NAME="1066"></A>      <FONT ID="Super">super</FONT>.nextBytes(bytes);
+<FONT ID="LN">1067</FONT><A NAME="1067"></A>      println(<FONT ID="StringLiteral">"nextBytes="</FONT> + Utils.arrayToString(bytes));
+<FONT ID="LN">1068</FONT><A NAME="1068"></A>    }
+<FONT ID="LN">1069</FONT><A NAME="1069"></A>
+<FONT ID="LN">1070</FONT><A NAME="1070"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1071</FONT><A NAME="1071"></A>     * Returns the next pseudorandom, uniformly distributed double value between
+<FONT ID="LN">1072</FONT><A NAME="1072"></A>     * 0.0 and 1.0 from this random number generator's sequence.
+<FONT ID="LN">1073</FONT><A NAME="1073"></A>     * 
+<FONT ID="LN">1074</FONT><A NAME="1074"></A>     * @return      random double
+<FONT ID="LN">1075</FONT><A NAME="1075"></A>     */</FONT>
+<FONT ID="LN">1076</FONT><A NAME="1076"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> nextDouble() {
+<FONT ID="LN">1077</FONT><A NAME="1077"></A>      <FONT ID="Double">double</FONT> result = <FONT ID="Super">super</FONT>.nextDouble();
+<FONT ID="LN">1078</FONT><A NAME="1078"></A>      println(<FONT ID="StringLiteral">"nextDouble="</FONT> + result);
+<FONT ID="LN">1079</FONT><A NAME="1079"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1080</FONT><A NAME="1080"></A>    }
+<FONT ID="LN">1081</FONT><A NAME="1081"></A>
+<FONT ID="LN">1082</FONT><A NAME="1082"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1083</FONT><A NAME="1083"></A>     * Returns the next pseudorandom, uniformly distributed float  value between
+<FONT ID="LN">1084</FONT><A NAME="1084"></A>     * 0.0 and 1.0 from this random number generator's sequence.
+<FONT ID="LN">1085</FONT><A NAME="1085"></A>     * 
+<FONT ID="LN">1086</FONT><A NAME="1086"></A>     * @return      random float
+<FONT ID="LN">1087</FONT><A NAME="1087"></A>     */</FONT>
+<FONT ID="LN">1088</FONT><A NAME="1088"></A>    <FONT ID="Public">public</FONT> <FONT ID="Float">float</FONT> nextFloat() {
+<FONT ID="LN">1089</FONT><A NAME="1089"></A>      <FONT ID="Float">float</FONT> result = <FONT ID="Super">super</FONT>.nextFloat();
+<FONT ID="LN">1090</FONT><A NAME="1090"></A>      println(<FONT ID="StringLiteral">"nextFloat="</FONT> + result);
+<FONT ID="LN">1091</FONT><A NAME="1091"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1092</FONT><A NAME="1092"></A>    }
+<FONT ID="LN">1093</FONT><A NAME="1093"></A>
+<FONT ID="LN">1094</FONT><A NAME="1094"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1095</FONT><A NAME="1095"></A>     * Returns the next pseudorandom, Gaussian ("normally") distributed double
+<FONT ID="LN">1096</FONT><A NAME="1096"></A>     * value with mean 0.0 and standard deviation 1.0 from this random number
+<FONT ID="LN">1097</FONT><A NAME="1097"></A>     * generator's sequence.
+<FONT ID="LN">1098</FONT><A NAME="1098"></A>     * 
+<FONT ID="LN">1099</FONT><A NAME="1099"></A>     * @return      random double, gaussian distributed
+<FONT ID="LN">1100</FONT><A NAME="1100"></A>     */</FONT>
+<FONT ID="LN">1101</FONT><A NAME="1101"></A>    <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> nextGaussian() {
+<FONT ID="LN">1102</FONT><A NAME="1102"></A>      <FONT ID="Double">double</FONT> result = <FONT ID="Super">super</FONT>.nextGaussian();
+<FONT ID="LN">1103</FONT><A NAME="1103"></A>      println(<FONT ID="StringLiteral">"nextGaussian="</FONT> + result);
+<FONT ID="LN">1104</FONT><A NAME="1104"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1105</FONT><A NAME="1105"></A>    }
+<FONT ID="LN">1106</FONT><A NAME="1106"></A>
+<FONT ID="LN">1107</FONT><A NAME="1107"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1108</FONT><A NAME="1108"></A>     * Returns the next pseudorandom, uniformly distributed int  value from this
+<FONT ID="LN">1109</FONT><A NAME="1109"></A>     * random number generator's sequence.
+<FONT ID="LN">1110</FONT><A NAME="1110"></A>     * 
+<FONT ID="LN">1111</FONT><A NAME="1111"></A>     * @return      random int
+<FONT ID="LN">1112</FONT><A NAME="1112"></A>     */</FONT>
+<FONT ID="LN">1113</FONT><A NAME="1113"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nextInt() {
+<FONT ID="LN">1114</FONT><A NAME="1114"></A>      <FONT ID="Int">int</FONT> result = <FONT ID="Super">super</FONT>.nextInt();
+<FONT ID="LN">1115</FONT><A NAME="1115"></A>      println(<FONT ID="StringLiteral">"nextInt="</FONT> + result);
+<FONT ID="LN">1116</FONT><A NAME="1116"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1117</FONT><A NAME="1117"></A>    }
+<FONT ID="LN">1118</FONT><A NAME="1118"></A>
+<FONT ID="LN">1119</FONT><A NAME="1119"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1120</FONT><A NAME="1120"></A>     * Returns a pseudorandom, uniformly distributed int value between 0
+<FONT ID="LN">1121</FONT><A NAME="1121"></A>     * (inclusive) and the specified value (exclusive), drawn from this random
+<FONT ID="LN">1122</FONT><A NAME="1122"></A>     * number generator's sequence.
+<FONT ID="LN">1123</FONT><A NAME="1123"></A>     * 
+<FONT ID="LN">1124</FONT><A NAME="1124"></A>     * @param n     the upper limit (exclusive)
+<FONT ID="LN">1125</FONT><A NAME="1125"></A>     * @return      random int
+<FONT ID="LN">1126</FONT><A NAME="1126"></A>     */</FONT>
+<FONT ID="LN">1127</FONT><A NAME="1127"></A>    <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> nextInt(<FONT ID="Int">int</FONT> n) {
+<FONT ID="LN">1128</FONT><A NAME="1128"></A>      <FONT ID="Int">int</FONT> result = <FONT ID="Super">super</FONT>.nextInt(n);
+<FONT ID="LN">1129</FONT><A NAME="1129"></A>      println(<FONT ID="StringLiteral">"nextInt("</FONT> + n + <FONT ID="StringLiteral">")="</FONT> + result);
+<FONT ID="LN">1130</FONT><A NAME="1130"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1131</FONT><A NAME="1131"></A>    }
+<FONT ID="LN">1132</FONT><A NAME="1132"></A>
+<FONT ID="LN">1133</FONT><A NAME="1133"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1134</FONT><A NAME="1134"></A>     * Returns the next pseudorandom, uniformly distributed long  value from this
+<FONT ID="LN">1135</FONT><A NAME="1135"></A>     * random number generator's sequence.
+<FONT ID="LN">1136</FONT><A NAME="1136"></A>     * 
+<FONT ID="LN">1137</FONT><A NAME="1137"></A>     * @return      random long
+<FONT ID="LN">1138</FONT><A NAME="1138"></A>     */</FONT>
+<FONT ID="LN">1139</FONT><A NAME="1139"></A>    <FONT ID="Public">public</FONT> <FONT ID="Long">long</FONT> nextLong() {
+<FONT ID="LN">1140</FONT><A NAME="1140"></A>      <FONT ID="Long">long</FONT> result = <FONT ID="Super">super</FONT>.nextLong();
+<FONT ID="LN">1141</FONT><A NAME="1141"></A>      println(<FONT ID="StringLiteral">"nextLong="</FONT> + result);
+<FONT ID="LN">1142</FONT><A NAME="1142"></A>      <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1143</FONT><A NAME="1143"></A>    }
+<FONT ID="LN">1144</FONT><A NAME="1144"></A>
+<FONT ID="LN">1145</FONT><A NAME="1145"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1146</FONT><A NAME="1146"></A>     * Sets the seed of this random number generator using a single long seed.
+<FONT ID="LN">1147</FONT><A NAME="1147"></A>     * 
+<FONT ID="LN">1148</FONT><A NAME="1148"></A>     * @param seed  the seed value
+<FONT ID="LN">1149</FONT><A NAME="1149"></A>     */</FONT>
+<FONT ID="LN">1150</FONT><A NAME="1150"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setSeed(<FONT ID="Long">long</FONT> seed) {
+<FONT ID="LN">1151</FONT><A NAME="1151"></A>      <FONT ID="Super">super</FONT>.setSeed(seed);
+<FONT ID="LN">1152</FONT><A NAME="1152"></A>      println(<FONT ID="StringLiteral">"setSeed("</FONT> + seed + <FONT ID="StringLiteral">")"</FONT>);
+<FONT ID="LN">1153</FONT><A NAME="1153"></A>    }
+<FONT ID="LN">1154</FONT><A NAME="1154"></A>
+<FONT ID="LN">1155</FONT><A NAME="1155"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1156</FONT><A NAME="1156"></A>     * returns a string representation of this number generator
+<FONT ID="LN">1157</FONT><A NAME="1157"></A>     * 
+<FONT ID="LN">1158</FONT><A NAME="1158"></A>     * @return      a string representation
+<FONT ID="LN">1159</FONT><A NAME="1159"></A>     */</FONT>
+<FONT ID="LN">1160</FONT><A NAME="1160"></A>    <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">1161</FONT><A NAME="1161"></A>      <FONT ID="Return">return</FONT> <FONT ID="This">this</FONT>.getClass().getName() + <FONT ID="StringLiteral">": "</FONT> + getID();
+<FONT ID="LN">1162</FONT><A NAME="1162"></A>    }
+<FONT ID="LN">1163</FONT><A NAME="1163"></A>    
+<FONT ID="LN">1164</FONT><A NAME="1164"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1165</FONT><A NAME="1165"></A>     * Returns the revision string.
+<FONT ID="LN">1166</FONT><A NAME="1166"></A>     * 
+<FONT ID="LN">1167</FONT><A NAME="1167"></A>     * @return      the revision
+<FONT ID="LN">1168</FONT><A NAME="1168"></A>     */</FONT>
+<FONT ID="LN">1169</FONT><A NAME="1169"></A>    <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">1170</FONT><A NAME="1170"></A>      <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">1171</FONT><A NAME="1171"></A>    }
+<FONT ID="LN">1172</FONT><A NAME="1172"></A>  }
+<FONT ID="LN">1173</FONT><A NAME="1173"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1174</FONT><A NAME="1174"></A>   * contains debug methods
+<FONT ID="LN">1175</FONT><A NAME="1175"></A>   *
+<FONT ID="LN">1176</FONT><A NAME="1176"></A>   * @author Gabi Schmidberger (gabi at cs dot waikato dot ac dot nz)
+<FONT ID="LN">1177</FONT><A NAME="1177"></A>   * @version $Revision: 5953 $
+<FONT ID="LN">1178</FONT><A NAME="1178"></A>   */</FONT>
+<FONT ID="LN">1179</FONT><A NAME="1179"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Class">class</FONT> DBO 
+<FONT ID="LN">1180</FONT><A NAME="1180"></A>    <FONT ID="Implements">implements</FONT> Serializable, <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">1181</FONT><A NAME="1181"></A>
+<FONT ID="LN">1182</FONT><A NAME="1182"></A>    <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">1183</FONT><A NAME="1183"></A>    <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">5245628124742606784L</FONT>;  
+<FONT ID="LN">1184</FONT><A NAME="1184"></A>
+<FONT ID="LN">1185</FONT><A NAME="1185"></A>    <FONT ID="FormalComment">/** enables/disables output of debug information */</FONT>
+<FONT ID="LN">1186</FONT><A NAME="1186"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> m_verboseOn = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1187</FONT><A NAME="1187"></A>
+<FONT ID="LN">1188</FONT><A NAME="1188"></A>    <FONT ID="FormalComment">/** range of outputtyp */</FONT>
+<FONT ID="LN">1189</FONT><A NAME="1189"></A>    <FONT ID="Public">public</FONT> <A HREF="../../weka/core/Range.java.html">Range</A> m_outputTypes = <FONT ID="New">new</FONT> <A HREF="../../weka/core/Range.java.html">Range</A>();
+<FONT ID="LN">1190</FONT><A NAME="1190"></A>
+<FONT ID="LN">1191</FONT><A NAME="1191"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">1192</FONT><A NAME="1192"></A>     * Set the verbose on flag on
+<FONT ID="LN">1193</FONT><A NAME="1193"></A>     */</FONT>
+<FONT ID="LN">1194</FONT><A NAME="1194"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setVerboseOn() {
+<FONT ID="LN">1195</FONT><A NAME="1195"></A>      m_verboseOn = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1196</FONT><A NAME="1196"></A>    }
+<FONT ID="LN">1197</FONT><A NAME="1197"></A>
+<FONT ID="LN">1198</FONT><A NAME="1198"></A>    <FONT ID="FormalComment">/** 
+<FONT ID="LN">1199</FONT><A NAME="1199"></A>     * Initialize ranges, upper limit must be set
+<FONT ID="LN">1200</FONT><A NAME="1200"></A>     * 
+<FONT ID="LN">1201</FONT><A NAME="1201"></A>     * @param upper upper limit
+<FONT ID="LN">1202</FONT><A NAME="1202"></A>     */</FONT>
+<FONT ID="LN">1203</FONT><A NAME="1203"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> initializeRanges(<FONT ID="Int">int</FONT> upper) {
+<FONT ID="LN">1204</FONT><A NAME="1204"></A>      m_outputTypes.setUpper(upper);
+<FONT ID="LN">1205</FONT><A NAME="1205"></A>    }
+<FONT ID="LN">1206</FONT><A NAME="1206"></A>
+<FONT ID="LN">1207</FONT><A NAME="1207"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1208</FONT><A NAME="1208"></A>     * Return true if the outputtype is set
+<FONT ID="LN">1209</FONT><A NAME="1209"></A>     * 
+<FONT ID="LN">1210</FONT><A NAME="1210"></A>     * @param num value that is reserved for a specific outputtype
+<FONT ID="LN">1211</FONT><A NAME="1211"></A>     * @return return true if the output type is set
+<FONT ID="LN">1212</FONT><A NAME="1212"></A>     */</FONT>
+<FONT ID="LN">1213</FONT><A NAME="1213"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> outputTypeSet(<FONT ID="Int">int</FONT> num) {
+<FONT ID="LN">1214</FONT><A NAME="1214"></A>      <FONT ID="Return">return</FONT> (m_outputTypes.isInRange(num));
+<FONT ID="LN">1215</FONT><A NAME="1215"></A>    }
+<FONT ID="LN">1216</FONT><A NAME="1216"></A>
+<FONT ID="LN">1217</FONT><A NAME="1217"></A>     <FONT ID="FormalComment">/**
+<FONT ID="LN">1218</FONT><A NAME="1218"></A>     * Return true if the debug level is set
+<FONT ID="LN">1219</FONT><A NAME="1219"></A>     * same method as outpuTypeSet but better name
+<FONT ID="LN">1220</FONT><A NAME="1220"></A>     * 
+<FONT ID="LN">1221</FONT><A NAME="1221"></A>     * @param num value that is reserved for a specific outputtype
+<FONT ID="LN">1222</FONT><A NAME="1222"></A>     * @return return true if the debug level is set
+<FONT ID="LN">1223</FONT><A NAME="1223"></A>     */</FONT>
+<FONT ID="LN">1224</FONT><A NAME="1224"></A>    <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> dl(<FONT ID="Int">int</FONT> num) {
+<FONT ID="LN">1225</FONT><A NAME="1225"></A>      <FONT ID="Return">return</FONT> (outputTypeSet(num));
+<FONT ID="LN">1226</FONT><A NAME="1226"></A>    }
+<FONT ID="LN">1227</FONT><A NAME="1227"></A>
+<FONT ID="LN">1228</FONT><A NAME="1228"></A>   <FONT ID="FormalComment">/**
+<FONT ID="LN">1229</FONT><A NAME="1229"></A>     * Switches the outputs on that are requested from the option O
+<FONT ID="LN">1230</FONT><A NAME="1230"></A>     * 
+<FONT ID="LN">1231</FONT><A NAME="1231"></A>     * @param list list of integers, all are used for an output type
+<FONT ID="LN">1232</FONT><A NAME="1232"></A>     */</FONT>
+<FONT ID="LN">1233</FONT><A NAME="1233"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOutputTypes(String list) {
+<FONT ID="LN">1234</FONT><A NAME="1234"></A>      <FONT ID="If">if</FONT> (list.length() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1235</FONT><A NAME="1235"></A>        m_verboseOn = <FONT ID="True">true</FONT>; 
+<FONT ID="LN">1236</FONT><A NAME="1236"></A>
+<FONT ID="LN">1237</FONT><A NAME="1237"></A>        m_outputTypes.setRanges(list);
+<FONT ID="LN">1238</FONT><A NAME="1238"></A>        m_outputTypes.setUpper(<FONT ID="IntegerLiteral">30</FONT>);
+<FONT ID="LN">1239</FONT><A NAME="1239"></A>      }
+<FONT ID="LN">1240</FONT><A NAME="1240"></A>    }
+<FONT ID="LN">1241</FONT><A NAME="1241"></A>
+<FONT ID="LN">1242</FONT><A NAME="1242"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1243</FONT><A NAME="1243"></A>     * Gets the current output type selection
+<FONT ID="LN">1244</FONT><A NAME="1244"></A>     *
+<FONT ID="LN">1245</FONT><A NAME="1245"></A>     * @return a string containing a comma separated list of ranges
+<FONT ID="LN">1246</FONT><A NAME="1246"></A>     */</FONT>
+<FONT ID="LN">1247</FONT><A NAME="1247"></A>    <FONT ID="Public">public</FONT> String getOutputTypes() {
+<FONT ID="LN">1248</FONT><A NAME="1248"></A>      <FONT ID="Return">return</FONT> m_outputTypes.getRanges();
+<FONT ID="LN">1249</FONT><A NAME="1249"></A>    }
+<FONT ID="LN">1250</FONT><A NAME="1250"></A>
+<FONT ID="LN">1251</FONT><A NAME="1251"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1252</FONT><A NAME="1252"></A>     * prints out text + endofline if verbose is on.
+<FONT ID="LN">1253</FONT><A NAME="1253"></A>     * helps to make debug output commands more visible in text
+<FONT ID="LN">1254</FONT><A NAME="1254"></A>     * 
+<FONT ID="LN">1255</FONT><A NAME="1255"></A>     * @param text the text to print
+<FONT ID="LN">1256</FONT><A NAME="1256"></A>     */</FONT>
+<FONT ID="LN">1257</FONT><A NAME="1257"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> dpln(String text) {
+<FONT ID="LN">1258</FONT><A NAME="1258"></A>      <FONT ID="If">if</FONT> (m_verboseOn) {
+<FONT ID="LN">1259</FONT><A NAME="1259"></A>        System.out.println(text);
+<FONT ID="LN">1260</FONT><A NAME="1260"></A>      }
+<FONT ID="LN">1261</FONT><A NAME="1261"></A>    } 
+<FONT ID="LN">1262</FONT><A NAME="1262"></A>
+<FONT ID="LN">1263</FONT><A NAME="1263"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1264</FONT><A NAME="1264"></A>     * prints out text + endofline but only if parameter debug type is set.
+<FONT ID="LN">1265</FONT><A NAME="1265"></A>     * helps to make debug output commands more visible in text
+<FONT ID="LN">1266</FONT><A NAME="1266"></A>     *
+<FONT ID="LN">1267</FONT><A NAME="1267"></A>     * @param debugType the type of the output
+<FONT ID="LN">1268</FONT><A NAME="1268"></A>     * @param text the text to print
+<FONT ID="LN">1269</FONT><A NAME="1269"></A>     */</FONT>
+<FONT ID="LN">1270</FONT><A NAME="1270"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> dpln(<FONT ID="Int">int</FONT> debugType, String text) {
+<FONT ID="LN">1271</FONT><A NAME="1271"></A>      <FONT ID="If">if</FONT> (outputTypeSet(debugType)) {
+<FONT ID="LN">1272</FONT><A NAME="1272"></A>        System.out.println(text);
+<FONT ID="LN">1273</FONT><A NAME="1273"></A>      }
+<FONT ID="LN">1274</FONT><A NAME="1274"></A>    } 
+<FONT ID="LN">1275</FONT><A NAME="1275"></A>
+<FONT ID="LN">1276</FONT><A NAME="1276"></A>     <FONT ID="FormalComment">/**
+<FONT ID="LN">1277</FONT><A NAME="1277"></A>     * prints out text  if verbose is on.
+<FONT ID="LN">1278</FONT><A NAME="1278"></A>     * helps to make debug output commands more visible in text
+<FONT ID="LN">1279</FONT><A NAME="1279"></A>     * 
+<FONT ID="LN">1280</FONT><A NAME="1280"></A>     * @param text the text to print
+<FONT ID="LN">1281</FONT><A NAME="1281"></A>     */</FONT>
+<FONT ID="LN">1282</FONT><A NAME="1282"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> dp(String text) {
+<FONT ID="LN">1283</FONT><A NAME="1283"></A>      <FONT ID="If">if</FONT> (m_verboseOn) {
+<FONT ID="LN">1284</FONT><A NAME="1284"></A>        System.out.print(text);
+<FONT ID="LN">1285</FONT><A NAME="1285"></A>      }
+<FONT ID="LN">1286</FONT><A NAME="1286"></A>    } 
+<FONT ID="LN">1287</FONT><A NAME="1287"></A>
+<FONT ID="LN">1288</FONT><A NAME="1288"></A>   <FONT ID="FormalComment">/**
+<FONT ID="LN">1289</FONT><A NAME="1289"></A>     * prints out text but only if debug level is set.
+<FONT ID="LN">1290</FONT><A NAME="1290"></A>     * helps to make debug output commands more visible in text
+<FONT ID="LN">1291</FONT><A NAME="1291"></A>     *
+<FONT ID="LN">1292</FONT><A NAME="1292"></A>     * @param debugType the type of the output
+<FONT ID="LN">1293</FONT><A NAME="1293"></A>     * @param text the text to print
+<FONT ID="LN">1294</FONT><A NAME="1294"></A>     */</FONT>
+<FONT ID="LN">1295</FONT><A NAME="1295"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> dp(<FONT ID="Int">int</FONT> debugType, String text) {
+<FONT ID="LN">1296</FONT><A NAME="1296"></A>     <FONT ID="If">if</FONT> (outputTypeSet(debugType)) {
+<FONT ID="LN">1297</FONT><A NAME="1297"></A>        System.out.print(text);
+<FONT ID="LN">1298</FONT><A NAME="1298"></A>      }
+<FONT ID="LN">1299</FONT><A NAME="1299"></A>    } 
+<FONT ID="LN">1300</FONT><A NAME="1300"></A>
+<FONT ID="LN">1301</FONT><A NAME="1301"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1302</FONT><A NAME="1302"></A>     * prints out text + endofline.
+<FONT ID="LN">1303</FONT><A NAME="1303"></A>     * helps to make debug output commands more visible in text
+<FONT ID="LN">1304</FONT><A NAME="1304"></A>     * 
+<FONT ID="LN">1305</FONT><A NAME="1305"></A>     * @param text the text to print
+<FONT ID="LN">1306</FONT><A NAME="1306"></A>     */</FONT>
+<FONT ID="LN">1307</FONT><A NAME="1307"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> pln(String text) {
+<FONT ID="LN">1308</FONT><A NAME="1308"></A>      System.out.println(text);
+<FONT ID="LN">1309</FONT><A NAME="1309"></A>    } 
+<FONT ID="LN">1310</FONT><A NAME="1310"></A>
+<FONT ID="LN">1311</FONT><A NAME="1311"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1312</FONT><A NAME="1312"></A>     * prints out text.
+<FONT ID="LN">1313</FONT><A NAME="1313"></A>     * helps to make debug output commands more visible in text
+<FONT ID="LN">1314</FONT><A NAME="1314"></A>     * 
+<FONT ID="LN">1315</FONT><A NAME="1315"></A>     * @param text the text to print
+<FONT ID="LN">1316</FONT><A NAME="1316"></A>     */</FONT>
+<FONT ID="LN">1317</FONT><A NAME="1317"></A>    <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> p (String text) {
+<FONT ID="LN">1318</FONT><A NAME="1318"></A>      System.out.print(text);
+<FONT ID="LN">1319</FONT><A NAME="1319"></A>    } 
+<FONT ID="LN">1320</FONT><A NAME="1320"></A>    
+<FONT ID="LN">1321</FONT><A NAME="1321"></A>    <FONT ID="FormalComment">/**
+<FONT ID="LN">1322</FONT><A NAME="1322"></A>     * Returns the revision string.
+<FONT ID="LN">1323</FONT><A NAME="1323"></A>     * 
+<FONT ID="LN">1324</FONT><A NAME="1324"></A>     * @return      the revision
+<FONT ID="LN">1325</FONT><A NAME="1325"></A>     */</FONT>
+<FONT ID="LN">1326</FONT><A NAME="1326"></A>    <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">1327</FONT><A NAME="1327"></A>      <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">1328</FONT><A NAME="1328"></A>    }
+<FONT ID="LN">1329</FONT><A NAME="1329"></A>  }
+<FONT ID="LN">1330</FONT><A NAME="1330"></A>  
+<FONT ID="LN">1331</FONT><A NAME="1331"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1332</FONT><A NAME="1332"></A>   * default constructor, prints only to stdout
+<FONT ID="LN">1333</FONT><A NAME="1333"></A>   */</FONT>
+<FONT ID="LN">1334</FONT><A NAME="1334"></A>  <FONT ID="Public">public</FONT> Debug() {
+<FONT ID="LN">1335</FONT><A NAME="1335"></A>    <FONT ID="This">this</FONT>(<FONT ID="Null">null</FONT>);
+<FONT ID="LN">1336</FONT><A NAME="1336"></A>  }
+<FONT ID="LN">1337</FONT><A NAME="1337"></A>  
+<FONT ID="LN">1338</FONT><A NAME="1338"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1339</FONT><A NAME="1339"></A>   * logs the output to the specified file (and stdout). Size is 1,000,000 bytes 
+<FONT ID="LN">1340</FONT><A NAME="1340"></A>   * and 1 file.
+<FONT ID="LN">1341</FONT><A NAME="1341"></A>   * 
+<FONT ID="LN">1342</FONT><A NAME="1342"></A>   * @param filename    the name of the log
+<FONT ID="LN">1343</FONT><A NAME="1343"></A>   */</FONT>
+<FONT ID="LN">1344</FONT><A NAME="1344"></A>  <FONT ID="Public">public</FONT> Debug(String filename) {
+<FONT ID="LN">1345</FONT><A NAME="1345"></A>    <FONT ID="This">this</FONT>(filename, <FONT ID="IntegerLiteral">1000000</FONT>, <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1346</FONT><A NAME="1346"></A>  }
+<FONT ID="LN">1347</FONT><A NAME="1347"></A>  
+<FONT ID="LN">1348</FONT><A NAME="1348"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1349</FONT><A NAME="1349"></A>   * logs the output
+<FONT ID="LN">1350</FONT><A NAME="1350"></A>   * 
+<FONT ID="LN">1351</FONT><A NAME="1351"></A>   * @param filename    the name of the log
+<FONT ID="LN">1352</FONT><A NAME="1352"></A>   * @param size    the size of the files in bytes
+<FONT ID="LN">1353</FONT><A NAME="1353"></A>   * @param numFiles    the number of files for rotating
+<FONT ID="LN">1354</FONT><A NAME="1354"></A>   */</FONT>
+<FONT ID="LN">1355</FONT><A NAME="1355"></A>  <FONT ID="Public">public</FONT> Debug(String filename, <FONT ID="Int">int</FONT> size, <FONT ID="Int">int</FONT> numFiles) {
+<FONT ID="LN">1356</FONT><A NAME="1356"></A>    <FONT ID="Super">super</FONT>();
+<FONT ID="LN">1357</FONT><A NAME="1357"></A>    
+<FONT ID="LN">1358</FONT><A NAME="1358"></A>    m_Log = newLog(filename, size, numFiles);
+<FONT ID="LN">1359</FONT><A NAME="1359"></A>  }
+<FONT ID="LN">1360</FONT><A NAME="1360"></A>  
+<FONT ID="LN">1361</FONT><A NAME="1361"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1362</FONT><A NAME="1362"></A>   * turns the string representing a level, e.g., "FINE" or "ALL" into
+<FONT ID="LN">1363</FONT><A NAME="1363"></A>   * the corresponding level (case-insensitive). The default is ALL.
+<FONT ID="LN">1364</FONT><A NAME="1364"></A>   * 
+<FONT ID="LN">1365</FONT><A NAME="1365"></A>   * @param level   the string to return a level for
+<FONT ID="LN">1366</FONT><A NAME="1366"></A>   * @return        the corresponding level or the default
+<FONT ID="LN">1367</FONT><A NAME="1367"></A>   */</FONT>
+<FONT ID="LN">1368</FONT><A NAME="1368"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Level stringToLevel(String level) {
+<FONT ID="LN">1369</FONT><A NAME="1369"></A>    <FONT ID="Return">return</FONT> Log.stringToLevel(level);
+<FONT ID="LN">1370</FONT><A NAME="1370"></A>  }
+<FONT ID="LN">1371</FONT><A NAME="1371"></A>  
+<FONT ID="LN">1372</FONT><A NAME="1372"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1373</FONT><A NAME="1373"></A>   * returns a new Log instance
+<FONT ID="LN">1374</FONT><A NAME="1374"></A>   * 
+<FONT ID="LN">1375</FONT><A NAME="1375"></A>   * @param filename    the name of the log
+<FONT ID="LN">1376</FONT><A NAME="1376"></A>   * @param size    the size of the files in bytes
+<FONT ID="LN">1377</FONT><A NAME="1377"></A>   * @param numFiles    the number of files for rotating
+<FONT ID="LN">1378</FONT><A NAME="1378"></A>   * @return        the log instance
+<FONT ID="LN">1379</FONT><A NAME="1379"></A>   */</FONT>
+<FONT ID="LN">1380</FONT><A NAME="1380"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Log newLog(String filename, <FONT ID="Int">int</FONT> size, <FONT ID="Int">int</FONT> numFiles) {
+<FONT ID="LN">1381</FONT><A NAME="1381"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Log(filename, size, numFiles);
+<FONT ID="LN">1382</FONT><A NAME="1382"></A>  }
+<FONT ID="LN">1383</FONT><A NAME="1383"></A>  
+<FONT ID="LN">1384</FONT><A NAME="1384"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1385</FONT><A NAME="1385"></A>   * prints the given message with level INFO
+<FONT ID="LN">1386</FONT><A NAME="1386"></A>   * 
+<FONT ID="LN">1387</FONT><A NAME="1387"></A>   * @param message the message to print
+<FONT ID="LN">1388</FONT><A NAME="1388"></A>   */</FONT>
+<FONT ID="LN">1389</FONT><A NAME="1389"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(String message) {
+<FONT ID="LN">1390</FONT><A NAME="1390"></A>    log(INFO, message);
+<FONT ID="LN">1391</FONT><A NAME="1391"></A>  }
+<FONT ID="LN">1392</FONT><A NAME="1392"></A>  
+<FONT ID="LN">1393</FONT><A NAME="1393"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1394</FONT><A NAME="1394"></A>   * prints the given message with the specified level and an empty sourceclass
+<FONT ID="LN">1395</FONT><A NAME="1395"></A>   * 
+<FONT ID="LN">1396</FONT><A NAME="1396"></A>   * @param level   the level of logging
+<FONT ID="LN">1397</FONT><A NAME="1397"></A>   * @param message the message to print
+<FONT ID="LN">1398</FONT><A NAME="1398"></A>   */</FONT>
+<FONT ID="LN">1399</FONT><A NAME="1399"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(Level level, String message) {
+<FONT ID="LN">1400</FONT><A NAME="1400"></A>    log(level, <FONT ID="StringLiteral">""</FONT>, message);
+<FONT ID="LN">1401</FONT><A NAME="1401"></A>  }
+<FONT ID="LN">1402</FONT><A NAME="1402"></A>  
+<FONT ID="LN">1403</FONT><A NAME="1403"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1404</FONT><A NAME="1404"></A>   * prints the given message with the specified level
+<FONT ID="LN">1405</FONT><A NAME="1405"></A>   * 
+<FONT ID="LN">1406</FONT><A NAME="1406"></A>   * @param level   the level of logging
+<FONT ID="LN">1407</FONT><A NAME="1407"></A>   * @param sourceclass the class that logs the message
+<FONT ID="LN">1408</FONT><A NAME="1408"></A>   * @param message the message to print
+<FONT ID="LN">1409</FONT><A NAME="1409"></A>   */</FONT>
+<FONT ID="LN">1410</FONT><A NAME="1410"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(Level level, String sourceclass, String message) {
+<FONT ID="LN">1411</FONT><A NAME="1411"></A>    log(level, sourceclass, <FONT ID="StringLiteral">""</FONT>, message);
+<FONT ID="LN">1412</FONT><A NAME="1412"></A>  }
+<FONT ID="LN">1413</FONT><A NAME="1413"></A>  
+<FONT ID="LN">1414</FONT><A NAME="1414"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1415</FONT><A NAME="1415"></A>   * prints the given message with the specified level
+<FONT ID="LN">1416</FONT><A NAME="1416"></A>   * 
+<FONT ID="LN">1417</FONT><A NAME="1417"></A>   * @param level       the level of logging
+<FONT ID="LN">1418</FONT><A NAME="1418"></A>   * @param sourceclass     the class that logs the message
+<FONT ID="LN">1419</FONT><A NAME="1419"></A>   * @param sourcemethod    the method that logs the message
+<FONT ID="LN">1420</FONT><A NAME="1420"></A>   * @param message     the message to print
+<FONT ID="LN">1421</FONT><A NAME="1421"></A>   */</FONT>
+<FONT ID="LN">1422</FONT><A NAME="1422"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> log(Level level, String sourceclass, String sourcemethod, String message) {
+<FONT ID="LN">1423</FONT><A NAME="1423"></A>    <FONT ID="If">if</FONT> (getEnabled())
+<FONT ID="LN">1424</FONT><A NAME="1424"></A>      m_Log.log(level, sourceclass, sourcemethod, message);
+<FONT ID="LN">1425</FONT><A NAME="1425"></A>  }
+<FONT ID="LN">1426</FONT><A NAME="1426"></A>  
+<FONT ID="LN">1427</FONT><A NAME="1427"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1428</FONT><A NAME="1428"></A>   * sets whether the logging is enabled or not
+<FONT ID="LN">1429</FONT><A NAME="1429"></A>   * 
+<FONT ID="LN">1430</FONT><A NAME="1430"></A>   * @param value   if true logging will be enabled
+<FONT ID="LN">1431</FONT><A NAME="1431"></A>   */</FONT>
+<FONT ID="LN">1432</FONT><A NAME="1432"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setEnabled(<FONT ID="Boolean">boolean</FONT> value) {
+<FONT ID="LN">1433</FONT><A NAME="1433"></A>    m_Enabled = value;
+<FONT ID="LN">1434</FONT><A NAME="1434"></A>  }
+<FONT ID="LN">1435</FONT><A NAME="1435"></A>  
+<FONT ID="LN">1436</FONT><A NAME="1436"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1437</FONT><A NAME="1437"></A>   * returns whether the logging is enabled
+<FONT ID="LN">1438</FONT><A NAME="1438"></A>   * 
+<FONT ID="LN">1439</FONT><A NAME="1439"></A>   * @return        true if the logging is enabled
+<FONT ID="LN">1440</FONT><A NAME="1440"></A>   */</FONT>
+<FONT ID="LN">1441</FONT><A NAME="1441"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getEnabled() {
+<FONT ID="LN">1442</FONT><A NAME="1442"></A>    <FONT ID="Return">return</FONT> m_Enabled;
+<FONT ID="LN">1443</FONT><A NAME="1443"></A>  }
+<FONT ID="LN">1444</FONT><A NAME="1444"></A>  
+<FONT ID="LN">1445</FONT><A NAME="1445"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1446</FONT><A NAME="1446"></A>   * returns a new instance of a clock
+<FONT ID="LN">1447</FONT><A NAME="1447"></A>   * 
+<FONT ID="LN">1448</FONT><A NAME="1448"></A>   * @return        a new instance of a Clock
+<FONT ID="LN">1449</FONT><A NAME="1449"></A>   */</FONT>
+<FONT ID="LN">1450</FONT><A NAME="1450"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Clock newClock() {
+<FONT ID="LN">1451</FONT><A NAME="1451"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Clock();
+<FONT ID="LN">1452</FONT><A NAME="1452"></A>  }
+<FONT ID="LN">1453</FONT><A NAME="1453"></A>  
+<FONT ID="LN">1454</FONT><A NAME="1454"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1455</FONT><A NAME="1455"></A>   * returns the instance of the Clock that is internally used
+<FONT ID="LN">1456</FONT><A NAME="1456"></A>   * 
+<FONT ID="LN">1457</FONT><A NAME="1457"></A>   * @return        the clock that's being used
+<FONT ID="LN">1458</FONT><A NAME="1458"></A>   */</FONT>
+<FONT ID="LN">1459</FONT><A NAME="1459"></A>  <FONT ID="Public">public</FONT> Clock getClock() {
+<FONT ID="LN">1460</FONT><A NAME="1460"></A>    <FONT ID="Return">return</FONT> m_Clock;
+<FONT ID="LN">1461</FONT><A NAME="1461"></A>  }
+<FONT ID="LN">1462</FONT><A NAME="1462"></A>  
+<FONT ID="LN">1463</FONT><A NAME="1463"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1464</FONT><A NAME="1464"></A>   * starts the clock
+<FONT ID="LN">1465</FONT><A NAME="1465"></A>   */</FONT>
+<FONT ID="LN">1466</FONT><A NAME="1466"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> startClock() {
+<FONT ID="LN">1467</FONT><A NAME="1467"></A>    m_Clock.start();
+<FONT ID="LN">1468</FONT><A NAME="1468"></A>  }
+<FONT ID="LN">1469</FONT><A NAME="1469"></A>  
+<FONT ID="LN">1470</FONT><A NAME="1470"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1471</FONT><A NAME="1471"></A>   * stops the clock and prints the message associated with the time, but only
+<FONT ID="LN">1472</FONT><A NAME="1472"></A>   * if the logging is enabled.
+<FONT ID="LN">1473</FONT><A NAME="1473"></A>   * 
+<FONT ID="LN">1474</FONT><A NAME="1474"></A>   * @param message the message to print
+<FONT ID="LN">1475</FONT><A NAME="1475"></A>   * @see       #getEnabled()
+<FONT ID="LN">1476</FONT><A NAME="1476"></A>   */</FONT>
+<FONT ID="LN">1477</FONT><A NAME="1477"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> stopClock(String message) {
+<FONT ID="LN">1478</FONT><A NAME="1478"></A>    log(message + <FONT ID="StringLiteral">": "</FONT> + m_Clock);
+<FONT ID="LN">1479</FONT><A NAME="1479"></A>  }
+<FONT ID="LN">1480</FONT><A NAME="1480"></A>  
+<FONT ID="LN">1481</FONT><A NAME="1481"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1482</FONT><A NAME="1482"></A>   * returns a default debug random object, with no particular seed and 
+<FONT ID="LN">1483</FONT><A NAME="1483"></A>   * debugging enabled.
+<FONT ID="LN">1484</FONT><A NAME="1484"></A>   * 
+<FONT ID="LN">1485</FONT><A NAME="1485"></A>   * @return        a new instance of a Random object
+<FONT ID="LN">1486</FONT><A NAME="1486"></A>   */</FONT>
+<FONT ID="LN">1487</FONT><A NAME="1487"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> java.util.Random newRandom() {
+<FONT ID="LN">1488</FONT><A NAME="1488"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Random(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1489</FONT><A NAME="1489"></A>  }
+<FONT ID="LN">1490</FONT><A NAME="1490"></A>  
+<FONT ID="LN">1491</FONT><A NAME="1491"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1492</FONT><A NAME="1492"></A>   * returns a debug random object with the specified seed and debugging 
+<FONT ID="LN">1493</FONT><A NAME="1493"></A>   * enabled.
+<FONT ID="LN">1494</FONT><A NAME="1494"></A>   * 
+<FONT ID="LN">1495</FONT><A NAME="1495"></A>   * @param seed    the seed value
+<FONT ID="LN">1496</FONT><A NAME="1496"></A>   * @return        a new instance of a Random object
+<FONT ID="LN">1497</FONT><A NAME="1497"></A>   */</FONT>
+<FONT ID="LN">1498</FONT><A NAME="1498"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> java.util.Random newRandom(<FONT ID="Int">int</FONT> seed) {
+<FONT ID="LN">1499</FONT><A NAME="1499"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Random(seed, <FONT ID="True">true</FONT>);
+<FONT ID="LN">1500</FONT><A NAME="1500"></A>  }
+<FONT ID="LN">1501</FONT><A NAME="1501"></A>
+<FONT ID="LN">1502</FONT><A NAME="1502"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1503</FONT><A NAME="1503"></A>   * returns a default timestamp for the current date/time
+<FONT ID="LN">1504</FONT><A NAME="1504"></A>   * 
+<FONT ID="LN">1505</FONT><A NAME="1505"></A>   * @return        a new timestamp
+<FONT ID="LN">1506</FONT><A NAME="1506"></A>   */</FONT>
+<FONT ID="LN">1507</FONT><A NAME="1507"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Timestamp newTimestamp() {
+<FONT ID="LN">1508</FONT><A NAME="1508"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> Timestamp();
+<FONT ID="LN">1509</FONT><A NAME="1509"></A>  }
+<FONT ID="LN">1510</FONT><A NAME="1510"></A>  
+<FONT ID="LN">1511</FONT><A NAME="1511"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1512</FONT><A NAME="1512"></A>   * returns the system temp directory
+<FONT ID="LN">1513</FONT><A NAME="1513"></A>   * 
+<FONT ID="LN">1514</FONT><A NAME="1514"></A>   * @return        the temp directory
+<FONT ID="LN">1515</FONT><A NAME="1515"></A>   */</FONT>
+<FONT ID="LN">1516</FONT><A NAME="1516"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String getTempDir() {
+<FONT ID="LN">1517</FONT><A NAME="1517"></A>    <FONT ID="Return">return</FONT> System.getProperty(<FONT ID="StringLiteral">"java.io.tmpdir"</FONT>);
+<FONT ID="LN">1518</FONT><A NAME="1518"></A>  }
+<FONT ID="LN">1519</FONT><A NAME="1519"></A>  
+<FONT ID="LN">1520</FONT><A NAME="1520"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1521</FONT><A NAME="1521"></A>   * returns the home directory of the user
+<FONT ID="LN">1522</FONT><A NAME="1522"></A>   * 
+<FONT ID="LN">1523</FONT><A NAME="1523"></A>   * @return        the user's home directory
+<FONT ID="LN">1524</FONT><A NAME="1524"></A>   */</FONT>
+<FONT ID="LN">1525</FONT><A NAME="1525"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String getHomeDir() {
+<FONT ID="LN">1526</FONT><A NAME="1526"></A>    <FONT ID="Return">return</FONT> System.getProperty(<FONT ID="StringLiteral">"user.home"</FONT>);
+<FONT ID="LN">1527</FONT><A NAME="1527"></A>  }
+<FONT ID="LN">1528</FONT><A NAME="1528"></A>  
+<FONT ID="LN">1529</FONT><A NAME="1529"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1530</FONT><A NAME="1530"></A>   * returns the current working directory of the user
+<FONT ID="LN">1531</FONT><A NAME="1531"></A>   * 
+<FONT ID="LN">1532</FONT><A NAME="1532"></A>   * @return        the user's current working directory
+<FONT ID="LN">1533</FONT><A NAME="1533"></A>   */</FONT>
+<FONT ID="LN">1534</FONT><A NAME="1534"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String getCurrentDir() {
+<FONT ID="LN">1535</FONT><A NAME="1535"></A>    <FONT ID="Return">return</FONT> System.getProperty(<FONT ID="StringLiteral">"user.dir"</FONT>);
+<FONT ID="LN">1536</FONT><A NAME="1536"></A>  }
+<FONT ID="LN">1537</FONT><A NAME="1537"></A>  
+<FONT ID="LN">1538</FONT><A NAME="1538"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1539</FONT><A NAME="1539"></A>   * Writes the given object to the specified file. The string representation
+<FONT ID="LN">1540</FONT><A NAME="1540"></A>   * of the object is appended to the file.
+<FONT ID="LN">1541</FONT><A NAME="1541"></A>   * 
+<FONT ID="LN">1542</FONT><A NAME="1542"></A>   * @param filename    the file to write to
+<FONT ID="LN">1543</FONT><A NAME="1543"></A>   * @param obj     the object to write to the file
+<FONT ID="LN">1544</FONT><A NAME="1544"></A>   * @return        true if writing was successful
+<FONT ID="LN">1545</FONT><A NAME="1545"></A>   */</FONT>
+<FONT ID="LN">1546</FONT><A NAME="1546"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> writeToFile(String filename, Object obj) {
+<FONT ID="LN">1547</FONT><A NAME="1547"></A>    <FONT ID="Return">return</FONT> writeToFile(filename, obj, <FONT ID="True">true</FONT>);
+<FONT ID="LN">1548</FONT><A NAME="1548"></A>  }
+<FONT ID="LN">1549</FONT><A NAME="1549"></A>  
+<FONT ID="LN">1550</FONT><A NAME="1550"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1551</FONT><A NAME="1551"></A>   * Writes the given message to the specified file. The message is appended 
+<FONT ID="LN">1552</FONT><A NAME="1552"></A>   * to the file.
+<FONT ID="LN">1553</FONT><A NAME="1553"></A>   * 
+<FONT ID="LN">1554</FONT><A NAME="1554"></A>   * @param filename    the file to write to
+<FONT ID="LN">1555</FONT><A NAME="1555"></A>   * @param message the message to write
+<FONT ID="LN">1556</FONT><A NAME="1556"></A>   * @return        true if writing was successful
+<FONT ID="LN">1557</FONT><A NAME="1557"></A>   */</FONT>
+<FONT ID="LN">1558</FONT><A NAME="1558"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> writeToFile(String filename, String message) {
+<FONT ID="LN">1559</FONT><A NAME="1559"></A>    <FONT ID="Return">return</FONT> writeToFile(filename, message, <FONT ID="True">true</FONT>);
+<FONT ID="LN">1560</FONT><A NAME="1560"></A>  }
+<FONT ID="LN">1561</FONT><A NAME="1561"></A>  
+<FONT ID="LN">1562</FONT><A NAME="1562"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1563</FONT><A NAME="1563"></A>   * Writes the given object to the specified file. The string representation 
+<FONT ID="LN">1564</FONT><A NAME="1564"></A>   * of the object is either appended or replaces the current content of the 
+<FONT ID="LN">1565</FONT><A NAME="1565"></A>   * file.
+<FONT ID="LN">1566</FONT><A NAME="1566"></A>   * 
+<FONT ID="LN">1567</FONT><A NAME="1567"></A>   * @param filename    the file to write to
+<FONT ID="LN">1568</FONT><A NAME="1568"></A>   * @param obj     the object to write to the file
+<FONT ID="LN">1569</FONT><A NAME="1569"></A>   * @param append  whether to append the message or not
+<FONT ID="LN">1570</FONT><A NAME="1570"></A>   * @return        true if writing was successful
+<FONT ID="LN">1571</FONT><A NAME="1571"></A>   */</FONT>
+<FONT ID="LN">1572</FONT><A NAME="1572"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> writeToFile(String filename, Object obj, <FONT ID="Boolean">boolean</FONT> append) {
+<FONT ID="LN">1573</FONT><A NAME="1573"></A>    <FONT ID="Return">return</FONT> writeToFile(filename, obj.toString(), append);
+<FONT ID="LN">1574</FONT><A NAME="1574"></A>  }
+<FONT ID="LN">1575</FONT><A NAME="1575"></A>  
+<FONT ID="LN">1576</FONT><A NAME="1576"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1577</FONT><A NAME="1577"></A>   * Writes the given message to the specified file. The message is either 
+<FONT ID="LN">1578</FONT><A NAME="1578"></A>   * appended or replaces the current content of the file.
+<FONT ID="LN">1579</FONT><A NAME="1579"></A>   * 
+<FONT ID="LN">1580</FONT><A NAME="1580"></A>   * @param filename    the file to write to
+<FONT ID="LN">1581</FONT><A NAME="1581"></A>   * @param message the message to write
+<FONT ID="LN">1582</FONT><A NAME="1582"></A>   * @param append  whether to append the message or not
+<FONT ID="LN">1583</FONT><A NAME="1583"></A>   * @return        true if writing was successful
+<FONT ID="LN">1584</FONT><A NAME="1584"></A>   */</FONT>
+<FONT ID="LN">1585</FONT><A NAME="1585"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> writeToFile(String filename, String message, <FONT ID="Boolean">boolean</FONT> append) {
+<FONT ID="LN">1586</FONT><A NAME="1586"></A>    <FONT ID="Boolean">boolean</FONT>     result;
+<FONT ID="LN">1587</FONT><A NAME="1587"></A>    BufferedWriter  writer;
+<FONT ID="LN">1588</FONT><A NAME="1588"></A>    
+<FONT ID="LN">1589</FONT><A NAME="1589"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1590</FONT><A NAME="1590"></A>      writer = <FONT ID="New">new</FONT> BufferedWriter(<FONT ID="New">new</FONT> FileWriter(filename, append));
+<FONT ID="LN">1591</FONT><A NAME="1591"></A>      writer.write(message);
+<FONT ID="LN">1592</FONT><A NAME="1592"></A>      writer.newLine();
+<FONT ID="LN">1593</FONT><A NAME="1593"></A>      writer.flush();
+<FONT ID="LN">1594</FONT><A NAME="1594"></A>      writer.close();
+<FONT ID="LN">1595</FONT><A NAME="1595"></A>      result = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1596</FONT><A NAME="1596"></A>    }
+<FONT ID="LN">1597</FONT><A NAME="1597"></A>    <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">1598</FONT><A NAME="1598"></A>      result = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1599</FONT><A NAME="1599"></A>    }
+<FONT ID="LN">1600</FONT><A NAME="1600"></A>    
+<FONT ID="LN">1601</FONT><A NAME="1601"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1602</FONT><A NAME="1602"></A>  }
+<FONT ID="LN">1603</FONT><A NAME="1603"></A>  
+<FONT ID="LN">1604</FONT><A NAME="1604"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1605</FONT><A NAME="1605"></A>   * writes the serialized object to the speicified file
+<FONT ID="LN">1606</FONT><A NAME="1606"></A>   * 
+<FONT ID="LN">1607</FONT><A NAME="1607"></A>   * @param filename    the file to serialize the object to
+<FONT ID="LN">1608</FONT><A NAME="1608"></A>   * @param o       the object to serialize
+<FONT ID="LN">1609</FONT><A NAME="1609"></A>   * @return        true if writing was successful
+<FONT ID="LN">1610</FONT><A NAME="1610"></A>   */</FONT>
+<FONT ID="LN">1611</FONT><A NAME="1611"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> saveToFile(String filename, Object o) {
+<FONT ID="LN">1612</FONT><A NAME="1612"></A>    <FONT ID="Boolean">boolean</FONT>     result;
+<FONT ID="LN">1613</FONT><A NAME="1613"></A>    
+<FONT ID="LN">1614</FONT><A NAME="1614"></A>    <FONT ID="If">if</FONT> (SerializationHelper.isSerializable(o.getClass())) {
+<FONT ID="LN">1615</FONT><A NAME="1615"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1616</FONT><A NAME="1616"></A>    SerializationHelper.write(filename, o);
+<FONT ID="LN">1617</FONT><A NAME="1617"></A>    result = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1618</FONT><A NAME="1618"></A>      }
+<FONT ID="LN">1619</FONT><A NAME="1619"></A>      <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">1620</FONT><A NAME="1620"></A>    result = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1621</FONT><A NAME="1621"></A>      }
+<FONT ID="LN">1622</FONT><A NAME="1622"></A>    }
+<FONT ID="LN">1623</FONT><A NAME="1623"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1624</FONT><A NAME="1624"></A>      result = <FONT ID="False">false</FONT>;
+<FONT ID="LN">1625</FONT><A NAME="1625"></A>    }
+<FONT ID="LN">1626</FONT><A NAME="1626"></A>    
+<FONT ID="LN">1627</FONT><A NAME="1627"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1628</FONT><A NAME="1628"></A>  }
+<FONT ID="LN">1629</FONT><A NAME="1629"></A>  
+<FONT ID="LN">1630</FONT><A NAME="1630"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1631</FONT><A NAME="1631"></A>   * deserializes the content of the file and returns it, null if an error
+<FONT ID="LN">1632</FONT><A NAME="1632"></A>   * occurred.
+<FONT ID="LN">1633</FONT><A NAME="1633"></A>   * 
+<FONT ID="LN">1634</FONT><A NAME="1634"></A>   * @param filename    the name of the file to deserialize
+<FONT ID="LN">1635</FONT><A NAME="1635"></A>   * @return        the deserialized content, null if problem occurred
+<FONT ID="LN">1636</FONT><A NAME="1636"></A>   */</FONT>
+<FONT ID="LN">1637</FONT><A NAME="1637"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Object loadFromFile(String filename) {
+<FONT ID="LN">1638</FONT><A NAME="1638"></A>    Object  result;
+<FONT ID="LN">1639</FONT><A NAME="1639"></A>    
+<FONT ID="LN">1640</FONT><A NAME="1640"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1641</FONT><A NAME="1641"></A>      result = SerializationHelper.read(filename);
+<FONT ID="LN">1642</FONT><A NAME="1642"></A>    }
+<FONT ID="LN">1643</FONT><A NAME="1643"></A>    <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">1644</FONT><A NAME="1644"></A>      result = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1645</FONT><A NAME="1645"></A>    }
+<FONT ID="LN">1646</FONT><A NAME="1646"></A>    
+<FONT ID="LN">1647</FONT><A NAME="1647"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">1648</FONT><A NAME="1648"></A>  }
+<FONT ID="LN">1649</FONT><A NAME="1649"></A>  
+<FONT ID="LN">1650</FONT><A NAME="1650"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1651</FONT><A NAME="1651"></A>   * Returns the revision string.
+<FONT ID="LN">1652</FONT><A NAME="1652"></A>   * 
+<FONT ID="LN">1653</FONT><A NAME="1653"></A>   * @return        the revision
+<FONT ID="LN">1654</FONT><A NAME="1654"></A>   */</FONT>
+<FONT ID="LN">1655</FONT><A NAME="1655"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">1656</FONT><A NAME="1656"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">1657</FONT><A NAME="1657"></A>  }
+<FONT ID="LN">1658</FONT><A NAME="1658"></A>}
+<FONT ID="LN">1659</FONT><A NAME="1659"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Debug.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

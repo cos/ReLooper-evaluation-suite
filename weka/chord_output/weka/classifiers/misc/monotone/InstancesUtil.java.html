@@ -1,0 +1,941 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.classifiers.misc.monotone.InstancesUtil (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">InstancesUtil.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    InstancesUtil.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2004 Stijn Lievens
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.classifiers.misc.monotone;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/classifiers/Classifier.java.html">weka.classifiers.Classifier</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/DenseInstance.java.html">weka.core.DenseInstance</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionHandler.java.html">weka.core.RevisionHandler</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">weka.estimators.DiscreteEstimator</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.io.BufferedWriter;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.util.HashMap;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.util.Map;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.util.Random;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * This class contains some methods for working with objects of 
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * type &lt;code&gt; Instance &lt;/code&gt; and &lt;code&gt; Instances, &lt;/code&gt; not
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * provided by there respective classes.
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * &lt;p&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * This implementation is part of the master's thesis: "Studie
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * en implementatie van instantie-gebaseerde algoritmen voor gesuperviseerd
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * rangschikken", Stijn Lievens, Ghent University, 2004. 
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * &lt;/p&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * 
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * @author Stijn Lievens (stijn.lievens@ugent.be)
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * @version $Revision: 5987 $
+<FONT ID="LN">53  </FONT><A NAME="53"></A> */</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> InstancesUtil
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="Implements">implements</FONT> <A HREF="../../../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">56  </FONT><A NAME="56"></A>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   * Compares two instances, ignoring the class attribute (if any)
+<FONT ID="LN">59  </FONT><A NAME="59"></A>   *
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   * @param i1 the first instance
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * @param i2 the second instance
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * @return true if both instances are equal (ignoring the class
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * attribute), false otherwise
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> equalIgnoreClass(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i2) {
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    <FONT ID="Int">int</FONT> n = i1.numAttributes();
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    <FONT ID="Int">int</FONT> classIndex = i1.classIndex();
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="If">if</FONT> (i2.numAttributes() != n || classIndex != i2.classIndex()) {
+<FONT ID="LN">69  </FONT><A NAME="69"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>    }
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>    <FONT ID="While">while</FONT>(i &lt; n &amp;&amp; (i == classIndex 
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    || Utils.eq(i1.value(i), i2.value(i)))) {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>      i++;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>    }
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="Return">return</FONT> i == n;
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  }
+<FONT ID="LN">78  </FONT><A NAME="78"></A>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * Get the index of an instance in a set of instances, where 
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   * instances are compared ignoring the class attribute.
+<FONT ID="LN">82  </FONT><A NAME="82"></A>   *
+<FONT ID="LN">83  </FONT><A NAME="83"></A>   * @param instances the set of instances
+<FONT ID="LN">84  </FONT><A NAME="84"></A>   * @param instance to instance to be found in the given set of instances
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   * @return the index of the first instance that equals the given instance
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   * (ignoring the class attribute), -1 if the instance was not found
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   */</FONT>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> containsIgnoreClass(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance) {
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    <FONT ID="Double">double</FONT>[] dd = instance.toDoubleArray();
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    <FONT ID="Int">int</FONT> classIndex = instances.classIndex();
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    <FONT ID="Int">int</FONT> n = instances.numAttributes();
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    Iterator it = 
+<FONT ID="LN">93  </FONT><A NAME="93"></A>      <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(instances.enumerateInstances());
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <FONT ID="Int">int</FONT> index = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    <FONT ID="While">while</FONT>(it.hasNext()) {
+<FONT ID="LN">96  </FONT><A NAME="96"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> tmp = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it.next();
+<FONT ID="LN">97  </FONT><A NAME="97"></A>      <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>      <FONT ID="While">while</FONT>(i &lt; n &amp;&amp; 
+<FONT ID="LN">99  </FONT><A NAME="99"></A>      (i == classIndex || Utils.eq(dd[i], tmp.value(i)))) {
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    i++;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>      }
+<FONT ID="LN">102 </FONT><A NAME="102"></A>      <FONT ID="If">if</FONT> (i == n) { 
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    <FONT ID="Return">return</FONT> index;  <FONT ID="SingleLineComment">// found it
+<FONT ID="LN">104 </FONT><A NAME="104"></A></FONT>      }
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      index++;
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    }
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  }
+<FONT ID="LN">109 </FONT><A NAME="109"></A>
+<FONT ID="LN">110 </FONT><A NAME="110"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   * Find the next occurence of an instance, ignoring the class,
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   * for which the index in the dataset is at least &lt;code&gt; index. &lt;/code&gt;
+<FONT ID="LN">113 </FONT><A NAME="113"></A>   *
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   * @param instances the set of instances to be searched
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   * @param instance the instance to be found
+<FONT ID="LN">116 </FONT><A NAME="116"></A>   * @param index the minimum index that might be returned
+<FONT ID="LN">117 </FONT><A NAME="117"></A>   * @return the index of the first instance with index at 
+<FONT ID="LN">118 </FONT><A NAME="118"></A>   * least &lt;code&gt; index &lt;/code&gt; that equals the given instance
+<FONT ID="LN">119 </FONT><A NAME="119"></A>   * (ignoring the class attribute), -1 if the instance was not found
+<FONT ID="LN">120 </FONT><A NAME="120"></A>   */</FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> nextOccurenceIgnoreClass(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Int">int</FONT> index) {
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    <FONT ID="Double">double</FONT>[] dd = instance.toDoubleArray();
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="Int">int</FONT> classIndex = instances.classIndex();
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    <FONT ID="Int">int</FONT> n = instances.numAttributes();
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    <FONT ID="Int">int</FONT> numInstances = instances.numInstances();
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <FONT ID="Int">int</FONT> currentIndex = index;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <FONT ID="While">while</FONT>(currentIndex &lt; numInstances) {
+<FONT ID="LN">128 </FONT><A NAME="128"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> tmp = instances.instance(currentIndex);
+<FONT ID="LN">129 </FONT><A NAME="129"></A>      <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">130 </FONT><A NAME="130"></A>      <FONT ID="While">while</FONT>(i &lt; n &amp;&amp; 
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      (i == classIndex || Utils.eq(dd[i], tmp.value(i)))) {
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    i++;
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      }
+<FONT ID="LN">134 </FONT><A NAME="134"></A>      <FONT ID="If">if</FONT> (i == n) { 
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    <FONT ID="Return">return</FONT> currentIndex;  <FONT ID="SingleLineComment">// found it
+<FONT ID="LN">136 </FONT><A NAME="136"></A></FONT>      }
+<FONT ID="LN">137 </FONT><A NAME="137"></A>      currentIndex++;
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    }
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    <FONT ID="Return">return</FONT> -<FONT ID="IntegerLiteral">1</FONT>; <FONT ID="SingleLineComment">// not present
+<FONT ID="LN">140 </FONT><A NAME="140"></A></FONT>  }
+<FONT ID="LN">141 </FONT><A NAME="141"></A>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">143 </FONT><A NAME="143"></A>   * Check if all instances have the same class value.
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   *
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * @param instances the instances to be checked for homogeneity
+<FONT ID="LN">146 </FONT><A NAME="146"></A>   * @return true if the instances have the same class value, false otherwise 
+<FONT ID="LN">147 </FONT><A NAME="147"></A>   */</FONT>
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isHomogeneous(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances) {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    Iterator it = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(instances.enumerateInstances());
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    <FONT ID="If">if</FONT> (it.hasNext()) {
+<FONT ID="LN">151 </FONT><A NAME="151"></A>      <FONT ID="Double">double</FONT> classValue = ((<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it.next()).classValue();
+<FONT ID="LN">152 </FONT><A NAME="152"></A>      <FONT ID="While">while</FONT>(it.hasNext()) {
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    <FONT ID="If">if</FONT> (((<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it.next()).classValue() != classValue) {
+<FONT ID="LN">154 </FONT><A NAME="154"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    }
+<FONT ID="LN">156 </FONT><A NAME="156"></A>      }
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    }
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>; <FONT ID="SingleLineComment">// empty or all identical
+<FONT ID="LN">159 </FONT><A NAME="159"></A></FONT>  }
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   * Compares two instances in the data space, this is ignoring the class
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * attribute.  An instance is strictly smaller than another instance
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   * if the same holds for the &lt;code&gt; Coordinates &lt;/code&gt; based on
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * these instances.
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   *
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * @param i1 the first instance
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * @param i2 the second instance
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   * @return &lt;code&gt; true &lt;/code&gt; if the first instance is strictly smaller
+<FONT ID="LN">170 </FONT><A NAME="170"></A>   * than the second instance, &lt;code&gt; false &lt;/code&gt; otherwise
+<FONT ID="LN">171 </FONT><A NAME="171"></A>   */</FONT>
+<FONT ID="LN">172 </FONT><A NAME="172"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> strictlySmaller(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i2) {
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    <FONT ID="SingleLineComment">// XXX implementation can be done faster
+<FONT ID="LN">174 </FONT><A NAME="174"></A></FONT>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c1 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i1);
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c2 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i2);
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="Return">return</FONT> c1.strictlySmaller(c2);
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  }
+<FONT ID="LN">179 </FONT><A NAME="179"></A>
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * Compares two instances in the data space, this is, ignoring the class
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * attribute.  An instance is smaller or equal than another instance
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   * if the same holds for the &lt;code&gt; Coordinates &lt;/code&gt; based on
+<FONT ID="LN">184 </FONT><A NAME="184"></A>   * these instances.
+<FONT ID="LN">185 </FONT><A NAME="185"></A>   *
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   * @param i1 the first instance
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   * @param i2 the second instance
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   * @return &lt;code&gt; true &lt;/code&gt; if the first instance is smaller or equal
+<FONT ID="LN">189 </FONT><A NAME="189"></A>   * than the second instance, &lt;code&gt; false &lt;/code&gt; otherwise
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   */</FONT>
+<FONT ID="LN">191 </FONT><A NAME="191"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> smallerOrEqual(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1,<A HREF="../../../../weka/core/Instance.java.html">Instance</A> i2) {
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    <FONT ID="SingleLineComment">// XXX implementation can be done faster
+<FONT ID="LN">193 </FONT><A NAME="193"></A></FONT>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c1 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i1);
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c2 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i2);
+<FONT ID="LN">195 </FONT><A NAME="195"></A>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    <FONT ID="Return">return</FONT> c1.smallerOrEqual(c2);
+<FONT ID="LN">197 </FONT><A NAME="197"></A>  }
+<FONT ID="LN">198 </FONT><A NAME="198"></A>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">200 </FONT><A NAME="200"></A>   * Checks if two instances are comparable in the data space, this is 
+<FONT ID="LN">201 </FONT><A NAME="201"></A>   * ignoring the class attribute.  Two instances are comparable if the
+<FONT ID="LN">202 </FONT><A NAME="202"></A>   * first is smaller or equal than the second, or the other way around.
+<FONT ID="LN">203 </FONT><A NAME="203"></A>   *
+<FONT ID="LN">204 </FONT><A NAME="204"></A>   * @param i1 the first instance
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   * @param i2 the second instance
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   * @return &lt;code&gt; true &lt;/code&gt; if the given instances are comparable,
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   * &lt;code&gt; false &lt;/code&gt; otherwise
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   * @throws IllegalArgumentException if the two instances don't have the
+<FONT ID="LN">209 </FONT><A NAME="209"></A>   * same length
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   */</FONT>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> comparable(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i2) <FONT ID="Throws">throws</FONT> IllegalArgumentException {
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    <FONT ID="SingleLineComment">// XXX maybe we should think about using 'equalHeaders' of Instance
+<FONT ID="LN">213 </FONT><A NAME="213"></A></FONT>    <FONT ID="SingleLineComment">// to obtain a fool proof implementation
+<FONT ID="LN">214 </FONT><A NAME="214"></A></FONT>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c1 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i1);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c2 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i2);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    <FONT ID="Return">return</FONT> c1.smallerOrEqual(c2) || c2.smallerOrEqual(c1);
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  }
+<FONT ID="LN">219 </FONT><A NAME="219"></A>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">221 </FONT><A NAME="221"></A>   * Checks it two instances give rise to doubt.  There is doubt between
+<FONT ID="LN">222 </FONT><A NAME="222"></A>   * two instances if their &lt;code&gt; Coordinates &lt;/code&gt; are equal, but 
+<FONT ID="LN">223 </FONT><A NAME="223"></A>   * their class value is different.
+<FONT ID="LN">224 </FONT><A NAME="224"></A>   *
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   * @param i1 the first instance
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   * @param i2 the second instance
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * @return &lt;code&gt; true &lt;/code&gt; if there is doubt between the two 
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * given instances, &lt;code&gt; false &lt;/code&gt; otherwise
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   */</FONT>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> doubt(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i2) {
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    <FONT ID="SingleLineComment">// XXX use equalHeaders ?
+<FONT ID="LN">232 </FONT><A NAME="232"></A></FONT>    <FONT ID="If">if</FONT> (i1.classValue() == i2.classValue()) {
+<FONT ID="LN">233 </FONT><A NAME="233"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    }
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c1 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i1);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c2 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i2);
+<FONT ID="LN">237 </FONT><A NAME="237"></A>
+<FONT ID="LN">238 </FONT><A NAME="238"></A>    <FONT ID="Return">return</FONT> c1.equals(c2); 
+<FONT ID="LN">239 </FONT><A NAME="239"></A>  }
+<FONT ID="LN">240 </FONT><A NAME="240"></A>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   *  Checks if two instances give rise to reversed preference.  
+<FONT ID="LN">243 </FONT><A NAME="243"></A>   *  Two instances give rise to reversed preference in the data space,
+<FONT ID="LN">244 </FONT><A NAME="244"></A>   *  if their &lt;code&gt; Coordinates &lt;/code&gt; are comparable but different,
+<FONT ID="LN">245 </FONT><A NAME="245"></A>   *  and their class values are not related in the same way.
+<FONT ID="LN">246 </FONT><A NAME="246"></A>   *  
+<FONT ID="LN">247 </FONT><A NAME="247"></A>   *  @param i1 the first instance
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   *  @param i2 the second instance
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   *  @return &lt;code&gt; true &lt;/code&gt; if &lt;code&gt; i1 &lt;/code&gt; and &lt;code&gt; i2 &lt;/code&gt;
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   *  give rise to reversed preference, &lt;code&gt; false &lt;/code&gt; otherwise
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   *  @throws IllegalArgumentException if the two instances don't have 
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   *  the same length
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   */</FONT>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> reversedPreference(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i2) <FONT ID="Throws">throws</FONT> IllegalArgumentException {
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    <FONT ID="SingleLineComment">// XXX should the implementation be made fool proof by use of 
+<FONT ID="LN">256 </FONT><A NAME="256"></A></FONT>    <FONT ID="SingleLineComment">// 'equalHeaders'?  It can also be speeded up I think.
+<FONT ID="LN">257 </FONT><A NAME="257"></A></FONT>
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    <FONT ID="If">if</FONT> (i1.classValue() == i2.classValue()) {
+<FONT ID="LN">259 </FONT><A NAME="259"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">260 </FONT><A NAME="260"></A>    }
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c1 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i1);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c2 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(i2);
+<FONT ID="LN">263 </FONT><A NAME="263"></A>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    <FONT ID="If">if</FONT> (i1.classValue() &gt; i2.classValue() &amp;&amp; c1.strictlySmaller(c2)) {
+<FONT ID="LN">265 </FONT><A NAME="265"></A>      <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    }
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    <FONT ID="If">if</FONT> (i2.classValue() &gt; i1.classValue() &amp;&amp; c2.strictlySmaller(c1)) {
+<FONT ID="LN">268 </FONT><A NAME="268"></A>      <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    }
+<FONT ID="LN">270 </FONT><A NAME="270"></A>
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">272 </FONT><A NAME="272"></A>  }
+<FONT ID="LN">273 </FONT><A NAME="273"></A>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">275 </FONT><A NAME="275"></A>   *  Checks if the given data set is monotone.  We say that a data set
+<FONT ID="LN">276 </FONT><A NAME="276"></A>   *  is monotone if it contains doubt nor reversed preferences.
+<FONT ID="LN">277 </FONT><A NAME="277"></A>   *
+<FONT ID="LN">278 </FONT><A NAME="278"></A>   *  @param instances the data set to be checked
+<FONT ID="LN">279 </FONT><A NAME="279"></A>   *  @return &lt;code&gt; true &lt;/code&gt; if the given data set if monotone,
+<FONT ID="LN">280 </FONT><A NAME="280"></A>   *  &lt;code&gt; false &lt;/code&gt; otherwise
+<FONT ID="LN">281 </FONT><A NAME="281"></A>   */</FONT>  
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isMonotone(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances) {
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    <FONT ID="Int">int</FONT> n = instances.numInstances();
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; n; i++) {
+<FONT ID="LN">285 </FONT><A NAME="285"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1 = instances.instance(i);
+<FONT ID="LN">286 </FONT><A NAME="286"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = i + <FONT ID="IntegerLiteral">1</FONT>; j &lt; n; j++) {
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    <FONT ID="If">if</FONT> ( doubt(i1, instances.instance(j)) ||
+<FONT ID="LN">288 </FONT><A NAME="288"></A>        reversedPreference(i1, instances.instance(j))) {
+<FONT ID="LN">289 </FONT><A NAME="289"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    }
+<FONT ID="LN">291 </FONT><A NAME="291"></A>      }
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    }
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">294 </FONT><A NAME="294"></A>  }
+<FONT ID="LN">295 </FONT><A NAME="295"></A>
+<FONT ID="LN">296 </FONT><A NAME="296"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">297 </FONT><A NAME="297"></A>   * Test if a set of instances is quasi monotone.  We say that a set
+<FONT ID="LN">298 </FONT><A NAME="298"></A>   * of instances &lt;code&gt; S &lt;/code&gt; is quasi monotone with respect to 
+<FONT ID="LN">299 </FONT><A NAME="299"></A>   * a set of instances &lt;code&gt; D &lt;/code&gt; iff 
+<FONT ID="LN">300 </FONT><A NAME="300"></A>   * &lt;code&gt; [x,y] \cap D \neq \emptyset \implies class(x) \leq class(y).
+<FONT ID="LN">301 </FONT><A NAME="301"></A>   * &lt;/code&gt;  This implies that &lt;code&gt; D &lt;/code&gt; itself is monotone.
+<FONT ID="LN">302 </FONT><A NAME="302"></A>   *
+<FONT ID="LN">303 </FONT><A NAME="303"></A>   * @param ground the instances playing the role of &lt;code&gt; D &lt;/code&gt;
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   * @param other the instances playing the role of &lt;code&gt; S &lt;/code&gt;
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   * @return true if the instances are quasi monotone, false otherwise
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   */</FONT>
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isQuasiMonotone(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> ground, <A HREF="../../../../weka/core/Instances.java.html">Instances</A> other) {
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    <FONT ID="If">if</FONT> (!isMonotone(ground)) {
+<FONT ID="LN">309 </FONT><A NAME="309"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    }
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    Iterator it1 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(ground.enumerateInstances());
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    <FONT ID="While">while</FONT>(it1.hasNext()) {
+<FONT ID="LN">313 </FONT><A NAME="313"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> inst1 = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it1.next();
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      Iterator it2 = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(other.enumerateInstances());
+<FONT ID="LN">315 </FONT><A NAME="315"></A>      <FONT ID="While">while</FONT>(it2.hasNext()) {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    <A HREF="../../../../weka/core/Instance.java.html">Instance</A> inst2 = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it2.next();
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    <FONT ID="If">if</FONT> (doubt(inst1, inst2) || reversedPreference(inst1, inst2)) {
+<FONT ID="LN">318 </FONT><A NAME="318"></A>      <FONT ID="Return">return</FONT> <FONT ID="False">false</FONT>;
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    }
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      }
+<FONT ID="LN">321 </FONT><A NAME="321"></A>    }
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    <FONT ID="Return">return</FONT> <FONT ID="True">true</FONT>;
+<FONT ID="LN">323 </FONT><A NAME="323"></A>  }
+<FONT ID="LN">324 </FONT><A NAME="324"></A>
+<FONT ID="LN">325 </FONT><A NAME="325"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">326 </FONT><A NAME="326"></A>   * Gather some statistics regarding reversed preferences. 
+<FONT ID="LN">327 </FONT><A NAME="327"></A>   * 
+<FONT ID="LN">328 </FONT><A NAME="328"></A>   * @param instances the instances to be examined
+<FONT ID="LN">329 </FONT><A NAME="329"></A>   * @return array of length 3; position 0 indicates the number of 
+<FONT ID="LN">330 </FONT><A NAME="330"></A>   *  couples that have reversed preference, position 1 the number of 
+<FONT ID="LN">331 </FONT><A NAME="331"></A>   *  couples that are comparable, and position 2 the total
+<FONT ID="LN">332 </FONT><A NAME="332"></A>   *  number of couples
+<FONT ID="LN">333 </FONT><A NAME="333"></A>   * @see #reversedPreference(Instance, Instance)
+<FONT ID="LN">334 </FONT><A NAME="334"></A>   */</FONT>  
+<FONT ID="LN">335 </FONT><A NAME="335"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT>[] nrOfReversedPreferences(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances) {
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    <FONT ID="Int">int</FONT>[] stats = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[<FONT ID="IntegerLiteral">3</FONT>];
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    <FONT ID="Int">int</FONT> n = instances.numInstances();
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    stats[<FONT ID="IntegerLiteral">0</FONT>] = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    stats[<FONT ID="IntegerLiteral">1</FONT>] = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    <FONT ID="SingleLineComment">// number of couples
+<FONT ID="LN">341 </FONT><A NAME="341"></A></FONT>    stats[<FONT ID="IntegerLiteral">2</FONT>] = n * (n - <FONT ID="IntegerLiteral">1</FONT>) / <FONT ID="IntegerLiteral">2</FONT>; 
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; n; i++) {
+<FONT ID="LN">343 </FONT><A NAME="343"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1 = instances.instance(i);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = i + <FONT ID="IntegerLiteral">1</FONT>; j &lt; n; j++) {
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    <A HREF="../../../../weka/core/Instance.java.html">Instance</A> j1 = instances.instance(j);
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    <FONT ID="If">if</FONT> (comparable(i1, j1)) {
+<FONT ID="LN">347 </FONT><A NAME="347"></A>      stats[<FONT ID="IntegerLiteral">1</FONT>]++;  <FONT ID="SingleLineComment">// comparable
+<FONT ID="LN">348 </FONT><A NAME="348"></A></FONT>      <FONT ID="If">if</FONT> (reversedPreference(i1, j1)) {
+<FONT ID="LN">349 </FONT><A NAME="349"></A>        stats[<FONT ID="IntegerLiteral">0</FONT>]++; <FONT ID="SingleLineComment">// reversed preference
+<FONT ID="LN">350 </FONT><A NAME="350"></A></FONT>      }
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    }
+<FONT ID="LN">352 </FONT><A NAME="352"></A>      }
+<FONT ID="LN">353 </FONT><A NAME="353"></A>    }
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    <FONT ID="Return">return</FONT> stats;
+<FONT ID="LN">355 </FONT><A NAME="355"></A>  }
+<FONT ID="LN">356 </FONT><A NAME="356"></A>
+<FONT ID="LN">357 </FONT><A NAME="357"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">358 </FONT><A NAME="358"></A>   * Find the number of stochastic reversed preferences in the dataset.
+<FONT ID="LN">359 </FONT><A NAME="359"></A>   *
+<FONT ID="LN">360 </FONT><A NAME="360"></A>   * @param instances the instances to be examined
+<FONT ID="LN">361 </FONT><A NAME="361"></A>   * @return an array of integers containing at position
+<FONT ID="LN">362 </FONT><A NAME="362"></A>   * &lt;ul&gt;
+<FONT ID="LN">363 </FONT><A NAME="363"></A>   * &lt;li&gt; 0: number of different coordinates, this is the size of S_X &lt;/li&gt; 
+<FONT ID="LN">364 </FONT><A NAME="364"></A>   * &lt;li&gt; 1: number of couples showing reversed preference:&lt;br&gt; 
+<FONT ID="LN">365 </FONT><A NAME="365"></A>   * &lt;code&gt; x &amp;lt; y &lt;/code&gt; and
+<FONT ID="LN">366 </FONT><A NAME="366"></A>   *        &lt;code&gt; not (F_x leqstoch F_y) &lt;/code&gt; &lt;/li&gt;
+<FONT ID="LN">367 </FONT><A NAME="367"></A>   * &lt;li&gt; 2: number of couples having&lt;br&gt;
+<FONT ID="LN">368 </FONT><A NAME="368"></A>   *   &lt;code&gt; x &amp;lt; y &lt;/code&gt; and &lt;code&gt; F_y leqstoch F_x &lt;/code&gt;
+<FONT ID="LN">369 </FONT><A NAME="369"></A>   *                                  and &lt;code&gt; F_x neq F_y &lt;/code&gt; &lt;/li&gt;
+<FONT ID="LN">370 </FONT><A NAME="370"></A>   * &lt;li&gt; 3: number of couples that are comparable &lt;br&gt;
+<FONT ID="LN">371 </FONT><A NAME="371"></A>   *          &lt;code&gt; |\{ (x,y)\in S_X \times S_x | x &amp;lt; y\}| &lt;/code&gt; &lt;/li&gt;
+<FONT ID="LN">372 </FONT><A NAME="372"></A>   * &lt;li&gt; 4: number of couples in S_X &lt;/li&gt;
+<FONT ID="LN">373 </FONT><A NAME="373"></A>   * &lt;/ul&gt;
+<FONT ID="LN">374 </FONT><A NAME="374"></A>   * @throws IllegalArgumentException if there are no instances with
+<FONT ID="LN">375 </FONT><A NAME="375"></A>   * a non-missing class value, or if the class is not set
+<FONT ID="LN">376 </FONT><A NAME="376"></A>   */</FONT>
+<FONT ID="LN">377 </FONT><A NAME="377"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT>[] nrStochasticReversedPreference(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances)
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    <FONT ID="Throws">throws</FONT> IllegalArgumentException {
+<FONT ID="LN">379 </FONT><A NAME="379"></A>
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    <FONT ID="If">if</FONT> (instances.classIndex() &lt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(<FONT ID="StringLiteral">"Class is not set"</FONT>);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    }
+<FONT ID="LN">383 </FONT><A NAME="383"></A>
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    <FONT ID="SingleLineComment">// copy the dataset 
+<FONT ID="LN">385 </FONT><A NAME="385"></A></FONT>    <A HREF="../../../../weka/core/Instances.java.html">Instances</A> data = <FONT ID="New">new</FONT> <A HREF="../../../../weka/core/Instances.java.html">Instances</A>(instances);
+<FONT ID="LN">386 </FONT><A NAME="386"></A>
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    <FONT ID="SingleLineComment">// new dataset where examples with missing class value are removed
+<FONT ID="LN">388 </FONT><A NAME="388"></A></FONT>    data.deleteWithMissingClass();
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    <FONT ID="If">if</FONT> (data.numInstances() == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">390 </FONT><A NAME="390"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">391 </FONT><A NAME="391"></A>      (<FONT ID="StringLiteral">"No instances with a class value!"</FONT>);
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    }
+<FONT ID="LN">393 </FONT><A NAME="393"></A>
+<FONT ID="LN">394 </FONT><A NAME="394"></A>    <FONT ID="SingleLineComment">// build the Map for the estimatedDistributions 
+<FONT ID="LN">395 </FONT><A NAME="395"></A></FONT>    Map distributions = <FONT ID="New">new</FONT> HashMap(data.numInstances()/<FONT ID="IntegerLiteral">2</FONT>);
+<FONT ID="LN">396 </FONT><A NAME="396"></A>
+<FONT ID="LN">397 </FONT><A NAME="397"></A>    <FONT ID="SingleLineComment">// cycle through all instances 
+<FONT ID="LN">398 </FONT><A NAME="398"></A></FONT>    Iterator i = 
+<FONT ID="LN">399 </FONT><A NAME="399"></A>      <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(instances.enumerateInstances());
+<FONT ID="LN">400 </FONT><A NAME="400"></A>
+<FONT ID="LN">401 </FONT><A NAME="401"></A>    <FONT ID="While">while</FONT> (i.hasNext()) { 
+<FONT ID="LN">402 </FONT><A NAME="402"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) i.next();
+<FONT ID="LN">403 </FONT><A NAME="403"></A>      <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(instance);
+<FONT ID="LN">404 </FONT><A NAME="404"></A>
+<FONT ID="LN">405 </FONT><A NAME="405"></A>      <FONT ID="SingleLineComment">// get DiscreteEstimator from the map
+<FONT ID="LN">406 </FONT><A NAME="406"></A></FONT>      <A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A> df = 
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    (<A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A>) distributions.get(c);
+<FONT ID="LN">408 </FONT><A NAME="408"></A>
+<FONT ID="LN">409 </FONT><A NAME="409"></A>      <FONT ID="SingleLineComment">// if no DiscreteEstimator is present in the map, create one 
+<FONT ID="LN">410 </FONT><A NAME="410"></A></FONT>      <FONT ID="If">if</FONT> (df == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    df = <FONT ID="New">new</FONT> <A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A>(instances.numClasses(), <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">412 </FONT><A NAME="412"></A>      }
+<FONT ID="LN">413 </FONT><A NAME="413"></A>      df.addValue(instance.classValue(),instance.weight()); <FONT ID="SingleLineComment">// update
+<FONT ID="LN">414 </FONT><A NAME="414"></A></FONT>      distributions.put(c,df); <FONT ID="SingleLineComment">// put back in map
+<FONT ID="LN">415 </FONT><A NAME="415"></A></FONT>    }
+<FONT ID="LN">416 </FONT><A NAME="416"></A>
+<FONT ID="LN">417 </FONT><A NAME="417"></A>
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    <FONT ID="SingleLineComment">// build the map of cumulative distribution functions 
+<FONT ID="LN">419 </FONT><A NAME="419"></A></FONT>    Map cumulativeDistributions = 
+<FONT ID="LN">420 </FONT><A NAME="420"></A>      <FONT ID="New">new</FONT> HashMap(distributions.size());
+<FONT ID="LN">421 </FONT><A NAME="421"></A>
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    <FONT ID="SingleLineComment">// Cycle trough the map of discrete distributions, and create a new
+<FONT ID="LN">423 </FONT><A NAME="423"></A></FONT>    <FONT ID="SingleLineComment">// one containing cumulative discrete distributions
+<FONT ID="LN">424 </FONT><A NAME="424"></A></FONT>    <FONT ID="For">for</FONT> (Iterator it=distributions.keySet().iterator();
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    it.hasNext();) {
+<FONT ID="LN">426 </FONT><A NAME="426"></A>      <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c = (<A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>) it.next();
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      <A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A> df = 
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    (<A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A>) distributions.get(c);
+<FONT ID="LN">429 </FONT><A NAME="429"></A>      cumulativeDistributions.put
+<FONT ID="LN">430 </FONT><A NAME="430"></A>      (c, <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/CumulativeDiscreteDistribution.java.html">CumulativeDiscreteDistribution</A>(df));
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    }
+<FONT ID="LN">432 </FONT><A NAME="432"></A>    <FONT ID="Int">int</FONT>[] revPref = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[<FONT ID="IntegerLiteral">5</FONT>]; 
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    revPref[<FONT ID="IntegerLiteral">0</FONT>] = cumulativeDistributions.size();
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    Iterator it = cumulativeDistributions.keySet().iterator();
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    <FONT ID="While">while</FONT> (it.hasNext()) {
+<FONT ID="LN">436 </FONT><A NAME="436"></A>      <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c1 = (<A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>) it.next();
+<FONT ID="LN">437 </FONT><A NAME="437"></A>      <A HREF="../../../../weka/classifiers/misc/monotone/CumulativeDiscreteDistribution.java.html">CumulativeDiscreteDistribution</A> cdf1 = 
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    (<A HREF="../../../../weka/classifiers/misc/monotone/CumulativeDiscreteDistribution.java.html">CumulativeDiscreteDistribution</A>) 
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    cumulativeDistributions.get(c1);
+<FONT ID="LN">440 </FONT><A NAME="440"></A>      Iterator it2 = cumulativeDistributions.keySet().iterator();
+<FONT ID="LN">441 </FONT><A NAME="441"></A>      <FONT ID="While">while</FONT>(it2.hasNext()) {
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> c2 = (<A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>) it2.next();
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/CumulativeDiscreteDistribution.java.html">CumulativeDiscreteDistribution</A> cdf2 = 
+<FONT ID="LN">444 </FONT><A NAME="444"></A>      (<A HREF="../../../../weka/classifiers/misc/monotone/CumulativeDiscreteDistribution.java.html">CumulativeDiscreteDistribution</A>)
+<FONT ID="LN">445 </FONT><A NAME="445"></A>      cumulativeDistributions.get(c2);
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    <FONT ID="If">if</FONT> (c2.equals(c1)) {
+<FONT ID="LN">447 </FONT><A NAME="447"></A>      <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    }
+<FONT ID="LN">449 </FONT><A NAME="449"></A>
+<FONT ID="LN">450 </FONT><A NAME="450"></A>    revPref[<FONT ID="IntegerLiteral">4</FONT>]++;
+<FONT ID="LN">451 </FONT><A NAME="451"></A>
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    <FONT ID="If">if</FONT> (c1.strictlySmaller(c2) == <FONT ID="True">true</FONT>) {
+<FONT ID="LN">453 </FONT><A NAME="453"></A>      revPref[<FONT ID="IntegerLiteral">3</FONT>]++; <FONT ID="SingleLineComment">//vergelijkbaar
+<FONT ID="LN">454 </FONT><A NAME="454"></A></FONT>      <FONT ID="If">if</FONT> (cdf1.stochasticDominatedBy(cdf2) == <FONT ID="False">false</FONT> ) {
+<FONT ID="LN">455 </FONT><A NAME="455"></A>        revPref[<FONT ID="IntegerLiteral">1</FONT>]++;
+<FONT ID="LN">456 </FONT><A NAME="456"></A>        <FONT ID="If">if</FONT> (cdf2.stochasticDominatedBy(cdf1) == <FONT ID="True">true</FONT>) {
+<FONT ID="LN">457 </FONT><A NAME="457"></A>          revPref[<FONT ID="IntegerLiteral">2</FONT>]++;
+<FONT ID="LN">458 </FONT><A NAME="458"></A>        }
+<FONT ID="LN">459 </FONT><A NAME="459"></A>      }
+<FONT ID="LN">460 </FONT><A NAME="460"></A>    } 
+<FONT ID="LN">461 </FONT><A NAME="461"></A>      }
+<FONT ID="LN">462 </FONT><A NAME="462"></A>    }
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    revPref[<FONT ID="IntegerLiteral">4</FONT>] /= <FONT ID="IntegerLiteral">2</FONT>; 
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    <FONT ID="Return">return</FONT> revPref;
+<FONT ID="LN">465 </FONT><A NAME="465"></A>  }
+<FONT ID="LN">466 </FONT><A NAME="466"></A>
+<FONT ID="LN">467 </FONT><A NAME="467"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">468 </FONT><A NAME="468"></A>   * Counts the number of redundant pairs in the sense of OLM.
+<FONT ID="LN">469 </FONT><A NAME="469"></A>   * Two instances are redundant if they are comparable and have the same
+<FONT ID="LN">470 </FONT><A NAME="470"></A>   * class value.
+<FONT ID="LN">471 </FONT><A NAME="471"></A>   * 
+<FONT ID="LN">472 </FONT><A NAME="472"></A>   * @param instances the instances to be checked
+<FONT ID="LN">473 </FONT><A NAME="473"></A>   * @return the number of redundant pairs in the given set of instances
+<FONT ID="LN">474 </FONT><A NAME="474"></A>   */</FONT>
+<FONT ID="LN">475 </FONT><A NAME="475"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> nrOfRedundant(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances) {
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    <FONT ID="Int">int</FONT> n = instances.numInstances();
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    <FONT ID="Int">int</FONT> nrRedundant = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; n; i++) {
+<FONT ID="LN">479 </FONT><A NAME="479"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> i1 = instances.instance(i);
+<FONT ID="LN">480 </FONT><A NAME="480"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = i + <FONT ID="IntegerLiteral">1</FONT>; j &lt; n; j++) {
+<FONT ID="LN">481 </FONT><A NAME="481"></A>    <A HREF="../../../../weka/core/Instance.java.html">Instance</A> j1 = instances.instance(j);
+<FONT ID="LN">482 </FONT><A NAME="482"></A>    <FONT ID="If">if</FONT> (j1.classValue() == i1.classValue() &amp;&amp; comparable(i1, j1) ) {
+<FONT ID="LN">483 </FONT><A NAME="483"></A>      nrRedundant++; 
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    }
+<FONT ID="LN">485 </FONT><A NAME="485"></A>      }
+<FONT ID="LN">486 </FONT><A NAME="486"></A>    }
+<FONT ID="LN">487 </FONT><A NAME="487"></A>
+<FONT ID="LN">488 </FONT><A NAME="488"></A>    <FONT ID="Return">return</FONT> nrRedundant;
+<FONT ID="LN">489 </FONT><A NAME="489"></A>  }
+<FONT ID="LN">490 </FONT><A NAME="490"></A>
+<FONT ID="LN">491 </FONT><A NAME="491"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">492 </FONT><A NAME="492"></A>   * Calulates the total loss over the &lt;code&gt; instances &lt;/code&gt;, 
+<FONT ID="LN">493 </FONT><A NAME="493"></A>   * using the trained &lt;code&gt; classifier &lt;/code&gt; and the 
+<FONT ID="LN">494 </FONT><A NAME="494"></A>   * specified &lt;code&gt; lossFunction. &lt;/code&gt;  The instances 
+<FONT ID="LN">495 </FONT><A NAME="495"></A>   * should not contain missing values in the class attribute.
+<FONT ID="LN">496 </FONT><A NAME="496"></A>   *
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   * @param classifier the trained classifier to use
+<FONT ID="LN">498 </FONT><A NAME="498"></A>   * @param instances the test instances
+<FONT ID="LN">499 </FONT><A NAME="499"></A>   * @param lossFunction the loss function to use
+<FONT ID="LN">500 </FONT><A NAME="500"></A>   * @return the total loss of all the instances using the given classifier and loss function
+<FONT ID="LN">501 </FONT><A NAME="501"></A>   */</FONT>
+<FONT ID="LN">502 </FONT><A NAME="502"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> totalLoss(<A HREF="../../../../weka/classifiers/Classifier.java.html">Classifier</A> classifier, <A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, 
+<FONT ID="LN">503 </FONT><A NAME="503"></A>      <A HREF="../../../../weka/classifiers/misc/monotone/NominalLossFunction.java.html">NominalLossFunction</A> lossFunction) {
+<FONT ID="LN">504 </FONT><A NAME="504"></A>
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    <FONT ID="Double">double</FONT> loss = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    <FONT ID="Int">int</FONT> n = instances.numInstances();
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; n; i++) {
+<FONT ID="LN">508 </FONT><A NAME="508"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    loss += lossFunction.loss(instances.instance(i).classValue(), 
+<FONT ID="LN">510 </FONT><A NAME="510"></A>        classifier.classifyInstance(instances.instance(i)));
+<FONT ID="LN">511 </FONT><A NAME="511"></A>      } <FONT ID="Catch">catch</FONT> (Exception e) { 
+<FONT ID="LN">512 </FONT><A NAME="512"></A>    <FONT ID="SingleLineComment">// what should we do here ?? 
+<FONT ID="LN">513 </FONT><A NAME="513"></A></FONT>      }
+<FONT ID="LN">514 </FONT><A NAME="514"></A>    }
+<FONT ID="LN">515 </FONT><A NAME="515"></A>    <FONT ID="Return">return</FONT> loss;
+<FONT ID="LN">516 </FONT><A NAME="516"></A>  }
+<FONT ID="LN">517 </FONT><A NAME="517"></A>
+<FONT ID="LN">518 </FONT><A NAME="518"></A>
+<FONT ID="LN">519 </FONT><A NAME="519"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">520 </FONT><A NAME="520"></A>   * Classify a set of instances using a given classifier.  The class value
+<FONT ID="LN">521 </FONT><A NAME="521"></A>   * of the instances are set.
+<FONT ID="LN">522 </FONT><A NAME="522"></A>   *
+<FONT ID="LN">523 </FONT><A NAME="523"></A>   * @param instances the instances to be classified
+<FONT ID="LN">524 </FONT><A NAME="524"></A>   * @param classifier a built classifier 
+<FONT ID="LN">525 </FONT><A NAME="525"></A>   * @throws Exception if one of the instances could no be classified
+<FONT ID="LN">526 </FONT><A NAME="526"></A>   */</FONT>
+<FONT ID="LN">527 </FONT><A NAME="527"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> classifyInstances(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <A HREF="../../../../weka/classifiers/Classifier.java.html">Classifier</A> classifier)
+<FONT ID="LN">528 </FONT><A NAME="528"></A>    <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">529 </FONT><A NAME="529"></A>    
+<FONT ID="LN">530 </FONT><A NAME="530"></A>    Iterator it = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(instances.enumerateInstances());
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    <FONT ID="While">while</FONT>(it.hasNext()) {
+<FONT ID="LN">532 </FONT><A NAME="532"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it.next();
+<FONT ID="LN">533 </FONT><A NAME="533"></A>      instance.setClassValue(classifier.classifyInstance(instance));
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    }
+<FONT ID="LN">535 </FONT><A NAME="535"></A>  }
+<FONT ID="LN">536 </FONT><A NAME="536"></A>
+<FONT ID="LN">537 </FONT><A NAME="537"></A>
+<FONT ID="LN">538 </FONT><A NAME="538"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">539 </FONT><A NAME="539"></A>   * Calculates the relation (poset) formed by the instances.
+<FONT ID="LN">540 </FONT><A NAME="540"></A>   *
+<FONT ID="LN">541 </FONT><A NAME="541"></A>   * @param instances the instances for which the poset is to be formed
+<FONT ID="LN">542 </FONT><A NAME="542"></A>   * @return a &lt;code&gt; BooleanBitMatrix &lt;/code&gt; for which position 
+<FONT ID="LN">543 </FONT><A NAME="543"></A>   * &lt;code&gt; bm.get(i,j) == true &lt;/code&gt; iff &lt;code&gt; 
+<FONT ID="LN">544 </FONT><A NAME="544"></A>   * InstancesUtil.strictlySmaller(instances.instance(i), 
+<FONT ID="LN">545 </FONT><A NAME="545"></A>   * instances.instance(j)) == true &lt;/code&gt;
+<FONT ID="LN">546 </FONT><A NAME="546"></A>   */</FONT>
+<FONT ID="LN">547 </FONT><A NAME="547"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/BooleanBitMatrix.java.html">BooleanBitMatrix</A> getBitMatrix(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances) {
+<FONT ID="LN">548 </FONT><A NAME="548"></A>    <FONT ID="Int">int</FONT> numInstances = instances.numInstances();
+<FONT ID="LN">549 </FONT><A NAME="549"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/BooleanBitMatrix.java.html">BooleanBitMatrix</A> bm = 
+<FONT ID="LN">550 </FONT><A NAME="550"></A>      <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/BooleanBitMatrix.java.html">BooleanBitMatrix</A>(numInstances, numInstances);
+<FONT ID="LN">551 </FONT><A NAME="551"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numInstances; i++ ) {
+<FONT ID="LN">552 </FONT><A NAME="552"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance1 = instances.instance(i);
+<FONT ID="LN">553 </FONT><A NAME="553"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; numInstances; j++) {
+<FONT ID="LN">554 </FONT><A NAME="554"></A>    <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance2 = instances.instance(j);
+<FONT ID="LN">555 </FONT><A NAME="555"></A>    <FONT ID="If">if</FONT> (InstancesUtil.strictlySmaller(instance1, instance2)) {
+<FONT ID="LN">556 </FONT><A NAME="556"></A>      bm.set(i, j); <FONT ID="SingleLineComment">// arc from instance1 to instance2
+<FONT ID="LN">557 </FONT><A NAME="557"></A></FONT>    }
+<FONT ID="LN">558 </FONT><A NAME="558"></A>      }
+<FONT ID="LN">559 </FONT><A NAME="559"></A>    }
+<FONT ID="LN">560 </FONT><A NAME="560"></A>    <FONT ID="Return">return</FONT> bm;
+<FONT ID="LN">561 </FONT><A NAME="561"></A>  }
+<FONT ID="LN">562 </FONT><A NAME="562"></A>
+<FONT ID="LN">563 </FONT><A NAME="563"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">564 </FONT><A NAME="564"></A>   * Calculatus the number of elements in the closed interval 
+<FONT ID="LN">565 </FONT><A NAME="565"></A>   * &lt;code&gt; [low,up]. &lt;/code&gt;  If the class index is set, then
+<FONT ID="LN">566 </FONT><A NAME="566"></A>   * the class attribute does not play part in the calculations,
+<FONT ID="LN">567 </FONT><A NAME="567"></A>   * this is we work in the data space.  The code also works with 
+<FONT ID="LN">568 </FONT><A NAME="568"></A>   * numeric attributes, but is primarily intended for ordinal attributes.
+<FONT ID="LN">569 </FONT><A NAME="569"></A>   *
+<FONT ID="LN">570 </FONT><A NAME="570"></A>   * @param low the lower bound of the interval
+<FONT ID="LN">571 </FONT><A NAME="571"></A>   * @param up the upper bound of the interval
+<FONT ID="LN">572 </FONT><A NAME="572"></A>   * @return the size of the interval (in floating point format)
+<FONT ID="LN">573 </FONT><A NAME="573"></A>   * @throws IllegalArgumentException if the given instances do not
+<FONT ID="LN">574 </FONT><A NAME="574"></A>   * constitute an interval.
+<FONT ID="LN">575 </FONT><A NAME="575"></A>   */</FONT>
+<FONT ID="LN">576 </FONT><A NAME="576"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> numberInInterval(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> low, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> up)
+<FONT ID="LN">577 </FONT><A NAME="577"></A>    <FONT ID="Throws">throws</FONT> IllegalArgumentException {
+<FONT ID="LN">578 </FONT><A NAME="578"></A>    
+<FONT ID="LN">579 </FONT><A NAME="579"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> cLow = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(low);
+<FONT ID="LN">580 </FONT><A NAME="580"></A>    <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A> cUp = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/Coordinates.java.html">Coordinates</A>(up);
+<FONT ID="LN">581 </FONT><A NAME="581"></A>    <FONT ID="If">if</FONT> (cLow.smallerOrEqual(cUp) == <FONT ID="False">false</FONT>) {
+<FONT ID="LN">582 </FONT><A NAME="582"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">583 </FONT><A NAME="583"></A>      (<FONT ID="StringLiteral">"The given instances are not the bounds of an interval"</FONT>);
+<FONT ID="LN">584 </FONT><A NAME="584"></A>    }
+<FONT ID="LN">585 </FONT><A NAME="585"></A>    <FONT ID="Double">double</FONT> number = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    <FONT ID="Int">int</FONT> dim = cLow.dimension();
+<FONT ID="LN">587 </FONT><A NAME="587"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; dim; i++) {
+<FONT ID="LN">588 </FONT><A NAME="588"></A>      number *= (cUp.getValue(i) - cLow.getValue(i) + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">589 </FONT><A NAME="589"></A>    }
+<FONT ID="LN">590 </FONT><A NAME="590"></A>    <FONT ID="Return">return</FONT> number;
+<FONT ID="LN">591 </FONT><A NAME="591"></A>  }
+<FONT ID="LN">592 </FONT><A NAME="592"></A>
+<FONT ID="LN">593 </FONT><A NAME="593"></A>
+<FONT ID="LN">594 </FONT><A NAME="594"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">595 </FONT><A NAME="595"></A>   * Calculatutes the number of vectors in the data space that are smaller 
+<FONT ID="LN">596 </FONT><A NAME="596"></A>   * or equal than the given instance.
+<FONT ID="LN">597 </FONT><A NAME="597"></A>   *
+<FONT ID="LN">598 </FONT><A NAME="598"></A>   * @param instance the given instance
+<FONT ID="LN">599 </FONT><A NAME="599"></A>   * @return the number of vectors in the data space smaller or equal 
+<FONT ID="LN">600 </FONT><A NAME="600"></A>   * than the given instance
+<FONT ID="LN">601 </FONT><A NAME="601"></A>   * @throws IllegalArgumentException if there are numeric attributes
+<FONT ID="LN">602 </FONT><A NAME="602"></A>   */</FONT>
+<FONT ID="LN">603 </FONT><A NAME="603"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> numberOfSmallerVectors(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance) 
+<FONT ID="LN">604 </FONT><A NAME="604"></A>    <FONT ID="Throws">throws</FONT> IllegalArgumentException {
+<FONT ID="LN">605 </FONT><A NAME="605"></A>    
+<FONT ID="LN">606 </FONT><A NAME="606"></A>    <FONT ID="Double">double</FONT>[] values = InstancesUtil.toDataDouble(instance);
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    <FONT ID="Double">double</FONT> nr = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">608 </FONT><A NAME="608"></A>
+<FONT ID="LN">609 </FONT><A NAME="609"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; values.length; i++) {
+<FONT ID="LN">610 </FONT><A NAME="610"></A>      <FONT ID="If">if</FONT> (instance.attribute(i).isNumeric()) {
+<FONT ID="LN">611 </FONT><A NAME="611"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">612 </FONT><A NAME="612"></A>    (<FONT ID="StringLiteral">"Numeric attributes are not supported"</FONT>); 
+<FONT ID="LN">613 </FONT><A NAME="613"></A>      }
+<FONT ID="LN">614 </FONT><A NAME="614"></A>      nr *= (values[i] + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">615 </FONT><A NAME="615"></A>    }
+<FONT ID="LN">616 </FONT><A NAME="616"></A>
+<FONT ID="LN">617 </FONT><A NAME="617"></A>    <FONT ID="Return">return</FONT> nr;
+<FONT ID="LN">618 </FONT><A NAME="618"></A>  }
+<FONT ID="LN">619 </FONT><A NAME="619"></A>
+<FONT ID="LN">620 </FONT><A NAME="620"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">621 </FONT><A NAME="621"></A>   * Calculatutes the number of vectors in the data space that are 
+<FONT ID="LN">622 </FONT><A NAME="622"></A>   * greater or equal than the given instance.
+<FONT ID="LN">623 </FONT><A NAME="623"></A>   *
+<FONT ID="LN">624 </FONT><A NAME="624"></A>   * @param instance the given instance
+<FONT ID="LN">625 </FONT><A NAME="625"></A>   * @return the number of vectors in the data space greater of equal
+<FONT ID="LN">626 </FONT><A NAME="626"></A>   * than the given instance
+<FONT ID="LN">627 </FONT><A NAME="627"></A>   * @throws IllegalArgumentException if there are numeric attributes
+<FONT ID="LN">628 </FONT><A NAME="628"></A>   */</FONT>
+<FONT ID="LN">629 </FONT><A NAME="629"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> numberOfGreaterVectors(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance) 
+<FONT ID="LN">630 </FONT><A NAME="630"></A>    <FONT ID="Throws">throws</FONT> IllegalArgumentException {
+<FONT ID="LN">631 </FONT><A NAME="631"></A>    
+<FONT ID="LN">632 </FONT><A NAME="632"></A>    <FONT ID="Double">double</FONT>[] values = InstancesUtil.toDataDouble(instance);
+<FONT ID="LN">633 </FONT><A NAME="633"></A>    <FONT ID="Double">double</FONT> nr = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">634 </FONT><A NAME="634"></A>
+<FONT ID="LN">635 </FONT><A NAME="635"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; values.length; i++) {
+<FONT ID="LN">636 </FONT><A NAME="636"></A>      <FONT ID="If">if</FONT> (instance.attribute(i).isNumeric()) {
+<FONT ID="LN">637 </FONT><A NAME="637"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">638 </FONT><A NAME="638"></A>    (<FONT ID="StringLiteral">"Numeric attributes are not supported"</FONT>); 
+<FONT ID="LN">639 </FONT><A NAME="639"></A>      }
+<FONT ID="LN">640 </FONT><A NAME="640"></A>      nr *= (instance.attribute(i).numValues() - values[i]);
+<FONT ID="LN">641 </FONT><A NAME="641"></A>    }
+<FONT ID="LN">642 </FONT><A NAME="642"></A>
+<FONT ID="LN">643 </FONT><A NAME="643"></A>    <FONT ID="Return">return</FONT> nr;
+<FONT ID="LN">644 </FONT><A NAME="644"></A>  }
+<FONT ID="LN">645 </FONT><A NAME="645"></A>
+<FONT ID="LN">646 </FONT><A NAME="646"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">647 </FONT><A NAME="647"></A>   * Write the instances in ARFF-format to the indicated 
+<FONT ID="LN">648 </FONT><A NAME="648"></A>   * &lt;code&gt; BufferedWriter &lt;/code&gt;.
+<FONT ID="LN">649 </FONT><A NAME="649"></A>   * @param instances the instances to write
+<FONT ID="LN">650 </FONT><A NAME="650"></A>   * @param file the &lt;code&gt; BufferedWriter &lt;/code&gt; to write to
+<FONT ID="LN">651 </FONT><A NAME="651"></A>   * @throws IOException if something goes wrong while writing the instances
+<FONT ID="LN">652 </FONT><A NAME="652"></A>   */</FONT>
+<FONT ID="LN">653 </FONT><A NAME="653"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> write(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, BufferedWriter file)
+<FONT ID="LN">654 </FONT><A NAME="654"></A>    <FONT ID="Throws">throws</FONT> IOException{
+<FONT ID="LN">655 </FONT><A NAME="655"></A>    
+<FONT ID="LN">656 </FONT><A NAME="656"></A>    file.write(instances.toString()); <FONT ID="SingleLineComment">// XXX can probably be done better 
+<FONT ID="LN">657 </FONT><A NAME="657"></A></FONT>  }
+<FONT ID="LN">658 </FONT><A NAME="658"></A>
+<FONT ID="LN">659 </FONT><A NAME="659"></A>
+<FONT ID="LN">660 </FONT><A NAME="660"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">661 </FONT><A NAME="661"></A>   * Return a histogram of the values for the specified attribute.
+<FONT ID="LN">662 </FONT><A NAME="662"></A>   *
+<FONT ID="LN">663 </FONT><A NAME="663"></A>   * @param instances the instances
+<FONT ID="LN">664 </FONT><A NAME="664"></A>   * @param attributeIndex the attribute to consider
+<FONT ID="LN">665 </FONT><A NAME="665"></A>   * @return a &lt;code&gt; DiscreteEstimator &lt;/code&gt; where the &lt;code&gt;i&lt;/code&gt;th
+<FONT ID="LN">666 </FONT><A NAME="666"></A>   * @throws IllegalArgumentException if the attribute at the specified 
+<FONT ID="LN">667 </FONT><A NAME="667"></A>   * index is numeric
+<FONT ID="LN">668 </FONT><A NAME="668"></A>   */</FONT>
+<FONT ID="LN">669 </FONT><A NAME="669"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A> countValues(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <FONT ID="Int">int</FONT> attributeIndex) 
+<FONT ID="LN">670 </FONT><A NAME="670"></A>    <FONT ID="Throws">throws</FONT> IllegalArgumentException{
+<FONT ID="LN">671 </FONT><A NAME="671"></A>    
+<FONT ID="LN">672 </FONT><A NAME="672"></A>    <FONT ID="Int">int</FONT> numValues = instances.attribute(attributeIndex).numValues();
+<FONT ID="LN">673 </FONT><A NAME="673"></A>    <FONT ID="If">if</FONT> (numValues == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">674 </FONT><A NAME="674"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">675 </FONT><A NAME="675"></A>      (<FONT ID="StringLiteral">"Can't create histogram for numeric attribute"</FONT>);
+<FONT ID="LN">676 </FONT><A NAME="676"></A>    }
+<FONT ID="LN">677 </FONT><A NAME="677"></A>
+<FONT ID="LN">678 </FONT><A NAME="678"></A>    <A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A> de = <FONT ID="New">new</FONT> <A HREF="../../../../weka/estimators/DiscreteEstimator.java.html">DiscreteEstimator</A>(numValues, <FONT ID="False">false</FONT>);
+<FONT ID="LN">679 </FONT><A NAME="679"></A>    Iterator it = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(instances.enumerateInstances());
+<FONT ID="LN">680 </FONT><A NAME="680"></A>    <FONT ID="While">while</FONT> (it.hasNext()) {
+<FONT ID="LN">681 </FONT><A NAME="681"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it.next();
+<FONT ID="LN">682 </FONT><A NAME="682"></A>      <FONT ID="If">if</FONT> (!instance.isMissing(attributeIndex)) {
+<FONT ID="LN">683 </FONT><A NAME="683"></A>    de.addValue(instance.value(attributeIndex), instance.weight());
+<FONT ID="LN">684 </FONT><A NAME="684"></A>      }
+<FONT ID="LN">685 </FONT><A NAME="685"></A>    }
+<FONT ID="LN">686 </FONT><A NAME="686"></A>    <FONT ID="Return">return</FONT> de;
+<FONT ID="LN">687 </FONT><A NAME="687"></A>  }
+<FONT ID="LN">688 </FONT><A NAME="688"></A>
+<FONT ID="LN">689 </FONT><A NAME="689"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">690 </FONT><A NAME="690"></A>   * Create, without replacement, a random subsample of the given size 
+<FONT ID="LN">691 </FONT><A NAME="691"></A>   * from the given instances.
+<FONT ID="LN">692 </FONT><A NAME="692"></A>   *
+<FONT ID="LN">693 </FONT><A NAME="693"></A>   * @param instances the instances to sample from
+<FONT ID="LN">694 </FONT><A NAME="694"></A>   * @param size the requested size of the sample
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   * @param random the random generator to use
+<FONT ID="LN">696 </FONT><A NAME="696"></A>   * @return a sample of the requested size, drawn from the given
+<FONT ID="LN">697 </FONT><A NAME="697"></A>   * instances without replacement
+<FONT ID="LN">698 </FONT><A NAME="698"></A>   * @throws IllegalArgumentException if the size exceeds the number
+<FONT ID="LN">699 </FONT><A NAME="699"></A>   * of instances
+<FONT ID="LN">700 </FONT><A NAME="700"></A>   */</FONT>
+<FONT ID="LN">701 </FONT><A NAME="701"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../weka/core/Instances.java.html">Instances</A> sampleWithoutReplacement(
+<FONT ID="LN">702 </FONT><A NAME="702"></A>      <A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <FONT ID="Int">int</FONT> size, Random random) {
+<FONT ID="LN">703 </FONT><A NAME="703"></A>    
+<FONT ID="LN">704 </FONT><A NAME="704"></A>    <FONT ID="If">if</FONT> (size &gt; instances.numInstances()) {
+<FONT ID="LN">705 </FONT><A NAME="705"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">706 </FONT><A NAME="706"></A>      (<FONT ID="StringLiteral">"Size of requested sample exceeds number of instances"</FONT>);
+<FONT ID="LN">707 </FONT><A NAME="707"></A>    }
+<FONT ID="LN">708 </FONT><A NAME="708"></A>
+<FONT ID="LN">709 </FONT><A NAME="709"></A>    <FONT ID="Int">int</FONT> numInstances = instances.numInstances();
+<FONT ID="LN">710 </FONT><A NAME="710"></A>    <FONT ID="Int">int</FONT>[] indices = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[instances.numInstances()];
+<FONT ID="LN">711 </FONT><A NAME="711"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numInstances; i++) {
+<FONT ID="LN">712 </FONT><A NAME="712"></A>      indices[i] = i;
+<FONT ID="LN">713 </FONT><A NAME="713"></A>    }
+<FONT ID="LN">714 </FONT><A NAME="714"></A>
+<FONT ID="LN">715 </FONT><A NAME="715"></A>    <A HREF="../../../../weka/core/Instances.java.html">Instances</A> sample = <FONT ID="New">new</FONT> <A HREF="../../../../weka/core/Instances.java.html">Instances</A>(instances, size);
+<FONT ID="LN">716 </FONT><A NAME="716"></A>    <FONT ID="Int">int</FONT> index;
+<FONT ID="LN">717 </FONT><A NAME="717"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; size; i++) {
+<FONT ID="LN">718 </FONT><A NAME="718"></A>      index = random.nextInt(numInstances--);
+<FONT ID="LN">719 </FONT><A NAME="719"></A>      sample.add(instances.instance(indices[index]));
+<FONT ID="LN">720 </FONT><A NAME="720"></A>      swap(indices, index, numInstances);
+<FONT ID="LN">721 </FONT><A NAME="721"></A>    }
+<FONT ID="LN">722 </FONT><A NAME="722"></A>    <FONT ID="Return">return</FONT> sample;
+<FONT ID="LN">723 </FONT><A NAME="723"></A>  }
+<FONT ID="LN">724 </FONT><A NAME="724"></A>
+<FONT ID="LN">725 </FONT><A NAME="725"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">726 </FONT><A NAME="726"></A>   * Swaps two elements of the given array.
+<FONT ID="LN">727 </FONT><A NAME="727"></A>   *
+<FONT ID="LN">728 </FONT><A NAME="728"></A>   * @param aa the array 
+<FONT ID="LN">729 </FONT><A NAME="729"></A>   * @param i the index of the first element
+<FONT ID="LN">730 </FONT><A NAME="730"></A>   * @param j the index of the second element
+<FONT ID="LN">731 </FONT><A NAME="731"></A>   */</FONT>
+<FONT ID="LN">732 </FONT><A NAME="732"></A>  <FONT ID="Final">final</FONT> <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> swap(<FONT ID="Int">int</FONT>[] aa, <FONT ID="Int">int</FONT> i, <FONT ID="Int">int</FONT> j) {
+<FONT ID="LN">733 </FONT><A NAME="733"></A>    <FONT ID="Int">int</FONT> tmp = aa[i];
+<FONT ID="LN">734 </FONT><A NAME="734"></A>    aa[i] = aa[j];
+<FONT ID="LN">735 </FONT><A NAME="735"></A>    aa[j] = tmp;
+<FONT ID="LN">736 </FONT><A NAME="736"></A>  }
+<FONT ID="LN">737 </FONT><A NAME="737"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">738 </FONT><A NAME="738"></A>   * Generates a random sample of instances.  Each attribute must be nominal, and the 
+<FONT ID="LN">739 </FONT><A NAME="739"></A>   * class labels are not set.
+<FONT ID="LN">740 </FONT><A NAME="740"></A>   * 
+<FONT ID="LN">741 </FONT><A NAME="741"></A>   * @param headerInfo Instances whose header information is used to determine how the 
+<FONT ID="LN">742 </FONT><A NAME="742"></A>   * set of returned instances will look
+<FONT ID="LN">743 </FONT><A NAME="743"></A>   * @param numberOfExamples the desired size of the returned set
+<FONT ID="LN">744 </FONT><A NAME="744"></A>   * @param random the random number generator to use
+<FONT ID="LN">745 </FONT><A NAME="745"></A>   * @return a set of Instances containing the random sample.
+<FONT ID="LN">746 </FONT><A NAME="746"></A>   * @throws IllegalArgumentException if numeric attributes are given
+<FONT ID="LN">747 </FONT><A NAME="747"></A>   */</FONT>
+<FONT ID="LN">748 </FONT><A NAME="748"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../weka/core/Instances.java.html">Instances</A> generateRandomSample(
+<FONT ID="LN">749 </FONT><A NAME="749"></A>      <A HREF="../../../../weka/core/Instances.java.html">Instances</A> headerInfo, <FONT ID="Int">int</FONT> numberOfExamples, Random random) 
+<FONT ID="LN">750 </FONT><A NAME="750"></A>    <FONT ID="Throws">throws</FONT> IllegalArgumentException {
+<FONT ID="LN">751 </FONT><A NAME="751"></A>    
+<FONT ID="LN">752 </FONT><A NAME="752"></A>    <FONT ID="Int">int</FONT> n = headerInfo.numAttributes();
+<FONT ID="LN">753 </FONT><A NAME="753"></A>    <FONT ID="Double">double</FONT>[] info = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[n];
+<FONT ID="LN">754 </FONT><A NAME="754"></A>    <FONT ID="Int">int</FONT> classIndex = headerInfo.classIndex();
+<FONT ID="LN">755 </FONT><A NAME="755"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; n; i++) {
+<FONT ID="LN">756 </FONT><A NAME="756"></A>      info[i] = headerInfo.attribute(i).numValues();
+<FONT ID="LN">757 </FONT><A NAME="757"></A>      <FONT ID="If">if</FONT> (i != classIndex &amp;&amp; info[i] == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">758 </FONT><A NAME="758"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException
+<FONT ID="LN">759 </FONT><A NAME="759"></A>    (<FONT ID="StringLiteral">"Numeric attributes are currently not supported"</FONT>);
+<FONT ID="LN">760 </FONT><A NAME="760"></A>      }
+<FONT ID="LN">761 </FONT><A NAME="761"></A>    }
+<FONT ID="LN">762 </FONT><A NAME="762"></A>    <A HREF="../../../../weka/core/Instances.java.html">Instances</A> sample = <FONT ID="New">new</FONT> <A HREF="../../../../weka/core/Instances.java.html">Instances</A>(headerInfo, numberOfExamples);
+<FONT ID="LN">763 </FONT><A NAME="763"></A>    sample.setRelationName(headerInfo.relationName() + 
+<FONT ID="LN">764 </FONT><A NAME="764"></A>    <FONT ID="StringLiteral">".random.sample.of."</FONT> + numberOfExamples);
+<FONT ID="LN">765 </FONT><A NAME="765"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numberOfExamples; i++) {
+<FONT ID="LN">766 </FONT><A NAME="766"></A>      sample.add(randomSample(info, classIndex, random));
+<FONT ID="LN">767 </FONT><A NAME="767"></A>    }
+<FONT ID="LN">768 </FONT><A NAME="768"></A>    <FONT ID="Return">return</FONT> sample;
+<FONT ID="LN">769 </FONT><A NAME="769"></A>  }
+<FONT ID="LN">770 </FONT><A NAME="770"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">771 </FONT><A NAME="771"></A>   * Generates a random instance.
+<FONT ID="LN">772 </FONT><A NAME="772"></A>   * 
+<FONT ID="LN">773 </FONT><A NAME="773"></A>   * @param info array that gives for each attribute the number of possible values
+<FONT ID="LN">774 </FONT><A NAME="774"></A>   * @param classIndex the index of the class attribute
+<FONT ID="LN">775 </FONT><A NAME="775"></A>   * @param random the random number generator used
+<FONT ID="LN">776 </FONT><A NAME="776"></A>   * @return a random instance
+<FONT ID="LN">777 </FONT><A NAME="777"></A>   */</FONT>
+<FONT ID="LN">778 </FONT><A NAME="778"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../weka/core/Instance.java.html">Instance</A> randomSample(<FONT ID="Double">double</FONT>[] info, 
+<FONT ID="LN">779 </FONT><A NAME="779"></A>      <FONT ID="Int">int</FONT> classIndex, Random random) {
+<FONT ID="LN">780 </FONT><A NAME="780"></A>    
+<FONT ID="LN">781 </FONT><A NAME="781"></A>    <FONT ID="Double">double</FONT>[] attValues = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[info.length];
+<FONT ID="LN">782 </FONT><A NAME="782"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; attValues.length; i++) {
+<FONT ID="LN">783 </FONT><A NAME="783"></A>      <FONT ID="If">if</FONT> (i != classIndex) {
+<FONT ID="LN">784 </FONT><A NAME="784"></A>    attValues[i] = random.nextInt( (<FONT ID="Int">int</FONT>) info[i]); 
+<FONT ID="LN">785 </FONT><A NAME="785"></A>      }
+<FONT ID="LN">786 </FONT><A NAME="786"></A>    }
+<FONT ID="LN">787 </FONT><A NAME="787"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../weka/core/DenseInstance.java.html">DenseInstance</A>(<FONT ID="IntegerLiteral">1</FONT>, attValues);
+<FONT ID="LN">788 </FONT><A NAME="788"></A>  }
+<FONT ID="LN">789 </FONT><A NAME="789"></A>
+<FONT ID="LN">790 </FONT><A NAME="790"></A>
+<FONT ID="LN">791 </FONT><A NAME="791"></A>
+<FONT ID="LN">792 </FONT><A NAME="792"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">793 </FONT><A NAME="793"></A>   * Returns an array containing the attribute values (in internal floating 
+<FONT ID="LN">794 </FONT><A NAME="794"></A>   * point format) of the given instance in data space, this is, the class 
+<FONT ID="LN">795 </FONT><A NAME="795"></A>   * attribute (if any) is removed.
+<FONT ID="LN">796 </FONT><A NAME="796"></A>   *
+<FONT ID="LN">797 </FONT><A NAME="797"></A>   * @param instance the instance to get the attribute values from
+<FONT ID="LN">798 </FONT><A NAME="798"></A>   * @return array of doubles containing the attribute values
+<FONT ID="LN">799 </FONT><A NAME="799"></A>   */</FONT>
+<FONT ID="LN">800 </FONT><A NAME="800"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT>[] toDataDouble(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance) {
+<FONT ID="LN">801 </FONT><A NAME="801"></A>    <FONT ID="Double">double</FONT>[] vector = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">802 </FONT><A NAME="802"></A>    <FONT ID="Int">int</FONT> classIndex = instance.classIndex();
+<FONT ID="LN">803 </FONT><A NAME="803"></A>    <FONT ID="If">if</FONT>(classIndex &gt;= <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">804 </FONT><A NAME="804"></A>      vector = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[instance.numAttributes() - <FONT ID="IntegerLiteral">1</FONT>];
+<FONT ID="LN">805 </FONT><A NAME="805"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">806 </FONT><A NAME="806"></A>      vector = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[instance.numAttributes()];
+<FONT ID="LN">807 </FONT><A NAME="807"></A>    }
+<FONT ID="LN">808 </FONT><A NAME="808"></A>    <FONT ID="Int">int</FONT> index = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">809 </FONT><A NAME="809"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; instance.numAttributes(); i++) {
+<FONT ID="LN">810 </FONT><A NAME="810"></A>      <FONT ID="If">if</FONT>(i != classIndex) {
+<FONT ID="LN">811 </FONT><A NAME="811"></A>    vector[index++] = instance.value(i);
+<FONT ID="LN">812 </FONT><A NAME="812"></A>      }
+<FONT ID="LN">813 </FONT><A NAME="813"></A>    }
+<FONT ID="LN">814 </FONT><A NAME="814"></A>    <FONT ID="Return">return</FONT> vector;
+<FONT ID="LN">815 </FONT><A NAME="815"></A>  }
+<FONT ID="LN">816 </FONT><A NAME="816"></A>
+<FONT ID="LN">817 </FONT><A NAME="817"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">818 </FONT><A NAME="818"></A>   * Computes the minimal extension for a given instance.
+<FONT ID="LN">819 </FONT><A NAME="819"></A>   *
+<FONT ID="LN">820 </FONT><A NAME="820"></A>   * @param instances the set of instances 
+<FONT ID="LN">821 </FONT><A NAME="821"></A>   * @param instance the instance for which the minimal extension is to be
+<FONT ID="LN">822 </FONT><A NAME="822"></A>   * calculated
+<FONT ID="LN">823 </FONT><A NAME="823"></A>   * @return the value of the minimal extension, in internal floating point
+<FONT ID="LN">824 </FONT><A NAME="824"></A>   * format
+<FONT ID="LN">825 </FONT><A NAME="825"></A>   */</FONT>
+<FONT ID="LN">826 </FONT><A NAME="826"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> minimalExtension(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance) {
+<FONT ID="LN">827 </FONT><A NAME="827"></A>    <FONT ID="Return">return</FONT> minimalExtension(instances, instance, <FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">828 </FONT><A NAME="828"></A>  }
+<FONT ID="LN">829 </FONT><A NAME="829"></A>
+<FONT ID="LN">830 </FONT><A NAME="830"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">831 </FONT><A NAME="831"></A>   * Computes the minimal extension of a given instance, but the 
+<FONT ID="LN">832 </FONT><A NAME="832"></A>   * minimal value returned is &lt;code&gt; minValue. &lt;/code&gt;  This method
+<FONT ID="LN">833 </FONT><A NAME="833"></A>   * may have its applications when the training set is divided into
+<FONT ID="LN">834 </FONT><A NAME="834"></A>   * multiple Instances objects.
+<FONT ID="LN">835 </FONT><A NAME="835"></A>   *
+<FONT ID="LN">836 </FONT><A NAME="836"></A>   * @param instances the set of instances
+<FONT ID="LN">837 </FONT><A NAME="837"></A>   * @param instance the instance for which the minimal extension is to 
+<FONT ID="LN">838 </FONT><A NAME="838"></A>   * be calculated
+<FONT ID="LN">839 </FONT><A NAME="839"></A>   * @param minValue a double indicating the minimal value that should 
+<FONT ID="LN">840 </FONT><A NAME="840"></A>   * be returned
+<FONT ID="LN">841 </FONT><A NAME="841"></A>   * @return the label of the minimal extension, in internal floating point format
+<FONT ID="LN">842 </FONT><A NAME="842"></A>   */</FONT>
+<FONT ID="LN">843 </FONT><A NAME="843"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> minimalExtension(
+<FONT ID="LN">844 </FONT><A NAME="844"></A>      <A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Double">double</FONT> minValue) {
+<FONT ID="LN">845 </FONT><A NAME="845"></A>    
+<FONT ID="LN">846 </FONT><A NAME="846"></A>    <FONT ID="Double">double</FONT> value = minValue;
+<FONT ID="LN">847 </FONT><A NAME="847"></A>
+<FONT ID="LN">848 </FONT><A NAME="848"></A>    Iterator it = 
+<FONT ID="LN">849 </FONT><A NAME="849"></A>      <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(instances.enumerateInstances());
+<FONT ID="LN">850 </FONT><A NAME="850"></A>    <FONT ID="While">while</FONT>(it.hasNext()) {
+<FONT ID="LN">851 </FONT><A NAME="851"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> tmp = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it.next();
+<FONT ID="LN">852 </FONT><A NAME="852"></A>      <FONT ID="If">if</FONT> (tmp.classValue() &gt; value 
+<FONT ID="LN">853 </FONT><A NAME="853"></A>      &amp;&amp; InstancesUtil.smallerOrEqual(tmp, instance) ) {
+<FONT ID="LN">854 </FONT><A NAME="854"></A>    value = tmp.classValue();
+<FONT ID="LN">855 </FONT><A NAME="855"></A>      }
+<FONT ID="LN">856 </FONT><A NAME="856"></A>    }
+<FONT ID="LN">857 </FONT><A NAME="857"></A>    <FONT ID="Return">return</FONT> value;
+<FONT ID="LN">858 </FONT><A NAME="858"></A>  }
+<FONT ID="LN">859 </FONT><A NAME="859"></A>
+<FONT ID="LN">860 </FONT><A NAME="860"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">861 </FONT><A NAME="861"></A>   * Computes the maximal extension for a given instance.
+<FONT ID="LN">862 </FONT><A NAME="862"></A>   *
+<FONT ID="LN">863 </FONT><A NAME="863"></A>   * @param instances the set of instances 
+<FONT ID="LN">864 </FONT><A NAME="864"></A>   * @param instance the instance for which the minimal extension is to be
+<FONT ID="LN">865 </FONT><A NAME="865"></A>   * calculated
+<FONT ID="LN">866 </FONT><A NAME="866"></A>   * @return the value of the minimal extension, in internal floating point
+<FONT ID="LN">867 </FONT><A NAME="867"></A>   * format
+<FONT ID="LN">868 </FONT><A NAME="868"></A>   */</FONT>
+<FONT ID="LN">869 </FONT><A NAME="869"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> maximalExtension(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance) {
+<FONT ID="LN">870 </FONT><A NAME="870"></A>    <FONT ID="Return">return</FONT> maximalExtension(instances, instance, instances.numClasses() - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">871 </FONT><A NAME="871"></A>  }
+<FONT ID="LN">872 </FONT><A NAME="872"></A>
+<FONT ID="LN">873 </FONT><A NAME="873"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">874 </FONT><A NAME="874"></A>   * Computes the maximal extension of a given instance, but the 
+<FONT ID="LN">875 </FONT><A NAME="875"></A>   * maximal value returned is &lt;code&gt; maxValue. &lt;/code&gt;  This method
+<FONT ID="LN">876 </FONT><A NAME="876"></A>   * may have its applications when the training set is divided into
+<FONT ID="LN">877 </FONT><A NAME="877"></A>   * multiple Instances objects.
+<FONT ID="LN">878 </FONT><A NAME="878"></A>   *
+<FONT ID="LN">879 </FONT><A NAME="879"></A>   * @param instances the set of instances
+<FONT ID="LN">880 </FONT><A NAME="880"></A>   * @param instance the instance for which the maximal extension is to 
+<FONT ID="LN">881 </FONT><A NAME="881"></A>   * be calculated
+<FONT ID="LN">882 </FONT><A NAME="882"></A>   * @param maxValue a double indicating the maximal value that should 
+<FONT ID="LN">883 </FONT><A NAME="883"></A>   * be returned
+<FONT ID="LN">884 </FONT><A NAME="884"></A>   * @return the value of the minimal extension, in internal floating point
+<FONT ID="LN">885 </FONT><A NAME="885"></A>   * format
+<FONT ID="LN">886 </FONT><A NAME="886"></A>   */</FONT>
+<FONT ID="LN">887 </FONT><A NAME="887"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Double">double</FONT> maximalExtension(
+<FONT ID="LN">888 </FONT><A NAME="888"></A>      <A HREF="../../../../weka/core/Instances.java.html">Instances</A> instances, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Double">double</FONT> maxValue) {
+<FONT ID="LN">889 </FONT><A NAME="889"></A>    
+<FONT ID="LN">890 </FONT><A NAME="890"></A>    <FONT ID="Double">double</FONT> value = maxValue;
+<FONT ID="LN">891 </FONT><A NAME="891"></A>
+<FONT ID="LN">892 </FONT><A NAME="892"></A>    Iterator it = 
+<FONT ID="LN">893 </FONT><A NAME="893"></A>      <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/misc/monotone/EnumerationIterator.java.html">EnumerationIterator</A>(instances.enumerateInstances());
+<FONT ID="LN">894 </FONT><A NAME="894"></A>    <FONT ID="While">while</FONT>(it.hasNext()) {
+<FONT ID="LN">895 </FONT><A NAME="895"></A>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> tmp = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) it.next();
+<FONT ID="LN">896 </FONT><A NAME="896"></A>      <FONT ID="If">if</FONT> (tmp.classValue() &lt; value 
+<FONT ID="LN">897 </FONT><A NAME="897"></A>      &amp;&amp; InstancesUtil.smallerOrEqual(instance, tmp) ) {
+<FONT ID="LN">898 </FONT><A NAME="898"></A>    value = tmp.classValue();
+<FONT ID="LN">899 </FONT><A NAME="899"></A>      }
+<FONT ID="LN">900 </FONT><A NAME="900"></A>    }
+<FONT ID="LN">901 </FONT><A NAME="901"></A>    <FONT ID="Return">return</FONT> value;
+<FONT ID="LN">902 </FONT><A NAME="902"></A>  }
+<FONT ID="LN">903 </FONT><A NAME="903"></A>  
+<FONT ID="LN">904 </FONT><A NAME="904"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">905 </FONT><A NAME="905"></A>   * Returns the revision string.
+<FONT ID="LN">906 </FONT><A NAME="906"></A>   * 
+<FONT ID="LN">907 </FONT><A NAME="907"></A>   * @return        the revision
+<FONT ID="LN">908 </FONT><A NAME="908"></A>   */</FONT>
+<FONT ID="LN">909 </FONT><A NAME="909"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">910 </FONT><A NAME="910"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5987 $"</FONT>);
+<FONT ID="LN">911 </FONT><A NAME="911"></A>  }
+<FONT ID="LN">912 </FONT><A NAME="912"></A>}
+<FONT ID="LN">913 </FONT><A NAME="913"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">InstancesUtil.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

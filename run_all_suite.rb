@@ -13,7 +13,7 @@ $programs.each do |p|
     postfix_file.each {|line| prop_file << line}
     prop_file.close
 end
-exit
+
 $programs.each do |p|
     toexe = "ant -f ../compare/chord/main/build.xml -Dchord.work.dir="+p+" run > "+p+"/jchord_execution.txt;"
     worked = system toexe

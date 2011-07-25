@@ -2,8 +2,8 @@ Races involving main:   194
 Races parallel section: 108
 Total number of races:  302
 -
-1.180
-1.250
-1.213
-1.218
-1.149
+1.166
+1.223
+1.172
+1.123
+1.166

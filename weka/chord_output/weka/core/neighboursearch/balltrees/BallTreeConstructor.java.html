@@ -1,0 +1,358 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.neighboursearch.balltrees.BallTreeConstructor (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BallTreeConstructor.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * BallTreeConstructor.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * Copyright (C) 2007 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Package">package</FONT> weka.core.neighboursearch.balltrees;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/DistanceFunction.java.html">weka.core.DistanceFunction</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/EuclideanDistance.java.html">weka.core.EuclideanDistance</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Option.java.html">weka.core.Option</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/OptionHandler.java.html">weka.core.OptionHandler</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionHandler.java.html">weka.core.RevisionHandler</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * Abstract class for constructing a BallTree .
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * 
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * @author Ashraf M. Kibriya (amk14[at-the-rate]cs[dot]waikato[dot]ac[dot]nz)
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * @version $Revision: 5953 $
+<FONT ID="LN">43  </FONT><A NAME="43"></A> */</FONT>
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Class">class</FONT> BallTreeConstructor 
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="Implements">implements</FONT> <A HREF="../../../../weka/core/OptionHandler.java.html">OptionHandler</A>, Serializable, <A HREF="../../../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="FormalComment">/** The maximum number of instances allowed in a leaf. */</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_MaxInstancesInLeaf=<FONT ID="IntegerLiteral">40</FONT>;
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="FormalComment">/** The maximum relative radius of a leaf node 
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   * (relative to the smallest ball enclosing all the 
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * data (training) points). */</FONT>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT> m_MaxRelLeafRadius=<FONT ID="FloatPointLiteral">0.001</FONT>;
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  <FONT ID="FormalComment">/** Should a parent ball completely enclose the balls
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   * of its two children, or only the points inside
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   * its children. */</FONT>
+<FONT ID="LN">58  </FONT><A NAME="58"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> m_FullyContainChildBalls = <FONT ID="False">false</FONT>;
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="FormalComment">/** The instances on which to build the tree. */</FONT>
+<FONT ID="LN">61  </FONT><A NAME="61"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../../weka/core/Instances.java.html">Instances</A> m_Instances;
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="FormalComment">/** The distance function to use to build the tree. */</FONT>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../../weka/core/DistanceFunction.java.html">DistanceFunction</A> m_DistanceFunction;
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="FormalComment">/** The number of internal and leaf nodes in the 
+<FONT ID="LN">67  </FONT><A NAME="67"></A>   * built tree. */</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_NumNodes;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  <FONT ID="FormalComment">/** The number of leaf nodes in the built tree. */</FONT>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_NumLeaves;
+<FONT ID="LN">72  </FONT><A NAME="72"></A>  
+<FONT ID="LN">73  </FONT><A NAME="73"></A>  <FONT ID="FormalComment">/** The depth of the built tree. */</FONT>
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_MaxDepth;
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="FormalComment">/** The master index array. */</FONT>
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT>[] m_InstList;
+<FONT ID="LN">78  </FONT><A NAME="78"></A>  
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * Creates a new instance of BallTreeConstructor.
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   */</FONT>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="Public">public</FONT> BallTreeConstructor() {
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   *  Builds the ball tree. 
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   * @return The root node of the tree. 
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   * @throws Exception If there is problem building
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * the tree.
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <A HREF="../../../../weka/core/neighboursearch/balltrees/BallNode.java.html">BallNode</A> buildTree() <FONT ID="Throws">throws</FONT> Exception;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * Adds an instance to the ball tree. 
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * @param node The root node of the tree.
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * @param inst The instance to add to the tree.
+<FONT ID="LN">97  </FONT><A NAME="97"></A>   * @return The new master index array after 
+<FONT ID="LN">98  </FONT><A NAME="98"></A>   * adding the instance. 
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   * @throws Exception If there is some problem adding
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   * the given instance to the tree. 
+<FONT ID="LN">101 </FONT><A NAME="101"></A>   */</FONT>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="Public">public</FONT> <FONT ID="Abstract">abstract</FONT> <FONT ID="Int">int</FONT>[] addInstance(<A HREF="../../../../weka/core/neighboursearch/balltrees/BallNode.java.html">BallNode</A> node, <A HREF="../../../../weka/core/Instance.java.html">Instance</A> inst) 
+<FONT ID="LN">103 </FONT><A NAME="103"></A>      <FONT ID="Throws">throws</FONT> Exception;
+<FONT ID="LN">104 </FONT><A NAME="104"></A>  
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">106 </FONT><A NAME="106"></A>   * Returns the tip text for this property.
+<FONT ID="LN">107 </FONT><A NAME="107"></A>   * 
+<FONT ID="LN">108 </FONT><A NAME="108"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">109 </FONT><A NAME="109"></A>   * displaying in the explorer/experimenter gui.
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   */</FONT>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  <FONT ID="Public">public</FONT> String maxInstancesInLeafTipText() {
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"The maximum number of instances allowed in a leaf."</FONT>;
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  }
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  
+<FONT ID="LN">115 </FONT><A NAME="115"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">116 </FONT><A NAME="116"></A>   * Returns the maximum number of instances allowed in a leaf.
+<FONT ID="LN">117 </FONT><A NAME="117"></A>   * @return The maximum number of instances allowed in a leaf.
+<FONT ID="LN">118 </FONT><A NAME="118"></A>   */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getMaxInstancesInLeaf() {
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="Return">return</FONT> m_MaxInstancesInLeaf;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   * Sets the maximum number of instances allowed in a leaf.
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * @param num The maximum number of instances allowed in 
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   * a leaf.
+<FONT ID="LN">127 </FONT><A NAME="127"></A>   * @throws Exception If the num is &lt; 1. 
+<FONT ID="LN">128 </FONT><A NAME="128"></A>   */</FONT> 
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setMaxInstancesInLeaf(<FONT ID="Int">int</FONT> num) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    <FONT ID="If">if</FONT>(num&lt;<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"The maximum number of instances in a leaf must "</FONT> +
+<FONT ID="LN">132 </FONT><A NAME="132"></A>                          <FONT ID="StringLiteral">"be &gt;=1."</FONT>);
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    m_MaxInstancesInLeaf = num;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  }
+<FONT ID="LN">135 </FONT><A NAME="135"></A>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * Returns the tip text for this property.
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   * 
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">140 </FONT><A NAME="140"></A>   * displaying in the explorer/experimenter gui.
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   */</FONT>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  <FONT ID="Public">public</FONT> String maxRelativeLeafRadiusTipText() {
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"The maximum relative radius allowed for a leaf node. "</FONT> +
+<FONT ID="LN">144 </FONT><A NAME="144"></A>            <FONT ID="StringLiteral">"Itis relative to the radius of the smallest ball "</FONT> +
+<FONT ID="LN">145 </FONT><A NAME="145"></A>            <FONT ID="StringLiteral">"enclosing all the data points (that were used to "</FONT> +
+<FONT ID="LN">146 </FONT><A NAME="146"></A>            <FONT ID="StringLiteral">"build the tree). This smallest ball would be the "</FONT> +
+<FONT ID="LN">147 </FONT><A NAME="147"></A>            <FONT ID="StringLiteral">"same as the root node's ball, if ContainChildBalls "</FONT> +
+<FONT ID="LN">148 </FONT><A NAME="148"></A>            <FONT ID="StringLiteral">"property is set to false (default)."</FONT>;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  }
+<FONT ID="LN">150 </FONT><A NAME="150"></A>
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  <FONT ID="FormalComment">/** Returns the maximum relative radius of a leaf node. 
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * It is relative to the radius of the smallest ball enclosing all 
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * the data points (that were used to build the tree). This smallest
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * ball would be the same as the root node's ball, if 
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * ContainChildBalls property is set to false (default).
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * @return The maximum relative radius allowed for a leaf.
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   */</FONT>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getMaxRelativeLeafRadius() {
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    <FONT ID="Return">return</FONT> m_MaxRelLeafRadius;
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  }
+<FONT ID="LN">161 </FONT><A NAME="161"></A>
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  <FONT ID="FormalComment">/** Sets the maximum relative radius, allowed for a leaf node. The 
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * radius is relative to the radius of the smallest ball enclosing all 
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   * the data points (that were used to build the tree). This smallest
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * ball would be the same as the root node's ball, if 
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * ContainChildBalls property is set to false (default).
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * @param radius The maximum relative radius allowed for a leaf.
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   * @throws Exception If radius is &lt; 0.0.
+<FONT ID="LN">169 </FONT><A NAME="169"></A>   */</FONT>
+<FONT ID="LN">170 </FONT><A NAME="170"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setMaxRelativeLeafRadius(<FONT ID="Double">double</FONT> radius) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="If">if</FONT>(radius &lt; <FONT ID="FloatPointLiteral">0.0</FONT>)
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"The radius for the leaves should be &gt;= 0.0"</FONT>);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    m_MaxRelLeafRadius = radius;
+<FONT ID="LN">174 </FONT><A NAME="174"></A>  }
+<FONT ID="LN">175 </FONT><A NAME="175"></A>
+<FONT ID="LN">176 </FONT><A NAME="176"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">177 </FONT><A NAME="177"></A>   * Returns the tip text for this property.
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   * 
+<FONT ID="LN">179 </FONT><A NAME="179"></A>   * @return tip text for this property suitable for
+<FONT ID="LN">180 </FONT><A NAME="180"></A>   * displaying in the explorer/experimenter gui.
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   */</FONT>
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  <FONT ID="Public">public</FONT> String containChildBallsTipText() {
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Whether to contain fully the child balls."</FONT>;
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  }
+<FONT ID="LN">185 </FONT><A NAME="185"></A>  
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   * Gets whether if a parent ball should completely enclose
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   * its two child balls.
+<FONT ID="LN">189 </FONT><A NAME="189"></A>   * @return true if parent ball is to enclose its child 
+<FONT ID="LN">190 </FONT><A NAME="190"></A>   * balls.
+<FONT ID="LN">191 </FONT><A NAME="191"></A>   */</FONT>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getContainChildBalls() {
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    <FONT ID="Return">return</FONT> m_FullyContainChildBalls;
+<FONT ID="LN">194 </FONT><A NAME="194"></A>  }
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">197 </FONT><A NAME="197"></A>   * Sets whether if a parent ball should completely enclose
+<FONT ID="LN">198 </FONT><A NAME="198"></A>   * its two child balls.
+<FONT ID="LN">199 </FONT><A NAME="199"></A>   * @param containChildBalls Should be tree if parent ball
+<FONT ID="LN">200 </FONT><A NAME="200"></A>   * is to enclose its child balls.
+<FONT ID="LN">201 </FONT><A NAME="201"></A>   */</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setContainChildBalls(<FONT ID="Boolean">boolean</FONT> containChildBalls) {
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    m_FullyContainChildBalls = containChildBalls;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  }
+<FONT ID="LN">205 </FONT><A NAME="205"></A>  
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   * Sets the instances on which the tree is to be built.
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   * @param inst The instances on which to build the 
+<FONT ID="LN">209 </FONT><A NAME="209"></A>   * ball tree.
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   */</FONT>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setInstances(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> inst) {
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    m_Instances = inst;
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  }
+<FONT ID="LN">214 </FONT><A NAME="214"></A>  
+<FONT ID="LN">215 </FONT><A NAME="215"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   * Sets the master index array that points to 
+<FONT ID="LN">217 </FONT><A NAME="217"></A>   * instances in m_Instances, so that only this array
+<FONT ID="LN">218 </FONT><A NAME="218"></A>   * is manipulated, and m_Instances is left 
+<FONT ID="LN">219 </FONT><A NAME="219"></A>   * untouched.
+<FONT ID="LN">220 </FONT><A NAME="220"></A>   * @param instList The master index array.
+<FONT ID="LN">221 </FONT><A NAME="221"></A>   */</FONT>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setInstanceList(<FONT ID="Int">int</FONT>[] instList) {
+<FONT ID="LN">223 </FONT><A NAME="223"></A>    m_InstList = instList;
+<FONT ID="LN">224 </FONT><A NAME="224"></A>  }
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  
+<FONT ID="LN">226 </FONT><A NAME="226"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * Sets the distance function to use to build the 
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * tree.
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * @param func The distance function.
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   */</FONT>
+<FONT ID="LN">231 </FONT><A NAME="231"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setEuclideanDistanceFunction(<A HREF="../../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A> func) {
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    m_DistanceFunction = func;
+<FONT ID="LN">233 </FONT><A NAME="233"></A>  }
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  
+<FONT ID="LN">235 </FONT><A NAME="235"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   * Returns the number of nodes (internal + leaf) 
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * in the built tree. 
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * @return The number of nodes in the tree. 
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   */</FONT> 
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getNumNodes() {
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    <FONT ID="Return">return</FONT> m_NumNodes;
+<FONT ID="LN">242 </FONT><A NAME="242"></A>  }
+<FONT ID="LN">243 </FONT><A NAME="243"></A>  
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">245 </FONT><A NAME="245"></A>   * Returns the number of leaves in the built tree.
+<FONT ID="LN">246 </FONT><A NAME="246"></A>   * @return The number of leaves in the tree.
+<FONT ID="LN">247 </FONT><A NAME="247"></A>   */</FONT>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getNumLeaves() {
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    <FONT ID="Return">return</FONT> m_NumLeaves;
+<FONT ID="LN">250 </FONT><A NAME="250"></A>  }
+<FONT ID="LN">251 </FONT><A NAME="251"></A>  
+<FONT ID="LN">252 </FONT><A NAME="252"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   * Returns the depth of the built tree. 
+<FONT ID="LN">254 </FONT><A NAME="254"></A>   * @return The depth of the tree. 
+<FONT ID="LN">255 </FONT><A NAME="255"></A>   */</FONT>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getMaxDepth() {
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    <FONT ID="Return">return</FONT> m_MaxDepth;
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  }
+<FONT ID="LN">259 </FONT><A NAME="259"></A>  
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">261 </FONT><A NAME="261"></A>   * Returns an enumeration describing the available options.
+<FONT ID="LN">262 </FONT><A NAME="262"></A>   * 
+<FONT ID="LN">263 </FONT><A NAME="263"></A>   * @return        an enumeration of all the available options.
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   */</FONT>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>  <FONT ID="Public">public</FONT> Enumeration listOptions() {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    Vector&lt;<A HREF="../../../../weka/core/Option.java.html">Option</A>&gt; newVector = <FONT ID="New">new</FONT> Vector&lt;<A HREF="../../../../weka/core/Option.java.html">Option</A>&gt;();
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    <FONT ID="StringLiteral">"\tSet maximum number of instances in a leaf node\n"</FONT>
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    + <FONT ID="StringLiteral">"\t(default: 40)"</FONT>, 
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    <FONT ID="StringLiteral">"N"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-N &lt;value&gt;"</FONT>)); 
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    <FONT ID="StringLiteral">"\tSet internal nodes' radius to the sum \n"</FONT>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    + <FONT ID="StringLiteral">"\tof the child balls radii. So that it \n"</FONT> 
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    + <FONT ID="StringLiteral">"contains the child balls."</FONT>, 
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    <FONT ID="StringLiteral">"R"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-R"</FONT>)); 
+<FONT ID="LN">278 </FONT><A NAME="278"></A>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    <FONT ID="Return">return</FONT> newVector.elements();
+<FONT ID="LN">280 </FONT><A NAME="280"></A>  }
+<FONT ID="LN">281 </FONT><A NAME="281"></A>
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">283 </FONT><A NAME="283"></A>   * Parses a given list of options.
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   * 
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   * @param options     the list of options as an array of strings
+<FONT ID="LN">286 </FONT><A NAME="286"></A>   * @throws Exception  if an option is not supported
+<FONT ID="LN">287 </FONT><A NAME="287"></A>   */</FONT>
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOptions(String[] options)
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    String optionString = Utils.getOption(<FONT ID="CharacerLiteral">'N'</FONT>, options);
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    <FONT ID="If">if</FONT>(optionString.length() !=  <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">293 </FONT><A NAME="293"></A>      setMaxInstancesInLeaf(Integer.parseInt(optionString));
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    }
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">296 </FONT><A NAME="296"></A>      setMaxInstancesInLeaf(<FONT ID="IntegerLiteral">40</FONT>);
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    }
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    setContainChildBalls(Utils.getFlag(<FONT ID="CharacerLiteral">'R'</FONT>, options));
+<FONT ID="LN">300 </FONT><A NAME="300"></A>  }
+<FONT ID="LN">301 </FONT><A NAME="301"></A>
+<FONT ID="LN">302 </FONT><A NAME="302"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">303 </FONT><A NAME="303"></A>   * Gets the current settings.
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   * 
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   * @return        an array of strings suitable for passing to setOptions
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   */</FONT>
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  <FONT ID="Public">public</FONT> String[] getOptions() {
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    Vector&lt;String&gt;  result;
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    result = <FONT ID="New">new</FONT> Vector&lt;String&gt;();
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    result.add(<FONT ID="StringLiteral">"-N"</FONT>);
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    result.add(<FONT ID="StringLiteral">""</FONT> + getMaxInstancesInLeaf());
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    <FONT ID="If">if</FONT> (getContainChildBalls())
+<FONT ID="LN">316 </FONT><A NAME="316"></A>      result.add(<FONT ID="StringLiteral">"-R"</FONT>);
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    <FONT ID="Return">return</FONT> result.toArray(<FONT ID="New">new</FONT> String[result.size()]);
+<FONT ID="LN">319 </FONT><A NAME="319"></A>  }
+<FONT ID="LN">320 </FONT><A NAME="320"></A>  
+<FONT ID="LN">321 </FONT><A NAME="321"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">322 </FONT><A NAME="322"></A>   * Returns the revision string.
+<FONT ID="LN">323 </FONT><A NAME="323"></A>   * 
+<FONT ID="LN">324 </FONT><A NAME="324"></A>   * @return        the revision
+<FONT ID="LN">325 </FONT><A NAME="325"></A>   */</FONT>
+<FONT ID="LN">326 </FONT><A NAME="326"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">328 </FONT><A NAME="328"></A>  }
+<FONT ID="LN">329 </FONT><A NAME="329"></A>}
+<FONT ID="LN">330 </FONT><A NAME="330"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">BallTreeConstructor.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

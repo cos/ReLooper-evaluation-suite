@@ -1,0 +1,410 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.neighboursearch.kdtrees.KMeansInpiredMethod (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">KMeansInpiredMethod.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * KMeansInpiredMethod.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * Copyright (C) 2007 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Package">package</FONT> weka.core.neighboursearch.kdtrees;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/TechnicalInformationHandler.java.html">weka.core.TechnicalInformationHandler</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Field</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Type</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">33  </FONT><A NAME="33"></A> &lt;!-- globalinfo-start --&gt;
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * The class that splits a node into two such that the overall sum of squared distances of points to their centres on both sides of the (axis-parallel) splitting plane is minimum.&lt;br/&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * &lt;br/&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * For more information see also:&lt;br/&gt;
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * &lt;br/&gt;
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * Ashraf Masood Kibriya (2007). Fast Algorithms for Nearest Neighbour Search. Hamilton, New Zealand.
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * &lt;p/&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A> &lt;!-- globalinfo-end --&gt;
+<FONT ID="LN">41  </FONT><A NAME="41"></A> *
+<FONT ID="LN">42  </FONT><A NAME="42"></A> &lt;!-- technical-bibtex-start --&gt;
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * BibTeX:
+<FONT ID="LN">44  </FONT><A NAME="44"></A> * &lt;pre&gt;
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * &amp;#64;mastersthesis{Kibriya2007,
+<FONT ID="LN">46  </FONT><A NAME="46"></A> *    address = {Hamilton, New Zealand},
+<FONT ID="LN">47  </FONT><A NAME="47"></A> *    author = {Ashraf Masood Kibriya},
+<FONT ID="LN">48  </FONT><A NAME="48"></A> *    school = {Department of Computer Science, School of Computing and Mathematical Sciences, University of Waikato},
+<FONT ID="LN">49  </FONT><A NAME="49"></A> *    title = {Fast Algorithms for Nearest Neighbour Search},
+<FONT ID="LN">50  </FONT><A NAME="50"></A> *    year = {2007}
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * }
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * &lt;/pre&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * &lt;p/&gt;
+<FONT ID="LN">54  </FONT><A NAME="54"></A> &lt;!-- technical-bibtex-end --&gt;
+<FONT ID="LN">55  </FONT><A NAME="55"></A> *
+<FONT ID="LN">56  </FONT><A NAME="56"></A> &lt;!-- options-start --&gt;
+<FONT ID="LN">57  </FONT><A NAME="57"></A> &lt;!-- options-end --&gt;
+<FONT ID="LN">58  </FONT><A NAME="58"></A> *
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * @author Ashraf M. Kibriya (amk14[at-the-rate]cs[dot]waikato[dot]ac[dot]nz)
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * @version $Revision: 5953 $
+<FONT ID="LN">61  </FONT><A NAME="61"></A> */</FONT>
+<FONT ID="LN">62  </FONT><A NAME="62"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> KMeansInpiredMethod
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../../../weka/core/neighboursearch/kdtrees/KDTreeNodeSplitter.java.html">KDTreeNodeSplitter</A>
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="Implements">implements</FONT> <A HREF="../../../../weka/core/TechnicalInformationHandler.java.html">TechnicalInformationHandler</A> {
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  
+<FONT ID="LN">66  </FONT><A NAME="66"></A>  <FONT ID="FormalComment">/** for serialization. */</FONT>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">866783749124714304L</FONT>;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">70  </FONT><A NAME="70"></A>   * Returns a string describing this nearest neighbour search algorithm.
+<FONT ID="LN">71  </FONT><A NAME="71"></A>   * 
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   * @return        a description of the algorithm for displaying in the
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   *                explorer/experimenter gui
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   */</FONT>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Public">public</FONT> String globalInfo() {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>    <FONT ID="Return">return</FONT> 
+<FONT ID="LN">77  </FONT><A NAME="77"></A>        <FONT ID="StringLiteral">"The class that splits a node into two such that the overall sum "</FONT>
+<FONT ID="LN">78  </FONT><A NAME="78"></A>      + <FONT ID="StringLiteral">"of squared distances of points to their centres on both sides "</FONT> 
+<FONT ID="LN">79  </FONT><A NAME="79"></A>      + <FONT ID="StringLiteral">"of the (axis-parallel) splitting plane is minimum.\n\n"</FONT>
+<FONT ID="LN">80  </FONT><A NAME="80"></A>      + <FONT ID="StringLiteral">"For more information see also:\n\n"</FONT>
+<FONT ID="LN">81  </FONT><A NAME="81"></A>      + getTechnicalInformation().toString();
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  }
+<FONT ID="LN">83  </FONT><A NAME="83"></A>
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">85  </FONT><A NAME="85"></A>   * Returns an instance of a TechnicalInformation object, containing detailed
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   * information about the technical background of this class, e.g., paper
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   * reference or book this class is based on.
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   * 
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * @return        the technical information about this class
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A> getTechnicalInformation() {
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    <A HREF="../../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A> result;
+<FONT ID="LN">93  </FONT><A NAME="93"></A>
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    result = <FONT ID="New">new</FONT> <A HREF="../../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A>(Type.MASTERSTHESIS);
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    result.setValue(Field.AUTHOR, <FONT ID="StringLiteral">"Ashraf Masood Kibriya"</FONT>);
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    result.setValue(Field.TITLE, <FONT ID="StringLiteral">"Fast Algorithms for Nearest Neighbour Search"</FONT>);
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    result.setValue(Field.YEAR, <FONT ID="StringLiteral">"2007"</FONT>);
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    result.setValue(Field.SCHOOL, <FONT ID="StringLiteral">"Department of Computer Science, School of Computing and Mathematical Sciences, University of Waikato"</FONT>);
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    result.setValue(Field.ADDRESS, <FONT ID="StringLiteral">"Hamilton, New Zealand"</FONT>);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  }
+<FONT ID="LN">103 </FONT><A NAME="103"></A>
+<FONT ID="LN">104 </FONT><A NAME="104"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   * Splits a node into two such that the overall sum of squared distances 
+<FONT ID="LN">106 </FONT><A NAME="106"></A>   * of points to their centres on both sides of the (axis-parallel) 
+<FONT ID="LN">107 </FONT><A NAME="107"></A>   * splitting plane is minimum. The two nodes created after the whole 
+<FONT ID="LN">108 </FONT><A NAME="108"></A>   * splitting are correctly initialised. And, node.left and node.right 
+<FONT ID="LN">109 </FONT><A NAME="109"></A>   * are set appropriately.
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   * @param node The node to split.
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   * @param numNodesCreated The number of nodes that so far have been
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   * created for the tree, so that the newly created nodes are 
+<FONT ID="LN">113 </FONT><A NAME="113"></A>   * assigned correct/meaningful node numbers/ids.
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   * @param nodeRanges The attributes' range for the points inside
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   * the node that is to be split.
+<FONT ID="LN">116 </FONT><A NAME="116"></A>   * @param universe The attributes' range for the whole 
+<FONT ID="LN">117 </FONT><A NAME="117"></A>   * point-space.
+<FONT ID="LN">118 </FONT><A NAME="118"></A>   * @throws Exception If there is some problem in splitting the
+<FONT ID="LN">119 </FONT><A NAME="119"></A>   * given node.
+<FONT ID="LN">120 </FONT><A NAME="120"></A>   */</FONT>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> splitNode(<A HREF="../../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <FONT ID="Int">int</FONT> numNodesCreated,
+<FONT ID="LN">122 </FONT><A NAME="122"></A>      <FONT ID="Double">double</FONT>[][] nodeRanges, <FONT ID="Double">double</FONT>[][] universe) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">123 </FONT><A NAME="123"></A>
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    correctlyInitialized();
+<FONT ID="LN">125 </FONT><A NAME="125"></A>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    <FONT ID="Int">int</FONT> splitDim = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <FONT ID="Double">double</FONT> splitVal = Double.NEGATIVE_INFINITY;
+<FONT ID="LN">128 </FONT><A NAME="128"></A>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    <FONT ID="Double">double</FONT> leftAttSum[] = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_Instances.numAttributes()], 
+<FONT ID="LN">130 </FONT><A NAME="130"></A>           rightAttSum[] = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_Instances.numAttributes()], 
+<FONT ID="LN">131 </FONT><A NAME="131"></A>           leftAttSqSum[] = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_Instances.numAttributes()], 
+<FONT ID="LN">132 </FONT><A NAME="132"></A>           rightAttSqSum[] = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[m_Instances.numAttributes()], 
+<FONT ID="LN">133 </FONT><A NAME="133"></A>           rightSqMean, leftSqMean, leftSqSum, rightSqSum, 
+<FONT ID="LN">134 </FONT><A NAME="134"></A>           minSum = Double.POSITIVE_INFINITY, val;
+<FONT ID="LN">135 </FONT><A NAME="135"></A>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> dim = <FONT ID="IntegerLiteral">0</FONT>; dim &lt; m_Instances.numAttributes(); dim++) {
+<FONT ID="LN">137 </FONT><A NAME="137"></A>      <FONT ID="SingleLineComment">// m_MaxRelativeWidth in KDTree ensure there'll be atleast one dim with
+<FONT ID="LN">138 </FONT><A NAME="138"></A></FONT>      <FONT ID="SingleLineComment">// width &gt; 0.0
+<FONT ID="LN">139 </FONT><A NAME="139"></A></FONT>      <FONT ID="If">if</FONT> (node.m_NodeRanges[dim][WIDTH] == <FONT ID="FloatPointLiteral">0.0</FONT>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>          || dim == m_Instances.classIndex())
+<FONT ID="LN">141 </FONT><A NAME="141"></A>        <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>      quickSort(m_Instances, m_InstList, dim, node.m_Start, node.m_End);
+<FONT ID="LN">144 </FONT><A NAME="144"></A>
+<FONT ID="LN">145 </FONT><A NAME="145"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = node.m_Start; i &lt;= node.m_End; i++) {
+<FONT ID="LN">146 </FONT><A NAME="146"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; m_Instances.numAttributes(); j++) {
+<FONT ID="LN">147 </FONT><A NAME="147"></A>          <FONT ID="If">if</FONT> (j == m_Instances.classIndex())
+<FONT ID="LN">148 </FONT><A NAME="148"></A>            <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>          val = m_Instances.instance(m_InstList[i]).value(j);
+<FONT ID="LN">150 </FONT><A NAME="150"></A>          <FONT ID="If">if</FONT> (m_NormalizeNodeWidth) {
+<FONT ID="LN">151 </FONT><A NAME="151"></A>            <FONT ID="If">if</FONT> (Double.isNaN(universe[j][MIN])
+<FONT ID="LN">152 </FONT><A NAME="152"></A>                || universe[j][MIN] == universe[j][MAX])
+<FONT ID="LN">153 </FONT><A NAME="153"></A>              val = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">154 </FONT><A NAME="154"></A>            <FONT ID="Else">else</FONT>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>              val = ((val - universe[j][MIN]) / universe[j][WIDTH]); <FONT ID="SingleLineComment">// normalizing
+<FONT ID="LN">156 </FONT><A NAME="156"></A></FONT>                                                                      <FONT ID="SingleLineComment">// value
+<FONT ID="LN">157 </FONT><A NAME="157"></A></FONT>          }
+<FONT ID="LN">158 </FONT><A NAME="158"></A>          <FONT ID="If">if</FONT> (i == node.m_Start) {
+<FONT ID="LN">159 </FONT><A NAME="159"></A>            leftAttSum[j] = rightAttSum[j] = leftAttSqSum[j] = rightAttSqSum[j] = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">160 </FONT><A NAME="160"></A>          }
+<FONT ID="LN">161 </FONT><A NAME="161"></A>          rightAttSum[j] += val;
+<FONT ID="LN">162 </FONT><A NAME="162"></A>          rightAttSqSum[j] += val * val;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        }
+<FONT ID="LN">164 </FONT><A NAME="164"></A>      }
+<FONT ID="LN">165 </FONT><A NAME="165"></A>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = node.m_Start; i &lt;= node.m_End - <FONT ID="IntegerLiteral">1</FONT>; i++) {
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        <A HREF="../../../../weka/core/Instance.java.html">Instance</A> inst = m_Instances.instance(m_InstList[i]);
+<FONT ID="LN">168 </FONT><A NAME="168"></A>        leftSqSum = rightSqSum = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; m_Instances.numAttributes(); j++) {
+<FONT ID="LN">170 </FONT><A NAME="170"></A>          <FONT ID="If">if</FONT> (j == m_Instances.classIndex())
+<FONT ID="LN">171 </FONT><A NAME="171"></A>            <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">172 </FONT><A NAME="172"></A>          val = inst.value(j);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>
+<FONT ID="LN">174 </FONT><A NAME="174"></A>          <FONT ID="If">if</FONT> (m_NormalizeNodeWidth) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>            <FONT ID="If">if</FONT> (Double.isNaN(universe[j][MIN])
+<FONT ID="LN">176 </FONT><A NAME="176"></A>                || universe[j][MIN] == universe[j][MAX])
+<FONT ID="LN">177 </FONT><A NAME="177"></A>              val = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>            <FONT ID="Else">else</FONT>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>              val = ((val - universe[j][MIN]) / universe[j][WIDTH]); <FONT ID="SingleLineComment">// normalizing
+<FONT ID="LN">180 </FONT><A NAME="180"></A></FONT>                                                                      <FONT ID="SingleLineComment">// value
+<FONT ID="LN">181 </FONT><A NAME="181"></A></FONT>          }
+<FONT ID="LN">182 </FONT><A NAME="182"></A>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>          leftAttSum[j] += val;
+<FONT ID="LN">184 </FONT><A NAME="184"></A>          rightAttSum[j] -= val;
+<FONT ID="LN">185 </FONT><A NAME="185"></A>          leftAttSqSum[j] += val * val;
+<FONT ID="LN">186 </FONT><A NAME="186"></A>          rightAttSqSum[j] -= val * val;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>          leftSqMean = leftAttSum[j] / (i - node.m_Start + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">188 </FONT><A NAME="188"></A>          leftSqMean *= leftSqMean;
+<FONT ID="LN">189 </FONT><A NAME="189"></A>          rightSqMean = rightAttSum[j] / (node.m_End - i);
+<FONT ID="LN">190 </FONT><A NAME="190"></A>          rightSqMean *= rightSqMean;
+<FONT ID="LN">191 </FONT><A NAME="191"></A>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>          leftSqSum += leftAttSqSum[j] - (i - node.m_Start + <FONT ID="IntegerLiteral">1</FONT>) * leftSqMean;
+<FONT ID="LN">193 </FONT><A NAME="193"></A>          rightSqSum += rightAttSqSum[j] - (node.m_End - i) * rightSqMean;
+<FONT ID="LN">194 </FONT><A NAME="194"></A>        }
+<FONT ID="LN">195 </FONT><A NAME="195"></A>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>        <FONT ID="If">if</FONT> (minSum &gt; (leftSqSum + rightSqSum)) {
+<FONT ID="LN">197 </FONT><A NAME="197"></A>          minSum = leftSqSum + rightSqSum;
+<FONT ID="LN">198 </FONT><A NAME="198"></A>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>          <FONT ID="If">if</FONT> (i &lt; node.m_End)
+<FONT ID="LN">200 </FONT><A NAME="200"></A>            splitVal = (m_Instances.instance(m_InstList[i]).value(dim) + m_Instances
+<FONT ID="LN">201 </FONT><A NAME="201"></A>                .instance(m_InstList[i + <FONT ID="IntegerLiteral">1</FONT>]).value(dim)) / <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">202 </FONT><A NAME="202"></A>          <FONT ID="Else">else</FONT>
+<FONT ID="LN">203 </FONT><A NAME="203"></A>            splitVal = m_Instances.instance(m_InstList[i]).value(dim);
+<FONT ID="LN">204 </FONT><A NAME="204"></A>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>          splitDim = dim;
+<FONT ID="LN">206 </FONT><A NAME="206"></A>        }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>      }<FONT ID="SingleLineComment">// end for instance i
+<FONT ID="LN">208 </FONT><A NAME="208"></A></FONT>    }<FONT ID="SingleLineComment">// end for attribute dim
+<FONT ID="LN">209 </FONT><A NAME="209"></A></FONT>
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    <FONT ID="Int">int</FONT> rightStart = rearrangePoints(m_InstList, node.m_Start, node.m_End,
+<FONT ID="LN">211 </FONT><A NAME="211"></A>        splitDim, splitVal);
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    <FONT ID="If">if</FONT> (rightStart == node.m_Start || rightStart &gt; node.m_End) {
+<FONT ID="LN">214 </FONT><A NAME="214"></A>      System.out.println(<FONT ID="StringLiteral">"node.m_Start: "</FONT> + node.m_Start + <FONT ID="StringLiteral">" node.m_End: "</FONT>
+<FONT ID="LN">215 </FONT><A NAME="215"></A>          + node.m_End + <FONT ID="StringLiteral">" splitDim: "</FONT> + splitDim + <FONT ID="StringLiteral">" splitVal: "</FONT> + splitVal
+<FONT ID="LN">216 </FONT><A NAME="216"></A>          + <FONT ID="StringLiteral">" node.min: "</FONT> + node.m_NodeRanges[splitDim][MIN] + <FONT ID="StringLiteral">" node.max: "</FONT>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>          + node.m_NodeRanges[splitDim][MAX] + <FONT ID="StringLiteral">" node.numInstances: "</FONT>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>          + node.numInstances());
+<FONT ID="LN">219 </FONT><A NAME="219"></A>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>      <FONT ID="If">if</FONT> (rightStart == node.m_Start)
+<FONT ID="LN">221 </FONT><A NAME="221"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Left child is empty in node "</FONT> + node.m_NodeNumber
+<FONT ID="LN">222 </FONT><A NAME="222"></A>            + <FONT ID="StringLiteral">". Not possible with "</FONT>
+<FONT ID="LN">223 </FONT><A NAME="223"></A>            + <FONT ID="StringLiteral">"KMeanInspiredMethod splitting method. Please "</FONT> + <FONT ID="StringLiteral">"check code."</FONT>);
+<FONT ID="LN">224 </FONT><A NAME="224"></A>      <FONT ID="Else">else</FONT>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Right child is empty in node "</FONT> + node.m_NodeNumber
+<FONT ID="LN">226 </FONT><A NAME="226"></A>            + <FONT ID="StringLiteral">". Not possible with "</FONT>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>            + <FONT ID="StringLiteral">"KMeansInspiredMethod splitting method. Please "</FONT> + <FONT ID="StringLiteral">"check code."</FONT>);
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    }
+<FONT ID="LN">229 </FONT><A NAME="229"></A>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    node.m_SplitDim = splitDim;
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    node.m_SplitValue = splitVal;
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    node.m_Left = <FONT ID="New">new</FONT> <A HREF="../../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A>(numNodesCreated + <FONT ID="IntegerLiteral">1</FONT>, node.m_Start,
+<FONT ID="LN">233 </FONT><A NAME="233"></A>        rightStart - <FONT ID="IntegerLiteral">1</FONT>, m_EuclideanDistance.initializeRanges(m_InstList,
+<FONT ID="LN">234 </FONT><A NAME="234"></A>            node.m_Start, rightStart - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    node.m_Right = <FONT ID="New">new</FONT> <A HREF="../../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A>(numNodesCreated + <FONT ID="IntegerLiteral">2</FONT>, rightStart, node.m_End,
+<FONT ID="LN">236 </FONT><A NAME="236"></A>        m_EuclideanDistance
+<FONT ID="LN">237 </FONT><A NAME="237"></A>            .initializeRanges(m_InstList, rightStart, node.m_End));
+<FONT ID="LN">238 </FONT><A NAME="238"></A>  }
+<FONT ID="LN">239 </FONT><A NAME="239"></A>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">241 </FONT><A NAME="241"></A>   * Partitions the instances around a pivot. Used by quicksort and
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   * kthSmallestValue.
+<FONT ID="LN">243 </FONT><A NAME="243"></A>   *
+<FONT ID="LN">244 </FONT><A NAME="244"></A>   * @param insts   The instances on which the tree is (or is 
+<FONT ID="LN">245 </FONT><A NAME="245"></A>   * to be) built.
+<FONT ID="LN">246 </FONT><A NAME="246"></A>   * @param index The master index array containing indices 
+<FONT ID="LN">247 </FONT><A NAME="247"></A>   * of the instances.
+<FONT ID="LN">248 </FONT><A NAME="248"></A>   * @param attidx The attribution/dimension based on which
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   * the instances should be partitioned.
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * @param l   The begining index of the portion of master index 
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   * array that should be partitioned. 
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   * @param r   The end index of the portion of master index array 
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   * that should be partitioned.
+<FONT ID="LN">254 </FONT><A NAME="254"></A>   * @return the index of the middle element
+<FONT ID="LN">255 </FONT><A NAME="255"></A>   */</FONT>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Int">int</FONT> partition(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> insts, <FONT ID="Int">int</FONT>[] index, <FONT ID="Int">int</FONT> attidx, <FONT ID="Int">int</FONT> l, <FONT ID="Int">int</FONT> r) {
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    <FONT ID="Double">double</FONT> pivot = insts.instance(index[(l + r) / <FONT ID="IntegerLiteral">2</FONT>]).value(attidx);
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    <FONT ID="Int">int</FONT> help;
+<FONT ID="LN">260 </FONT><A NAME="260"></A>
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    <FONT ID="While">while</FONT> (l &lt; r) {
+<FONT ID="LN">262 </FONT><A NAME="262"></A>      <FONT ID="While">while</FONT> ((insts.instance(index[l]).value(attidx) &lt; pivot) &amp;&amp; (l &lt; r)) {
+<FONT ID="LN">263 </FONT><A NAME="263"></A>        l++;
+<FONT ID="LN">264 </FONT><A NAME="264"></A>      }
+<FONT ID="LN">265 </FONT><A NAME="265"></A>      <FONT ID="While">while</FONT> ((insts.instance(index[r]).value(attidx) &gt; pivot) &amp;&amp; (l &lt; r)) {
+<FONT ID="LN">266 </FONT><A NAME="266"></A>        r--;
+<FONT ID="LN">267 </FONT><A NAME="267"></A>      }
+<FONT ID="LN">268 </FONT><A NAME="268"></A>      <FONT ID="If">if</FONT> (l &lt; r) {
+<FONT ID="LN">269 </FONT><A NAME="269"></A>        help = index[l];
+<FONT ID="LN">270 </FONT><A NAME="270"></A>        index[l] = index[r];
+<FONT ID="LN">271 </FONT><A NAME="271"></A>        index[r] = help;
+<FONT ID="LN">272 </FONT><A NAME="272"></A>        l++;
+<FONT ID="LN">273 </FONT><A NAME="273"></A>        r--;
+<FONT ID="LN">274 </FONT><A NAME="274"></A>      }
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    }
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <FONT ID="If">if</FONT> ((l == r) &amp;&amp; (insts.instance(index[r]).value(attidx) &gt; pivot)) {
+<FONT ID="LN">277 </FONT><A NAME="277"></A>      r--;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    } 
+<FONT ID="LN">279 </FONT><A NAME="279"></A>
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    <FONT ID="Return">return</FONT> r;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>  }
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  
+<FONT ID="LN">283 </FONT><A NAME="283"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   * Sorts the instances according to the given attribute/dimension.
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   * The sorting is done on the master index array and not on the
+<FONT ID="LN">286 </FONT><A NAME="286"></A>   * actual instances object.
+<FONT ID="LN">287 </FONT><A NAME="287"></A>   * 
+<FONT ID="LN">288 </FONT><A NAME="288"></A>   * @param insts The instances on which the tree is (or is 
+<FONT ID="LN">289 </FONT><A NAME="289"></A>   * to be) built.
+<FONT ID="LN">290 </FONT><A NAME="290"></A>   * @param indices The master index array containing indices 
+<FONT ID="LN">291 </FONT><A NAME="291"></A>   * of the instances.
+<FONT ID="LN">292 </FONT><A NAME="292"></A>   * @param attidx The dimension/attribute based on which 
+<FONT ID="LN">293 </FONT><A NAME="293"></A>   * the instances should be sorted.
+<FONT ID="LN">294 </FONT><A NAME="294"></A>   * @param left The begining index of the portion of the master 
+<FONT ID="LN">295 </FONT><A NAME="295"></A>   * index array that needs to be sorted.
+<FONT ID="LN">296 </FONT><A NAME="296"></A>   * @param right The end index of the portion of the master index 
+<FONT ID="LN">297 </FONT><A NAME="297"></A>   * array that needs to be sorted.
+<FONT ID="LN">298 </FONT><A NAME="298"></A>   */</FONT>
+<FONT ID="LN">299 </FONT><A NAME="299"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> quickSort(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> insts, <FONT ID="Int">int</FONT>[] indices, <FONT ID="Int">int</FONT> attidx, <FONT ID="Int">int</FONT> left, <FONT ID="Int">int</FONT> right) {
+<FONT ID="LN">300 </FONT><A NAME="300"></A>
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    <FONT ID="If">if</FONT> (left &lt; right) {
+<FONT ID="LN">302 </FONT><A NAME="302"></A>      <FONT ID="Int">int</FONT> middle = partition(insts, indices, attidx, left, right);
+<FONT ID="LN">303 </FONT><A NAME="303"></A>      quickSort(insts, indices, attidx, left, middle);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>      quickSort(insts, indices, attidx, middle + <FONT ID="IntegerLiteral">1</FONT>, right);
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    }
+<FONT ID="LN">306 </FONT><A NAME="306"></A>  }  
+<FONT ID="LN">307 </FONT><A NAME="307"></A>
+<FONT ID="LN">308 </FONT><A NAME="308"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">309 </FONT><A NAME="309"></A>   * Method to validate the sorting done by quickSort().
+<FONT ID="LN">310 </FONT><A NAME="310"></A>   * 
+<FONT ID="LN">311 </FONT><A NAME="311"></A>   * @param insts The instances on which the tree is (or is 
+<FONT ID="LN">312 </FONT><A NAME="312"></A>   * to be) built.
+<FONT ID="LN">313 </FONT><A NAME="313"></A>   * @param indices The master index array containing indices 
+<FONT ID="LN">314 </FONT><A NAME="314"></A>   * of the instances.
+<FONT ID="LN">315 </FONT><A NAME="315"></A>   * @param attidx The dimension/attribute based on which 
+<FONT ID="LN">316 </FONT><A NAME="316"></A>   * the instances should be sorted.
+<FONT ID="LN">317 </FONT><A NAME="317"></A>   * @param start The start of the portion in master index
+<FONT ID="LN">318 </FONT><A NAME="318"></A>   * array that needs to be sorted.
+<FONT ID="LN">319 </FONT><A NAME="319"></A>   * @param end The end of the portion in master index 
+<FONT ID="LN">320 </FONT><A NAME="320"></A>   * array that needs to be sorted.
+<FONT ID="LN">321 </FONT><A NAME="321"></A>   * @throws Exception If the indices of the instances 
+<FONT ID="LN">322 </FONT><A NAME="322"></A>   * are not in sorted order.
+<FONT ID="LN">323 </FONT><A NAME="323"></A>   */</FONT>
+<FONT ID="LN">324 </FONT><A NAME="324"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> checkSort(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> insts, <FONT ID="Int">int</FONT>[] indices, <FONT ID="Int">int</FONT> attidx, 
+<FONT ID="LN">325 </FONT><A NAME="325"></A>                               <FONT ID="Int">int</FONT> start, <FONT ID="Int">int</FONT> end) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=start+<FONT ID="IntegerLiteral">1</FONT>; i&lt;=end; i++) {
+<FONT ID="LN">327 </FONT><A NAME="327"></A>      <FONT ID="If">if</FONT>( insts.instance(indices[i-<FONT ID="IntegerLiteral">1</FONT>]).value(attidx) &gt; 
+<FONT ID="LN">328 </FONT><A NAME="328"></A>          insts.instance(indices[i]).value(attidx) ) {
+<FONT ID="LN">329 </FONT><A NAME="329"></A>        System.out.println(<FONT ID="StringLiteral">"value[i-1]: "</FONT>+insts.instance(indices[i-<FONT ID="IntegerLiteral">1</FONT>]).value(attidx));
+<FONT ID="LN">330 </FONT><A NAME="330"></A>        System.out.println(<FONT ID="StringLiteral">"value[i]: "</FONT>+insts.instance(indices[i]).value(attidx));
+<FONT ID="LN">331 </FONT><A NAME="331"></A>        System.out.println(<FONT ID="StringLiteral">"indices[i-1]: "</FONT>+indices[i-<FONT ID="IntegerLiteral">1</FONT>]);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>        System.out.println(<FONT ID="StringLiteral">"indices[i]: "</FONT>+indices[i]);
+<FONT ID="LN">333 </FONT><A NAME="333"></A>        System.out.println(<FONT ID="StringLiteral">"i: "</FONT>+i);
+<FONT ID="LN">334 </FONT><A NAME="334"></A>        <FONT ID="If">if</FONT>(insts.instance(indices[i-<FONT ID="IntegerLiteral">1</FONT>]).value(attidx) &gt; insts.instance(indices[i]).value(attidx))
+<FONT ID="LN">335 </FONT><A NAME="335"></A>          System.out.println(<FONT ID="StringLiteral">"value[i-1] &gt; value[i]"</FONT>);
+<FONT ID="LN">336 </FONT><A NAME="336"></A>        
+<FONT ID="LN">337 </FONT><A NAME="337"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Indices not sorted correctly."</FONT>);
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      }<FONT ID="SingleLineComment">//end if
+<FONT ID="LN">339 </FONT><A NAME="339"></A></FONT>    }
+<FONT ID="LN">340 </FONT><A NAME="340"></A>  }
+<FONT ID="LN">341 </FONT><A NAME="341"></A>  
+<FONT ID="LN">342 </FONT><A NAME="342"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">343 </FONT><A NAME="343"></A>   * Re-arranges the indices array so that in the portion of the array
+<FONT ID="LN">344 </FONT><A NAME="344"></A>   * belonging to the node to be split, the points &lt;= to the splitVal 
+<FONT ID="LN">345 </FONT><A NAME="345"></A>   * are on the left of the portion and those &gt; the splitVal are on the right.
+<FONT ID="LN">346 </FONT><A NAME="346"></A>   * 
+<FONT ID="LN">347 </FONT><A NAME="347"></A>   * @param indices The master index array.
+<FONT ID="LN">348 </FONT><A NAME="348"></A>   * @param startidx The begining index of portion of indices that needs 
+<FONT ID="LN">349 </FONT><A NAME="349"></A>   * re-arranging. 
+<FONT ID="LN">350 </FONT><A NAME="350"></A>   * @param endidx The end index of portion of indices that needs 
+<FONT ID="LN">351 </FONT><A NAME="351"></A>   * re-arranging. 
+<FONT ID="LN">352 </FONT><A NAME="352"></A>   * @param splitDim The split dimension/attribute.
+<FONT ID="LN">353 </FONT><A NAME="353"></A>   * @param splitVal The split value.
+<FONT ID="LN">354 </FONT><A NAME="354"></A>   * @return The startIdx of the points &gt; the splitVal (the points 
+<FONT ID="LN">355 </FONT><A NAME="355"></A>   * belonging to the right child of the node).
+<FONT ID="LN">356 </FONT><A NAME="356"></A>   */</FONT>
+<FONT ID="LN">357 </FONT><A NAME="357"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> rearrangePoints(<FONT ID="Int">int</FONT>[] indices, <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> startidx, <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> endidx,
+<FONT ID="LN">358 </FONT><A NAME="358"></A>                      <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> splitDim, <FONT ID="Final">final</FONT> <FONT ID="Double">double</FONT> splitVal) {
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    <FONT ID="Int">int</FONT> tmp, left = startidx - <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = startidx; i &lt;= endidx; i++) {
+<FONT ID="LN">362 </FONT><A NAME="362"></A>      <FONT ID="If">if</FONT> (m_EuclideanDistance.valueIsSmallerEqual(m_Instances
+<FONT ID="LN">363 </FONT><A NAME="363"></A>          .instance(indices[i]), splitDim, splitVal)) {
+<FONT ID="LN">364 </FONT><A NAME="364"></A>        left++;
+<FONT ID="LN">365 </FONT><A NAME="365"></A>        tmp = indices[left];
+<FONT ID="LN">366 </FONT><A NAME="366"></A>        indices[left] = indices[i];
+<FONT ID="LN">367 </FONT><A NAME="367"></A>        indices[i] = tmp;
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      }<FONT ID="SingleLineComment">// end valueIsSmallerEqual
+<FONT ID="LN">369 </FONT><A NAME="369"></A></FONT>    }<FONT ID="SingleLineComment">// endfor
+<FONT ID="LN">370 </FONT><A NAME="370"></A></FONT>    <FONT ID="Return">return</FONT> left + <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">371 </FONT><A NAME="371"></A>  }
+<FONT ID="LN">372 </FONT><A NAME="372"></A>  
+<FONT ID="LN">373 </FONT><A NAME="373"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">374 </FONT><A NAME="374"></A>   * Returns the revision string.
+<FONT ID="LN">375 </FONT><A NAME="375"></A>   * 
+<FONT ID="LN">376 </FONT><A NAME="376"></A>   * @return        the revision
+<FONT ID="LN">377 </FONT><A NAME="377"></A>   */</FONT>
+<FONT ID="LN">378 </FONT><A NAME="378"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">379 </FONT><A NAME="379"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>  }
+<FONT ID="LN">381 </FONT><A NAME="381"></A>}
+<FONT ID="LN">382 </FONT><A NAME="382"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">KMeansInpiredMethod.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

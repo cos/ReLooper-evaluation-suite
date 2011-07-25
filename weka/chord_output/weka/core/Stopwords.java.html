@@ -1,0 +1,886 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.Stopwords (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Stopwords.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    Stopwords.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2001 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> */</FONT>
+<FONT ID="LN">21  </FONT><A NAME="21"></A>
+<FONT ID="LN">22  </FONT><A NAME="22"></A><FONT ID="Package">package</FONT> weka.core;
+<FONT ID="LN">23  </FONT><A NAME="23"></A>
+<FONT ID="LN">24  </FONT><A NAME="24"></A><FONT ID="Import">import</FONT> java.io.BufferedReader;
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.io.BufferedWriter;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.io.FileReader;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.io.FileWriter;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.util.Collections;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.util.Date;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> java.util.HashSet;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> java.util.Iterator;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * Class that can test whether a given string is a stop word.
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * Lowercases all words before the test. &lt;p/&gt;
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * The format for reading and writing is one word per line, lines starting
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * with '#' are interpreted as comments and therefore skipped. &lt;p/&gt;
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * The default stopwords are based on &lt;a href="http://www.cs.cmu.edu/~mccallum/bow/rainbow/" target="_blank"&gt;Rainbow&lt;/a&gt;. &lt;p/&gt;
+<FONT ID="LN">42  </FONT><A NAME="42"></A> *
+<FONT ID="LN">43  </FONT><A NAME="43"></A> * Accepts the following parameter: &lt;p/&gt;
+<FONT ID="LN">44  </FONT><A NAME="44"></A> *
+<FONT ID="LN">45  </FONT><A NAME="45"></A> * -i file &lt;br/&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * loads the stopwords from the given file &lt;p/&gt;
+<FONT ID="LN">47  </FONT><A NAME="47"></A> *
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * -o file &lt;br/&gt;
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * saves the stopwords to the given file &lt;p/&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A> *
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * -p &lt;br/&gt;
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * outputs the current stopwords on stdout &lt;p/&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> *
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * Any additional parameters are interpreted as words to test as stopwords.
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * 
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * @author Eibe Frank (eibe@cs.waikato.ac.nz)
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * @author Ashraf M. Kibriya (amk14@cs.waikato.ac.nz)
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * @author FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * @version $Revision: 5953 $
+<FONT ID="LN">60  </FONT><A NAME="60"></A> */</FONT>
+<FONT ID="LN">61  </FONT><A NAME="61"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> Stopwords
+<FONT ID="LN">62  </FONT><A NAME="62"></A>  <FONT ID="Implements">implements</FONT> <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">63  </FONT><A NAME="63"></A>  
+<FONT ID="LN">64  </FONT><A NAME="64"></A>  <FONT ID="FormalComment">/** The hash set containing the list of stopwords */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Protected">protected</FONT> HashSet&lt;String&gt; m_Words = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">66  </FONT><A NAME="66"></A>
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="FormalComment">/** The default stopwords object (stoplist based on Rainbow) */</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <A HREF="../../weka/core/Stopwords.java.html">Stopwords</A> m_Stopwords;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>
+<FONT ID="LN">70  </FONT><A NAME="70"></A>  <FONT ID="Static">static</FONT> {
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="If">if</FONT> (m_Stopwords == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">72  </FONT><A NAME="72"></A>      m_Stopwords = <FONT ID="New">new</FONT> <A HREF="../../weka/core/Stopwords.java.html">Stopwords</A>();
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    }
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  }
+<FONT ID="LN">75  </FONT><A NAME="75"></A>
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">77  </FONT><A NAME="77"></A>   * initializes the stopwords (based on &lt;a href="http://www.cs.cmu.edu/~mccallum/bow/rainbow/" target="_blank"&gt;Rainbow&lt;/a&gt;).
+<FONT ID="LN">78  </FONT><A NAME="78"></A>   */</FONT>
+<FONT ID="LN">79  </FONT><A NAME="79"></A>  <FONT ID="Public">public</FONT> Stopwords() {
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    m_Words = <FONT ID="New">new</FONT> HashSet&lt;String&gt;();
+<FONT ID="LN">81  </FONT><A NAME="81"></A>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <FONT ID="SingleLineComment">//Stopwords list from Rainbow
+<FONT ID="LN">83  </FONT><A NAME="83"></A></FONT>    add(<FONT ID="StringLiteral">"a"</FONT>);
+<FONT ID="LN">84  </FONT><A NAME="84"></A>    add(<FONT ID="StringLiteral">"able"</FONT>);
+<FONT ID="LN">85  </FONT><A NAME="85"></A>    add(<FONT ID="StringLiteral">"about"</FONT>);
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    add(<FONT ID="StringLiteral">"above"</FONT>);
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    add(<FONT ID="StringLiteral">"according"</FONT>);
+<FONT ID="LN">88  </FONT><A NAME="88"></A>    add(<FONT ID="StringLiteral">"accordingly"</FONT>);
+<FONT ID="LN">89  </FONT><A NAME="89"></A>    add(<FONT ID="StringLiteral">"across"</FONT>);
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    add(<FONT ID="StringLiteral">"actually"</FONT>);
+<FONT ID="LN">91  </FONT><A NAME="91"></A>    add(<FONT ID="StringLiteral">"after"</FONT>);
+<FONT ID="LN">92  </FONT><A NAME="92"></A>    add(<FONT ID="StringLiteral">"afterwards"</FONT>);
+<FONT ID="LN">93  </FONT><A NAME="93"></A>    add(<FONT ID="StringLiteral">"again"</FONT>);
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    add(<FONT ID="StringLiteral">"against"</FONT>);
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    add(<FONT ID="StringLiteral">"all"</FONT>);
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    add(<FONT ID="StringLiteral">"allow"</FONT>);
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    add(<FONT ID="StringLiteral">"allows"</FONT>);
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    add(<FONT ID="StringLiteral">"almost"</FONT>);
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    add(<FONT ID="StringLiteral">"alone"</FONT>);
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    add(<FONT ID="StringLiteral">"along"</FONT>);
+<FONT ID="LN">101 </FONT><A NAME="101"></A>    add(<FONT ID="StringLiteral">"already"</FONT>);
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    add(<FONT ID="StringLiteral">"also"</FONT>);
+<FONT ID="LN">103 </FONT><A NAME="103"></A>    add(<FONT ID="StringLiteral">"although"</FONT>);
+<FONT ID="LN">104 </FONT><A NAME="104"></A>    add(<FONT ID="StringLiteral">"always"</FONT>);
+<FONT ID="LN">105 </FONT><A NAME="105"></A>    add(<FONT ID="StringLiteral">"am"</FONT>);
+<FONT ID="LN">106 </FONT><A NAME="106"></A>    add(<FONT ID="StringLiteral">"among"</FONT>);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    add(<FONT ID="StringLiteral">"amongst"</FONT>);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>    add(<FONT ID="StringLiteral">"an"</FONT>);
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    add(<FONT ID="StringLiteral">"and"</FONT>);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    add(<FONT ID="StringLiteral">"another"</FONT>);
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    add(<FONT ID="StringLiteral">"any"</FONT>);
+<FONT ID="LN">112 </FONT><A NAME="112"></A>    add(<FONT ID="StringLiteral">"anybody"</FONT>);
+<FONT ID="LN">113 </FONT><A NAME="113"></A>    add(<FONT ID="StringLiteral">"anyhow"</FONT>);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    add(<FONT ID="StringLiteral">"anyone"</FONT>);
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    add(<FONT ID="StringLiteral">"anything"</FONT>);
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    add(<FONT ID="StringLiteral">"anyway"</FONT>);
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    add(<FONT ID="StringLiteral">"anyways"</FONT>);
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    add(<FONT ID="StringLiteral">"anywhere"</FONT>);
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    add(<FONT ID="StringLiteral">"apart"</FONT>);
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    add(<FONT ID="StringLiteral">"appear"</FONT>);
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    add(<FONT ID="StringLiteral">"appreciate"</FONT>);
+<FONT ID="LN">122 </FONT><A NAME="122"></A>    add(<FONT ID="StringLiteral">"appropriate"</FONT>);
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    add(<FONT ID="StringLiteral">"are"</FONT>);
+<FONT ID="LN">124 </FONT><A NAME="124"></A>    add(<FONT ID="StringLiteral">"around"</FONT>);
+<FONT ID="LN">125 </FONT><A NAME="125"></A>    add(<FONT ID="StringLiteral">"as"</FONT>);
+<FONT ID="LN">126 </FONT><A NAME="126"></A>    add(<FONT ID="StringLiteral">"aside"</FONT>);
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    add(<FONT ID="StringLiteral">"ask"</FONT>);
+<FONT ID="LN">128 </FONT><A NAME="128"></A>    add(<FONT ID="StringLiteral">"asking"</FONT>);
+<FONT ID="LN">129 </FONT><A NAME="129"></A>    add(<FONT ID="StringLiteral">"associated"</FONT>);
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    add(<FONT ID="StringLiteral">"at"</FONT>);
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    add(<FONT ID="StringLiteral">"available"</FONT>);
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    add(<FONT ID="StringLiteral">"away"</FONT>);
+<FONT ID="LN">133 </FONT><A NAME="133"></A>    add(<FONT ID="StringLiteral">"awfully"</FONT>);
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    add(<FONT ID="StringLiteral">"b"</FONT>);
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    add(<FONT ID="StringLiteral">"be"</FONT>);
+<FONT ID="LN">136 </FONT><A NAME="136"></A>    add(<FONT ID="StringLiteral">"became"</FONT>);
+<FONT ID="LN">137 </FONT><A NAME="137"></A>    add(<FONT ID="StringLiteral">"because"</FONT>);
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    add(<FONT ID="StringLiteral">"become"</FONT>);
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    add(<FONT ID="StringLiteral">"becomes"</FONT>);
+<FONT ID="LN">140 </FONT><A NAME="140"></A>    add(<FONT ID="StringLiteral">"becoming"</FONT>);
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    add(<FONT ID="StringLiteral">"been"</FONT>);
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    add(<FONT ID="StringLiteral">"before"</FONT>);
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    add(<FONT ID="StringLiteral">"beforehand"</FONT>);
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    add(<FONT ID="StringLiteral">"behind"</FONT>);
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    add(<FONT ID="StringLiteral">"being"</FONT>);
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    add(<FONT ID="StringLiteral">"believe"</FONT>);
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    add(<FONT ID="StringLiteral">"below"</FONT>);
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    add(<FONT ID="StringLiteral">"beside"</FONT>);
+<FONT ID="LN">149 </FONT><A NAME="149"></A>    add(<FONT ID="StringLiteral">"besides"</FONT>);
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    add(<FONT ID="StringLiteral">"best"</FONT>);
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    add(<FONT ID="StringLiteral">"better"</FONT>);
+<FONT ID="LN">152 </FONT><A NAME="152"></A>    add(<FONT ID="StringLiteral">"between"</FONT>);
+<FONT ID="LN">153 </FONT><A NAME="153"></A>    add(<FONT ID="StringLiteral">"beyond"</FONT>);
+<FONT ID="LN">154 </FONT><A NAME="154"></A>    add(<FONT ID="StringLiteral">"both"</FONT>);
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    add(<FONT ID="StringLiteral">"brief"</FONT>);
+<FONT ID="LN">156 </FONT><A NAME="156"></A>    add(<FONT ID="StringLiteral">"but"</FONT>);
+<FONT ID="LN">157 </FONT><A NAME="157"></A>    add(<FONT ID="StringLiteral">"by"</FONT>);
+<FONT ID="LN">158 </FONT><A NAME="158"></A>    add(<FONT ID="StringLiteral">"c"</FONT>);
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    add(<FONT ID="StringLiteral">"came"</FONT>);
+<FONT ID="LN">160 </FONT><A NAME="160"></A>    add(<FONT ID="StringLiteral">"can"</FONT>);
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    add(<FONT ID="StringLiteral">"cannot"</FONT>);
+<FONT ID="LN">162 </FONT><A NAME="162"></A>    add(<FONT ID="StringLiteral">"cant"</FONT>);
+<FONT ID="LN">163 </FONT><A NAME="163"></A>    add(<FONT ID="StringLiteral">"cause"</FONT>);
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    add(<FONT ID="StringLiteral">"causes"</FONT>);
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    add(<FONT ID="StringLiteral">"certain"</FONT>);
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    add(<FONT ID="StringLiteral">"certainly"</FONT>);
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    add(<FONT ID="StringLiteral">"changes"</FONT>);
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    add(<FONT ID="StringLiteral">"clearly"</FONT>);
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    add(<FONT ID="StringLiteral">"co"</FONT>);
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    add(<FONT ID="StringLiteral">"com"</FONT>);
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    add(<FONT ID="StringLiteral">"come"</FONT>);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    add(<FONT ID="StringLiteral">"comes"</FONT>);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    add(<FONT ID="StringLiteral">"concerning"</FONT>);
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    add(<FONT ID="StringLiteral">"consequently"</FONT>);
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    add(<FONT ID="StringLiteral">"consider"</FONT>);
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    add(<FONT ID="StringLiteral">"considering"</FONT>);
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    add(<FONT ID="StringLiteral">"contain"</FONT>);
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    add(<FONT ID="StringLiteral">"containing"</FONT>);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    add(<FONT ID="StringLiteral">"contains"</FONT>);
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    add(<FONT ID="StringLiteral">"corresponding"</FONT>);
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    add(<FONT ID="StringLiteral">"could"</FONT>);
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    add(<FONT ID="StringLiteral">"course"</FONT>);
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    add(<FONT ID="StringLiteral">"currently"</FONT>);
+<FONT ID="LN">184 </FONT><A NAME="184"></A>    add(<FONT ID="StringLiteral">"d"</FONT>);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>    add(<FONT ID="StringLiteral">"definitely"</FONT>);
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    add(<FONT ID="StringLiteral">"described"</FONT>);
+<FONT ID="LN">187 </FONT><A NAME="187"></A>    add(<FONT ID="StringLiteral">"despite"</FONT>);
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    add(<FONT ID="StringLiteral">"did"</FONT>);
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    add(<FONT ID="StringLiteral">"different"</FONT>);
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    add(<FONT ID="StringLiteral">"do"</FONT>);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    add(<FONT ID="StringLiteral">"does"</FONT>);
+<FONT ID="LN">192 </FONT><A NAME="192"></A>    add(<FONT ID="StringLiteral">"doing"</FONT>);
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    add(<FONT ID="StringLiteral">"done"</FONT>);
+<FONT ID="LN">194 </FONT><A NAME="194"></A>    add(<FONT ID="StringLiteral">"down"</FONT>);
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    add(<FONT ID="StringLiteral">"downwards"</FONT>);
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    add(<FONT ID="StringLiteral">"during"</FONT>);
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    add(<FONT ID="StringLiteral">"e"</FONT>);
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    add(<FONT ID="StringLiteral">"each"</FONT>);
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    add(<FONT ID="StringLiteral">"edu"</FONT>);
+<FONT ID="LN">200 </FONT><A NAME="200"></A>    add(<FONT ID="StringLiteral">"eg"</FONT>);
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    add(<FONT ID="StringLiteral">"eight"</FONT>);
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    add(<FONT ID="StringLiteral">"either"</FONT>);
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    add(<FONT ID="StringLiteral">"else"</FONT>);
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    add(<FONT ID="StringLiteral">"elsewhere"</FONT>);
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    add(<FONT ID="StringLiteral">"enough"</FONT>);
+<FONT ID="LN">206 </FONT><A NAME="206"></A>    add(<FONT ID="StringLiteral">"entirely"</FONT>);
+<FONT ID="LN">207 </FONT><A NAME="207"></A>    add(<FONT ID="StringLiteral">"especially"</FONT>);
+<FONT ID="LN">208 </FONT><A NAME="208"></A>    add(<FONT ID="StringLiteral">"et"</FONT>);
+<FONT ID="LN">209 </FONT><A NAME="209"></A>    add(<FONT ID="StringLiteral">"etc"</FONT>);
+<FONT ID="LN">210 </FONT><A NAME="210"></A>    add(<FONT ID="StringLiteral">"even"</FONT>);
+<FONT ID="LN">211 </FONT><A NAME="211"></A>    add(<FONT ID="StringLiteral">"ever"</FONT>);
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    add(<FONT ID="StringLiteral">"every"</FONT>);
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    add(<FONT ID="StringLiteral">"everybody"</FONT>);
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    add(<FONT ID="StringLiteral">"everyone"</FONT>);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    add(<FONT ID="StringLiteral">"everything"</FONT>);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    add(<FONT ID="StringLiteral">"everywhere"</FONT>);
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    add(<FONT ID="StringLiteral">"ex"</FONT>);
+<FONT ID="LN">218 </FONT><A NAME="218"></A>    add(<FONT ID="StringLiteral">"exactly"</FONT>);
+<FONT ID="LN">219 </FONT><A NAME="219"></A>    add(<FONT ID="StringLiteral">"example"</FONT>);
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    add(<FONT ID="StringLiteral">"except"</FONT>);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    add(<FONT ID="StringLiteral">"f"</FONT>);
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    add(<FONT ID="StringLiteral">"far"</FONT>);
+<FONT ID="LN">223 </FONT><A NAME="223"></A>    add(<FONT ID="StringLiteral">"few"</FONT>);
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    add(<FONT ID="StringLiteral">"fifth"</FONT>);
+<FONT ID="LN">225 </FONT><A NAME="225"></A>    add(<FONT ID="StringLiteral">"first"</FONT>);
+<FONT ID="LN">226 </FONT><A NAME="226"></A>    add(<FONT ID="StringLiteral">"five"</FONT>);
+<FONT ID="LN">227 </FONT><A NAME="227"></A>    add(<FONT ID="StringLiteral">"followed"</FONT>);
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    add(<FONT ID="StringLiteral">"following"</FONT>);
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    add(<FONT ID="StringLiteral">"follows"</FONT>);
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    add(<FONT ID="StringLiteral">"for"</FONT>);
+<FONT ID="LN">231 </FONT><A NAME="231"></A>    add(<FONT ID="StringLiteral">"former"</FONT>);
+<FONT ID="LN">232 </FONT><A NAME="232"></A>    add(<FONT ID="StringLiteral">"formerly"</FONT>);
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    add(<FONT ID="StringLiteral">"forth"</FONT>);
+<FONT ID="LN">234 </FONT><A NAME="234"></A>    add(<FONT ID="StringLiteral">"four"</FONT>);
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    add(<FONT ID="StringLiteral">"from"</FONT>);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>    add(<FONT ID="StringLiteral">"further"</FONT>);
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    add(<FONT ID="StringLiteral">"furthermore"</FONT>);
+<FONT ID="LN">238 </FONT><A NAME="238"></A>    add(<FONT ID="StringLiteral">"g"</FONT>);
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    add(<FONT ID="StringLiteral">"get"</FONT>);
+<FONT ID="LN">240 </FONT><A NAME="240"></A>    add(<FONT ID="StringLiteral">"gets"</FONT>);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    add(<FONT ID="StringLiteral">"getting"</FONT>);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    add(<FONT ID="StringLiteral">"given"</FONT>);
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    add(<FONT ID="StringLiteral">"gives"</FONT>);
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    add(<FONT ID="StringLiteral">"go"</FONT>);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    add(<FONT ID="StringLiteral">"goes"</FONT>);
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    add(<FONT ID="StringLiteral">"going"</FONT>);
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    add(<FONT ID="StringLiteral">"gone"</FONT>);
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    add(<FONT ID="StringLiteral">"got"</FONT>);
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    add(<FONT ID="StringLiteral">"gotten"</FONT>);
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    add(<FONT ID="StringLiteral">"greetings"</FONT>);
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    add(<FONT ID="StringLiteral">"h"</FONT>);
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    add(<FONT ID="StringLiteral">"had"</FONT>);
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    add(<FONT ID="StringLiteral">"happens"</FONT>);
+<FONT ID="LN">254 </FONT><A NAME="254"></A>    add(<FONT ID="StringLiteral">"hardly"</FONT>);
+<FONT ID="LN">255 </FONT><A NAME="255"></A>    add(<FONT ID="StringLiteral">"has"</FONT>);
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    add(<FONT ID="StringLiteral">"have"</FONT>);
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    add(<FONT ID="StringLiteral">"having"</FONT>);
+<FONT ID="LN">258 </FONT><A NAME="258"></A>    add(<FONT ID="StringLiteral">"he"</FONT>);
+<FONT ID="LN">259 </FONT><A NAME="259"></A>    add(<FONT ID="StringLiteral">"hello"</FONT>);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>    add(<FONT ID="StringLiteral">"help"</FONT>);
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    add(<FONT ID="StringLiteral">"hence"</FONT>);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>    add(<FONT ID="StringLiteral">"her"</FONT>);
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    add(<FONT ID="StringLiteral">"here"</FONT>);
+<FONT ID="LN">264 </FONT><A NAME="264"></A>    add(<FONT ID="StringLiteral">"hereafter"</FONT>);
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    add(<FONT ID="StringLiteral">"hereby"</FONT>);
+<FONT ID="LN">266 </FONT><A NAME="266"></A>    add(<FONT ID="StringLiteral">"herein"</FONT>);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>    add(<FONT ID="StringLiteral">"hereupon"</FONT>);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    add(<FONT ID="StringLiteral">"hers"</FONT>);
+<FONT ID="LN">269 </FONT><A NAME="269"></A>    add(<FONT ID="StringLiteral">"herself"</FONT>);
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    add(<FONT ID="StringLiteral">"hi"</FONT>);
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    add(<FONT ID="StringLiteral">"him"</FONT>);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    add(<FONT ID="StringLiteral">"himself"</FONT>);
+<FONT ID="LN">273 </FONT><A NAME="273"></A>    add(<FONT ID="StringLiteral">"his"</FONT>);
+<FONT ID="LN">274 </FONT><A NAME="274"></A>    add(<FONT ID="StringLiteral">"hither"</FONT>);
+<FONT ID="LN">275 </FONT><A NAME="275"></A>    add(<FONT ID="StringLiteral">"hopefully"</FONT>);
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    add(<FONT ID="StringLiteral">"how"</FONT>);
+<FONT ID="LN">277 </FONT><A NAME="277"></A>    add(<FONT ID="StringLiteral">"howbeit"</FONT>);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>    add(<FONT ID="StringLiteral">"however"</FONT>);
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    add(<FONT ID="StringLiteral">"i"</FONT>);
+<FONT ID="LN">280 </FONT><A NAME="280"></A>    add(<FONT ID="StringLiteral">"ie"</FONT>);
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    add(<FONT ID="StringLiteral">"if"</FONT>);
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    add(<FONT ID="StringLiteral">"ignored"</FONT>);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    add(<FONT ID="StringLiteral">"immediate"</FONT>);
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    add(<FONT ID="StringLiteral">"in"</FONT>);
+<FONT ID="LN">285 </FONT><A NAME="285"></A>    add(<FONT ID="StringLiteral">"inasmuch"</FONT>);
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    add(<FONT ID="StringLiteral">"inc"</FONT>);
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    add(<FONT ID="StringLiteral">"indeed"</FONT>);
+<FONT ID="LN">288 </FONT><A NAME="288"></A>    add(<FONT ID="StringLiteral">"indicate"</FONT>);
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    add(<FONT ID="StringLiteral">"indicated"</FONT>);
+<FONT ID="LN">290 </FONT><A NAME="290"></A>    add(<FONT ID="StringLiteral">"indicates"</FONT>);
+<FONT ID="LN">291 </FONT><A NAME="291"></A>    add(<FONT ID="StringLiteral">"inner"</FONT>);
+<FONT ID="LN">292 </FONT><A NAME="292"></A>    add(<FONT ID="StringLiteral">"insofar"</FONT>);
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    add(<FONT ID="StringLiteral">"instead"</FONT>);
+<FONT ID="LN">294 </FONT><A NAME="294"></A>    add(<FONT ID="StringLiteral">"into"</FONT>);
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    add(<FONT ID="StringLiteral">"inward"</FONT>);
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    add(<FONT ID="StringLiteral">"is"</FONT>);
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    add(<FONT ID="StringLiteral">"it"</FONT>);
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    add(<FONT ID="StringLiteral">"its"</FONT>);
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    add(<FONT ID="StringLiteral">"itself"</FONT>);
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    add(<FONT ID="StringLiteral">"j"</FONT>);
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    add(<FONT ID="StringLiteral">"just"</FONT>);
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    add(<FONT ID="StringLiteral">"k"</FONT>);
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    add(<FONT ID="StringLiteral">"keep"</FONT>);
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    add(<FONT ID="StringLiteral">"keeps"</FONT>);
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    add(<FONT ID="StringLiteral">"kept"</FONT>);
+<FONT ID="LN">306 </FONT><A NAME="306"></A>    add(<FONT ID="StringLiteral">"know"</FONT>);
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    add(<FONT ID="StringLiteral">"knows"</FONT>);
+<FONT ID="LN">308 </FONT><A NAME="308"></A>    add(<FONT ID="StringLiteral">"known"</FONT>);
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    add(<FONT ID="StringLiteral">"l"</FONT>);
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    add(<FONT ID="StringLiteral">"last"</FONT>);
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    add(<FONT ID="StringLiteral">"lately"</FONT>);
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    add(<FONT ID="StringLiteral">"later"</FONT>);
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    add(<FONT ID="StringLiteral">"latter"</FONT>);
+<FONT ID="LN">314 </FONT><A NAME="314"></A>    add(<FONT ID="StringLiteral">"latterly"</FONT>);
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    add(<FONT ID="StringLiteral">"least"</FONT>);
+<FONT ID="LN">316 </FONT><A NAME="316"></A>    add(<FONT ID="StringLiteral">"less"</FONT>);
+<FONT ID="LN">317 </FONT><A NAME="317"></A>    add(<FONT ID="StringLiteral">"lest"</FONT>);
+<FONT ID="LN">318 </FONT><A NAME="318"></A>    add(<FONT ID="StringLiteral">"let"</FONT>);
+<FONT ID="LN">319 </FONT><A NAME="319"></A>    add(<FONT ID="StringLiteral">"like"</FONT>);
+<FONT ID="LN">320 </FONT><A NAME="320"></A>    add(<FONT ID="StringLiteral">"liked"</FONT>);
+<FONT ID="LN">321 </FONT><A NAME="321"></A>    add(<FONT ID="StringLiteral">"likely"</FONT>);
+<FONT ID="LN">322 </FONT><A NAME="322"></A>    add(<FONT ID="StringLiteral">"little"</FONT>);
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    add(<FONT ID="StringLiteral">"ll"</FONT>); <FONT ID="SingleLineComment">//added to avoid words like you'll,I'll etc.
+<FONT ID="LN">324 </FONT><A NAME="324"></A></FONT>    add(<FONT ID="StringLiteral">"look"</FONT>);
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    add(<FONT ID="StringLiteral">"looking"</FONT>);
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    add(<FONT ID="StringLiteral">"looks"</FONT>);
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    add(<FONT ID="StringLiteral">"ltd"</FONT>);
+<FONT ID="LN">328 </FONT><A NAME="328"></A>    add(<FONT ID="StringLiteral">"m"</FONT>);
+<FONT ID="LN">329 </FONT><A NAME="329"></A>    add(<FONT ID="StringLiteral">"mainly"</FONT>);
+<FONT ID="LN">330 </FONT><A NAME="330"></A>    add(<FONT ID="StringLiteral">"many"</FONT>);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>    add(<FONT ID="StringLiteral">"may"</FONT>);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>    add(<FONT ID="StringLiteral">"maybe"</FONT>);
+<FONT ID="LN">333 </FONT><A NAME="333"></A>    add(<FONT ID="StringLiteral">"me"</FONT>);
+<FONT ID="LN">334 </FONT><A NAME="334"></A>    add(<FONT ID="StringLiteral">"mean"</FONT>);
+<FONT ID="LN">335 </FONT><A NAME="335"></A>    add(<FONT ID="StringLiteral">"meanwhile"</FONT>);
+<FONT ID="LN">336 </FONT><A NAME="336"></A>    add(<FONT ID="StringLiteral">"merely"</FONT>);
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    add(<FONT ID="StringLiteral">"might"</FONT>);
+<FONT ID="LN">338 </FONT><A NAME="338"></A>    add(<FONT ID="StringLiteral">"more"</FONT>);
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    add(<FONT ID="StringLiteral">"moreover"</FONT>);
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    add(<FONT ID="StringLiteral">"most"</FONT>);
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    add(<FONT ID="StringLiteral">"mostly"</FONT>);
+<FONT ID="LN">342 </FONT><A NAME="342"></A>    add(<FONT ID="StringLiteral">"much"</FONT>);
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    add(<FONT ID="StringLiteral">"must"</FONT>);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    add(<FONT ID="StringLiteral">"my"</FONT>);
+<FONT ID="LN">345 </FONT><A NAME="345"></A>    add(<FONT ID="StringLiteral">"myself"</FONT>);
+<FONT ID="LN">346 </FONT><A NAME="346"></A>    add(<FONT ID="StringLiteral">"n"</FONT>);
+<FONT ID="LN">347 </FONT><A NAME="347"></A>    add(<FONT ID="StringLiteral">"name"</FONT>);
+<FONT ID="LN">348 </FONT><A NAME="348"></A>    add(<FONT ID="StringLiteral">"namely"</FONT>);
+<FONT ID="LN">349 </FONT><A NAME="349"></A>    add(<FONT ID="StringLiteral">"nd"</FONT>);
+<FONT ID="LN">350 </FONT><A NAME="350"></A>    add(<FONT ID="StringLiteral">"near"</FONT>);
+<FONT ID="LN">351 </FONT><A NAME="351"></A>    add(<FONT ID="StringLiteral">"nearly"</FONT>);
+<FONT ID="LN">352 </FONT><A NAME="352"></A>    add(<FONT ID="StringLiteral">"necessary"</FONT>);
+<FONT ID="LN">353 </FONT><A NAME="353"></A>    add(<FONT ID="StringLiteral">"need"</FONT>);
+<FONT ID="LN">354 </FONT><A NAME="354"></A>    add(<FONT ID="StringLiteral">"needs"</FONT>);
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    add(<FONT ID="StringLiteral">"neither"</FONT>);
+<FONT ID="LN">356 </FONT><A NAME="356"></A>    add(<FONT ID="StringLiteral">"never"</FONT>);
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    add(<FONT ID="StringLiteral">"nevertheless"</FONT>);
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    add(<FONT ID="StringLiteral">"new"</FONT>);
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    add(<FONT ID="StringLiteral">"next"</FONT>);
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    add(<FONT ID="StringLiteral">"nine"</FONT>);
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    add(<FONT ID="StringLiteral">"no"</FONT>);
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    add(<FONT ID="StringLiteral">"nobody"</FONT>);
+<FONT ID="LN">363 </FONT><A NAME="363"></A>    add(<FONT ID="StringLiteral">"non"</FONT>);
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    add(<FONT ID="StringLiteral">"none"</FONT>);
+<FONT ID="LN">365 </FONT><A NAME="365"></A>    add(<FONT ID="StringLiteral">"noone"</FONT>);
+<FONT ID="LN">366 </FONT><A NAME="366"></A>    add(<FONT ID="StringLiteral">"nor"</FONT>);
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    add(<FONT ID="StringLiteral">"normally"</FONT>);
+<FONT ID="LN">368 </FONT><A NAME="368"></A>    add(<FONT ID="StringLiteral">"not"</FONT>);
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    add(<FONT ID="StringLiteral">"nothing"</FONT>);
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    add(<FONT ID="StringLiteral">"novel"</FONT>);
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    add(<FONT ID="StringLiteral">"now"</FONT>);
+<FONT ID="LN">372 </FONT><A NAME="372"></A>    add(<FONT ID="StringLiteral">"nowhere"</FONT>);
+<FONT ID="LN">373 </FONT><A NAME="373"></A>    add(<FONT ID="StringLiteral">"o"</FONT>);
+<FONT ID="LN">374 </FONT><A NAME="374"></A>    add(<FONT ID="StringLiteral">"obviously"</FONT>);
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    add(<FONT ID="StringLiteral">"of"</FONT>);
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    add(<FONT ID="StringLiteral">"off"</FONT>);
+<FONT ID="LN">377 </FONT><A NAME="377"></A>    add(<FONT ID="StringLiteral">"often"</FONT>);
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    add(<FONT ID="StringLiteral">"oh"</FONT>);
+<FONT ID="LN">379 </FONT><A NAME="379"></A>    add(<FONT ID="StringLiteral">"ok"</FONT>);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    add(<FONT ID="StringLiteral">"okay"</FONT>);
+<FONT ID="LN">381 </FONT><A NAME="381"></A>    add(<FONT ID="StringLiteral">"old"</FONT>);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    add(<FONT ID="StringLiteral">"on"</FONT>);
+<FONT ID="LN">383 </FONT><A NAME="383"></A>    add(<FONT ID="StringLiteral">"once"</FONT>);
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    add(<FONT ID="StringLiteral">"one"</FONT>);
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    add(<FONT ID="StringLiteral">"ones"</FONT>);
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    add(<FONT ID="StringLiteral">"only"</FONT>);
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    add(<FONT ID="StringLiteral">"onto"</FONT>);
+<FONT ID="LN">388 </FONT><A NAME="388"></A>    add(<FONT ID="StringLiteral">"or"</FONT>);
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    add(<FONT ID="StringLiteral">"other"</FONT>);
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    add(<FONT ID="StringLiteral">"others"</FONT>);
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    add(<FONT ID="StringLiteral">"otherwise"</FONT>);
+<FONT ID="LN">392 </FONT><A NAME="392"></A>    add(<FONT ID="StringLiteral">"ought"</FONT>);
+<FONT ID="LN">393 </FONT><A NAME="393"></A>    add(<FONT ID="StringLiteral">"our"</FONT>);
+<FONT ID="LN">394 </FONT><A NAME="394"></A>    add(<FONT ID="StringLiteral">"ours"</FONT>);
+<FONT ID="LN">395 </FONT><A NAME="395"></A>    add(<FONT ID="StringLiteral">"ourselves"</FONT>);
+<FONT ID="LN">396 </FONT><A NAME="396"></A>    add(<FONT ID="StringLiteral">"out"</FONT>);
+<FONT ID="LN">397 </FONT><A NAME="397"></A>    add(<FONT ID="StringLiteral">"outside"</FONT>);
+<FONT ID="LN">398 </FONT><A NAME="398"></A>    add(<FONT ID="StringLiteral">"over"</FONT>);
+<FONT ID="LN">399 </FONT><A NAME="399"></A>    add(<FONT ID="StringLiteral">"overall"</FONT>);
+<FONT ID="LN">400 </FONT><A NAME="400"></A>    add(<FONT ID="StringLiteral">"own"</FONT>);
+<FONT ID="LN">401 </FONT><A NAME="401"></A>    add(<FONT ID="StringLiteral">"p"</FONT>);
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    add(<FONT ID="StringLiteral">"particular"</FONT>);
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    add(<FONT ID="StringLiteral">"particularly"</FONT>);
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    add(<FONT ID="StringLiteral">"per"</FONT>);
+<FONT ID="LN">405 </FONT><A NAME="405"></A>    add(<FONT ID="StringLiteral">"perhaps"</FONT>);
+<FONT ID="LN">406 </FONT><A NAME="406"></A>    add(<FONT ID="StringLiteral">"placed"</FONT>);
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    add(<FONT ID="StringLiteral">"please"</FONT>);
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    add(<FONT ID="StringLiteral">"plus"</FONT>);
+<FONT ID="LN">409 </FONT><A NAME="409"></A>    add(<FONT ID="StringLiteral">"possible"</FONT>);
+<FONT ID="LN">410 </FONT><A NAME="410"></A>    add(<FONT ID="StringLiteral">"presumably"</FONT>);
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    add(<FONT ID="StringLiteral">"probably"</FONT>);
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    add(<FONT ID="StringLiteral">"provides"</FONT>);
+<FONT ID="LN">413 </FONT><A NAME="413"></A>    add(<FONT ID="StringLiteral">"q"</FONT>);
+<FONT ID="LN">414 </FONT><A NAME="414"></A>    add(<FONT ID="StringLiteral">"que"</FONT>);
+<FONT ID="LN">415 </FONT><A NAME="415"></A>    add(<FONT ID="StringLiteral">"quite"</FONT>);
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    add(<FONT ID="StringLiteral">"qv"</FONT>);
+<FONT ID="LN">417 </FONT><A NAME="417"></A>    add(<FONT ID="StringLiteral">"r"</FONT>);
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    add(<FONT ID="StringLiteral">"rather"</FONT>);
+<FONT ID="LN">419 </FONT><A NAME="419"></A>    add(<FONT ID="StringLiteral">"rd"</FONT>);
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    add(<FONT ID="StringLiteral">"re"</FONT>);
+<FONT ID="LN">421 </FONT><A NAME="421"></A>    add(<FONT ID="StringLiteral">"really"</FONT>);
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    add(<FONT ID="StringLiteral">"reasonably"</FONT>);
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    add(<FONT ID="StringLiteral">"regarding"</FONT>);
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    add(<FONT ID="StringLiteral">"regardless"</FONT>);
+<FONT ID="LN">425 </FONT><A NAME="425"></A>    add(<FONT ID="StringLiteral">"regards"</FONT>);
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    add(<FONT ID="StringLiteral">"relatively"</FONT>);
+<FONT ID="LN">427 </FONT><A NAME="427"></A>    add(<FONT ID="StringLiteral">"respectively"</FONT>);
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    add(<FONT ID="StringLiteral">"right"</FONT>);
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    add(<FONT ID="StringLiteral">"s"</FONT>);
+<FONT ID="LN">430 </FONT><A NAME="430"></A>    add(<FONT ID="StringLiteral">"said"</FONT>);
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    add(<FONT ID="StringLiteral">"same"</FONT>);
+<FONT ID="LN">432 </FONT><A NAME="432"></A>    add(<FONT ID="StringLiteral">"saw"</FONT>);
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    add(<FONT ID="StringLiteral">"say"</FONT>);
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    add(<FONT ID="StringLiteral">"saying"</FONT>);
+<FONT ID="LN">435 </FONT><A NAME="435"></A>    add(<FONT ID="StringLiteral">"says"</FONT>);
+<FONT ID="LN">436 </FONT><A NAME="436"></A>    add(<FONT ID="StringLiteral">"second"</FONT>);
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    add(<FONT ID="StringLiteral">"secondly"</FONT>);
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    add(<FONT ID="StringLiteral">"see"</FONT>);
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    add(<FONT ID="StringLiteral">"seeing"</FONT>);
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    add(<FONT ID="StringLiteral">"seem"</FONT>);
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    add(<FONT ID="StringLiteral">"seemed"</FONT>);
+<FONT ID="LN">442 </FONT><A NAME="442"></A>    add(<FONT ID="StringLiteral">"seeming"</FONT>);
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    add(<FONT ID="StringLiteral">"seems"</FONT>);
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    add(<FONT ID="StringLiteral">"seen"</FONT>);
+<FONT ID="LN">445 </FONT><A NAME="445"></A>    add(<FONT ID="StringLiteral">"self"</FONT>);
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    add(<FONT ID="StringLiteral">"selves"</FONT>);
+<FONT ID="LN">447 </FONT><A NAME="447"></A>    add(<FONT ID="StringLiteral">"sensible"</FONT>);
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    add(<FONT ID="StringLiteral">"sent"</FONT>);
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    add(<FONT ID="StringLiteral">"serious"</FONT>);
+<FONT ID="LN">450 </FONT><A NAME="450"></A>    add(<FONT ID="StringLiteral">"seriously"</FONT>);
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    add(<FONT ID="StringLiteral">"seven"</FONT>);
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    add(<FONT ID="StringLiteral">"several"</FONT>);
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    add(<FONT ID="StringLiteral">"shall"</FONT>);
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    add(<FONT ID="StringLiteral">"she"</FONT>);
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    add(<FONT ID="StringLiteral">"should"</FONT>);
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    add(<FONT ID="StringLiteral">"since"</FONT>);
+<FONT ID="LN">457 </FONT><A NAME="457"></A>    add(<FONT ID="StringLiteral">"six"</FONT>);
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    add(<FONT ID="StringLiteral">"so"</FONT>);
+<FONT ID="LN">459 </FONT><A NAME="459"></A>    add(<FONT ID="StringLiteral">"some"</FONT>);
+<FONT ID="LN">460 </FONT><A NAME="460"></A>    add(<FONT ID="StringLiteral">"somebody"</FONT>);
+<FONT ID="LN">461 </FONT><A NAME="461"></A>    add(<FONT ID="StringLiteral">"somehow"</FONT>);
+<FONT ID="LN">462 </FONT><A NAME="462"></A>    add(<FONT ID="StringLiteral">"someone"</FONT>);
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    add(<FONT ID="StringLiteral">"something"</FONT>);
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    add(<FONT ID="StringLiteral">"sometime"</FONT>);
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    add(<FONT ID="StringLiteral">"sometimes"</FONT>);
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    add(<FONT ID="StringLiteral">"somewhat"</FONT>);
+<FONT ID="LN">467 </FONT><A NAME="467"></A>    add(<FONT ID="StringLiteral">"somewhere"</FONT>);
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    add(<FONT ID="StringLiteral">"soon"</FONT>);
+<FONT ID="LN">469 </FONT><A NAME="469"></A>    add(<FONT ID="StringLiteral">"sorry"</FONT>);
+<FONT ID="LN">470 </FONT><A NAME="470"></A>    add(<FONT ID="StringLiteral">"specified"</FONT>);
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    add(<FONT ID="StringLiteral">"specify"</FONT>);
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    add(<FONT ID="StringLiteral">"specifying"</FONT>);
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    add(<FONT ID="StringLiteral">"still"</FONT>);
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    add(<FONT ID="StringLiteral">"sub"</FONT>);
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    add(<FONT ID="StringLiteral">"such"</FONT>);
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    add(<FONT ID="StringLiteral">"sup"</FONT>);
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    add(<FONT ID="StringLiteral">"sure"</FONT>);
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    add(<FONT ID="StringLiteral">"t"</FONT>);
+<FONT ID="LN">479 </FONT><A NAME="479"></A>    add(<FONT ID="StringLiteral">"take"</FONT>);
+<FONT ID="LN">480 </FONT><A NAME="480"></A>    add(<FONT ID="StringLiteral">"taken"</FONT>);
+<FONT ID="LN">481 </FONT><A NAME="481"></A>    add(<FONT ID="StringLiteral">"tell"</FONT>);
+<FONT ID="LN">482 </FONT><A NAME="482"></A>    add(<FONT ID="StringLiteral">"tends"</FONT>);
+<FONT ID="LN">483 </FONT><A NAME="483"></A>    add(<FONT ID="StringLiteral">"th"</FONT>);
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    add(<FONT ID="StringLiteral">"than"</FONT>);
+<FONT ID="LN">485 </FONT><A NAME="485"></A>    add(<FONT ID="StringLiteral">"thank"</FONT>);
+<FONT ID="LN">486 </FONT><A NAME="486"></A>    add(<FONT ID="StringLiteral">"thanks"</FONT>);
+<FONT ID="LN">487 </FONT><A NAME="487"></A>    add(<FONT ID="StringLiteral">"thanx"</FONT>);
+<FONT ID="LN">488 </FONT><A NAME="488"></A>    add(<FONT ID="StringLiteral">"that"</FONT>);
+<FONT ID="LN">489 </FONT><A NAME="489"></A>    add(<FONT ID="StringLiteral">"thats"</FONT>);
+<FONT ID="LN">490 </FONT><A NAME="490"></A>    add(<FONT ID="StringLiteral">"the"</FONT>);
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    add(<FONT ID="StringLiteral">"their"</FONT>);
+<FONT ID="LN">492 </FONT><A NAME="492"></A>    add(<FONT ID="StringLiteral">"theirs"</FONT>);
+<FONT ID="LN">493 </FONT><A NAME="493"></A>    add(<FONT ID="StringLiteral">"them"</FONT>);
+<FONT ID="LN">494 </FONT><A NAME="494"></A>    add(<FONT ID="StringLiteral">"themselves"</FONT>);
+<FONT ID="LN">495 </FONT><A NAME="495"></A>    add(<FONT ID="StringLiteral">"then"</FONT>);
+<FONT ID="LN">496 </FONT><A NAME="496"></A>    add(<FONT ID="StringLiteral">"thence"</FONT>);
+<FONT ID="LN">497 </FONT><A NAME="497"></A>    add(<FONT ID="StringLiteral">"there"</FONT>);
+<FONT ID="LN">498 </FONT><A NAME="498"></A>    add(<FONT ID="StringLiteral">"thereafter"</FONT>);
+<FONT ID="LN">499 </FONT><A NAME="499"></A>    add(<FONT ID="StringLiteral">"thereby"</FONT>);
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    add(<FONT ID="StringLiteral">"therefore"</FONT>);
+<FONT ID="LN">501 </FONT><A NAME="501"></A>    add(<FONT ID="StringLiteral">"therein"</FONT>);
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    add(<FONT ID="StringLiteral">"theres"</FONT>);
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    add(<FONT ID="StringLiteral">"thereupon"</FONT>);
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    add(<FONT ID="StringLiteral">"these"</FONT>);
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    add(<FONT ID="StringLiteral">"they"</FONT>);
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    add(<FONT ID="StringLiteral">"think"</FONT>);
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    add(<FONT ID="StringLiteral">"third"</FONT>);
+<FONT ID="LN">508 </FONT><A NAME="508"></A>    add(<FONT ID="StringLiteral">"this"</FONT>);
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    add(<FONT ID="StringLiteral">"thorough"</FONT>);
+<FONT ID="LN">510 </FONT><A NAME="510"></A>    add(<FONT ID="StringLiteral">"thoroughly"</FONT>);
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    add(<FONT ID="StringLiteral">"those"</FONT>);
+<FONT ID="LN">512 </FONT><A NAME="512"></A>    add(<FONT ID="StringLiteral">"though"</FONT>);
+<FONT ID="LN">513 </FONT><A NAME="513"></A>    add(<FONT ID="StringLiteral">"three"</FONT>);
+<FONT ID="LN">514 </FONT><A NAME="514"></A>    add(<FONT ID="StringLiteral">"through"</FONT>);
+<FONT ID="LN">515 </FONT><A NAME="515"></A>    add(<FONT ID="StringLiteral">"throughout"</FONT>);
+<FONT ID="LN">516 </FONT><A NAME="516"></A>    add(<FONT ID="StringLiteral">"thru"</FONT>);
+<FONT ID="LN">517 </FONT><A NAME="517"></A>    add(<FONT ID="StringLiteral">"thus"</FONT>);
+<FONT ID="LN">518 </FONT><A NAME="518"></A>    add(<FONT ID="StringLiteral">"to"</FONT>);
+<FONT ID="LN">519 </FONT><A NAME="519"></A>    add(<FONT ID="StringLiteral">"together"</FONT>);
+<FONT ID="LN">520 </FONT><A NAME="520"></A>    add(<FONT ID="StringLiteral">"too"</FONT>);
+<FONT ID="LN">521 </FONT><A NAME="521"></A>    add(<FONT ID="StringLiteral">"took"</FONT>);
+<FONT ID="LN">522 </FONT><A NAME="522"></A>    add(<FONT ID="StringLiteral">"toward"</FONT>);
+<FONT ID="LN">523 </FONT><A NAME="523"></A>    add(<FONT ID="StringLiteral">"towards"</FONT>);
+<FONT ID="LN">524 </FONT><A NAME="524"></A>    add(<FONT ID="StringLiteral">"tried"</FONT>);
+<FONT ID="LN">525 </FONT><A NAME="525"></A>    add(<FONT ID="StringLiteral">"tries"</FONT>);
+<FONT ID="LN">526 </FONT><A NAME="526"></A>    add(<FONT ID="StringLiteral">"truly"</FONT>);
+<FONT ID="LN">527 </FONT><A NAME="527"></A>    add(<FONT ID="StringLiteral">"try"</FONT>);
+<FONT ID="LN">528 </FONT><A NAME="528"></A>    add(<FONT ID="StringLiteral">"trying"</FONT>);
+<FONT ID="LN">529 </FONT><A NAME="529"></A>    add(<FONT ID="StringLiteral">"twice"</FONT>);
+<FONT ID="LN">530 </FONT><A NAME="530"></A>    add(<FONT ID="StringLiteral">"two"</FONT>);
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    add(<FONT ID="StringLiteral">"u"</FONT>);
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    add(<FONT ID="StringLiteral">"un"</FONT>);
+<FONT ID="LN">533 </FONT><A NAME="533"></A>    add(<FONT ID="StringLiteral">"under"</FONT>);
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    add(<FONT ID="StringLiteral">"unfortunately"</FONT>);
+<FONT ID="LN">535 </FONT><A NAME="535"></A>    add(<FONT ID="StringLiteral">"unless"</FONT>);
+<FONT ID="LN">536 </FONT><A NAME="536"></A>    add(<FONT ID="StringLiteral">"unlikely"</FONT>);
+<FONT ID="LN">537 </FONT><A NAME="537"></A>    add(<FONT ID="StringLiteral">"until"</FONT>);
+<FONT ID="LN">538 </FONT><A NAME="538"></A>    add(<FONT ID="StringLiteral">"unto"</FONT>);
+<FONT ID="LN">539 </FONT><A NAME="539"></A>    add(<FONT ID="StringLiteral">"up"</FONT>);
+<FONT ID="LN">540 </FONT><A NAME="540"></A>    add(<FONT ID="StringLiteral">"upon"</FONT>);
+<FONT ID="LN">541 </FONT><A NAME="541"></A>    add(<FONT ID="StringLiteral">"us"</FONT>);
+<FONT ID="LN">542 </FONT><A NAME="542"></A>    add(<FONT ID="StringLiteral">"use"</FONT>);
+<FONT ID="LN">543 </FONT><A NAME="543"></A>    add(<FONT ID="StringLiteral">"used"</FONT>);
+<FONT ID="LN">544 </FONT><A NAME="544"></A>    add(<FONT ID="StringLiteral">"useful"</FONT>);
+<FONT ID="LN">545 </FONT><A NAME="545"></A>    add(<FONT ID="StringLiteral">"uses"</FONT>);
+<FONT ID="LN">546 </FONT><A NAME="546"></A>    add(<FONT ID="StringLiteral">"using"</FONT>);
+<FONT ID="LN">547 </FONT><A NAME="547"></A>    add(<FONT ID="StringLiteral">"usually"</FONT>);
+<FONT ID="LN">548 </FONT><A NAME="548"></A>    add(<FONT ID="StringLiteral">"uucp"</FONT>);
+<FONT ID="LN">549 </FONT><A NAME="549"></A>    add(<FONT ID="StringLiteral">"v"</FONT>);
+<FONT ID="LN">550 </FONT><A NAME="550"></A>    add(<FONT ID="StringLiteral">"value"</FONT>);
+<FONT ID="LN">551 </FONT><A NAME="551"></A>    add(<FONT ID="StringLiteral">"various"</FONT>);
+<FONT ID="LN">552 </FONT><A NAME="552"></A>    add(<FONT ID="StringLiteral">"ve"</FONT>); <FONT ID="SingleLineComment">//added to avoid words like I've,you've etc.
+<FONT ID="LN">553 </FONT><A NAME="553"></A></FONT>    add(<FONT ID="StringLiteral">"very"</FONT>);
+<FONT ID="LN">554 </FONT><A NAME="554"></A>    add(<FONT ID="StringLiteral">"via"</FONT>);
+<FONT ID="LN">555 </FONT><A NAME="555"></A>    add(<FONT ID="StringLiteral">"viz"</FONT>);
+<FONT ID="LN">556 </FONT><A NAME="556"></A>    add(<FONT ID="StringLiteral">"vs"</FONT>);
+<FONT ID="LN">557 </FONT><A NAME="557"></A>    add(<FONT ID="StringLiteral">"w"</FONT>);
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    add(<FONT ID="StringLiteral">"want"</FONT>);
+<FONT ID="LN">559 </FONT><A NAME="559"></A>    add(<FONT ID="StringLiteral">"wants"</FONT>);
+<FONT ID="LN">560 </FONT><A NAME="560"></A>    add(<FONT ID="StringLiteral">"was"</FONT>);
+<FONT ID="LN">561 </FONT><A NAME="561"></A>    add(<FONT ID="StringLiteral">"way"</FONT>);
+<FONT ID="LN">562 </FONT><A NAME="562"></A>    add(<FONT ID="StringLiteral">"we"</FONT>);
+<FONT ID="LN">563 </FONT><A NAME="563"></A>    add(<FONT ID="StringLiteral">"welcome"</FONT>);
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    add(<FONT ID="StringLiteral">"well"</FONT>);
+<FONT ID="LN">565 </FONT><A NAME="565"></A>    add(<FONT ID="StringLiteral">"went"</FONT>);
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    add(<FONT ID="StringLiteral">"were"</FONT>);
+<FONT ID="LN">567 </FONT><A NAME="567"></A>    add(<FONT ID="StringLiteral">"what"</FONT>);
+<FONT ID="LN">568 </FONT><A NAME="568"></A>    add(<FONT ID="StringLiteral">"whatever"</FONT>);
+<FONT ID="LN">569 </FONT><A NAME="569"></A>    add(<FONT ID="StringLiteral">"when"</FONT>);
+<FONT ID="LN">570 </FONT><A NAME="570"></A>    add(<FONT ID="StringLiteral">"whence"</FONT>);
+<FONT ID="LN">571 </FONT><A NAME="571"></A>    add(<FONT ID="StringLiteral">"whenever"</FONT>);
+<FONT ID="LN">572 </FONT><A NAME="572"></A>    add(<FONT ID="StringLiteral">"where"</FONT>);
+<FONT ID="LN">573 </FONT><A NAME="573"></A>    add(<FONT ID="StringLiteral">"whereafter"</FONT>);
+<FONT ID="LN">574 </FONT><A NAME="574"></A>    add(<FONT ID="StringLiteral">"whereas"</FONT>);
+<FONT ID="LN">575 </FONT><A NAME="575"></A>    add(<FONT ID="StringLiteral">"whereby"</FONT>);
+<FONT ID="LN">576 </FONT><A NAME="576"></A>    add(<FONT ID="StringLiteral">"wherein"</FONT>);
+<FONT ID="LN">577 </FONT><A NAME="577"></A>    add(<FONT ID="StringLiteral">"whereupon"</FONT>);
+<FONT ID="LN">578 </FONT><A NAME="578"></A>    add(<FONT ID="StringLiteral">"wherever"</FONT>);
+<FONT ID="LN">579 </FONT><A NAME="579"></A>    add(<FONT ID="StringLiteral">"whether"</FONT>);
+<FONT ID="LN">580 </FONT><A NAME="580"></A>    add(<FONT ID="StringLiteral">"which"</FONT>);
+<FONT ID="LN">581 </FONT><A NAME="581"></A>    add(<FONT ID="StringLiteral">"while"</FONT>);
+<FONT ID="LN">582 </FONT><A NAME="582"></A>    add(<FONT ID="StringLiteral">"whither"</FONT>);
+<FONT ID="LN">583 </FONT><A NAME="583"></A>    add(<FONT ID="StringLiteral">"who"</FONT>);
+<FONT ID="LN">584 </FONT><A NAME="584"></A>    add(<FONT ID="StringLiteral">"whoever"</FONT>);
+<FONT ID="LN">585 </FONT><A NAME="585"></A>    add(<FONT ID="StringLiteral">"whole"</FONT>);
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    add(<FONT ID="StringLiteral">"whom"</FONT>);
+<FONT ID="LN">587 </FONT><A NAME="587"></A>    add(<FONT ID="StringLiteral">"whose"</FONT>);
+<FONT ID="LN">588 </FONT><A NAME="588"></A>    add(<FONT ID="StringLiteral">"why"</FONT>);
+<FONT ID="LN">589 </FONT><A NAME="589"></A>    add(<FONT ID="StringLiteral">"will"</FONT>);
+<FONT ID="LN">590 </FONT><A NAME="590"></A>    add(<FONT ID="StringLiteral">"willing"</FONT>);
+<FONT ID="LN">591 </FONT><A NAME="591"></A>    add(<FONT ID="StringLiteral">"wish"</FONT>);
+<FONT ID="LN">592 </FONT><A NAME="592"></A>    add(<FONT ID="StringLiteral">"with"</FONT>);
+<FONT ID="LN">593 </FONT><A NAME="593"></A>    add(<FONT ID="StringLiteral">"within"</FONT>);
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    add(<FONT ID="StringLiteral">"without"</FONT>);
+<FONT ID="LN">595 </FONT><A NAME="595"></A>    add(<FONT ID="StringLiteral">"wonder"</FONT>);
+<FONT ID="LN">596 </FONT><A NAME="596"></A>    add(<FONT ID="StringLiteral">"would"</FONT>);
+<FONT ID="LN">597 </FONT><A NAME="597"></A>    add(<FONT ID="StringLiteral">"would"</FONT>);
+<FONT ID="LN">598 </FONT><A NAME="598"></A>    add(<FONT ID="StringLiteral">"x"</FONT>);
+<FONT ID="LN">599 </FONT><A NAME="599"></A>    add(<FONT ID="StringLiteral">"y"</FONT>);
+<FONT ID="LN">600 </FONT><A NAME="600"></A>    add(<FONT ID="StringLiteral">"yes"</FONT>);
+<FONT ID="LN">601 </FONT><A NAME="601"></A>    add(<FONT ID="StringLiteral">"yet"</FONT>);
+<FONT ID="LN">602 </FONT><A NAME="602"></A>    add(<FONT ID="StringLiteral">"you"</FONT>);
+<FONT ID="LN">603 </FONT><A NAME="603"></A>    add(<FONT ID="StringLiteral">"your"</FONT>);
+<FONT ID="LN">604 </FONT><A NAME="604"></A>    add(<FONT ID="StringLiteral">"yours"</FONT>);
+<FONT ID="LN">605 </FONT><A NAME="605"></A>    add(<FONT ID="StringLiteral">"yourself"</FONT>);
+<FONT ID="LN">606 </FONT><A NAME="606"></A>    add(<FONT ID="StringLiteral">"yourselves"</FONT>);
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    add(<FONT ID="StringLiteral">"z"</FONT>);
+<FONT ID="LN">608 </FONT><A NAME="608"></A>    add(<FONT ID="StringLiteral">"zero"</FONT>);
+<FONT ID="LN">609 </FONT><A NAME="609"></A>  }
+<FONT ID="LN">610 </FONT><A NAME="610"></A>
+<FONT ID="LN">611 </FONT><A NAME="611"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">612 </FONT><A NAME="612"></A>   * removes all stopwords
+<FONT ID="LN">613 </FONT><A NAME="613"></A>   */</FONT>
+<FONT ID="LN">614 </FONT><A NAME="614"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> clear() {
+<FONT ID="LN">615 </FONT><A NAME="615"></A>    m_Words.clear();
+<FONT ID="LN">616 </FONT><A NAME="616"></A>  }
+<FONT ID="LN">617 </FONT><A NAME="617"></A>
+<FONT ID="LN">618 </FONT><A NAME="618"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">619 </FONT><A NAME="619"></A>   * adds the given word to the stopword list (is automatically converted to
+<FONT ID="LN">620 </FONT><A NAME="620"></A>   * lower case and trimmed)
+<FONT ID="LN">621 </FONT><A NAME="621"></A>   *
+<FONT ID="LN">622 </FONT><A NAME="622"></A>   * @param word the word to add
+<FONT ID="LN">623 </FONT><A NAME="623"></A>   */</FONT>
+<FONT ID="LN">624 </FONT><A NAME="624"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> add(String word) {
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    <FONT ID="If">if</FONT> (word.trim().length() &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">626 </FONT><A NAME="626"></A>      m_Words.add(word.trim().toLowerCase());
+<FONT ID="LN">627 </FONT><A NAME="627"></A>  }
+<FONT ID="LN">628 </FONT><A NAME="628"></A>
+<FONT ID="LN">629 </FONT><A NAME="629"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">630 </FONT><A NAME="630"></A>   * removes the word from the stopword list
+<FONT ID="LN">631 </FONT><A NAME="631"></A>   *
+<FONT ID="LN">632 </FONT><A NAME="632"></A>   * @param word the word to remove
+<FONT ID="LN">633 </FONT><A NAME="633"></A>   * @return true if the word was found in the list and then removed
+<FONT ID="LN">634 </FONT><A NAME="634"></A>   */</FONT>
+<FONT ID="LN">635 </FONT><A NAME="635"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> remove(String word) {
+<FONT ID="LN">636 </FONT><A NAME="636"></A>    <FONT ID="Return">return</FONT> m_Words.remove(word);
+<FONT ID="LN">637 </FONT><A NAME="637"></A>  }
+<FONT ID="LN">638 </FONT><A NAME="638"></A>  
+<FONT ID="LN">639 </FONT><A NAME="639"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">640 </FONT><A NAME="640"></A>   * Returns true if the given string is a stop word.
+<FONT ID="LN">641 </FONT><A NAME="641"></A>   * 
+<FONT ID="LN">642 </FONT><A NAME="642"></A>   * @param word the word to test
+<FONT ID="LN">643 </FONT><A NAME="643"></A>   * @return true if the word is a stopword
+<FONT ID="LN">644 </FONT><A NAME="644"></A>   */</FONT>
+<FONT ID="LN">645 </FONT><A NAME="645"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> is(String word) {
+<FONT ID="LN">646 </FONT><A NAME="646"></A>    <FONT ID="Return">return</FONT> m_Words.contains(word.toLowerCase());
+<FONT ID="LN">647 </FONT><A NAME="647"></A>  }
+<FONT ID="LN">648 </FONT><A NAME="648"></A>
+<FONT ID="LN">649 </FONT><A NAME="649"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">650 </FONT><A NAME="650"></A>   * Returns a sorted enumeration over all stored stopwords
+<FONT ID="LN">651 </FONT><A NAME="651"></A>   *
+<FONT ID="LN">652 </FONT><A NAME="652"></A>   * @return the enumeration over all stopwords
+<FONT ID="LN">653 </FONT><A NAME="653"></A>   */</FONT>
+<FONT ID="LN">654 </FONT><A NAME="654"></A>  <FONT ID="Public">public</FONT> Enumeration elements() {
+<FONT ID="LN">655 </FONT><A NAME="655"></A>    Iterator&lt;String&gt;    iter;
+<FONT ID="LN">656 </FONT><A NAME="656"></A>    Vector&lt;String&gt;      list;
+<FONT ID="LN">657 </FONT><A NAME="657"></A>
+<FONT ID="LN">658 </FONT><A NAME="658"></A>    iter = m_Words.iterator();
+<FONT ID="LN">659 </FONT><A NAME="659"></A>    list = <FONT ID="New">new</FONT> Vector&lt;String&gt;();
+<FONT ID="LN">660 </FONT><A NAME="660"></A>
+<FONT ID="LN">661 </FONT><A NAME="661"></A>    <FONT ID="While">while</FONT> (iter.hasNext())
+<FONT ID="LN">662 </FONT><A NAME="662"></A>      list.add(iter.next());
+<FONT ID="LN">663 </FONT><A NAME="663"></A>
+<FONT ID="LN">664 </FONT><A NAME="664"></A>    <FONT ID="SingleLineComment">// sort list
+<FONT ID="LN">665 </FONT><A NAME="665"></A></FONT>    Collections.sort(list);
+<FONT ID="LN">666 </FONT><A NAME="666"></A>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>    <FONT ID="Return">return</FONT> list.elements();
+<FONT ID="LN">668 </FONT><A NAME="668"></A>  }
+<FONT ID="LN">669 </FONT><A NAME="669"></A>
+<FONT ID="LN">670 </FONT><A NAME="670"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">671 </FONT><A NAME="671"></A>   * Generates a new Stopwords object from the given file
+<FONT ID="LN">672 </FONT><A NAME="672"></A>   *
+<FONT ID="LN">673 </FONT><A NAME="673"></A>   * @param filename the file to read the stopwords from
+<FONT ID="LN">674 </FONT><A NAME="674"></A>   * @throws Exception if reading fails
+<FONT ID="LN">675 </FONT><A NAME="675"></A>   */</FONT>
+<FONT ID="LN">676 </FONT><A NAME="676"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> read(String filename) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">677 </FONT><A NAME="677"></A>    read(<FONT ID="New">new</FONT> File(filename));
+<FONT ID="LN">678 </FONT><A NAME="678"></A>  }
+<FONT ID="LN">679 </FONT><A NAME="679"></A>
+<FONT ID="LN">680 </FONT><A NAME="680"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">681 </FONT><A NAME="681"></A>   * Generates a new Stopwords object from the given file
+<FONT ID="LN">682 </FONT><A NAME="682"></A>   *
+<FONT ID="LN">683 </FONT><A NAME="683"></A>   * @param file the file to read the stopwords from
+<FONT ID="LN">684 </FONT><A NAME="684"></A>   * @throws Exception if reading fails
+<FONT ID="LN">685 </FONT><A NAME="685"></A>   */</FONT>
+<FONT ID="LN">686 </FONT><A NAME="686"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> read(File file) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">687 </FONT><A NAME="687"></A>    read(<FONT ID="New">new</FONT> BufferedReader(<FONT ID="New">new</FONT> FileReader(file)));
+<FONT ID="LN">688 </FONT><A NAME="688"></A>  }
+<FONT ID="LN">689 </FONT><A NAME="689"></A>
+<FONT ID="LN">690 </FONT><A NAME="690"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">691 </FONT><A NAME="691"></A>   * Generates a new Stopwords object from the reader. The reader is
+<FONT ID="LN">692 </FONT><A NAME="692"></A>   * closed automatically.
+<FONT ID="LN">693 </FONT><A NAME="693"></A>   *
+<FONT ID="LN">694 </FONT><A NAME="694"></A>   * @param reader the reader to get the stopwords from
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   * @throws Exception if reading fails
+<FONT ID="LN">696 </FONT><A NAME="696"></A>   */</FONT>
+<FONT ID="LN">697 </FONT><A NAME="697"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> read(BufferedReader reader) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">698 </FONT><A NAME="698"></A>    String      line;
+<FONT ID="LN">699 </FONT><A NAME="699"></A>
+<FONT ID="LN">700 </FONT><A NAME="700"></A>    clear();
+<FONT ID="LN">701 </FONT><A NAME="701"></A>    
+<FONT ID="LN">702 </FONT><A NAME="702"></A>    <FONT ID="While">while</FONT> ((line = reader.readLine()) != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">703 </FONT><A NAME="703"></A>      line = line.trim();
+<FONT ID="LN">704 </FONT><A NAME="704"></A>      <FONT ID="SingleLineComment">// comment?
+<FONT ID="LN">705 </FONT><A NAME="705"></A></FONT>      <FONT ID="If">if</FONT> (line.startsWith(<FONT ID="StringLiteral">"#"</FONT>))
+<FONT ID="LN">706 </FONT><A NAME="706"></A>        <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">707 </FONT><A NAME="707"></A>      add(line);
+<FONT ID="LN">708 </FONT><A NAME="708"></A>    }
+<FONT ID="LN">709 </FONT><A NAME="709"></A>
+<FONT ID="LN">710 </FONT><A NAME="710"></A>    reader.close();
+<FONT ID="LN">711 </FONT><A NAME="711"></A>  }
+<FONT ID="LN">712 </FONT><A NAME="712"></A>
+<FONT ID="LN">713 </FONT><A NAME="713"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">714 </FONT><A NAME="714"></A>   * Writes the current stopwords to the given file
+<FONT ID="LN">715 </FONT><A NAME="715"></A>   *
+<FONT ID="LN">716 </FONT><A NAME="716"></A>   * @param filename the file to write the stopwords to
+<FONT ID="LN">717 </FONT><A NAME="717"></A>   * @throws Exception if writing fails
+<FONT ID="LN">718 </FONT><A NAME="718"></A>   */</FONT>
+<FONT ID="LN">719 </FONT><A NAME="719"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(String filename) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">720 </FONT><A NAME="720"></A>    write(<FONT ID="New">new</FONT> File(filename));
+<FONT ID="LN">721 </FONT><A NAME="721"></A>  }
+<FONT ID="LN">722 </FONT><A NAME="722"></A>
+<FONT ID="LN">723 </FONT><A NAME="723"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">724 </FONT><A NAME="724"></A>   * Writes the current stopwords to the given file
+<FONT ID="LN">725 </FONT><A NAME="725"></A>   *
+<FONT ID="LN">726 </FONT><A NAME="726"></A>   * @param file the file to write the stopwords to
+<FONT ID="LN">727 </FONT><A NAME="727"></A>   * @throws Exception if writing fails
+<FONT ID="LN">728 </FONT><A NAME="728"></A>   */</FONT>
+<FONT ID="LN">729 </FONT><A NAME="729"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(File file) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">730 </FONT><A NAME="730"></A>    write(<FONT ID="New">new</FONT> BufferedWriter(<FONT ID="New">new</FONT> FileWriter(file)));
+<FONT ID="LN">731 </FONT><A NAME="731"></A>  }
+<FONT ID="LN">732 </FONT><A NAME="732"></A>
+<FONT ID="LN">733 </FONT><A NAME="733"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">734 </FONT><A NAME="734"></A>   * Writes the current stopwords to the given writer. The writer is closed
+<FONT ID="LN">735 </FONT><A NAME="735"></A>   * automatically.
+<FONT ID="LN">736 </FONT><A NAME="736"></A>   *
+<FONT ID="LN">737 </FONT><A NAME="737"></A>   * @param writer the writer to get the stopwords from
+<FONT ID="LN">738 </FONT><A NAME="738"></A>   * @throws Exception if writing fails
+<FONT ID="LN">739 </FONT><A NAME="739"></A>   */</FONT>
+<FONT ID="LN">740 </FONT><A NAME="740"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> write(BufferedWriter writer) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">741 </FONT><A NAME="741"></A>    Enumeration   enm;
+<FONT ID="LN">742 </FONT><A NAME="742"></A>
+<FONT ID="LN">743 </FONT><A NAME="743"></A>    <FONT ID="SingleLineComment">// header
+<FONT ID="LN">744 </FONT><A NAME="744"></A></FONT>    writer.write(<FONT ID="StringLiteral">"# generated "</FONT> + <FONT ID="New">new</FONT> Date());
+<FONT ID="LN">745 </FONT><A NAME="745"></A>    writer.newLine();
+<FONT ID="LN">746 </FONT><A NAME="746"></A>
+<FONT ID="LN">747 </FONT><A NAME="747"></A>    enm = elements();
+<FONT ID="LN">748 </FONT><A NAME="748"></A>
+<FONT ID="LN">749 </FONT><A NAME="749"></A>    <FONT ID="While">while</FONT> (enm.hasMoreElements()) {
+<FONT ID="LN">750 </FONT><A NAME="750"></A>      writer.write(enm.nextElement().toString());
+<FONT ID="LN">751 </FONT><A NAME="751"></A>      writer.newLine();
+<FONT ID="LN">752 </FONT><A NAME="752"></A>    }
+<FONT ID="LN">753 </FONT><A NAME="753"></A>
+<FONT ID="LN">754 </FONT><A NAME="754"></A>    writer.flush();
+<FONT ID="LN">755 </FONT><A NAME="755"></A>    writer.close();
+<FONT ID="LN">756 </FONT><A NAME="756"></A>  }
+<FONT ID="LN">757 </FONT><A NAME="757"></A>
+<FONT ID="LN">758 </FONT><A NAME="758"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">759 </FONT><A NAME="759"></A>   * returns the current stopwords in a string
+<FONT ID="LN">760 </FONT><A NAME="760"></A>   *
+<FONT ID="LN">761 </FONT><A NAME="761"></A>   * @return the current stopwords
+<FONT ID="LN">762 </FONT><A NAME="762"></A>   */</FONT>
+<FONT ID="LN">763 </FONT><A NAME="763"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">764 </FONT><A NAME="764"></A>    Enumeration   enm;
+<FONT ID="LN">765 </FONT><A NAME="765"></A>    StringBuffer  result;
+<FONT ID="LN">766 </FONT><A NAME="766"></A>
+<FONT ID="LN">767 </FONT><A NAME="767"></A>    result = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">768 </FONT><A NAME="768"></A>    enm    = elements();
+<FONT ID="LN">769 </FONT><A NAME="769"></A>    <FONT ID="While">while</FONT> (enm.hasMoreElements()) {
+<FONT ID="LN">770 </FONT><A NAME="770"></A>      result.append(enm.nextElement().toString());
+<FONT ID="LN">771 </FONT><A NAME="771"></A>      <FONT ID="If">if</FONT> (enm.hasMoreElements())
+<FONT ID="LN">772 </FONT><A NAME="772"></A>        result.append(<FONT ID="StringLiteral">","</FONT>);
+<FONT ID="LN">773 </FONT><A NAME="773"></A>    }
+<FONT ID="LN">774 </FONT><A NAME="774"></A>
+<FONT ID="LN">775 </FONT><A NAME="775"></A>    <FONT ID="Return">return</FONT> result.toString();
+<FONT ID="LN">776 </FONT><A NAME="776"></A>  }
+<FONT ID="LN">777 </FONT><A NAME="777"></A>  
+<FONT ID="LN">778 </FONT><A NAME="778"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">779 </FONT><A NAME="779"></A>   * Returns true if the given string is a stop word.
+<FONT ID="LN">780 </FONT><A NAME="780"></A>   * 
+<FONT ID="LN">781 </FONT><A NAME="781"></A>   * @param str the word to test
+<FONT ID="LN">782 </FONT><A NAME="782"></A>   * @return true if the word is a stopword
+<FONT ID="LN">783 </FONT><A NAME="783"></A>   */</FONT>
+<FONT ID="LN">784 </FONT><A NAME="784"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isStopword(String str) {
+<FONT ID="LN">785 </FONT><A NAME="785"></A>    <FONT ID="Return">return</FONT> m_Stopwords.is(str.toLowerCase());
+<FONT ID="LN">786 </FONT><A NAME="786"></A>  }
+<FONT ID="LN">787 </FONT><A NAME="787"></A>  
+<FONT ID="LN">788 </FONT><A NAME="788"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">789 </FONT><A NAME="789"></A>   * Returns the revision string.
+<FONT ID="LN">790 </FONT><A NAME="790"></A>   * 
+<FONT ID="LN">791 </FONT><A NAME="791"></A>   * @return        the revision
+<FONT ID="LN">792 </FONT><A NAME="792"></A>   */</FONT>
+<FONT ID="LN">793 </FONT><A NAME="793"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">794 </FONT><A NAME="794"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5953 $"</FONT>);
+<FONT ID="LN">795 </FONT><A NAME="795"></A>  }
+<FONT ID="LN">796 </FONT><A NAME="796"></A>  
+<FONT ID="LN">797 </FONT><A NAME="797"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">798 </FONT><A NAME="798"></A>   * Accepts the following parameter: &lt;p/&gt;
+<FONT ID="LN">799 </FONT><A NAME="799"></A>   *
+<FONT ID="LN">800 </FONT><A NAME="800"></A>   * -i file &lt;br/&gt;
+<FONT ID="LN">801 </FONT><A NAME="801"></A>   * loads the stopwords from the given file &lt;p/&gt;
+<FONT ID="LN">802 </FONT><A NAME="802"></A>   *
+<FONT ID="LN">803 </FONT><A NAME="803"></A>   * -o file &lt;br/&gt;
+<FONT ID="LN">804 </FONT><A NAME="804"></A>   * saves the stopwords to the given file &lt;p/&gt;
+<FONT ID="LN">805 </FONT><A NAME="805"></A>   *
+<FONT ID="LN">806 </FONT><A NAME="806"></A>   * -p &lt;br/&gt;
+<FONT ID="LN">807 </FONT><A NAME="807"></A>   * outputs the current stopwords on stdout &lt;p/&gt;
+<FONT ID="LN">808 </FONT><A NAME="808"></A>   *
+<FONT ID="LN">809 </FONT><A NAME="809"></A>   * Any additional parameters are interpreted as words to test as stopwords.
+<FONT ID="LN">810 </FONT><A NAME="810"></A>   * 
+<FONT ID="LN">811 </FONT><A NAME="811"></A>   * @param args commandline parameters
+<FONT ID="LN">812 </FONT><A NAME="812"></A>   * @throws Exception if something goes wrong
+<FONT ID="LN">813 </FONT><A NAME="813"></A>   */</FONT>
+<FONT ID="LN">814 </FONT><A NAME="814"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] args) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">815 </FONT><A NAME="815"></A>    String input = Utils.getOption(<FONT ID="CharacerLiteral">'i'</FONT>, args);
+<FONT ID="LN">816 </FONT><A NAME="816"></A>    String output = Utils.getOption(<FONT ID="CharacerLiteral">'o'</FONT>, args);
+<FONT ID="LN">817 </FONT><A NAME="817"></A>    <FONT ID="Boolean">boolean</FONT> print = Utils.getFlag(<FONT ID="CharacerLiteral">'p'</FONT>, args);
+<FONT ID="LN">818 </FONT><A NAME="818"></A>
+<FONT ID="LN">819 </FONT><A NAME="819"></A>    <FONT ID="SingleLineComment">// words to process?
+<FONT ID="LN">820 </FONT><A NAME="820"></A></FONT>    Vector&lt;String&gt; words = <FONT ID="New">new</FONT> Vector&lt;String&gt;();
+<FONT ID="LN">821 </FONT><A NAME="821"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; args.length; i++) {
+<FONT ID="LN">822 </FONT><A NAME="822"></A>      <FONT ID="If">if</FONT> (args[i].trim().length() &gt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">823 </FONT><A NAME="823"></A>        words.add(args[i].trim());
+<FONT ID="LN">824 </FONT><A NAME="824"></A>    }
+<FONT ID="LN">825 </FONT><A NAME="825"></A>    
+<FONT ID="LN">826 </FONT><A NAME="826"></A>    <A HREF="../../weka/core/Stopwords.java.html">Stopwords</A> stopwords = <FONT ID="New">new</FONT> <A HREF="../../weka/core/Stopwords.java.html">Stopwords</A>();
+<FONT ID="LN">827 </FONT><A NAME="827"></A>
+<FONT ID="LN">828 </FONT><A NAME="828"></A>    <FONT ID="SingleLineComment">// load from file?
+<FONT ID="LN">829 </FONT><A NAME="829"></A></FONT>    <FONT ID="If">if</FONT> (input.length() != <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">830 </FONT><A NAME="830"></A>      stopwords.read(input);
+<FONT ID="LN">831 </FONT><A NAME="831"></A>
+<FONT ID="LN">832 </FONT><A NAME="832"></A>    <FONT ID="SingleLineComment">// write to file?
+<FONT ID="LN">833 </FONT><A NAME="833"></A></FONT>    <FONT ID="If">if</FONT> (output.length() != <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">834 </FONT><A NAME="834"></A>      stopwords.write(output);
+<FONT ID="LN">835 </FONT><A NAME="835"></A>    
+<FONT ID="LN">836 </FONT><A NAME="836"></A>    <FONT ID="SingleLineComment">// output to stdout?
+<FONT ID="LN">837 </FONT><A NAME="837"></A></FONT>    <FONT ID="If">if</FONT> (print) {
+<FONT ID="LN">838 </FONT><A NAME="838"></A>      System.out.println(<FONT ID="StringLiteral">"\nStopwords:"</FONT>);
+<FONT ID="LN">839 </FONT><A NAME="839"></A>      Enumeration enm = stopwords.elements();
+<FONT ID="LN">840 </FONT><A NAME="840"></A>      <FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">841 </FONT><A NAME="841"></A>      <FONT ID="While">while</FONT> (enm.hasMoreElements()) {
+<FONT ID="LN">842 </FONT><A NAME="842"></A>        System.out.println((i+<FONT ID="IntegerLiteral">1</FONT>) + <FONT ID="StringLiteral">". "</FONT> + enm.nextElement());
+<FONT ID="LN">843 </FONT><A NAME="843"></A>        i++;
+<FONT ID="LN">844 </FONT><A NAME="844"></A>      }
+<FONT ID="LN">845 </FONT><A NAME="845"></A>    }
+<FONT ID="LN">846 </FONT><A NAME="846"></A>
+<FONT ID="LN">847 </FONT><A NAME="847"></A>    <FONT ID="SingleLineComment">// check words for being a stopword
+<FONT ID="LN">848 </FONT><A NAME="848"></A></FONT>    <FONT ID="If">if</FONT> (words.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">849 </FONT><A NAME="849"></A>      System.out.println(<FONT ID="StringLiteral">"\nChecking for stopwords:"</FONT>);
+<FONT ID="LN">850 </FONT><A NAME="850"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; words.size(); i++) {
+<FONT ID="LN">851 </FONT><A NAME="851"></A>        System.out.println(
+<FONT ID="LN">852 </FONT><A NAME="852"></A>            (i+<FONT ID="IntegerLiteral">1</FONT>) + <FONT ID="StringLiteral">". "</FONT> + words.get(i) + <FONT ID="StringLiteral">": "</FONT> 
+<FONT ID="LN">853 </FONT><A NAME="853"></A>            + stopwords.is(words.get(i).toString()));
+<FONT ID="LN">854 </FONT><A NAME="854"></A>      }
+<FONT ID="LN">855 </FONT><A NAME="855"></A>    }
+<FONT ID="LN">856 </FONT><A NAME="856"></A>  }
+<FONT ID="LN">857 </FONT><A NAME="857"></A>}
+<FONT ID="LN">858 </FONT><A NAME="858"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">Stopwords.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,335 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.RandomVariates (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RandomVariates.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    RandomVariates.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2002 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.core;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.util.Random;
+<FONT ID="LN">26  </FONT><A NAME="26"></A>
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * Class implementing some simple random variates generator.
+<FONT ID="LN">29  </FONT><A NAME="29"></A> *
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * @author Xin Xu (xx5@cs.waikato.ac.nz)
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * @version $Revision: 5359 $
+<FONT ID="LN">32  </FONT><A NAME="32"></A> */</FONT>
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Public">public</FONT> <FONT ID="Final">final</FONT> <FONT ID="Class">class</FONT> RandomVariates <FONT ID="Extends">extends</FONT> Random <FONT ID="Implements">implements</FONT> <A HREF="../../weka/core/RevisionHandler.java.html">RevisionHandler</A> {
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A>  <FONT ID="FormalComment">/** for serialization */</FONT>
+<FONT ID="LN">36  </FONT><A NAME="36"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">4763742718209460354L</FONT>;
+<FONT ID="LN">37  </FONT><A NAME="37"></A>
+<FONT ID="LN">38  </FONT><A NAME="38"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">39  </FONT><A NAME="39"></A>   * Simply the constructor of super class
+<FONT ID="LN">40  </FONT><A NAME="40"></A>   */</FONT>
+<FONT ID="LN">41  </FONT><A NAME="41"></A>  <FONT ID="Public">public</FONT> RandomVariates(){ <FONT ID="Super">super</FONT>(); }
+<FONT ID="LN">42  </FONT><A NAME="42"></A>
+<FONT ID="LN">43  </FONT><A NAME="43"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">44  </FONT><A NAME="44"></A>   * Simply the constructor of super class
+<FONT ID="LN">45  </FONT><A NAME="45"></A>   *
+<FONT ID="LN">46  </FONT><A NAME="46"></A>   * @param seed the seed in this random object
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   */</FONT>
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="Public">public</FONT> RandomVariates(<FONT ID="Long">long</FONT> seed){ <FONT ID="Super">super</FONT>(seed); }
+<FONT ID="LN">49  </FONT><A NAME="49"></A>
+<FONT ID="LN">50  </FONT><A NAME="50"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   * Simply use the method of the super class
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   *
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   * @param bits - random bits
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   * @return the next pseudorandom value from this random number 
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   * generator's sequence.
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   */</FONT>
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> next(<FONT ID="Int">int</FONT> bits) {<FONT ID="Return">return</FONT> <FONT ID="Super">super</FONT>.next(bits);}
+<FONT ID="LN">58  </FONT><A NAME="58"></A>
+<FONT ID="LN">59  </FONT><A NAME="59"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   * Generate a value of a variate following standard exponential
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * distribution using simple inverse method.&lt;p&gt;
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   *
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * Variates related to standard Exponential can be generated using simple
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   * transformations.
+<FONT ID="LN">65  </FONT><A NAME="65"></A>   * @return a value of the variate
+<FONT ID="LN">66  </FONT><A NAME="66"></A>   */</FONT> 
+<FONT ID="LN">67  </FONT><A NAME="67"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> nextExponential(){
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="Return">return</FONT> -Math.log(<FONT ID="FloatPointLiteral">1.0</FONT>-<FONT ID="Super">super</FONT>.nextDouble());
+<FONT ID="LN">69  </FONT><A NAME="69"></A>  }
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">72  </FONT><A NAME="72"></A>   * Generate a value of a variate following standard Erlang distribution.
+<FONT ID="LN">73  </FONT><A NAME="73"></A>   * It can be used when the shape parameter is an integer and not too large,
+<FONT ID="LN">74  </FONT><A NAME="74"></A>   * say, &lt;100.  When the parameter is not an integer (which is often named
+<FONT ID="LN">75  </FONT><A NAME="75"></A>   * Gamma distribution) or is large, use &lt;code&gt;nextGamma(double a)&lt;/code&gt;
+<FONT ID="LN">76  </FONT><A NAME="76"></A>   * instead.
+<FONT ID="LN">77  </FONT><A NAME="77"></A>   *
+<FONT ID="LN">78  </FONT><A NAME="78"></A>   * @param a the shape parameter, must be no less than 1
+<FONT ID="LN">79  </FONT><A NAME="79"></A>   * @return a value of the variate
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * @exception Exception if parameter less than 1
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   */</FONT>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> nextErlang(<FONT ID="Int">int</FONT> a) <FONT ID="Throws">throws</FONT> Exception{
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    <FONT ID="If">if</FONT>(a&lt;<FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">84  </FONT><A NAME="84"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Shape parameter of Erlang distribution must be greater than 1!"</FONT>);
+<FONT ID="LN">85  </FONT><A NAME="85"></A>
+<FONT ID="LN">86  </FONT><A NAME="86"></A>    <FONT ID="Double">double</FONT> product = <FONT ID="FloatPointLiteral">1.0</FONT>;
+<FONT ID="LN">87  </FONT><A NAME="87"></A>    <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">1</FONT>; i&lt;=a; i++)
+<FONT ID="LN">88  </FONT><A NAME="88"></A>      product *= <FONT ID="Super">super</FONT>.nextDouble();
+<FONT ID="LN">89  </FONT><A NAME="89"></A>
+<FONT ID="LN">90  </FONT><A NAME="90"></A>    <FONT ID="Return">return</FONT> -Math.log(product);
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  }
+<FONT ID="LN">92  </FONT><A NAME="92"></A>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * Generate a value of a variate following standard Gamma distribution 
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * with shape parameter a.&lt;p&gt;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * If a&gt;1, it uses a rejection method developed by Minh(1988)"Generating
+<FONT ID="LN">97  </FONT><A NAME="97"></A>   * Gamma Variates", ACM Trans. on Math. Software, Vol.14, No.3, pp261-266.
+<FONT ID="LN">98  </FONT><A NAME="98"></A>   * &lt;br&gt;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   * If a&lt;1, it uses the algorithm "GS" developed by Ahrens and Dieter(1974)
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   * "COMPUTER METHODS FOR SAMPLING FROM GAMMA, BETA, POISSON AND BINOMIAL
+<FONT ID="LN">101 </FONT><A NAME="101"></A>   * DISTRIBUTIONS", COMPUTING, 12 (1974), pp223-246, and further implemented
+<FONT ID="LN">102 </FONT><A NAME="102"></A>   * in Fortran by Ahrens, Kohrt and Dieter(1983) "Algorithm 599: sampling
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * from Gamma and Poisson distributions", ACM Trans. on Math. Software, 
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * Vol.9 No.2, pp255-257.&lt;p&gt; 
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   * 
+<FONT ID="LN">106 </FONT><A NAME="106"></A>   * Variates related to standard Gamma can be generated using simple
+<FONT ID="LN">107 </FONT><A NAME="107"></A>   * transformations.
+<FONT ID="LN">108 </FONT><A NAME="108"></A>   *
+<FONT ID="LN">109 </FONT><A NAME="109"></A>   * @param a the shape parameter, must be greater than 1
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   * @return a value of the variate
+<FONT ID="LN">111 </FONT><A NAME="111"></A>   * @exception Exception if parameter not greater than 1
+<FONT ID="LN">112 </FONT><A NAME="112"></A>   */</FONT>
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> nextGamma(<FONT ID="Double">double</FONT> a) <FONT ID="Throws">throws</FONT> Exception{
+<FONT ID="LN">114 </FONT><A NAME="114"></A>    <FONT ID="If">if</FONT>(a&lt;=<FONT ID="FloatPointLiteral">0.0</FONT>)
+<FONT ID="LN">115 </FONT><A NAME="115"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Shape parameter of Gamma distribution"</FONT>+
+<FONT ID="LN">116 </FONT><A NAME="116"></A>      <FONT ID="StringLiteral">"must be greater than 0!"</FONT>);
+<FONT ID="LN">117 </FONT><A NAME="117"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (a==<FONT ID="FloatPointLiteral">1.0</FONT>)
+<FONT ID="LN">118 </FONT><A NAME="118"></A>      <FONT ID="Return">return</FONT> nextExponential();
+<FONT ID="LN">119 </FONT><A NAME="119"></A>    <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (a&lt;<FONT ID="FloatPointLiteral">1.0</FONT>){
+<FONT ID="LN">120 </FONT><A NAME="120"></A>      <FONT ID="Double">double</FONT> b=<FONT ID="FloatPointLiteral">1.0</FONT>+Math.exp(-<FONT ID="FloatPointLiteral">1.0</FONT>)*a, p,x, condition;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>      <FONT ID="Do">do</FONT>{
+<FONT ID="LN">122 </FONT><A NAME="122"></A>        p=b*<FONT ID="Super">super</FONT>.nextDouble();
+<FONT ID="LN">123 </FONT><A NAME="123"></A>        <FONT ID="If">if</FONT>(p&lt;<FONT ID="FloatPointLiteral">1.0</FONT>){
+<FONT ID="LN">124 </FONT><A NAME="124"></A>          x = Math.exp(Math.log(p)/a);
+<FONT ID="LN">125 </FONT><A NAME="125"></A>          condition = x;
+<FONT ID="LN">126 </FONT><A NAME="126"></A>        }
+<FONT ID="LN">127 </FONT><A NAME="127"></A>        <FONT ID="Else">else</FONT>{
+<FONT ID="LN">128 </FONT><A NAME="128"></A>          x = -Math.log((b-p)/a);
+<FONT ID="LN">129 </FONT><A NAME="129"></A>          condition = (<FONT ID="FloatPointLiteral">1.0</FONT>-a)*Math.log(x);
+<FONT ID="LN">130 </FONT><A NAME="130"></A>        }
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      }
+<FONT ID="LN">132 </FONT><A NAME="132"></A>      <FONT ID="While">while</FONT>(nextExponential() &lt; condition);
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      <FONT ID="Return">return</FONT> x;     
+<FONT ID="LN">134 </FONT><A NAME="134"></A>    }
+<FONT ID="LN">135 </FONT><A NAME="135"></A>    <FONT ID="Else">else</FONT>{ <FONT ID="SingleLineComment">// a&gt;1
+<FONT ID="LN">136 </FONT><A NAME="136"></A></FONT>      <FONT ID="Double">double</FONT> b=a-<FONT ID="FloatPointLiteral">1.0</FONT>, D=Math.sqrt(b), D1,x1,x2,xl,f1,f2,x4,x5,xr,f4,f5,
+<FONT ID="LN">137 </FONT><A NAME="137"></A>      p1,p2,p3,p4;
+<FONT ID="LN">138 </FONT><A NAME="138"></A>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>      <FONT ID="SingleLineComment">// Initialization
+<FONT ID="LN">140 </FONT><A NAME="140"></A></FONT>      <FONT ID="If">if</FONT>(a&lt;=<FONT ID="FloatPointLiteral">2.0</FONT>){
+<FONT ID="LN">141 </FONT><A NAME="141"></A>        D1 = b/<FONT ID="FloatPointLiteral">2.0</FONT>;
+<FONT ID="LN">142 </FONT><A NAME="142"></A>        x1 = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">143 </FONT><A NAME="143"></A>        x2 = D1;
+<FONT ID="LN">144 </FONT><A NAME="144"></A>        xl = -<FONT ID="FloatPointLiteral">1.0</FONT>;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>        f1 = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>      }
+<FONT ID="LN">147 </FONT><A NAME="147"></A>      <FONT ID="Else">else</FONT>{
+<FONT ID="LN">148 </FONT><A NAME="148"></A>        D1 = D-<FONT ID="FloatPointLiteral">0.5</FONT>;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>        x2 = b-D1;
+<FONT ID="LN">150 </FONT><A NAME="150"></A>        x1 = x2-D1;
+<FONT ID="LN">151 </FONT><A NAME="151"></A>        xl = <FONT ID="FloatPointLiteral">1.0</FONT>-b/x1;
+<FONT ID="LN">152 </FONT><A NAME="152"></A>        f1 = Math.exp(b*Math.log(x1/b)+<FONT ID="FloatPointLiteral">2.0</FONT>*D1);
+<FONT ID="LN">153 </FONT><A NAME="153"></A>      }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>      f2=Math.exp(b*Math.log(x2/b)+D1);
+<FONT ID="LN">156 </FONT><A NAME="156"></A>      x4 = b+D;
+<FONT ID="LN">157 </FONT><A NAME="157"></A>      x5 = x4+D;
+<FONT ID="LN">158 </FONT><A NAME="158"></A>      xr = <FONT ID="FloatPointLiteral">1.0</FONT>-b/x5;
+<FONT ID="LN">159 </FONT><A NAME="159"></A>      f4 = Math.exp(b*Math.log(x4/b)-D);
+<FONT ID="LN">160 </FONT><A NAME="160"></A>      f5 = Math.exp(b*Math.log(x5/b)-<FONT ID="FloatPointLiteral">2.0</FONT>*D);
+<FONT ID="LN">161 </FONT><A NAME="161"></A>      p1 = <FONT ID="FloatPointLiteral">2.0</FONT>*f4*D;
+<FONT ID="LN">162 </FONT><A NAME="162"></A>      p2 = <FONT ID="FloatPointLiteral">2.0</FONT>*f2*D1+p1;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>      p3 = f5/xr+p2;
+<FONT ID="LN">164 </FONT><A NAME="164"></A>      p4 = -f1/xl+p3;
+<FONT ID="LN">165 </FONT><A NAME="165"></A>
+<FONT ID="LN">166 </FONT><A NAME="166"></A>      <FONT ID="SingleLineComment">// Generation
+<FONT ID="LN">167 </FONT><A NAME="167"></A></FONT>      <FONT ID="Double">double</FONT> u, w=Double.MAX_VALUE, x=b, v, xp;
+<FONT ID="LN">168 </FONT><A NAME="168"></A>      <FONT ID="While">while</FONT>(Math.log(w) &gt; (b*Math.log(x/b)+b-x) || x &lt; <FONT ID="FloatPointLiteral">0.0</FONT>){
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        u=<FONT ID="Super">super</FONT>.nextDouble()*p4;
+<FONT ID="LN">170 </FONT><A NAME="170"></A>        <FONT ID="If">if</FONT>(u&lt;=p1){ <FONT ID="SingleLineComment">// step 5-6
+<FONT ID="LN">171 </FONT><A NAME="171"></A></FONT>          w = u/D-f4;
+<FONT ID="LN">172 </FONT><A NAME="172"></A>          <FONT ID="If">if</FONT>(w&lt;=<FONT ID="FloatPointLiteral">0.0</FONT>) <FONT ID="Return">return</FONT> (b+u/f4);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>          <FONT ID="If">if</FONT>(w&lt;=f5)  <FONT ID="Return">return</FONT> (x4+(w*D)/f5);
+<FONT ID="LN">174 </FONT><A NAME="174"></A>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>          v = <FONT ID="Super">super</FONT>.nextDouble();
+<FONT ID="LN">176 </FONT><A NAME="176"></A>          x=x4+v*D;
+<FONT ID="LN">177 </FONT><A NAME="177"></A>          xp=<FONT ID="FloatPointLiteral">2.0</FONT>*x4-x;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>          <FONT ID="If">if</FONT>(w &gt;= f4+(f4-<FONT ID="IntegerLiteral">1</FONT>)*(x-x4)/(x4-b))
+<FONT ID="LN">180 </FONT><A NAME="180"></A>            <FONT ID="Return">return</FONT> xp;
+<FONT ID="LN">181 </FONT><A NAME="181"></A>          <FONT ID="If">if</FONT>(w &lt;= f4+(b/x4-<FONT ID="IntegerLiteral">1</FONT>)*f4*(x-x4))
+<FONT ID="LN">182 </FONT><A NAME="182"></A>            <FONT ID="Return">return</FONT> x;
+<FONT ID="LN">183 </FONT><A NAME="183"></A>          <FONT ID="If">if</FONT>((w &lt; <FONT ID="FloatPointLiteral">2.0</FONT>*f4-<FONT ID="FloatPointLiteral">1.0</FONT>) || 
+<FONT ID="LN">184 </FONT><A NAME="184"></A>              (w &lt; <FONT ID="FloatPointLiteral">2.0</FONT>*f4-Math.exp(b*Math.log(xp/b)+b-xp)))
+<FONT ID="LN">185 </FONT><A NAME="185"></A>            <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">186 </FONT><A NAME="186"></A>          <FONT ID="Return">return</FONT> xp;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>        }
+<FONT ID="LN">188 </FONT><A NAME="188"></A>        <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT>(u&lt;=p2){ <FONT ID="SingleLineComment">// step 7-8
+<FONT ID="LN">189 </FONT><A NAME="189"></A></FONT>          w = (u-p1)/D1-f2;
+<FONT ID="LN">190 </FONT><A NAME="190"></A>          <FONT ID="If">if</FONT>(w&lt;=<FONT ID="FloatPointLiteral">0.0</FONT>) <FONT ID="Return">return</FONT> (b-(u-p1)/f2);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>          <FONT ID="If">if</FONT>(w&lt;=f1)  <FONT ID="Return">return</FONT> (x1+w*D1/f1);
+<FONT ID="LN">192 </FONT><A NAME="192"></A>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>          v = <FONT ID="Super">super</FONT>.nextDouble();
+<FONT ID="LN">194 </FONT><A NAME="194"></A>          x=x1+v*D1;
+<FONT ID="LN">195 </FONT><A NAME="195"></A>          xp=<FONT ID="FloatPointLiteral">2.0</FONT>*x2-x;
+<FONT ID="LN">196 </FONT><A NAME="196"></A>
+<FONT ID="LN">197 </FONT><A NAME="197"></A>          <FONT ID="If">if</FONT>(w &gt;= f2+(f2-<FONT ID="IntegerLiteral">1</FONT>)*(x-x2)/(x2-b))
+<FONT ID="LN">198 </FONT><A NAME="198"></A>            <FONT ID="Return">return</FONT> xp;
+<FONT ID="LN">199 </FONT><A NAME="199"></A>          <FONT ID="If">if</FONT>(w &lt;= f2*(x-x1)/D1)
+<FONT ID="LN">200 </FONT><A NAME="200"></A>            <FONT ID="Return">return</FONT> x;
+<FONT ID="LN">201 </FONT><A NAME="201"></A>          <FONT ID="If">if</FONT>((w &lt; <FONT ID="FloatPointLiteral">2.0</FONT>*f2-<FONT ID="FloatPointLiteral">1.0</FONT>) || 
+<FONT ID="LN">202 </FONT><A NAME="202"></A>              (w &lt; <FONT ID="FloatPointLiteral">2.0</FONT>*f2-Math.exp(b*Math.log(xp/b)+b-xp)))
+<FONT ID="LN">203 </FONT><A NAME="203"></A>            <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>          <FONT ID="Return">return</FONT> xp;
+<FONT ID="LN">205 </FONT><A NAME="205"></A>        }
+<FONT ID="LN">206 </FONT><A NAME="206"></A>        <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT>(u&lt;p3){ <FONT ID="SingleLineComment">// step 9
+<FONT ID="LN">207 </FONT><A NAME="207"></A></FONT>          w = <FONT ID="Super">super</FONT>.nextDouble();
+<FONT ID="LN">208 </FONT><A NAME="208"></A>          u = (p3-u)/(p3-p2);
+<FONT ID="LN">209 </FONT><A NAME="209"></A>          x = x5-Math.log(u)/xr;
+<FONT ID="LN">210 </FONT><A NAME="210"></A>          <FONT ID="If">if</FONT>(w &lt;= (xr*(x5-x)+<FONT ID="FloatPointLiteral">1.0</FONT>)/u) <FONT ID="Return">return</FONT> x;
+<FONT ID="LN">211 </FONT><A NAME="211"></A>          w = w*f5*u;
+<FONT ID="LN">212 </FONT><A NAME="212"></A>        }
+<FONT ID="LN">213 </FONT><A NAME="213"></A>        <FONT ID="Else">else</FONT>{ <FONT ID="SingleLineComment">// step 10
+<FONT ID="LN">214 </FONT><A NAME="214"></A></FONT>          w = <FONT ID="Super">super</FONT>.nextDouble();
+<FONT ID="LN">215 </FONT><A NAME="215"></A>          u = (p4-u)/(p4-p3);
+<FONT ID="LN">216 </FONT><A NAME="216"></A>          x = x1-Math.log(u)/xl;
+<FONT ID="LN">217 </FONT><A NAME="217"></A>          <FONT ID="If">if</FONT>(x&lt;<FONT ID="FloatPointLiteral">0.0</FONT>) <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">218 </FONT><A NAME="218"></A>          <FONT ID="If">if</FONT>(w &lt;= (xl*(x1-x)+<FONT ID="FloatPointLiteral">1.0</FONT>)/u) <FONT ID="Return">return</FONT> x;
+<FONT ID="LN">219 </FONT><A NAME="219"></A>          w = w*f1*u;
+<FONT ID="LN">220 </FONT><A NAME="220"></A>        }
+<FONT ID="LN">221 </FONT><A NAME="221"></A>      }
+<FONT ID="LN">222 </FONT><A NAME="222"></A>
+<FONT ID="LN">223 </FONT><A NAME="223"></A>      <FONT ID="Return">return</FONT> x;
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    }   
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  }
+<FONT ID="LN">226 </FONT><A NAME="226"></A>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   * Returns the revision string.
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * 
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   * @return        the revision
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   */</FONT>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5359 $"</FONT>);
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  }
+<FONT ID="LN">235 </FONT><A NAME="235"></A>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * Main method for testing this class.
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   *
+<FONT ID="LN">240 </FONT><A NAME="240"></A>   * @param ops # of variates/seed, default is 10/45
+<FONT ID="LN">241 </FONT><A NAME="241"></A>   */</FONT>
+<FONT ID="LN">242 </FONT><A NAME="242"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String[] ops) {
+<FONT ID="LN">243 </FONT><A NAME="243"></A>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>    <FONT ID="Int">int</FONT> n = Integer.parseInt(ops[<FONT ID="IntegerLiteral">0</FONT>]);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    <FONT ID="If">if</FONT>(n&lt;=<FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">246 </FONT><A NAME="246"></A>      n=<FONT ID="IntegerLiteral">10</FONT>;
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    <FONT ID="Long">long</FONT> seed = Long.parseLong(ops[<FONT ID="IntegerLiteral">1</FONT>]);
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    <FONT ID="If">if</FONT>(seed &lt;= <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">249 </FONT><A NAME="249"></A>      seed = <FONT ID="IntegerLiteral">45</FONT>;
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    <A HREF="../../weka/core/RandomVariates.java.html">RandomVariates</A> var = <FONT ID="New">new</FONT> <A HREF="../../weka/core/RandomVariates.java.html">RandomVariates</A>(seed);
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    <FONT ID="Double">double</FONT> varb[] = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[n];
+<FONT ID="LN">252 </FONT><A NAME="252"></A>
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">254 </FONT><A NAME="254"></A>      System.out.println(<FONT ID="StringLiteral">"Generate "</FONT>+n+<FONT ID="StringLiteral">" values with std. exp dist:"</FONT>);
+<FONT ID="LN">255 </FONT><A NAME="255"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>; i&lt;n; i++){
+<FONT ID="LN">256 </FONT><A NAME="256"></A>        varb[i] = var.nextExponential();
+<FONT ID="LN">257 </FONT><A NAME="257"></A>        System.out.print(<FONT ID="StringLiteral">"["</FONT>+i+<FONT ID="StringLiteral">"] "</FONT>+varb[i]+<FONT ID="StringLiteral">", "</FONT>);
+<FONT ID="LN">258 </FONT><A NAME="258"></A>      }
+<FONT ID="LN">259 </FONT><A NAME="259"></A>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>      System.out.println(<FONT ID="StringLiteral">"\nMean is "</FONT>+Utils.mean(varb)+
+<FONT ID="LN">261 </FONT><A NAME="261"></A>          <FONT ID="StringLiteral">", Variance is "</FONT>+Utils.variance(varb)+
+<FONT ID="LN">262 </FONT><A NAME="262"></A>          <FONT ID="StringLiteral">"\n\nGenerate "</FONT>+n+<FONT ID="StringLiteral">" values with"</FONT>+
+<FONT ID="LN">263 </FONT><A NAME="263"></A>      <FONT ID="StringLiteral">" std. Erlang-5 dist:"</FONT>);
+<FONT ID="LN">264 </FONT><A NAME="264"></A>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>; i&lt;n; i++){
+<FONT ID="LN">266 </FONT><A NAME="266"></A>        varb[i] = var.nextErlang(<FONT ID="IntegerLiteral">5</FONT>);
+<FONT ID="LN">267 </FONT><A NAME="267"></A>        System.out.print(<FONT ID="StringLiteral">"["</FONT>+i+<FONT ID="StringLiteral">"] "</FONT>+varb[i]+<FONT ID="StringLiteral">", "</FONT>);
+<FONT ID="LN">268 </FONT><A NAME="268"></A>      }
+<FONT ID="LN">269 </FONT><A NAME="269"></A>
+<FONT ID="LN">270 </FONT><A NAME="270"></A>      System.out.println(<FONT ID="StringLiteral">"\nMean is "</FONT>+Utils.mean(varb)+
+<FONT ID="LN">271 </FONT><A NAME="271"></A>          <FONT ID="StringLiteral">", Variance is "</FONT>+Utils.variance(varb)+
+<FONT ID="LN">272 </FONT><A NAME="272"></A>          <FONT ID="StringLiteral">"\n\nGenerate "</FONT>+n+<FONT ID="StringLiteral">" values with"</FONT>+
+<FONT ID="LN">273 </FONT><A NAME="273"></A>      <FONT ID="StringLiteral">" std. Gamma(4.5) dist:"</FONT>);
+<FONT ID="LN">274 </FONT><A NAME="274"></A>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>; i&lt;n; i++){
+<FONT ID="LN">276 </FONT><A NAME="276"></A>        varb[i] = var.nextGamma(<FONT ID="FloatPointLiteral">4.5</FONT>);
+<FONT ID="LN">277 </FONT><A NAME="277"></A>        System.out.print(<FONT ID="StringLiteral">"["</FONT>+i+<FONT ID="StringLiteral">"] "</FONT>+varb[i]+<FONT ID="StringLiteral">", "</FONT>);
+<FONT ID="LN">278 </FONT><A NAME="278"></A>      }  
+<FONT ID="LN">279 </FONT><A NAME="279"></A>
+<FONT ID="LN">280 </FONT><A NAME="280"></A>      System.out.println(<FONT ID="StringLiteral">"\nMean is "</FONT>+Utils.mean(varb)+
+<FONT ID="LN">281 </FONT><A NAME="281"></A>          <FONT ID="StringLiteral">", Variance is "</FONT>+Utils.variance(varb)+
+<FONT ID="LN">282 </FONT><A NAME="282"></A>          <FONT ID="StringLiteral">"\n\nGenerate "</FONT>+n+<FONT ID="StringLiteral">" values with"</FONT>+
+<FONT ID="LN">283 </FONT><A NAME="283"></A>      <FONT ID="StringLiteral">" std. Gamma(0.5) dist:"</FONT>);
+<FONT ID="LN">284 </FONT><A NAME="284"></A>
+<FONT ID="LN">285 </FONT><A NAME="285"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>; i&lt;n; i++){
+<FONT ID="LN">286 </FONT><A NAME="286"></A>        varb[i] = var.nextGamma(<FONT ID="FloatPointLiteral">0.5</FONT>);
+<FONT ID="LN">287 </FONT><A NAME="287"></A>        System.out.print(<FONT ID="StringLiteral">"["</FONT>+i+<FONT ID="StringLiteral">"] "</FONT>+varb[i]+<FONT ID="StringLiteral">", "</FONT>);
+<FONT ID="LN">288 </FONT><A NAME="288"></A>      }       
+<FONT ID="LN">289 </FONT><A NAME="289"></A>
+<FONT ID="LN">290 </FONT><A NAME="290"></A>      System.out.println(<FONT ID="StringLiteral">"\nMean is "</FONT>+Utils.mean(varb)+
+<FONT ID="LN">291 </FONT><A NAME="291"></A>          <FONT ID="StringLiteral">", Variance is "</FONT>+Utils.variance(varb)+
+<FONT ID="LN">292 </FONT><A NAME="292"></A>          <FONT ID="StringLiteral">"\n\nGenerate "</FONT>+n+<FONT ID="StringLiteral">" values with"</FONT>+
+<FONT ID="LN">293 </FONT><A NAME="293"></A>      <FONT ID="StringLiteral">" std. Gaussian(5, 2) dist:"</FONT>);
+<FONT ID="LN">294 </FONT><A NAME="294"></A>
+<FONT ID="LN">295 </FONT><A NAME="295"></A>      <FONT ID="For">for</FONT>(<FONT ID="Int">int</FONT> i=<FONT ID="IntegerLiteral">0</FONT>; i&lt;n; i++){
+<FONT ID="LN">296 </FONT><A NAME="296"></A>        varb[i] = var.nextGaussian()*<FONT ID="FloatPointLiteral">2.0</FONT>+<FONT ID="FloatPointLiteral">5.0</FONT>;
+<FONT ID="LN">297 </FONT><A NAME="297"></A>        System.out.print(<FONT ID="StringLiteral">"["</FONT>+i+<FONT ID="StringLiteral">"] "</FONT>+varb[i]+<FONT ID="StringLiteral">", "</FONT>);
+<FONT ID="LN">298 </FONT><A NAME="298"></A>      }       
+<FONT ID="LN">299 </FONT><A NAME="299"></A>      System.out.println(<FONT ID="StringLiteral">"\nMean is "</FONT>+Utils.mean(varb)+
+<FONT ID="LN">300 </FONT><A NAME="300"></A>          <FONT ID="StringLiteral">", Variance is "</FONT>+Utils.variance(varb)+<FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">301 </FONT><A NAME="301"></A>
+<FONT ID="LN">302 </FONT><A NAME="302"></A>    } <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">303 </FONT><A NAME="303"></A>      e.printStackTrace();
+<FONT ID="LN">304 </FONT><A NAME="304"></A>    }
+<FONT ID="LN">305 </FONT><A NAME="305"></A>  }
+<FONT ID="LN">306 </FONT><A NAME="306"></A>}
+<FONT ID="LN">307 </FONT><A NAME="307"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">RandomVariates.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

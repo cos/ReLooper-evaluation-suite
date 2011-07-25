@@ -1,0 +1,1363 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.neighboursearch.KDTree (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">KDTree.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    KDTree.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2000-2007 University of Waikato
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *    
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.core.neighboursearch;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/DistanceFunction.java.html">weka.core.DistanceFunction</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/EuclideanDistance.java.html">weka.core.EuclideanDistance</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/DenseInstance.java.html">weka.core.DenseInstance</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Option.java.html">weka.core.Option</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformationHandler.java.html">weka.core.TechnicalInformationHandler</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Field</A>;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">weka.core.TechnicalInformation.Type</A>;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">weka.core.neighboursearch.kdtrees.KDTreeNode</A>;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNodeSplitter.java.html">weka.core.neighboursearch.kdtrees.KDTreeNodeSplitter</A>;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/SlidingMidPointOfWidestSide.java.html">weka.core.neighboursearch.kdtrees.SlidingMidPointOfWidestSide</A>;
+<FONT ID="LN">40  </FONT><A NAME="40"></A>
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.util.Enumeration;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">43  </FONT><A NAME="43"></A>
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">45  </FONT><A NAME="45"></A> &lt;!-- globalinfo-start --&gt;
+<FONT ID="LN">46  </FONT><A NAME="46"></A> * Class implementing the KDTree search algorithm for nearest neighbour search.&lt;br/&gt;
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * The connection to dataset is only a reference. For the tree structure the indexes are stored in an array. &lt;br/&gt;
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * Building the tree:&lt;br/&gt;
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * If a node has &amp;lt;maximal-inst-number&amp;gt; (option -L) instances no further splitting is done. Also if the split would leave one side empty, the branch is not split any further even if the instances in the resulting node are more than &amp;lt;maximal-inst-number&amp;gt; instances.&lt;br/&gt;
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * **PLEASE NOTE:** The algorithm can not handle missing values, so it is advisable to run ReplaceMissingValues filter if there are any missing values in the dataset.&lt;br/&gt;
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * &lt;br/&gt;
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * For more information see:&lt;br/&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * &lt;br/&gt;
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * Jerome H. Friedman, Jon Luis Bentley, Raphael Ari Finkel (1977). An Algorithm for Finding Best Matches in Logarithmic Expected Time. ACM Transactions on Mathematics Software. 3(3):209-226.&lt;br/&gt;
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * &lt;br/&gt;
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * Andrew Moore (1991). A tutorial on kd-trees.
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * &lt;p/&gt;
+<FONT ID="LN">58  </FONT><A NAME="58"></A> &lt;!-- globalinfo-end --&gt;
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * 
+<FONT ID="LN">60  </FONT><A NAME="60"></A> &lt;!-- technical-bibtex-start --&gt;
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * BibTeX:
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * &lt;pre&gt;
+<FONT ID="LN">63  </FONT><A NAME="63"></A> * &amp;#64;article{Friedman1977,
+<FONT ID="LN">64  </FONT><A NAME="64"></A> *    author = {Jerome H. Friedman and Jon Luis Bentley and Raphael Ari Finkel},
+<FONT ID="LN">65  </FONT><A NAME="65"></A> *    journal = {ACM Transactions on Mathematics Software},
+<FONT ID="LN">66  </FONT><A NAME="66"></A> *    month = {September},
+<FONT ID="LN">67  </FONT><A NAME="67"></A> *    number = {3},
+<FONT ID="LN">68  </FONT><A NAME="68"></A> *    pages = {209-226},
+<FONT ID="LN">69  </FONT><A NAME="69"></A> *    title = {An Algorithm for Finding Best Matches in Logarithmic Expected Time},
+<FONT ID="LN">70  </FONT><A NAME="70"></A> *    volume = {3},
+<FONT ID="LN">71  </FONT><A NAME="71"></A> *    year = {1977}
+<FONT ID="LN">72  </FONT><A NAME="72"></A> * }
+<FONT ID="LN">73  </FONT><A NAME="73"></A> * 
+<FONT ID="LN">74  </FONT><A NAME="74"></A> * &amp;#64;techreport{Moore1991,
+<FONT ID="LN">75  </FONT><A NAME="75"></A> *    author = {Andrew Moore},
+<FONT ID="LN">76  </FONT><A NAME="76"></A> *    booktitle = {University of Cambridge Computer Laboratory Technical Report No. 209},
+<FONT ID="LN">77  </FONT><A NAME="77"></A> *    howpublished = {Extract from PhD Thesis},
+<FONT ID="LN">78  </FONT><A NAME="78"></A> *    title = {A tutorial on kd-trees},
+<FONT ID="LN">79  </FONT><A NAME="79"></A> *    year = {1991},
+<FONT ID="LN">80  </FONT><A NAME="80"></A> *    HTTP = {Available from http://www.autonlab.org/autonweb/14665.html}
+<FONT ID="LN">81  </FONT><A NAME="81"></A> * }
+<FONT ID="LN">82  </FONT><A NAME="82"></A> * &lt;/pre&gt;
+<FONT ID="LN">83  </FONT><A NAME="83"></A> * &lt;p/&gt;
+<FONT ID="LN">84  </FONT><A NAME="84"></A> &lt;!-- technical-bibtex-end --&gt;
+<FONT ID="LN">85  </FONT><A NAME="85"></A> * 
+<FONT ID="LN">86  </FONT><A NAME="86"></A> &lt;!-- options-start --&gt;
+<FONT ID="LN">87  </FONT><A NAME="87"></A> * Valid options are: &lt;p/&gt;
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * 
+<FONT ID="LN">89  </FONT><A NAME="89"></A> * &lt;pre&gt; -S &amp;lt;classname and options&amp;gt;
+<FONT ID="LN">90  </FONT><A NAME="90"></A> *  Node splitting method to use.
+<FONT ID="LN">91  </FONT><A NAME="91"></A> *  (default: weka.core.neighboursearch.kdtrees.SlidingMidPointOfWidestSide)&lt;/pre&gt;
+<FONT ID="LN">92  </FONT><A NAME="92"></A> * 
+<FONT ID="LN">93  </FONT><A NAME="93"></A> * &lt;pre&gt; -W &amp;lt;value&amp;gt;
+<FONT ID="LN">94  </FONT><A NAME="94"></A> *  Set minimal width of a box
+<FONT ID="LN">95  </FONT><A NAME="95"></A> *  (default: 1.0E-2).&lt;/pre&gt;
+<FONT ID="LN">96  </FONT><A NAME="96"></A> * 
+<FONT ID="LN">97  </FONT><A NAME="97"></A> * &lt;pre&gt; -L
+<FONT ID="LN">98  </FONT><A NAME="98"></A> *  Maximal number of instances in a leaf
+<FONT ID="LN">99  </FONT><A NAME="99"></A> *  (default: 40).&lt;/pre&gt;
+<FONT ID="LN">100 </FONT><A NAME="100"></A> * 
+<FONT ID="LN">101 </FONT><A NAME="101"></A> * &lt;pre&gt; -N
+<FONT ID="LN">102 </FONT><A NAME="102"></A> *  Normalizing will be done
+<FONT ID="LN">103 </FONT><A NAME="103"></A> *  (Select dimension for split, with normalising to universe).&lt;/pre&gt;
+<FONT ID="LN">104 </FONT><A NAME="104"></A> * 
+<FONT ID="LN">105 </FONT><A NAME="105"></A> &lt;!-- options-end --&gt; 
+<FONT ID="LN">106 </FONT><A NAME="106"></A> * 
+<FONT ID="LN">107 </FONT><A NAME="107"></A> * @author Gabi Schmidberger (gabi[at-the-rate]cs[dot]waikato[dot]ac[dot]nz)
+<FONT ID="LN">108 </FONT><A NAME="108"></A> * @author Malcolm Ware (mfw4[at-the-rate]cs[dot]waikato[dot]ac[dot]nz)
+<FONT ID="LN">109 </FONT><A NAME="109"></A> * @author Ashraf M. Kibriya (amk14[at-the-rate]cs[dot]waikato[dot]ac[dot]nz)
+<FONT ID="LN">110 </FONT><A NAME="110"></A> * @version $Revision: 5987 $
+<FONT ID="LN">111 </FONT><A NAME="111"></A> */</FONT>
+<FONT ID="LN">112 </FONT><A NAME="112"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> KDTree
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../../weka/core/neighboursearch/NearestNeighbourSearch.java.html">NearestNeighbourSearch</A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <FONT ID="Implements">implements</FONT> <A HREF="../../../weka/core/TechnicalInformationHandler.java.html">TechnicalInformationHandler</A> {
+<FONT ID="LN">115 </FONT><A NAME="115"></A>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="FormalComment">/** For serialization. */</FONT>
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = <FONT ID="IntegerLiteral">1505717283763272533L</FONT>;
+<FONT ID="LN">118 </FONT><A NAME="118"></A>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">120 </FONT><A NAME="120"></A>   * Array holding the distances of the nearest neighbours. It is filled up both
+<FONT ID="LN">121 </FONT><A NAME="121"></A>   * by nearestNeighbour() and kNearestNeighbours().
+<FONT ID="LN">122 </FONT><A NAME="122"></A>   */</FONT>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT>[] m_DistanceList;
+<FONT ID="LN">124 </FONT><A NAME="124"></A>
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   * Indexlist of the instances of this kdtree. Instances get sorted according
+<FONT ID="LN">127 </FONT><A NAME="127"></A>   * to the splits. the nodes of the KDTree just hold their start and end
+<FONT ID="LN">128 </FONT><A NAME="128"></A>   * indices
+<FONT ID="LN">129 </FONT><A NAME="129"></A>   */</FONT>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT>[] m_InstList;
+<FONT ID="LN">131 </FONT><A NAME="131"></A>
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  <FONT ID="FormalComment">/** The root node of the tree. */</FONT>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> m_Root;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  <FONT ID="FormalComment">/** The node splitter. */</FONT>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNodeSplitter.java.html">KDTreeNodeSplitter</A> m_Splitter = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/SlidingMidPointOfWidestSide.java.html">SlidingMidPointOfWidestSide</A>();
+<FONT ID="LN">137 </FONT><A NAME="137"></A>
+<FONT ID="LN">138 </FONT><A NAME="138"></A>  <FONT ID="FormalComment">/** Tree stats. */</FONT>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_NumNodes, m_NumLeaves, m_MaxDepth;
+<FONT ID="LN">140 </FONT><A NAME="140"></A>
+<FONT ID="LN">141 </FONT><A NAME="141"></A>  <FONT ID="FormalComment">/** Tree Stats variables. */</FONT>
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/core/neighboursearch/TreePerformanceStats.java.html">TreePerformanceStats</A> m_TreeStats = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">143 </FONT><A NAME="143"></A>
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  <FONT ID="SingleLineComment">// Constants
+<FONT ID="LN">145 </FONT><A NAME="145"></A></FONT>  <FONT ID="FormalComment">/** The index of MIN value in attributes' range array. */</FONT>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> MIN = EuclideanDistance.R_MIN;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  <FONT ID="FormalComment">/** The index of MAX value in attributes' range array. */</FONT>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> MAX = EuclideanDistance.R_MAX; 
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  <FONT ID="FormalComment">/** The index of WIDTH (MAX-MIN) value in attributes' range array. */</FONT>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> WIDTH = EuclideanDistance.R_WIDTH;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>
+<FONT ID="LN">154 </FONT><A NAME="154"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * Returns an instance of a TechnicalInformation object, containing detailed
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * information about the technical background of this class, e.g., paper
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * reference or book this class is based on.
+<FONT ID="LN">158 </FONT><A NAME="158"></A>   * 
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   * @return        the technical information about this class
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   */</FONT>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A> getTechnicalInformation() {
+<FONT ID="LN">162 </FONT><A NAME="162"></A>    <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A> result;
+<FONT ID="LN">163 </FONT><A NAME="163"></A>    <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A> additional;
+<FONT ID="LN">164 </FONT><A NAME="164"></A>
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    result = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/TechnicalInformation.java.html">TechnicalInformation</A>(Type.ARTICLE);
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    result.setValue(Field.AUTHOR, <FONT ID="StringLiteral">"Jerome H. Friedman and Jon Luis Bentley and Raphael Ari Finkel"</FONT>);
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    result.setValue(Field.YEAR, <FONT ID="StringLiteral">"1977"</FONT>);
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    result.setValue(Field.TITLE, <FONT ID="StringLiteral">"An Algorithm for Finding Best Matches in Logarithmic Expected Time"</FONT>);
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    result.setValue(Field.JOURNAL, <FONT ID="StringLiteral">"ACM Transactions on Mathematics Software"</FONT>);
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    result.setValue(Field.PAGES, <FONT ID="StringLiteral">"209-226"</FONT>);
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    result.setValue(Field.MONTH, <FONT ID="StringLiteral">"September"</FONT>);
+<FONT ID="LN">172 </FONT><A NAME="172"></A>    result.setValue(Field.VOLUME, <FONT ID="StringLiteral">"3"</FONT>);
+<FONT ID="LN">173 </FONT><A NAME="173"></A>    result.setValue(Field.NUMBER, <FONT ID="StringLiteral">"3"</FONT>);
+<FONT ID="LN">174 </FONT><A NAME="174"></A>
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    additional = result.add(Type.TECHREPORT);
+<FONT ID="LN">176 </FONT><A NAME="176"></A>    additional.setValue(Field.AUTHOR, <FONT ID="StringLiteral">"Andrew Moore"</FONT>);
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    additional.setValue(Field.YEAR, <FONT ID="StringLiteral">"1991"</FONT>);
+<FONT ID="LN">178 </FONT><A NAME="178"></A>    additional.setValue(Field.TITLE, <FONT ID="StringLiteral">"A tutorial on kd-trees"</FONT>);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    additional.setValue(Field.HOWPUBLISHED, <FONT ID="StringLiteral">"Extract from PhD Thesis"</FONT>);
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    additional.setValue(Field.BOOKTITLE, <FONT ID="StringLiteral">"University of Cambridge Computer Laboratory Technical Report No. 209"</FONT>);
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    additional.setValue(Field.HTTP, <FONT ID="StringLiteral">"Available from http://www.autonlab.org/autonweb/14665.html"</FONT>);
+<FONT ID="LN">182 </FONT><A NAME="182"></A>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">184 </FONT><A NAME="184"></A>  }
+<FONT ID="LN">185 </FONT><A NAME="185"></A>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   * Creates a new instance of KDTree.
+<FONT ID="LN">188 </FONT><A NAME="188"></A>   */</FONT>
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="Public">public</FONT> KDTree() {
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="Super">super</FONT>();
+<FONT ID="LN">191 </FONT><A NAME="191"></A>    <FONT ID="If">if</FONT> (getMeasurePerformance())
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      m_Stats = m_TreeStats = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/neighboursearch/TreePerformanceStats.java.html">TreePerformanceStats</A>();
+<FONT ID="LN">193 </FONT><A NAME="193"></A>  }
+<FONT ID="LN">194 </FONT><A NAME="194"></A>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">196 </FONT><A NAME="196"></A>   * Creates a new instance of KDTree. 
+<FONT ID="LN">197 </FONT><A NAME="197"></A>   * It also builds the tree on supplied set of Instances.
+<FONT ID="LN">198 </FONT><A NAME="198"></A>   * @param insts The instances/points on which the BallTree 
+<FONT ID="LN">199 </FONT><A NAME="199"></A>   * should be built on.
+<FONT ID="LN">200 </FONT><A NAME="200"></A>   */</FONT>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  <FONT ID="Public">public</FONT> KDTree(<A HREF="../../../weka/core/Instances.java.html">Instances</A> insts) {
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    <FONT ID="Super">super</FONT>(insts);
+<FONT ID="LN">203 </FONT><A NAME="203"></A>    <FONT ID="If">if</FONT> (getMeasurePerformance())
+<FONT ID="LN">204 </FONT><A NAME="204"></A>      m_Stats = m_TreeStats = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/neighboursearch/TreePerformanceStats.java.html">TreePerformanceStats</A>();
+<FONT ID="LN">205 </FONT><A NAME="205"></A>  }
+<FONT ID="LN">206 </FONT><A NAME="206"></A>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   * Builds the KDTree on the supplied set of instances/points. It 
+<FONT ID="LN">209 </FONT><A NAME="209"></A>   * is adviseable to run the replace missing attributes filter 
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   * on the passed instances first.
+<FONT ID="LN">211 </FONT><A NAME="211"></A>   * NOTE: This method should not be called from outside this 
+<FONT ID="LN">212 </FONT><A NAME="212"></A>   * class. Outside classes should call setInstances(Instances)
+<FONT ID="LN">213 </FONT><A NAME="213"></A>   * instead.
+<FONT ID="LN">214 </FONT><A NAME="214"></A>   * 
+<FONT ID="LN">215 </FONT><A NAME="215"></A>   * @param instances   The instances to build the tree on
+<FONT ID="LN">216 </FONT><A NAME="216"></A>   * @throws Exception  if something goes wrong
+<FONT ID="LN">217 </FONT><A NAME="217"></A>   */</FONT>
+<FONT ID="LN">218 </FONT><A NAME="218"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> buildKDTree(<A HREF="../../../weka/core/Instances.java.html">Instances</A> instances) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">219 </FONT><A NAME="219"></A>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    checkMissing(instances);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>    <FONT ID="If">if</FONT> (m_EuclideanDistance == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">222 </FONT><A NAME="222"></A>      m_DistanceFunction = m_EuclideanDistance = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A>(
+<FONT ID="LN">223 </FONT><A NAME="223"></A>          instances);
+<FONT ID="LN">224 </FONT><A NAME="224"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>      m_EuclideanDistance.setInstances(instances);
+<FONT ID="LN">226 </FONT><A NAME="226"></A>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>    m_Instances = instances;
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    <FONT ID="Int">int</FONT> numInst = m_Instances.numInstances();
+<FONT ID="LN">229 </FONT><A NAME="229"></A>
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    <FONT ID="SingleLineComment">// Make the global index list
+<FONT ID="LN">231 </FONT><A NAME="231"></A></FONT>    m_InstList = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[numInst];
+<FONT ID="LN">232 </FONT><A NAME="232"></A>
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numInst; i++) {
+<FONT ID="LN">234 </FONT><A NAME="234"></A>      m_InstList[i] = i;
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    }
+<FONT ID="LN">236 </FONT><A NAME="236"></A>
+<FONT ID="LN">237 </FONT><A NAME="237"></A>    <FONT ID="Double">double</FONT>[][] universe = m_EuclideanDistance.getRanges();
+<FONT ID="LN">238 </FONT><A NAME="238"></A>
+<FONT ID="LN">239 </FONT><A NAME="239"></A>    <FONT ID="SingleLineComment">// initializing internal fields of KDTreeSplitter
+<FONT ID="LN">240 </FONT><A NAME="240"></A></FONT>    m_Splitter.setInstances(m_Instances);
+<FONT ID="LN">241 </FONT><A NAME="241"></A>    m_Splitter.setInstanceList(m_InstList);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>    m_Splitter.setEuclideanDistanceFunction(m_EuclideanDistance);
+<FONT ID="LN">243 </FONT><A NAME="243"></A>    m_Splitter.setNodeWidthNormalization(m_NormalizeNodeWidth);
+<FONT ID="LN">244 </FONT><A NAME="244"></A>
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    <FONT ID="SingleLineComment">// building tree
+<FONT ID="LN">246 </FONT><A NAME="246"></A></FONT>    m_NumNodes = m_NumLeaves = <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    m_MaxDepth = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    m_Root = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A>(m_NumNodes, <FONT ID="IntegerLiteral">0</FONT>, m_Instances.numInstances() - <FONT ID="IntegerLiteral">1</FONT>,
+<FONT ID="LN">249 </FONT><A NAME="249"></A>        universe);
+<FONT ID="LN">250 </FONT><A NAME="250"></A>
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    splitNodes(m_Root, universe, m_MaxDepth + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">252 </FONT><A NAME="252"></A>  }
+<FONT ID="LN">253 </FONT><A NAME="253"></A>
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">255 </FONT><A NAME="255"></A>   * Recursively splits nodes of a tree starting from the supplied node.
+<FONT ID="LN">256 </FONT><A NAME="256"></A>   * The splitting stops for any node for which the number of instances/points
+<FONT ID="LN">257 </FONT><A NAME="257"></A>   * falls below a given threshold (given by m_MaxInstInLeaf), or if the 
+<FONT ID="LN">258 </FONT><A NAME="258"></A>   * maximum relative width/range of the instances/points 
+<FONT ID="LN">259 </FONT><A NAME="259"></A>   * (i.e. max_i(max(att_i) - min(att_i)) ) falls below a given threshold 
+<FONT ID="LN">260 </FONT><A NAME="260"></A>   * (given by m_MinBoxRelWidth). 
+<FONT ID="LN">261 </FONT><A NAME="261"></A>   * 
+<FONT ID="LN">262 </FONT><A NAME="262"></A>   * @param node The node to start splitting from.
+<FONT ID="LN">263 </FONT><A NAME="263"></A>   * @param universe The attribute ranges of the whole dataset.
+<FONT ID="LN">264 </FONT><A NAME="264"></A>   * @param depth The depth of the supplied node.  
+<FONT ID="LN">265 </FONT><A NAME="265"></A>   * @throws Exception If there is some problem 
+<FONT ID="LN">266 </FONT><A NAME="266"></A>   * splitting.
+<FONT ID="LN">267 </FONT><A NAME="267"></A>   */</FONT>
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> splitNodes(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <FONT ID="Double">double</FONT>[][] universe,
+<FONT ID="LN">269 </FONT><A NAME="269"></A>      <FONT ID="Int">int</FONT> depth) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">270 </FONT><A NAME="270"></A>    <FONT ID="Double">double</FONT>[][] nodeRanges = m_EuclideanDistance.initializeRanges(m_InstList,
+<FONT ID="LN">271 </FONT><A NAME="271"></A>                                                 node.m_Start, node.m_End);
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    <FONT ID="If">if</FONT> (node.numInstances() &lt;= m_MaxInstInLeaf
+<FONT ID="LN">273 </FONT><A NAME="273"></A>        || getMaxRelativeNodeWidth(nodeRanges, universe) &lt;= m_MinBoxRelWidth)
+<FONT ID="LN">274 </FONT><A NAME="274"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">275 </FONT><A NAME="275"></A>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <FONT ID="SingleLineComment">// splitting a node so it is no longer a leaf
+<FONT ID="LN">277 </FONT><A NAME="277"></A></FONT>    m_NumLeaves--;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>    <FONT ID="If">if</FONT> (depth &gt; m_MaxDepth)
+<FONT ID="LN">280 </FONT><A NAME="280"></A>      m_MaxDepth = depth;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>
+<FONT ID="LN">282 </FONT><A NAME="282"></A>    m_Splitter.splitNode(node, m_NumNodes, nodeRanges, universe);
+<FONT ID="LN">283 </FONT><A NAME="283"></A>    m_NumNodes += <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">284 </FONT><A NAME="284"></A>    m_NumLeaves += <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">285 </FONT><A NAME="285"></A>
+<FONT ID="LN">286 </FONT><A NAME="286"></A>    splitNodes(node.m_Left, universe, depth + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">287 </FONT><A NAME="287"></A>    splitNodes(node.m_Right, universe, depth + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  }
+<FONT ID="LN">289 </FONT><A NAME="289"></A>
+<FONT ID="LN">290 </FONT><A NAME="290"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">291 </FONT><A NAME="291"></A>   * Returns (in the supplied heap object) the k nearest 
+<FONT ID="LN">292 </FONT><A NAME="292"></A>   * neighbours of the given instance starting from the give 
+<FONT ID="LN">293 </FONT><A NAME="293"></A>   * tree node. &amp;gt;k neighbours are returned if there are more than 
+<FONT ID="LN">294 </FONT><A NAME="294"></A>   * one neighbours at the kth boundary. NOTE: This method should 
+<FONT ID="LN">295 </FONT><A NAME="295"></A>   * not be used from outside this class. Outside classes should 
+<FONT ID="LN">296 </FONT><A NAME="296"></A>   * call kNearestNeighbours(Instance, int).
+<FONT ID="LN">297 </FONT><A NAME="297"></A>   * 
+<FONT ID="LN">298 </FONT><A NAME="298"></A>   * @param target  The instance to find the nearest neighbours for.
+<FONT ID="LN">299 </FONT><A NAME="299"></A>   * @param node The KDTreeNode to start the search from.
+<FONT ID="LN">300 </FONT><A NAME="300"></A>   * @param k    The number of neighbours to find.
+<FONT ID="LN">301 </FONT><A NAME="301"></A>   * @param heap The MyHeap object to store/update the kNNs found
+<FONT ID="LN">302 </FONT><A NAME="302"></A>   * during the search.
+<FONT ID="LN">303 </FONT><A NAME="303"></A>   * @param distanceToParents The distance of the supplied target 
+<FONT ID="LN">304 </FONT><A NAME="304"></A>   * to the parents of the supplied tree node. 
+<FONT ID="LN">305 </FONT><A NAME="305"></A>   * @throws Exception  if the nearest neighbour could not be found.
+<FONT ID="LN">306 </FONT><A NAME="306"></A>   */</FONT>
+<FONT ID="LN">307 </FONT><A NAME="307"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> findNearestNeighbours(<A HREF="../../../weka/core/Instance.java.html">Instance</A> target, <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <FONT ID="Int">int</FONT> k,
+<FONT ID="LN">308 </FONT><A NAME="308"></A>      MyHeap heap, <FONT ID="Double">double</FONT> distanceToParents) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">309 </FONT><A NAME="309"></A>    <FONT ID="If">if</FONT> (node.isALeaf()) {
+<FONT ID="LN">310 </FONT><A NAME="310"></A>      <FONT ID="If">if</FONT> (m_TreeStats != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">311 </FONT><A NAME="311"></A>        m_TreeStats.updatePointCount(node.numInstances());
+<FONT ID="LN">312 </FONT><A NAME="312"></A>        m_TreeStats.incrLeafCount();
+<FONT ID="LN">313 </FONT><A NAME="313"></A>      }
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      <FONT ID="Double">double</FONT> distance;
+<FONT ID="LN">315 </FONT><A NAME="315"></A>      <FONT ID="SingleLineComment">// look at all the instances in this leaf
+<FONT ID="LN">316 </FONT><A NAME="316"></A></FONT>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> idx = node.m_Start; idx &lt;= node.m_End; idx++) {
+<FONT ID="LN">317 </FONT><A NAME="317"></A>        <FONT ID="If">if</FONT> (target == m_Instances.instance(m_InstList[idx])) <FONT ID="SingleLineComment">// for
+<FONT ID="LN">318 </FONT><A NAME="318"></A></FONT>                                                              <FONT ID="SingleLineComment">// hold-one-out
+<FONT ID="LN">319 </FONT><A NAME="319"></A></FONT>                                                              <FONT ID="SingleLineComment">// cross-validation
+<FONT ID="LN">320 </FONT><A NAME="320"></A></FONT>          <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">321 </FONT><A NAME="321"></A>        <FONT ID="If">if</FONT> (heap.size() &lt; k) {
+<FONT ID="LN">322 </FONT><A NAME="322"></A>          distance = m_EuclideanDistance.distance(target, m_Instances
+<FONT ID="LN">323 </FONT><A NAME="323"></A>              .instance(m_InstList[idx]), Double.POSITIVE_INFINITY, m_Stats);
+<FONT ID="LN">324 </FONT><A NAME="324"></A>          heap.put(m_InstList[idx], distance);
+<FONT ID="LN">325 </FONT><A NAME="325"></A>        } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">326 </FONT><A NAME="326"></A>          MyHeapElement temp = heap.peek();
+<FONT ID="LN">327 </FONT><A NAME="327"></A>          distance = m_EuclideanDistance.distance(target, m_Instances
+<FONT ID="LN">328 </FONT><A NAME="328"></A>              .instance(m_InstList[idx]), temp.distance, m_Stats);
+<FONT ID="LN">329 </FONT><A NAME="329"></A>          <FONT ID="If">if</FONT> (distance &lt; temp.distance) {
+<FONT ID="LN">330 </FONT><A NAME="330"></A>            heap.putBySubstitute(m_InstList[idx], distance);
+<FONT ID="LN">331 </FONT><A NAME="331"></A>          } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (distance == temp.distance) {
+<FONT ID="LN">332 </FONT><A NAME="332"></A>            heap.putKthNearest(m_InstList[idx], distance);
+<FONT ID="LN">333 </FONT><A NAME="333"></A>          }
+<FONT ID="LN">334 </FONT><A NAME="334"></A>        }<FONT ID="SingleLineComment">// end else heap.size==k
+<FONT ID="LN">335 </FONT><A NAME="335"></A></FONT>      }<FONT ID="SingleLineComment">// end for
+<FONT ID="LN">336 </FONT><A NAME="336"></A></FONT>
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      <FONT ID="If">if</FONT> (m_TreeStats != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">339 </FONT><A NAME="339"></A>        m_TreeStats.incrIntNodeCount();
+<FONT ID="LN">340 </FONT><A NAME="340"></A>      }
+<FONT ID="LN">341 </FONT><A NAME="341"></A>      <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> nearer, further;
+<FONT ID="LN">342 </FONT><A NAME="342"></A>      <FONT ID="Boolean">boolean</FONT> targetInLeft = m_EuclideanDistance.valueIsSmallerEqual(target,
+<FONT ID="LN">343 </FONT><A NAME="343"></A>          node.m_SplitDim, node.m_SplitValue);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>
+<FONT ID="LN">345 </FONT><A NAME="345"></A>      <FONT ID="If">if</FONT> (targetInLeft) {
+<FONT ID="LN">346 </FONT><A NAME="346"></A>        nearer = node.m_Left;
+<FONT ID="LN">347 </FONT><A NAME="347"></A>        further = node.m_Right;
+<FONT ID="LN">348 </FONT><A NAME="348"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">349 </FONT><A NAME="349"></A>        nearer = node.m_Right;
+<FONT ID="LN">350 </FONT><A NAME="350"></A>        further = node.m_Left;
+<FONT ID="LN">351 </FONT><A NAME="351"></A>      }
+<FONT ID="LN">352 </FONT><A NAME="352"></A>      findNearestNeighbours(target, nearer, k, heap, distanceToParents);
+<FONT ID="LN">353 </FONT><A NAME="353"></A>
+<FONT ID="LN">354 </FONT><A NAME="354"></A>      <FONT ID="SingleLineComment">// ... now look in further half if maxDist reaches into it
+<FONT ID="LN">355 </FONT><A NAME="355"></A></FONT>      <FONT ID="If">if</FONT> (heap.size() &lt; k) { <FONT ID="SingleLineComment">// if haven't found the first k
+<FONT ID="LN">356 </FONT><A NAME="356"></A></FONT>        <FONT ID="Double">double</FONT> distanceToSplitPlane = distanceToParents
+<FONT ID="LN">357 </FONT><A NAME="357"></A>            + m_EuclideanDistance.sqDifference(node.m_SplitDim, target
+<FONT ID="LN">358 </FONT><A NAME="358"></A>                .value(node.m_SplitDim), node.m_SplitValue);
+<FONT ID="LN">359 </FONT><A NAME="359"></A>        findNearestNeighbours(target, further, k, heap, distanceToSplitPlane);
+<FONT ID="LN">360 </FONT><A NAME="360"></A>        <FONT ID="Return">return</FONT>;
+<FONT ID="LN">361 </FONT><A NAME="361"></A>      } <FONT ID="Else">else</FONT> { <FONT ID="SingleLineComment">// else see if ball centered at query intersects with the other
+<FONT ID="LN">362 </FONT><A NAME="362"></A></FONT>                <FONT ID="SingleLineComment">// side.
+<FONT ID="LN">363 </FONT><A NAME="363"></A></FONT>        <FONT ID="Double">double</FONT> distanceToSplitPlane = distanceToParents
+<FONT ID="LN">364 </FONT><A NAME="364"></A>            + m_EuclideanDistance.sqDifference(node.m_SplitDim, target
+<FONT ID="LN">365 </FONT><A NAME="365"></A>                .value(node.m_SplitDim), node.m_SplitValue);
+<FONT ID="LN">366 </FONT><A NAME="366"></A>        <FONT ID="If">if</FONT> (heap.peek().distance &gt;= distanceToSplitPlane) {
+<FONT ID="LN">367 </FONT><A NAME="367"></A>          findNearestNeighbours(target, further, k, heap, distanceToSplitPlane);
+<FONT ID="LN">368 </FONT><A NAME="368"></A>        }
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      }<FONT ID="SingleLineComment">// end else
+<FONT ID="LN">370 </FONT><A NAME="370"></A></FONT>    }<FONT ID="SingleLineComment">// end else_if an internal node
+<FONT ID="LN">371 </FONT><A NAME="371"></A></FONT>  }
+<FONT ID="LN">372 </FONT><A NAME="372"></A>
+<FONT ID="LN">373 </FONT><A NAME="373"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">374 </FONT><A NAME="374"></A>   * Returns the k nearest neighbours of the supplied instance.
+<FONT ID="LN">375 </FONT><A NAME="375"></A>   * &amp;gt;k neighbours are returned if there are more than one 
+<FONT ID="LN">376 </FONT><A NAME="376"></A>   * neighbours at the kth boundary. 
+<FONT ID="LN">377 </FONT><A NAME="377"></A>   * 
+<FONT ID="LN">378 </FONT><A NAME="378"></A>   * @param target  The instance to find the nearest neighbours for.
+<FONT ID="LN">379 </FONT><A NAME="379"></A>   * @param k       The number of neighbours to find.
+<FONT ID="LN">380 </FONT><A NAME="380"></A>   * @return The k nearest neighbours (or &amp;gt;k if more there are than
+<FONT ID="LN">381 </FONT><A NAME="381"></A>   * one neighbours at the kth boundary). 
+<FONT ID="LN">382 </FONT><A NAME="382"></A>   * @throws Exception  if the nearest neighbour could not be found.
+<FONT ID="LN">383 </FONT><A NAME="383"></A>   */</FONT>
+<FONT ID="LN">384 </FONT><A NAME="384"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A> kNearestNeighbours(<A HREF="../../../weka/core/Instance.java.html">Instance</A> target, <FONT ID="Int">int</FONT> k) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    checkMissing(target);
+<FONT ID="LN">386 </FONT><A NAME="386"></A>
+<FONT ID="LN">387 </FONT><A NAME="387"></A>    <FONT ID="If">if</FONT> (m_Stats != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">388 </FONT><A NAME="388"></A>      m_Stats.searchStart();
+<FONT ID="LN">389 </FONT><A NAME="389"></A>
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    MyHeap heap = <FONT ID="New">new</FONT> MyHeap(k);
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    findNearestNeighbours(target, m_Root, k, heap, <FONT ID="FloatPointLiteral">0.0</FONT>);
+<FONT ID="LN">392 </FONT><A NAME="392"></A>
+<FONT ID="LN">393 </FONT><A NAME="393"></A>    <FONT ID="If">if</FONT> (m_Stats != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">394 </FONT><A NAME="394"></A>      m_Stats.searchFinish();
+<FONT ID="LN">395 </FONT><A NAME="395"></A>
+<FONT ID="LN">396 </FONT><A NAME="396"></A>    <A HREF="../../../weka/core/Instances.java.html">Instances</A> neighbours = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A>(m_Instances, (heap.size() + heap
+<FONT ID="LN">397 </FONT><A NAME="397"></A>        .noOfKthNearest()));
+<FONT ID="LN">398 </FONT><A NAME="398"></A>    m_DistanceList = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[heap.size() + heap.noOfKthNearest()];
+<FONT ID="LN">399 </FONT><A NAME="399"></A>    <FONT ID="Int">int</FONT>[] indices = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[heap.size() + heap.noOfKthNearest()];
+<FONT ID="LN">400 </FONT><A NAME="400"></A>    <FONT ID="Int">int</FONT> i = indices.length - <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">401 </FONT><A NAME="401"></A>    MyHeapElement h;
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    <FONT ID="While">while</FONT> (heap.noOfKthNearest() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">403 </FONT><A NAME="403"></A>      h = heap.getKthNearest();
+<FONT ID="LN">404 </FONT><A NAME="404"></A>      indices[i] = h.index;
+<FONT ID="LN">405 </FONT><A NAME="405"></A>      m_DistanceList[i] = h.distance;
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      i--;
+<FONT ID="LN">407 </FONT><A NAME="407"></A>    }
+<FONT ID="LN">408 </FONT><A NAME="408"></A>    <FONT ID="While">while</FONT> (heap.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">409 </FONT><A NAME="409"></A>      h = heap.get();
+<FONT ID="LN">410 </FONT><A NAME="410"></A>      indices[i] = h.index;
+<FONT ID="LN">411 </FONT><A NAME="411"></A>      m_DistanceList[i] = h.distance;
+<FONT ID="LN">412 </FONT><A NAME="412"></A>      i--;
+<FONT ID="LN">413 </FONT><A NAME="413"></A>    }
+<FONT ID="LN">414 </FONT><A NAME="414"></A>    m_DistanceFunction.postProcessDistances(m_DistanceList);
+<FONT ID="LN">415 </FONT><A NAME="415"></A>
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> idx = <FONT ID="IntegerLiteral">0</FONT>; idx &lt; indices.length; idx++) {
+<FONT ID="LN">417 </FONT><A NAME="417"></A>      neighbours.add(m_Instances.instance(indices[idx]));
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    }
+<FONT ID="LN">419 </FONT><A NAME="419"></A>
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    <FONT ID="Return">return</FONT> neighbours;
+<FONT ID="LN">421 </FONT><A NAME="421"></A>  }
+<FONT ID="LN">422 </FONT><A NAME="422"></A>  
+<FONT ID="LN">423 </FONT><A NAME="423"></A>
+<FONT ID="LN">424 </FONT><A NAME="424"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">425 </FONT><A NAME="425"></A>   * Returns the nearest neighbour of the supplied target 
+<FONT ID="LN">426 </FONT><A NAME="426"></A>   * instance. 
+<FONT ID="LN">427 </FONT><A NAME="427"></A>   *  
+<FONT ID="LN">428 </FONT><A NAME="428"></A>   * @param target  The instance to find the nearest neighbour for.
+<FONT ID="LN">429 </FONT><A NAME="429"></A>   * @return The nearest neighbour from among the previously 
+<FONT ID="LN">430 </FONT><A NAME="430"></A>   * supplied training instances.
+<FONT ID="LN">431 </FONT><A NAME="431"></A>   * @throws Exception  if the neighbours could not be found.
+<FONT ID="LN">432 </FONT><A NAME="432"></A>   */</FONT>
+<FONT ID="LN">433 </FONT><A NAME="433"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/Instance.java.html">Instance</A> nearestNeighbour(<A HREF="../../../weka/core/Instance.java.html">Instance</A> target) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    <FONT ID="Return">return</FONT> (kNearestNeighbours(target, <FONT ID="IntegerLiteral">1</FONT>)).instance(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">435 </FONT><A NAME="435"></A>  }
+<FONT ID="LN">436 </FONT><A NAME="436"></A>  
+<FONT ID="LN">437 </FONT><A NAME="437"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">438 </FONT><A NAME="438"></A>   * Returns the distances to the kNearest or 1 nearest neighbour currently
+<FONT ID="LN">439 </FONT><A NAME="439"></A>   * found with either the kNearestNeighbours or the nearestNeighbour method.
+<FONT ID="LN">440 </FONT><A NAME="440"></A>   * 
+<FONT ID="LN">441 </FONT><A NAME="441"></A>   * @return array containing the distances of the
+<FONT ID="LN">442 </FONT><A NAME="442"></A>   *         nearestNeighbours. The length and ordering of the array 
+<FONT ID="LN">443 </FONT><A NAME="443"></A>   *         is the same as that of the instances returned by 
+<FONT ID="LN">444 </FONT><A NAME="444"></A>   *         nearestNeighbour functions.
+<FONT ID="LN">445 </FONT><A NAME="445"></A>   * @throws Exception  if called before calling kNearestNeighbours or
+<FONT ID="LN">446 </FONT><A NAME="446"></A>   *            nearestNeighbours.
+<FONT ID="LN">447 </FONT><A NAME="447"></A>   */</FONT>
+<FONT ID="LN">448 </FONT><A NAME="448"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT>[] getDistances() <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    <FONT ID="If">if</FONT> (m_Instances == <FONT ID="Null">null</FONT> || m_DistanceList == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">450 </FONT><A NAME="450"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"The tree has not been supplied with a set of "</FONT>
+<FONT ID="LN">451 </FONT><A NAME="451"></A>          + <FONT ID="StringLiteral">"instances or getDistances() has been called "</FONT>
+<FONT ID="LN">452 </FONT><A NAME="452"></A>          + <FONT ID="StringLiteral">"before calling kNearestNeighbours()."</FONT>);
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    <FONT ID="Return">return</FONT> m_DistanceList;
+<FONT ID="LN">454 </FONT><A NAME="454"></A>  }
+<FONT ID="LN">455 </FONT><A NAME="455"></A>  
+<FONT ID="LN">456 </FONT><A NAME="456"></A>
+<FONT ID="LN">457 </FONT><A NAME="457"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">458 </FONT><A NAME="458"></A>   * Builds the KDTree on the given set of instances.
+<FONT ID="LN">459 </FONT><A NAME="459"></A>   * @param instances The insts on which the KDTree is to be 
+<FONT ID="LN">460 </FONT><A NAME="460"></A>   * built. 
+<FONT ID="LN">461 </FONT><A NAME="461"></A>   * @throws Exception If some error occurs while 
+<FONT ID="LN">462 </FONT><A NAME="462"></A>   * building the KDTree
+<FONT ID="LN">463 </FONT><A NAME="463"></A>   */</FONT>
+<FONT ID="LN">464 </FONT><A NAME="464"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setInstances(<A HREF="../../../weka/core/Instances.java.html">Instances</A> instances) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    <FONT ID="Super">super</FONT>.setInstances(instances);
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    buildKDTree(instances);
+<FONT ID="LN">467 </FONT><A NAME="467"></A>  }
+<FONT ID="LN">468 </FONT><A NAME="468"></A>  
+<FONT ID="LN">469 </FONT><A NAME="469"></A>
+<FONT ID="LN">470 </FONT><A NAME="470"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">471 </FONT><A NAME="471"></A>   * Adds one instance to the KDTree. This updates the KDTree structure to take
+<FONT ID="LN">472 </FONT><A NAME="472"></A>   * into account the newly added training instance.
+<FONT ID="LN">473 </FONT><A NAME="473"></A>   * 
+<FONT ID="LN">474 </FONT><A NAME="474"></A>   * @param instance    the instance to be added. Usually the newly added instance in the
+<FONT ID="LN">475 </FONT><A NAME="475"></A>   *                training set.
+<FONT ID="LN">476 </FONT><A NAME="476"></A>   * @throws Exception If the instance cannot be added.
+<FONT ID="LN">477 </FONT><A NAME="477"></A>   */</FONT>
+<FONT ID="LN">478 </FONT><A NAME="478"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> update(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance) <FONT ID="Throws">throws</FONT> Exception { <FONT ID="SingleLineComment">// better to change
+<FONT ID="LN">479 </FONT><A NAME="479"></A></FONT>                                                            <FONT ID="SingleLineComment">// to addInstance
+<FONT ID="LN">480 </FONT><A NAME="480"></A></FONT>    <FONT ID="If">if</FONT> (m_Instances == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">481 </FONT><A NAME="481"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"No instances supplied yet. Have to call "</FONT>
+<FONT ID="LN">482 </FONT><A NAME="482"></A>          + <FONT ID="StringLiteral">"setInstances(instances) with a set of Instances "</FONT> + <FONT ID="StringLiteral">"first."</FONT>);
+<FONT ID="LN">483 </FONT><A NAME="483"></A>
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    addInstanceInfo(instance);
+<FONT ID="LN">485 </FONT><A NAME="485"></A>    addInstanceToTree(instance, m_Root);
+<FONT ID="LN">486 </FONT><A NAME="486"></A>  }
+<FONT ID="LN">487 </FONT><A NAME="487"></A>
+<FONT ID="LN">488 </FONT><A NAME="488"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">489 </FONT><A NAME="489"></A>   * Recursively adds an instance to the tree starting from
+<FONT ID="LN">490 </FONT><A NAME="490"></A>   * the supplied KDTreeNode.
+<FONT ID="LN">491 </FONT><A NAME="491"></A>   * NOTE: This should not be called by outside classes,
+<FONT ID="LN">492 </FONT><A NAME="492"></A>   * outside classes should instead call update(Instance)
+<FONT ID="LN">493 </FONT><A NAME="493"></A>   * method. 
+<FONT ID="LN">494 </FONT><A NAME="494"></A>   *  
+<FONT ID="LN">495 </FONT><A NAME="495"></A>   * @param inst The instance to add to the tree
+<FONT ID="LN">496 </FONT><A NAME="496"></A>   * @param node The node to start the recursive search 
+<FONT ID="LN">497 </FONT><A NAME="497"></A>   * from, for the leaf node where the supplied instance 
+<FONT ID="LN">498 </FONT><A NAME="498"></A>   * would go.
+<FONT ID="LN">499 </FONT><A NAME="499"></A>   * @throws Exception If some error occurs while adding
+<FONT ID="LN">500 </FONT><A NAME="500"></A>   * the instance.
+<FONT ID="LN">501 </FONT><A NAME="501"></A>   */</FONT>
+<FONT ID="LN">502 </FONT><A NAME="502"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> addInstanceToTree(<A HREF="../../../weka/core/Instance.java.html">Instance</A> inst, <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node)
+<FONT ID="LN">503 </FONT><A NAME="503"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    <FONT ID="If">if</FONT> (node.isALeaf()) {
+<FONT ID="LN">505 </FONT><A NAME="505"></A>      <FONT ID="Int">int</FONT> instList[] = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_Instances.numInstances()];
+<FONT ID="LN">506 </FONT><A NAME="506"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">507 </FONT><A NAME="507"></A>        System.arraycopy(m_InstList, <FONT ID="IntegerLiteral">0</FONT>, instList, <FONT ID="IntegerLiteral">0</FONT>, node.m_End + <FONT ID="IntegerLiteral">1</FONT>); <FONT ID="SingleLineComment">// m_InstList.squeezeIn(m_End,
+<FONT ID="LN">508 </FONT><A NAME="508"></A></FONT>                                                                      <FONT ID="SingleLineComment">// index);
+<FONT ID="LN">509 </FONT><A NAME="509"></A></FONT>        <FONT ID="If">if</FONT> (node.m_End &lt; m_InstList.length - <FONT ID="IntegerLiteral">1</FONT>)
+<FONT ID="LN">510 </FONT><A NAME="510"></A>          System.arraycopy(m_InstList, node.m_End + <FONT ID="IntegerLiteral">1</FONT>, instList,
+<FONT ID="LN">511 </FONT><A NAME="511"></A>              node.m_End + <FONT ID="IntegerLiteral">2</FONT>, m_InstList.length - node.m_End - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">512 </FONT><A NAME="512"></A>        instList[node.m_End + <FONT ID="IntegerLiteral">1</FONT>] = m_Instances.numInstances() - <FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">513 </FONT><A NAME="513"></A>      } <FONT ID="Catch">catch</FONT> (ArrayIndexOutOfBoundsException ex) {
+<FONT ID="LN">514 </FONT><A NAME="514"></A>        System.err.println(<FONT ID="StringLiteral">"m_InstList.length: "</FONT> + m_InstList.length
+<FONT ID="LN">515 </FONT><A NAME="515"></A>            + <FONT ID="StringLiteral">" instList.length: "</FONT> + instList.length + <FONT ID="StringLiteral">"node.m_End+1: "</FONT>
+<FONT ID="LN">516 </FONT><A NAME="516"></A>            + (node.m_End + <FONT ID="IntegerLiteral">1</FONT>) + <FONT ID="StringLiteral">"m_InstList.length-node.m_End+1: "</FONT>
+<FONT ID="LN">517 </FONT><A NAME="517"></A>            + (m_InstList.length - node.m_End - <FONT ID="IntegerLiteral">1</FONT>));
+<FONT ID="LN">518 </FONT><A NAME="518"></A>        <FONT ID="Throw">throw</FONT> ex;
+<FONT ID="LN">519 </FONT><A NAME="519"></A>      }
+<FONT ID="LN">520 </FONT><A NAME="520"></A>      m_InstList = instList;
+<FONT ID="LN">521 </FONT><A NAME="521"></A>
+<FONT ID="LN">522 </FONT><A NAME="522"></A>      node.m_End++;
+<FONT ID="LN">523 </FONT><A NAME="523"></A>      node.m_NodeRanges = m_EuclideanDistance.updateRanges(inst,
+<FONT ID="LN">524 </FONT><A NAME="524"></A>          node.m_NodeRanges);
+<FONT ID="LN">525 </FONT><A NAME="525"></A>
+<FONT ID="LN">526 </FONT><A NAME="526"></A>      m_Splitter.setInstanceList(m_InstList);
+<FONT ID="LN">527 </FONT><A NAME="527"></A>
+<FONT ID="LN">528 </FONT><A NAME="528"></A>      <FONT ID="SingleLineComment">// split this leaf node if necessary
+<FONT ID="LN">529 </FONT><A NAME="529"></A></FONT>      <FONT ID="Double">double</FONT>[][] universe = m_EuclideanDistance.getRanges();
+<FONT ID="LN">530 </FONT><A NAME="530"></A>      <FONT ID="If">if</FONT> (node.numInstances() &gt; m_MaxInstInLeaf
+<FONT ID="LN">531 </FONT><A NAME="531"></A>          &amp;&amp; getMaxRelativeNodeWidth(node.m_NodeRanges, universe) &gt; m_MinBoxRelWidth) {
+<FONT ID="LN">532 </FONT><A NAME="532"></A>        m_Splitter.splitNode(node, m_NumNodes, node.m_NodeRanges, universe);
+<FONT ID="LN">533 </FONT><A NAME="533"></A>        m_NumNodes += <FONT ID="IntegerLiteral">2</FONT>;
+<FONT ID="LN">534 </FONT><A NAME="534"></A>      }
+<FONT ID="LN">535 </FONT><A NAME="535"></A>    }<FONT ID="SingleLineComment">// end if node is a leaf
+<FONT ID="LN">536 </FONT><A NAME="536"></A></FONT>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">537 </FONT><A NAME="537"></A>      <FONT ID="If">if</FONT> (m_EuclideanDistance.valueIsSmallerEqual(inst, node.m_SplitDim,
+<FONT ID="LN">538 </FONT><A NAME="538"></A>          node.m_SplitValue)) {
+<FONT ID="LN">539 </FONT><A NAME="539"></A>        addInstanceToTree(inst, node.m_Left);
+<FONT ID="LN">540 </FONT><A NAME="540"></A>        afterAddInstance(node.m_Right);
+<FONT ID="LN">541 </FONT><A NAME="541"></A>      } <FONT ID="Else">else</FONT>
+<FONT ID="LN">542 </FONT><A NAME="542"></A>        addInstanceToTree(inst, node.m_Right);
+<FONT ID="LN">543 </FONT><A NAME="543"></A>
+<FONT ID="LN">544 </FONT><A NAME="544"></A>      node.m_End++;
+<FONT ID="LN">545 </FONT><A NAME="545"></A>      node.m_NodeRanges = m_EuclideanDistance.updateRanges(inst,
+<FONT ID="LN">546 </FONT><A NAME="546"></A>          node.m_NodeRanges);
+<FONT ID="LN">547 </FONT><A NAME="547"></A>    }
+<FONT ID="LN">548 </FONT><A NAME="548"></A>  }
+<FONT ID="LN">549 </FONT><A NAME="549"></A>
+<FONT ID="LN">550 </FONT><A NAME="550"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">551 </FONT><A NAME="551"></A>   * Corrects the start and end indices of a 
+<FONT ID="LN">552 </FONT><A NAME="552"></A>   * KDTreeNode after an instance is added to
+<FONT ID="LN">553 </FONT><A NAME="553"></A>   * the tree. The start and end indices for
+<FONT ID="LN">554 </FONT><A NAME="554"></A>   * the master index array (m_InstList) 
+<FONT ID="LN">555 </FONT><A NAME="555"></A>   * stored in the nodes need to be updated
+<FONT ID="LN">556 </FONT><A NAME="556"></A>   * for all nodes in the subtree on the 
+<FONT ID="LN">557 </FONT><A NAME="557"></A>   * right of a node where the instance 
+<FONT ID="LN">558 </FONT><A NAME="558"></A>   * was added. 
+<FONT ID="LN">559 </FONT><A NAME="559"></A>   * NOTE: No outside class should call this
+<FONT ID="LN">560 </FONT><A NAME="560"></A>   * method.
+<FONT ID="LN">561 </FONT><A NAME="561"></A>   * 
+<FONT ID="LN">562 </FONT><A NAME="562"></A>   * @param node KDTreeNode whose start and end indices 
+<FONT ID="LN">563 </FONT><A NAME="563"></A>   * need to be updated.
+<FONT ID="LN">564 </FONT><A NAME="564"></A>   */</FONT>
+<FONT ID="LN">565 </FONT><A NAME="565"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> afterAddInstance(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node) {
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    node.m_Start++;
+<FONT ID="LN">567 </FONT><A NAME="567"></A>    node.m_End++;
+<FONT ID="LN">568 </FONT><A NAME="568"></A>    <FONT ID="If">if</FONT> (!node.isALeaf()) {
+<FONT ID="LN">569 </FONT><A NAME="569"></A>      afterAddInstance(node.m_Left);
+<FONT ID="LN">570 </FONT><A NAME="570"></A>      afterAddInstance(node.m_Right);
+<FONT ID="LN">571 </FONT><A NAME="571"></A>    }
+<FONT ID="LN">572 </FONT><A NAME="572"></A>  }
+<FONT ID="LN">573 </FONT><A NAME="573"></A>
+<FONT ID="LN">574 </FONT><A NAME="574"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">575 </FONT><A NAME="575"></A>   * Adds one instance to KDTree loosly. It only changes the ranges in
+<FONT ID="LN">576 </FONT><A NAME="576"></A>   * EuclideanDistance, and does not affect the structure of the KDTree.
+<FONT ID="LN">577 </FONT><A NAME="577"></A>   * 
+<FONT ID="LN">578 </FONT><A NAME="578"></A>   * @param instance    the new instance. Usually this is the test instance 
+<FONT ID="LN">579 </FONT><A NAME="579"></A>   *            supplied to update the range of attributes in the distance function.
+<FONT ID="LN">580 </FONT><A NAME="580"></A>   */</FONT>
+<FONT ID="LN">581 </FONT><A NAME="581"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> addInstanceInfo(<A HREF="../../../weka/core/Instance.java.html">Instance</A> instance) {
+<FONT ID="LN">582 </FONT><A NAME="582"></A>    m_EuclideanDistance.updateRanges(instance);
+<FONT ID="LN">583 </FONT><A NAME="583"></A>  }
+<FONT ID="LN">584 </FONT><A NAME="584"></A>
+<FONT ID="LN">585 </FONT><A NAME="585"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">586 </FONT><A NAME="586"></A>   * Checks if there is any instance with missing values. Throws an exception if
+<FONT ID="LN">587 </FONT><A NAME="587"></A>   * there is, as KDTree does not handle missing values.
+<FONT ID="LN">588 </FONT><A NAME="588"></A>   * 
+<FONT ID="LN">589 </FONT><A NAME="589"></A>   * @param instances   the instances to check
+<FONT ID="LN">590 </FONT><A NAME="590"></A>   * @throws Exception  if missing values are encountered
+<FONT ID="LN">591 </FONT><A NAME="591"></A>   */</FONT>
+<FONT ID="LN">592 </FONT><A NAME="592"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> checkMissing(<A HREF="../../../weka/core/Instances.java.html">Instances</A> instances) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">593 </FONT><A NAME="593"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; instances.numInstances(); i++) {
+<FONT ID="LN">594 </FONT><A NAME="594"></A>      <A HREF="../../../weka/core/Instance.java.html">Instance</A> ins = instances.instance(i);
+<FONT ID="LN">595 </FONT><A NAME="595"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; ins.numValues(); j++) {
+<FONT ID="LN">596 </FONT><A NAME="596"></A>        <FONT ID="If">if</FONT> (ins.index(j) != ins.classIndex())
+<FONT ID="LN">597 </FONT><A NAME="597"></A>          <FONT ID="If">if</FONT> (ins.isMissingSparse(j)) {
+<FONT ID="LN">598 </FONT><A NAME="598"></A>            <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"ERROR: KDTree can not deal with missing "</FONT>
+<FONT ID="LN">599 </FONT><A NAME="599"></A>                + <FONT ID="StringLiteral">"values. Please run ReplaceMissingValues filter "</FONT>
+<FONT ID="LN">600 </FONT><A NAME="600"></A>                + <FONT ID="StringLiteral">"on the dataset before passing it on to the KDTree."</FONT>);
+<FONT ID="LN">601 </FONT><A NAME="601"></A>          }
+<FONT ID="LN">602 </FONT><A NAME="602"></A>      }
+<FONT ID="LN">603 </FONT><A NAME="603"></A>    }
+<FONT ID="LN">604 </FONT><A NAME="604"></A>  }
+<FONT ID="LN">605 </FONT><A NAME="605"></A>
+<FONT ID="LN">606 </FONT><A NAME="606"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">607 </FONT><A NAME="607"></A>   * Checks if there is any missing value in the given 
+<FONT ID="LN">608 </FONT><A NAME="608"></A>   * instance.
+<FONT ID="LN">609 </FONT><A NAME="609"></A>   * @param ins The instance to check missing values in.
+<FONT ID="LN">610 </FONT><A NAME="610"></A>   * @throws Exception If there is a missing value in the 
+<FONT ID="LN">611 </FONT><A NAME="611"></A>   * instance.
+<FONT ID="LN">612 </FONT><A NAME="612"></A>   */</FONT>
+<FONT ID="LN">613 </FONT><A NAME="613"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> checkMissing(<A HREF="../../../weka/core/Instance.java.html">Instance</A> ins) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">614 </FONT><A NAME="614"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; ins.numValues(); j++) {
+<FONT ID="LN">615 </FONT><A NAME="615"></A>      <FONT ID="If">if</FONT> (ins.index(j) != ins.classIndex())
+<FONT ID="LN">616 </FONT><A NAME="616"></A>        <FONT ID="If">if</FONT> (ins.isMissingSparse(j)) {
+<FONT ID="LN">617 </FONT><A NAME="617"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"ERROR: KDTree can not deal with missing "</FONT>
+<FONT ID="LN">618 </FONT><A NAME="618"></A>              + <FONT ID="StringLiteral">"values. Please run ReplaceMissingValues filter "</FONT>
+<FONT ID="LN">619 </FONT><A NAME="619"></A>              + <FONT ID="StringLiteral">"on the dataset before passing it on to the KDTree."</FONT>);
+<FONT ID="LN">620 </FONT><A NAME="620"></A>        }
+<FONT ID="LN">621 </FONT><A NAME="621"></A>    }
+<FONT ID="LN">622 </FONT><A NAME="622"></A>  }
+<FONT ID="LN">623 </FONT><A NAME="623"></A>  
+<FONT ID="LN">624 </FONT><A NAME="624"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">625 </FONT><A NAME="625"></A>   * Returns the maximum attribute width of instances/points 
+<FONT ID="LN">626 </FONT><A NAME="626"></A>   * in a KDTreeNode relative to the whole dataset. 
+<FONT ID="LN">627 </FONT><A NAME="627"></A>   * 
+<FONT ID="LN">628 </FONT><A NAME="628"></A>   * @param nodeRanges The attribute ranges of the 
+<FONT ID="LN">629 </FONT><A NAME="629"></A>   * KDTreeNode whose maximum relative width is to be 
+<FONT ID="LN">630 </FONT><A NAME="630"></A>   * determined.
+<FONT ID="LN">631 </FONT><A NAME="631"></A>   * @param universe The attribute ranges of the whole
+<FONT ID="LN">632 </FONT><A NAME="632"></A>   * dataset (training instances + test instances so 
+<FONT ID="LN">633 </FONT><A NAME="633"></A>   * far encountered).
+<FONT ID="LN">634 </FONT><A NAME="634"></A>   * @return The maximum relative width
+<FONT ID="LN">635 </FONT><A NAME="635"></A>   */</FONT>
+<FONT ID="LN">636 </FONT><A NAME="636"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT> getMaxRelativeNodeWidth(<FONT ID="Double">double</FONT>[][] nodeRanges,
+<FONT ID="LN">637 </FONT><A NAME="637"></A>      <FONT ID="Double">double</FONT>[][] universe) {
+<FONT ID="LN">638 </FONT><A NAME="638"></A>    <FONT ID="Int">int</FONT> widest = widestDim(nodeRanges, universe);
+<FONT ID="LN">639 </FONT><A NAME="639"></A>    <FONT ID="If">if</FONT>(widest &lt; <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">640 </FONT><A NAME="640"></A>        <FONT ID="Return">return</FONT> <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">641 </FONT><A NAME="641"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">642 </FONT><A NAME="642"></A>        <FONT ID="Return">return</FONT> nodeRanges[widest][WIDTH] / universe[widest][WIDTH];
+<FONT ID="LN">643 </FONT><A NAME="643"></A>  }
+<FONT ID="LN">644 </FONT><A NAME="644"></A>
+<FONT ID="LN">645 </FONT><A NAME="645"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">646 </FONT><A NAME="646"></A>   * Returns the widest dimension/attribute in a 
+<FONT ID="LN">647 </FONT><A NAME="647"></A>   * KDTreeNode (widest after normalizing).
+<FONT ID="LN">648 </FONT><A NAME="648"></A>   * @param nodeRanges The attribute ranges of 
+<FONT ID="LN">649 </FONT><A NAME="649"></A>   * the KDTreeNode.
+<FONT ID="LN">650 </FONT><A NAME="650"></A>   * @param universe The attribute ranges of the 
+<FONT ID="LN">651 </FONT><A NAME="651"></A>   * whole dataset (training instances + test 
+<FONT ID="LN">652 </FONT><A NAME="652"></A>   * instances so far encountered).
+<FONT ID="LN">653 </FONT><A NAME="653"></A>   * @return The index of the widest 
+<FONT ID="LN">654 </FONT><A NAME="654"></A>   * dimension/attribute.
+<FONT ID="LN">655 </FONT><A NAME="655"></A>   */</FONT>
+<FONT ID="LN">656 </FONT><A NAME="656"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> widestDim(<FONT ID="Double">double</FONT>[][] nodeRanges, <FONT ID="Double">double</FONT>[][] universe) {
+<FONT ID="LN">657 </FONT><A NAME="657"></A>    <FONT ID="Final">final</FONT> <FONT ID="Int">int</FONT> classIdx = m_Instances.classIndex();
+<FONT ID="LN">658 </FONT><A NAME="658"></A>    <FONT ID="Double">double</FONT> widest = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">659 </FONT><A NAME="659"></A>    <FONT ID="Int">int</FONT> w = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">660 </FONT><A NAME="660"></A>    <FONT ID="If">if</FONT> (m_NormalizeNodeWidth) {
+<FONT ID="LN">661 </FONT><A NAME="661"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; nodeRanges.length; i++) {
+<FONT ID="LN">662 </FONT><A NAME="662"></A>        <FONT ID="Double">double</FONT> newWidest = nodeRanges[i][WIDTH] / universe[i][WIDTH];
+<FONT ID="LN">663 </FONT><A NAME="663"></A>        <FONT ID="If">if</FONT> (newWidest &gt; widest) {
+<FONT ID="LN">664 </FONT><A NAME="664"></A>          <FONT ID="If">if</FONT> (i == classIdx)
+<FONT ID="LN">665 </FONT><A NAME="665"></A>            <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">666 </FONT><A NAME="666"></A>          widest = newWidest;
+<FONT ID="LN">667 </FONT><A NAME="667"></A>          w = i;
+<FONT ID="LN">668 </FONT><A NAME="668"></A>        }
+<FONT ID="LN">669 </FONT><A NAME="669"></A>      }
+<FONT ID="LN">670 </FONT><A NAME="670"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">671 </FONT><A NAME="671"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; nodeRanges.length; i++) {
+<FONT ID="LN">672 </FONT><A NAME="672"></A>        <FONT ID="If">if</FONT> (nodeRanges[i][WIDTH] &gt; widest) {
+<FONT ID="LN">673 </FONT><A NAME="673"></A>          <FONT ID="If">if</FONT> (i == classIdx)
+<FONT ID="LN">674 </FONT><A NAME="674"></A>            <FONT ID="Continue">continue</FONT>;
+<FONT ID="LN">675 </FONT><A NAME="675"></A>          widest = nodeRanges[i][WIDTH];
+<FONT ID="LN">676 </FONT><A NAME="676"></A>          w = i;
+<FONT ID="LN">677 </FONT><A NAME="677"></A>        }
+<FONT ID="LN">678 </FONT><A NAME="678"></A>      }
+<FONT ID="LN">679 </FONT><A NAME="679"></A>    }
+<FONT ID="LN">680 </FONT><A NAME="680"></A>    <FONT ID="Return">return</FONT> w;
+<FONT ID="LN">681 </FONT><A NAME="681"></A>  }
+<FONT ID="LN">682 </FONT><A NAME="682"></A>
+<FONT ID="LN">683 </FONT><A NAME="683"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">684 </FONT><A NAME="684"></A>   * Returns the size of the tree.
+<FONT ID="LN">685 </FONT><A NAME="685"></A>   * 
+<FONT ID="LN">686 </FONT><A NAME="686"></A>   * @return        the size of the tree
+<FONT ID="LN">687 </FONT><A NAME="687"></A>   */</FONT>
+<FONT ID="LN">688 </FONT><A NAME="688"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> measureTreeSize() {
+<FONT ID="LN">689 </FONT><A NAME="689"></A>    <FONT ID="Return">return</FONT> m_NumNodes;
+<FONT ID="LN">690 </FONT><A NAME="690"></A>  }
+<FONT ID="LN">691 </FONT><A NAME="691"></A>
+<FONT ID="LN">692 </FONT><A NAME="692"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">693 </FONT><A NAME="693"></A>   * Returns the number of leaves.
+<FONT ID="LN">694 </FONT><A NAME="694"></A>   * 
+<FONT ID="LN">695 </FONT><A NAME="695"></A>   * @return        the number of leaves
+<FONT ID="LN">696 </FONT><A NAME="696"></A>   */</FONT>
+<FONT ID="LN">697 </FONT><A NAME="697"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> measureNumLeaves() {
+<FONT ID="LN">698 </FONT><A NAME="698"></A>    <FONT ID="Return">return</FONT> m_NumLeaves;
+<FONT ID="LN">699 </FONT><A NAME="699"></A>  }
+<FONT ID="LN">700 </FONT><A NAME="700"></A>
+<FONT ID="LN">701 </FONT><A NAME="701"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">702 </FONT><A NAME="702"></A>   * Returns the depth of the tree.
+<FONT ID="LN">703 </FONT><A NAME="703"></A>   * 
+<FONT ID="LN">704 </FONT><A NAME="704"></A>   * @return The depth of the tree
+<FONT ID="LN">705 </FONT><A NAME="705"></A>   */</FONT>
+<FONT ID="LN">706 </FONT><A NAME="706"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> measureMaxDepth() {
+<FONT ID="LN">707 </FONT><A NAME="707"></A>    <FONT ID="Return">return</FONT> m_MaxDepth;
+<FONT ID="LN">708 </FONT><A NAME="708"></A>  }
+<FONT ID="LN">709 </FONT><A NAME="709"></A>
+<FONT ID="LN">710 </FONT><A NAME="710"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">711 </FONT><A NAME="711"></A>   * Returns an enumeration of the additional measure names.
+<FONT ID="LN">712 </FONT><A NAME="712"></A>   * 
+<FONT ID="LN">713 </FONT><A NAME="713"></A>   * @return        an enumeration of the measure names
+<FONT ID="LN">714 </FONT><A NAME="714"></A>   */</FONT>
+<FONT ID="LN">715 </FONT><A NAME="715"></A>  <FONT ID="Public">public</FONT> Enumeration enumerateMeasures() {
+<FONT ID="LN">716 </FONT><A NAME="716"></A>    Vector&lt;String&gt; newVector = <FONT ID="New">new</FONT> Vector&lt;String&gt;();
+<FONT ID="LN">717 </FONT><A NAME="717"></A>    newVector.addElement(<FONT ID="StringLiteral">"measureTreeSize"</FONT>);
+<FONT ID="LN">718 </FONT><A NAME="718"></A>    newVector.addElement(<FONT ID="StringLiteral">"measureNumLeaves"</FONT>);
+<FONT ID="LN">719 </FONT><A NAME="719"></A>    newVector.addElement(<FONT ID="StringLiteral">"measureMaxDepth"</FONT>);
+<FONT ID="LN">720 </FONT><A NAME="720"></A>    <FONT ID="If">if</FONT> (m_Stats != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">721 </FONT><A NAME="721"></A>      <FONT ID="For">for</FONT> (Enumeration e = m_Stats.enumerateMeasures(); e.hasMoreElements();) {
+<FONT ID="LN">722 </FONT><A NAME="722"></A>        newVector.addElement((String)e.nextElement());
+<FONT ID="LN">723 </FONT><A NAME="723"></A>      }
+<FONT ID="LN">724 </FONT><A NAME="724"></A>    }
+<FONT ID="LN">725 </FONT><A NAME="725"></A>    <FONT ID="Return">return</FONT> newVector.elements();
+<FONT ID="LN">726 </FONT><A NAME="726"></A>  }
+<FONT ID="LN">727 </FONT><A NAME="727"></A>
+<FONT ID="LN">728 </FONT><A NAME="728"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">729 </FONT><A NAME="729"></A>   * Returns the value of the named measure.
+<FONT ID="LN">730 </FONT><A NAME="730"></A>   * 
+<FONT ID="LN">731 </FONT><A NAME="731"></A>   * @param additionalMeasureName   the name of 
+<FONT ID="LN">732 </FONT><A NAME="732"></A>   * the measure to query for its value.
+<FONT ID="LN">733 </FONT><A NAME="733"></A>   * @return The value of the named measure
+<FONT ID="LN">734 </FONT><A NAME="734"></A>   * @throws IllegalArgumentException   If the named measure 
+<FONT ID="LN">735 </FONT><A NAME="735"></A>   * is not supported.
+<FONT ID="LN">736 </FONT><A NAME="736"></A>   */</FONT>
+<FONT ID="LN">737 </FONT><A NAME="737"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getMeasure(String additionalMeasureName) {
+<FONT ID="LN">738 </FONT><A NAME="738"></A>    <FONT ID="If">if</FONT> (additionalMeasureName.compareToIgnoreCase(<FONT ID="StringLiteral">"measureMaxDepth"</FONT>) == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">739 </FONT><A NAME="739"></A>      <FONT ID="Return">return</FONT> measureMaxDepth();
+<FONT ID="LN">740 </FONT><A NAME="740"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (additionalMeasureName.compareToIgnoreCase(<FONT ID="StringLiteral">"measureTreeSize"</FONT>) == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">741 </FONT><A NAME="741"></A>      <FONT ID="Return">return</FONT> measureTreeSize();
+<FONT ID="LN">742 </FONT><A NAME="742"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (additionalMeasureName.compareToIgnoreCase(<FONT ID="StringLiteral">"measureNumLeaves"</FONT>) == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">743 </FONT><A NAME="743"></A>      <FONT ID="Return">return</FONT> measureNumLeaves();
+<FONT ID="LN">744 </FONT><A NAME="744"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (m_Stats != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">745 </FONT><A NAME="745"></A>      <FONT ID="Return">return</FONT> m_Stats.getMeasure(additionalMeasureName);
+<FONT ID="LN">746 </FONT><A NAME="746"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">747 </FONT><A NAME="747"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> IllegalArgumentException(additionalMeasureName
+<FONT ID="LN">748 </FONT><A NAME="748"></A>          + <FONT ID="StringLiteral">" not supported (KDTree)"</FONT>);
+<FONT ID="LN">749 </FONT><A NAME="749"></A>    }
+<FONT ID="LN">750 </FONT><A NAME="750"></A>  }
+<FONT ID="LN">751 </FONT><A NAME="751"></A>
+<FONT ID="LN">752 </FONT><A NAME="752"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">753 </FONT><A NAME="753"></A>   * Sets whether to calculate the performance statistics or not.
+<FONT ID="LN">754 </FONT><A NAME="754"></A>   * @param measurePerformance Should be true if performance 
+<FONT ID="LN">755 </FONT><A NAME="755"></A>   * statistics are to be measured.
+<FONT ID="LN">756 </FONT><A NAME="756"></A>   */</FONT>
+<FONT ID="LN">757 </FONT><A NAME="757"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setMeasurePerformance(<FONT ID="Boolean">boolean</FONT> measurePerformance) {
+<FONT ID="LN">758 </FONT><A NAME="758"></A>    m_MeasurePerformance = measurePerformance;
+<FONT ID="LN">759 </FONT><A NAME="759"></A>    <FONT ID="If">if</FONT> (m_MeasurePerformance) {
+<FONT ID="LN">760 </FONT><A NAME="760"></A>      <FONT ID="If">if</FONT> (m_Stats == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">761 </FONT><A NAME="761"></A>        m_Stats = m_TreeStats = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/neighboursearch/TreePerformanceStats.java.html">TreePerformanceStats</A>();
+<FONT ID="LN">762 </FONT><A NAME="762"></A>    } <FONT ID="Else">else</FONT>
+<FONT ID="LN">763 </FONT><A NAME="763"></A>      m_Stats = m_TreeStats = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">764 </FONT><A NAME="764"></A>  }
+<FONT ID="LN">765 </FONT><A NAME="765"></A>
+<FONT ID="LN">766 </FONT><A NAME="766"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">767 </FONT><A NAME="767"></A>   * Assigns instances to centers using KDTree.
+<FONT ID="LN">768 </FONT><A NAME="768"></A>   * 
+<FONT ID="LN">769 </FONT><A NAME="769"></A>   * @param centers the current centers
+<FONT ID="LN">770 </FONT><A NAME="770"></A>   * @param assignments the centerindex for each instance
+<FONT ID="LN">771 </FONT><A NAME="771"></A>   * @param pc      the threshold value for pruning.
+<FONT ID="LN">772 </FONT><A NAME="772"></A>   * @throws Exception If there is some problem 
+<FONT ID="LN">773 </FONT><A NAME="773"></A>   * assigning instances to centers.
+<FONT ID="LN">774 </FONT><A NAME="774"></A>   */</FONT>
+<FONT ID="LN">775 </FONT><A NAME="775"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> centerInstances(<A HREF="../../../weka/core/Instances.java.html">Instances</A> centers, <FONT ID="Int">int</FONT>[] assignments, <FONT ID="Double">double</FONT> pc)
+<FONT ID="LN">776 </FONT><A NAME="776"></A>      <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">777 </FONT><A NAME="777"></A>
+<FONT ID="LN">778 </FONT><A NAME="778"></A>    <FONT ID="Int">int</FONT>[] centList = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[centers.numInstances()];
+<FONT ID="LN">779 </FONT><A NAME="779"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; centers.numInstances(); i++)
+<FONT ID="LN">780 </FONT><A NAME="780"></A>      centList[i] = i;
+<FONT ID="LN">781 </FONT><A NAME="781"></A>
+<FONT ID="LN">782 </FONT><A NAME="782"></A>    determineAssignments(m_Root, centers, centList, assignments, pc);
+<FONT ID="LN">783 </FONT><A NAME="783"></A>  }
+<FONT ID="LN">784 </FONT><A NAME="784"></A>
+<FONT ID="LN">785 </FONT><A NAME="785"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">786 </FONT><A NAME="786"></A>   * Assigns instances to the current centers called candidates.
+<FONT ID="LN">787 </FONT><A NAME="787"></A>   * 
+<FONT ID="LN">788 </FONT><A NAME="788"></A>   * @param node The node to start assigning the instances from.
+<FONT ID="LN">789 </FONT><A NAME="789"></A>   * @param centers all the current centers.
+<FONT ID="LN">790 </FONT><A NAME="790"></A>   * @param candidates  the current centers the method works on.
+<FONT ID="LN">791 </FONT><A NAME="791"></A>   * @param assignments the center index for each instance.
+<FONT ID="LN">792 </FONT><A NAME="792"></A>   * @param pc the threshold value for pruning.
+<FONT ID="LN">793 </FONT><A NAME="793"></A>   * @throws Exception If there is some problem assigning 
+<FONT ID="LN">794 </FONT><A NAME="794"></A>   * instances to centers.
+<FONT ID="LN">795 </FONT><A NAME="795"></A>   */</FONT>
+<FONT ID="LN">796 </FONT><A NAME="796"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> determineAssignments(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <A HREF="../../../weka/core/Instances.java.html">Instances</A> centers,
+<FONT ID="LN">797 </FONT><A NAME="797"></A>      <FONT ID="Int">int</FONT>[] candidates, <FONT ID="Int">int</FONT>[] assignments, <FONT ID="Double">double</FONT> pc) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">798 </FONT><A NAME="798"></A>
+<FONT ID="LN">799 </FONT><A NAME="799"></A>    <FONT ID="SingleLineComment">// reduce number of owners for current hyper rectangle
+<FONT ID="LN">800 </FONT><A NAME="800"></A></FONT>    <FONT ID="Int">int</FONT>[] owners = refineOwners(node, centers, candidates);
+<FONT ID="LN">801 </FONT><A NAME="801"></A>
+<FONT ID="LN">802 </FONT><A NAME="802"></A>    <FONT ID="SingleLineComment">// only one owner
+<FONT ID="LN">803 </FONT><A NAME="803"></A></FONT>    <FONT ID="If">if</FONT> (owners.length == <FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">804 </FONT><A NAME="804"></A>      <FONT ID="SingleLineComment">// all instances of this node are owned by one center
+<FONT ID="LN">805 </FONT><A NAME="805"></A></FONT>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = node.m_Start; i &lt;= node.m_End; i++) {
+<FONT ID="LN">806 </FONT><A NAME="806"></A>        assignments[m_InstList[i]] <FONT ID="SingleLineComment">// the assignment of this instance
+<FONT ID="LN">807 </FONT><A NAME="807"></A></FONT>        = owners[<FONT ID="IntegerLiteral">0</FONT>]; <FONT ID="SingleLineComment">// is the current owner
+<FONT ID="LN">808 </FONT><A NAME="808"></A></FONT>      }
+<FONT ID="LN">809 </FONT><A NAME="809"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (!node.isALeaf()) {
+<FONT ID="LN">810 </FONT><A NAME="810"></A>      <FONT ID="SingleLineComment">// more than one owner and it is not a leaf
+<FONT ID="LN">811 </FONT><A NAME="811"></A></FONT>      determineAssignments(node.m_Left, centers, owners, assignments, pc);
+<FONT ID="LN">812 </FONT><A NAME="812"></A>      determineAssignments(node.m_Right, centers, owners, assignments, pc);
+<FONT ID="LN">813 </FONT><A NAME="813"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">814 </FONT><A NAME="814"></A>      <FONT ID="SingleLineComment">// this is a leaf and there are more than 1 owner
+<FONT ID="LN">815 </FONT><A NAME="815"></A></FONT>      <FONT ID="SingleLineComment">// XMeans.
+<FONT ID="LN">816 </FONT><A NAME="816"></A></FONT>      assignSubToCenters(node, centers, owners, assignments);
+<FONT ID="LN">817 </FONT><A NAME="817"></A>    }
+<FONT ID="LN">818 </FONT><A NAME="818"></A>  }
+<FONT ID="LN">819 </FONT><A NAME="819"></A>
+<FONT ID="LN">820 </FONT><A NAME="820"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">821 </FONT><A NAME="821"></A>   * Refines the ownerlist.
+<FONT ID="LN">822 </FONT><A NAME="822"></A>   * 
+<FONT ID="LN">823 </FONT><A NAME="823"></A>   * @param node The current tree node.
+<FONT ID="LN">824 </FONT><A NAME="824"></A>   * @param centers all centers
+<FONT ID="LN">825 </FONT><A NAME="825"></A>   * @param candidates  the indexes of those centers that are candidates.
+<FONT ID="LN">826 </FONT><A NAME="826"></A>   * @return list of owners
+<FONT ID="LN">827 </FONT><A NAME="827"></A>   * @throws Exception If some problem occurs in refining.
+<FONT ID="LN">828 </FONT><A NAME="828"></A>   */</FONT>
+<FONT ID="LN">829 </FONT><A NAME="829"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT>[] refineOwners(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <A HREF="../../../weka/core/Instances.java.html">Instances</A> centers,
+<FONT ID="LN">830 </FONT><A NAME="830"></A>      <FONT ID="Int">int</FONT>[] candidates) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">831 </FONT><A NAME="831"></A>
+<FONT ID="LN">832 </FONT><A NAME="832"></A>    <FONT ID="Int">int</FONT>[] owners = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[candidates.length];
+<FONT ID="LN">833 </FONT><A NAME="833"></A>    <FONT ID="Double">double</FONT> minDistance = Double.POSITIVE_INFINITY;
+<FONT ID="LN">834 </FONT><A NAME="834"></A>    <FONT ID="Int">int</FONT> ownerIndex = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">835 </FONT><A NAME="835"></A>    <A HREF="../../../weka/core/Instance.java.html">Instance</A> owner;
+<FONT ID="LN">836 </FONT><A NAME="836"></A>    <FONT ID="Int">int</FONT> numCand = candidates.length;
+<FONT ID="LN">837 </FONT><A NAME="837"></A>    <FONT ID="Double">double</FONT>[] distance = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[numCand];
+<FONT ID="LN">838 </FONT><A NAME="838"></A>    <FONT ID="Boolean">boolean</FONT>[] inside = <FONT ID="New">new</FONT> <FONT ID="Boolean">boolean</FONT>[numCand];
+<FONT ID="LN">839 </FONT><A NAME="839"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numCand; i++) {
+<FONT ID="LN">840 </FONT><A NAME="840"></A>      distance[i] = distanceToHrect(node, centers.instance(candidates[i]));
+<FONT ID="LN">841 </FONT><A NAME="841"></A>      inside[i] = (distance[i] == <FONT ID="FloatPointLiteral">0.0</FONT>);
+<FONT ID="LN">842 </FONT><A NAME="842"></A>      <FONT ID="If">if</FONT> (distance[i] &lt; minDistance) {
+<FONT ID="LN">843 </FONT><A NAME="843"></A>        minDistance = distance[i];
+<FONT ID="LN">844 </FONT><A NAME="844"></A>        ownerIndex = i;
+<FONT ID="LN">845 </FONT><A NAME="845"></A>      }
+<FONT ID="LN">846 </FONT><A NAME="846"></A>    }
+<FONT ID="LN">847 </FONT><A NAME="847"></A>    owner = (<A HREF="../../../weka/core/Instance.java.html">Instance</A>)centers.instance(candidates[ownerIndex]).copy();
+<FONT ID="LN">848 </FONT><A NAME="848"></A>
+<FONT ID="LN">849 </FONT><A NAME="849"></A>    <FONT ID="SingleLineComment">// are there other owners
+<FONT ID="LN">850 </FONT><A NAME="850"></A></FONT>    <FONT ID="SingleLineComment">// loop also goes over already found owner, keeps order
+<FONT ID="LN">851 </FONT><A NAME="851"></A></FONT>    <FONT ID="SingleLineComment">// in owner list
+<FONT ID="LN">852 </FONT><A NAME="852"></A></FONT>    <FONT ID="Int">int</FONT> index = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">853 </FONT><A NAME="853"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; numCand; i++) {
+<FONT ID="LN">854 </FONT><A NAME="854"></A>      <FONT ID="SingleLineComment">// 1. all centers that are points within rectangle are owners
+<FONT ID="LN">855 </FONT><A NAME="855"></A></FONT>      <FONT ID="If">if</FONT> ((inside[i])
+<FONT ID="LN">856 </FONT><A NAME="856"></A>
+<FONT ID="LN">857 </FONT><A NAME="857"></A>      <FONT ID="SingleLineComment">// 2. take all points with same distance to the rect. as the owner
+<FONT ID="LN">858 </FONT><A NAME="858"></A></FONT>          || (distance[i] == distance[ownerIndex])) {
+<FONT ID="LN">859 </FONT><A NAME="859"></A>
+<FONT ID="LN">860 </FONT><A NAME="860"></A>        <FONT ID="SingleLineComment">// add competitor to owners list
+<FONT ID="LN">861 </FONT><A NAME="861"></A></FONT>        owners[index++] = candidates[i];
+<FONT ID="LN">862 </FONT><A NAME="862"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">863 </FONT><A NAME="863"></A>
+<FONT ID="LN">864 </FONT><A NAME="864"></A>        <A HREF="../../../weka/core/Instance.java.html">Instance</A> competitor = (<A HREF="../../../weka/core/Instance.java.html">Instance</A>)centers.instance(candidates[i]).copy();
+<FONT ID="LN">865 </FONT><A NAME="865"></A>        <FONT ID="If">if</FONT>
+<FONT ID="LN">866 </FONT><A NAME="866"></A>
+<FONT ID="LN">867 </FONT><A NAME="867"></A>        <FONT ID="SingleLineComment">// 3. point has larger distance to rectangle but still can compete
+<FONT ID="LN">868 </FONT><A NAME="868"></A></FONT>        <FONT ID="SingleLineComment">// with owner for some points in the rectangle
+<FONT ID="LN">869 </FONT><A NAME="869"></A></FONT>        (!candidateIsFullOwner(node, owner, competitor))
+<FONT ID="LN">870 </FONT><A NAME="870"></A>
+<FONT ID="LN">871 </FONT><A NAME="871"></A>        {
+<FONT ID="LN">872 </FONT><A NAME="872"></A>          <FONT ID="SingleLineComment">// also add competitor to owners list
+<FONT ID="LN">873 </FONT><A NAME="873"></A></FONT>          owners[index++] = candidates[i];
+<FONT ID="LN">874 </FONT><A NAME="874"></A>        }
+<FONT ID="LN">875 </FONT><A NAME="875"></A>      }
+<FONT ID="LN">876 </FONT><A NAME="876"></A>    }
+<FONT ID="LN">877 </FONT><A NAME="877"></A>    <FONT ID="Int">int</FONT>[] result = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[index];
+<FONT ID="LN">878 </FONT><A NAME="878"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; index; i++)
+<FONT ID="LN">879 </FONT><A NAME="879"></A>      result[i] = owners[i];
+<FONT ID="LN">880 </FONT><A NAME="880"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">881 </FONT><A NAME="881"></A>  }
+<FONT ID="LN">882 </FONT><A NAME="882"></A>
+<FONT ID="LN">883 </FONT><A NAME="883"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">884 </FONT><A NAME="884"></A>   * Returns the distance between a point and an hyperrectangle.
+<FONT ID="LN">885 </FONT><A NAME="885"></A>   * 
+<FONT ID="LN">886 </FONT><A NAME="886"></A>   * @param node The current node from whose hyperrectangle 
+<FONT ID="LN">887 </FONT><A NAME="887"></A>   * the distance is to be measured.
+<FONT ID="LN">888 </FONT><A NAME="888"></A>   * @param x       the point
+<FONT ID="LN">889 </FONT><A NAME="889"></A>   * @return        the distance
+<FONT ID="LN">890 </FONT><A NAME="890"></A>   * @throws Exception If some problem occurs in determining 
+<FONT ID="LN">891 </FONT><A NAME="891"></A>   * the distance to the hyperrectangle.
+<FONT ID="LN">892 </FONT><A NAME="892"></A>   */</FONT>
+<FONT ID="LN">893 </FONT><A NAME="893"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT> distanceToHrect(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <A HREF="../../../weka/core/Instance.java.html">Instance</A> x) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">894 </FONT><A NAME="894"></A>    <FONT ID="Double">double</FONT> distance = <FONT ID="FloatPointLiteral">0.0</FONT>;
+<FONT ID="LN">895 </FONT><A NAME="895"></A>
+<FONT ID="LN">896 </FONT><A NAME="896"></A>    <A HREF="../../../weka/core/Instance.java.html">Instance</A> closestPoint = (<A HREF="../../../weka/core/Instance.java.html">Instance</A>)x.copy();
+<FONT ID="LN">897 </FONT><A NAME="897"></A>    <FONT ID="Boolean">boolean</FONT> inside;
+<FONT ID="LN">898 </FONT><A NAME="898"></A>    inside = clipToInsideHrect(node, closestPoint);
+<FONT ID="LN">899 </FONT><A NAME="899"></A>    <FONT ID="If">if</FONT> (!inside)
+<FONT ID="LN">900 </FONT><A NAME="900"></A>      distance = m_EuclideanDistance.distance(closestPoint, x);
+<FONT ID="LN">901 </FONT><A NAME="901"></A>    <FONT ID="Return">return</FONT> distance;
+<FONT ID="LN">902 </FONT><A NAME="902"></A>  }
+<FONT ID="LN">903 </FONT><A NAME="903"></A>
+<FONT ID="LN">904 </FONT><A NAME="904"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">905 </FONT><A NAME="905"></A>   * Finds the closest point in the hyper rectangle to a given point. Change the
+<FONT ID="LN">906 </FONT><A NAME="906"></A>   * given point to this closest point by clipping of at all the dimensions to
+<FONT ID="LN">907 </FONT><A NAME="907"></A>   * be clipped of. If the point is inside the rectangle it stays unchanged. The
+<FONT ID="LN">908 </FONT><A NAME="908"></A>   * return value is true if the point was not changed, so the the return value
+<FONT ID="LN">909 </FONT><A NAME="909"></A>   * is true if the point was inside the rectangle.
+<FONT ID="LN">910 </FONT><A NAME="910"></A>   * 
+<FONT ID="LN">911 </FONT><A NAME="911"></A>   * @param node The current KDTreeNode in whose hyperrectangle the closest 
+<FONT ID="LN">912 </FONT><A NAME="912"></A>   * point is to be found.
+<FONT ID="LN">913 </FONT><A NAME="913"></A>   * @param x       a point
+<FONT ID="LN">914 </FONT><A NAME="914"></A>   * @return        true if the input point stayed unchanged.
+<FONT ID="LN">915 </FONT><A NAME="915"></A>   */</FONT>
+<FONT ID="LN">916 </FONT><A NAME="916"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> clipToInsideHrect(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <A HREF="../../../weka/core/Instance.java.html">Instance</A> x) {
+<FONT ID="LN">917 </FONT><A NAME="917"></A>    <FONT ID="Boolean">boolean</FONT> inside = <FONT ID="True">true</FONT>;
+<FONT ID="LN">918 </FONT><A NAME="918"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_Instances.numAttributes(); i++) {
+<FONT ID="LN">919 </FONT><A NAME="919"></A>      <FONT ID="SingleLineComment">// TODO treat nominals differently!??
+<FONT ID="LN">920 </FONT><A NAME="920"></A></FONT>
+<FONT ID="LN">921 </FONT><A NAME="921"></A>      <FONT ID="If">if</FONT> (x.value(i) &lt; node.m_NodeRanges[i][MIN]) {
+<FONT ID="LN">922 </FONT><A NAME="922"></A>        x.setValue(i, node.m_NodeRanges[i][MIN]);
+<FONT ID="LN">923 </FONT><A NAME="923"></A>        inside = <FONT ID="False">false</FONT>;
+<FONT ID="LN">924 </FONT><A NAME="924"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (x.value(i) &gt; node.m_NodeRanges[i][MAX]) {
+<FONT ID="LN">925 </FONT><A NAME="925"></A>        x.setValue(i, node.m_NodeRanges[i][MAX]);
+<FONT ID="LN">926 </FONT><A NAME="926"></A>        inside = <FONT ID="False">false</FONT>;
+<FONT ID="LN">927 </FONT><A NAME="927"></A>      }
+<FONT ID="LN">928 </FONT><A NAME="928"></A>    }
+<FONT ID="LN">929 </FONT><A NAME="929"></A>    <FONT ID="Return">return</FONT> inside;
+<FONT ID="LN">930 </FONT><A NAME="930"></A>  }
+<FONT ID="LN">931 </FONT><A NAME="931"></A>
+<FONT ID="LN">932 </FONT><A NAME="932"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">933 </FONT><A NAME="933"></A>   * Returns true if candidate is a full owner in respect to a competitor.
+<FONT ID="LN">934 </FONT><A NAME="934"></A>   * &lt;p&gt;
+<FONT ID="LN">935 </FONT><A NAME="935"></A>   * 
+<FONT ID="LN">936 </FONT><A NAME="936"></A>   * The candidate has been the closer point to the current rectangle or even
+<FONT ID="LN">937 </FONT><A NAME="937"></A>   * has been a point within the rectangle. The competitor is competing with the
+<FONT ID="LN">938 </FONT><A NAME="938"></A>   * candidate for a few points out of the rectangle although it is a point
+<FONT ID="LN">939 </FONT><A NAME="939"></A>   * further away from the rectangle then the candidate. The extrem point is the
+<FONT ID="LN">940 </FONT><A NAME="940"></A>   * corner of the rectangle that is furthest away from the candidate towards
+<FONT ID="LN">941 </FONT><A NAME="941"></A>   * the direction of the competitor.
+<FONT ID="LN">942 </FONT><A NAME="942"></A>   * 
+<FONT ID="LN">943 </FONT><A NAME="943"></A>   * If the distance candidate to this extreme point is smaller then the
+<FONT ID="LN">944 </FONT><A NAME="944"></A>   * distance competitor to this extreme point, then it is proven that none of
+<FONT ID="LN">945 </FONT><A NAME="945"></A>   * the points in the rectangle can be owned be the competitor and the
+<FONT ID="LN">946 </FONT><A NAME="946"></A>   * candidate is full owner of the rectangle in respect to this competitor. See
+<FONT ID="LN">947 </FONT><A NAME="947"></A>   * also D. Pelleg and A. Moore's paper 'Accelerating exact k-means Algorithms
+<FONT ID="LN">948 </FONT><A NAME="948"></A>   * with Geometric Reasoning'.
+<FONT ID="LN">949 </FONT><A NAME="949"></A>   * &lt;p&gt;
+<FONT ID="LN">950 </FONT><A NAME="950"></A>   * 
+<FONT ID="LN">951 </FONT><A NAME="951"></A>   * @param node The current KDTreeNode / hyperrectangle.
+<FONT ID="LN">952 </FONT><A NAME="952"></A>   * @param candidate   instance that is candidate to be owner
+<FONT ID="LN">953 </FONT><A NAME="953"></A>   * @param competitor  instance that competes against the candidate
+<FONT ID="LN">954 </FONT><A NAME="954"></A>   * @return        true if candidate is full owner
+<FONT ID="LN">955 </FONT><A NAME="955"></A>   * @throws Exception If some problem occurs.
+<FONT ID="LN">956 </FONT><A NAME="956"></A>   */</FONT>
+<FONT ID="LN">957 </FONT><A NAME="957"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Boolean">boolean</FONT> candidateIsFullOwner(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <A HREF="../../../weka/core/Instance.java.html">Instance</A> candidate,
+<FONT ID="LN">958 </FONT><A NAME="958"></A>      <A HREF="../../../weka/core/Instance.java.html">Instance</A> competitor) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">959 </FONT><A NAME="959"></A>    <FONT ID="SingleLineComment">// get extreme point
+<FONT ID="LN">960 </FONT><A NAME="960"></A></FONT>    <A HREF="../../../weka/core/Instance.java.html">Instance</A> extreme = (<A HREF="../../../weka/core/Instance.java.html">Instance</A>)candidate.copy();
+<FONT ID="LN">961 </FONT><A NAME="961"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_Instances.numAttributes(); i++) {
+<FONT ID="LN">962 </FONT><A NAME="962"></A>      <FONT ID="If">if</FONT> ((competitor.value(i) - candidate.value(i)) &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">963 </FONT><A NAME="963"></A>        extreme.setValue(i, node.m_NodeRanges[i][MAX]);
+<FONT ID="LN">964 </FONT><A NAME="964"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">965 </FONT><A NAME="965"></A>        extreme.setValue(i, node.m_NodeRanges[i][MIN]);
+<FONT ID="LN">966 </FONT><A NAME="966"></A>      }
+<FONT ID="LN">967 </FONT><A NAME="967"></A>    }
+<FONT ID="LN">968 </FONT><A NAME="968"></A>    <FONT ID="Boolean">boolean</FONT> isFullOwner = m_EuclideanDistance.distance(extreme, candidate) &lt; m_EuclideanDistance
+<FONT ID="LN">969 </FONT><A NAME="969"></A>        .distance(extreme, competitor);
+<FONT ID="LN">970 </FONT><A NAME="970"></A>
+<FONT ID="LN">971 </FONT><A NAME="971"></A>    <FONT ID="Return">return</FONT> isFullOwner;
+<FONT ID="LN">972 </FONT><A NAME="972"></A>  }
+<FONT ID="LN">973 </FONT><A NAME="973"></A>
+<FONT ID="LN">974 </FONT><A NAME="974"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">975 </FONT><A NAME="975"></A>   * Assigns instances of this node to center. Center to be assign to is decided
+<FONT ID="LN">976 </FONT><A NAME="976"></A>   * by the distance function.
+<FONT ID="LN">977 </FONT><A NAME="977"></A>   * 
+<FONT ID="LN">978 </FONT><A NAME="978"></A>   * @param node The KDTreeNode whose instances are to be assigned.
+<FONT ID="LN">979 </FONT><A NAME="979"></A>   * @param centers all the input centers
+<FONT ID="LN">980 </FONT><A NAME="980"></A>   * @param centList    the list of centers to work with
+<FONT ID="LN">981 </FONT><A NAME="981"></A>   * @param assignments index list of last assignments
+<FONT ID="LN">982 </FONT><A NAME="982"></A>   * @throws Exception If there is error assigning the instances.
+<FONT ID="LN">983 </FONT><A NAME="983"></A>   */</FONT>
+<FONT ID="LN">984 </FONT><A NAME="984"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> assignSubToCenters(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNode.java.html">KDTreeNode</A> node, <A HREF="../../../weka/core/Instances.java.html">Instances</A> centers,
+<FONT ID="LN">985 </FONT><A NAME="985"></A>      <FONT ID="Int">int</FONT>[] centList, <FONT ID="Int">int</FONT>[] assignments) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">986 </FONT><A NAME="986"></A>    <FONT ID="SingleLineComment">// todo: undecided situations
+<FONT ID="LN">987 </FONT><A NAME="987"></A></FONT>    <FONT ID="Int">int</FONT> numCent = centList.length;
+<FONT ID="LN">988 </FONT><A NAME="988"></A>
+<FONT ID="LN">989 </FONT><A NAME="989"></A>    <FONT ID="SingleLineComment">// WARNING: assignments is "input/output-parameter"
+<FONT ID="LN">990 </FONT><A NAME="990"></A></FONT>    <FONT ID="SingleLineComment">// should not be null and the following should not happen
+<FONT ID="LN">991 </FONT><A NAME="991"></A></FONT>    <FONT ID="If">if</FONT> (assignments == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">992 </FONT><A NAME="992"></A>      assignments = <FONT ID="New">new</FONT> <FONT ID="Int">int</FONT>[m_Instances.numInstances()];
+<FONT ID="LN">993 </FONT><A NAME="993"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; assignments.length; i++) {
+<FONT ID="LN">994 </FONT><A NAME="994"></A>        assignments[i] = -<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">995 </FONT><A NAME="995"></A>      }
+<FONT ID="LN">996 </FONT><A NAME="996"></A>    }
+<FONT ID="LN">997 </FONT><A NAME="997"></A>
+<FONT ID="LN">998 </FONT><A NAME="998"></A>    <FONT ID="SingleLineComment">// set assignments for all instances of this node
+<FONT ID="LN">999 </FONT><A NAME="999"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = node.m_Start; i &lt;= node.m_End; i++) {
+<FONT ID="LN">1000</FONT><A NAME="1000"></A>      <FONT ID="Int">int</FONT> instIndex = m_InstList[i];
+<FONT ID="LN">1001</FONT><A NAME="1001"></A>      <A HREF="../../../weka/core/Instance.java.html">Instance</A> inst = m_Instances.instance(instIndex);
+<FONT ID="LN">1002</FONT><A NAME="1002"></A>      <FONT ID="SingleLineComment">// if (instList[i] == 664) System.out.println("664***");
+<FONT ID="LN">1003</FONT><A NAME="1003"></A></FONT>      <FONT ID="Int">int</FONT> newC = m_EuclideanDistance.closestPoint(inst, centers, centList);
+<FONT ID="LN">1004</FONT><A NAME="1004"></A>      <FONT ID="SingleLineComment">// int newC = clusterProcessedInstance(inst, centers);
+<FONT ID="LN">1005</FONT><A NAME="1005"></A></FONT>      assignments[instIndex] = newC;
+<FONT ID="LN">1006</FONT><A NAME="1006"></A>    }
+<FONT ID="LN">1007</FONT><A NAME="1007"></A>  }
+<FONT ID="LN">1008</FONT><A NAME="1008"></A>
+<FONT ID="LN">1009</FONT><A NAME="1009"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1010</FONT><A NAME="1010"></A>   * Properties' variables =====================================================
+<FONT ID="LN">1011</FONT><A NAME="1011"></A>   */</FONT>
+<FONT ID="LN">1012</FONT><A NAME="1012"></A>
+<FONT ID="LN">1013</FONT><A NAME="1013"></A>  <FONT ID="FormalComment">/** flag for normalizing. */</FONT>
+<FONT ID="LN">1014</FONT><A NAME="1014"></A>  <FONT ID="Boolean">boolean</FONT> m_NormalizeNodeWidth = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1015</FONT><A NAME="1015"></A>
+<FONT ID="LN">1016</FONT><A NAME="1016"></A>  <FONT ID="FormalComment">/** The euclidean distance function to use. */</FONT>
+<FONT ID="LN">1017</FONT><A NAME="1017"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A> m_EuclideanDistance;
+<FONT ID="LN">1018</FONT><A NAME="1018"></A>  { <FONT ID="SingleLineComment">// to make sure we have only one object of EuclideanDistance
+<FONT ID="LN">1019</FONT><A NAME="1019"></A></FONT>    <FONT ID="If">if</FONT> (m_DistanceFunction <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A>)
+<FONT ID="LN">1020</FONT><A NAME="1020"></A>      m_EuclideanDistance = (<A HREF="../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A>) m_DistanceFunction;
+<FONT ID="LN">1021</FONT><A NAME="1021"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">1022</FONT><A NAME="1022"></A>      m_DistanceFunction = m_EuclideanDistance = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A>();
+<FONT ID="LN">1023</FONT><A NAME="1023"></A>  }
+<FONT ID="LN">1024</FONT><A NAME="1024"></A>
+<FONT ID="LN">1025</FONT><A NAME="1025"></A>  <FONT ID="FormalComment">/** minimal relative width of a KDTree rectangle. */</FONT>
+<FONT ID="LN">1026</FONT><A NAME="1026"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Double">double</FONT> m_MinBoxRelWidth = <FONT ID="FloatPointLiteral">1.0E-2</FONT>;
+<FONT ID="LN">1027</FONT><A NAME="1027"></A>
+<FONT ID="LN">1028</FONT><A NAME="1028"></A>  <FONT ID="FormalComment">/** maximal number of instances in a leaf. */</FONT>
+<FONT ID="LN">1029</FONT><A NAME="1029"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Int">int</FONT> m_MaxInstInLeaf = <FONT ID="IntegerLiteral">40</FONT>;
+<FONT ID="LN">1030</FONT><A NAME="1030"></A>
+<FONT ID="LN">1031</FONT><A NAME="1031"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1032</FONT><A NAME="1032"></A>   * the GET and SET - functions ===============================================
+<FONT ID="LN">1033</FONT><A NAME="1033"></A>   */</FONT>
+<FONT ID="LN">1034</FONT><A NAME="1034"></A>
+<FONT ID="LN">1035</FONT><A NAME="1035"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1036</FONT><A NAME="1036"></A>   * Tip text for this property.
+<FONT ID="LN">1037</FONT><A NAME="1037"></A>   * 
+<FONT ID="LN">1038</FONT><A NAME="1038"></A>   * @return        the tip text for this property
+<FONT ID="LN">1039</FONT><A NAME="1039"></A>   */</FONT>
+<FONT ID="LN">1040</FONT><A NAME="1040"></A>  <FONT ID="Public">public</FONT> String minBoxRelWidthTipText() {
+<FONT ID="LN">1041</FONT><A NAME="1041"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"The minimum relative width of the box. A node is only made a leaf "</FONT>
+<FONT ID="LN">1042</FONT><A NAME="1042"></A>        + <FONT ID="StringLiteral">"if the width of the split dimension of the instances in a node "</FONT>
+<FONT ID="LN">1043</FONT><A NAME="1043"></A>        + <FONT ID="StringLiteral">"normalized over the width of the split dimension of all the "</FONT>
+<FONT ID="LN">1044</FONT><A NAME="1044"></A>        + <FONT ID="StringLiteral">"instances is less than or equal to this minimum relative width."</FONT>;
+<FONT ID="LN">1045</FONT><A NAME="1045"></A>  }
+<FONT ID="LN">1046</FONT><A NAME="1046"></A>
+<FONT ID="LN">1047</FONT><A NAME="1047"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1048</FONT><A NAME="1048"></A>   * Sets the minimum relative box width.
+<FONT ID="LN">1049</FONT><A NAME="1049"></A>   * 
+<FONT ID="LN">1050</FONT><A NAME="1050"></A>   * @param i       the minimum relative box width
+<FONT ID="LN">1051</FONT><A NAME="1051"></A>   */</FONT>
+<FONT ID="LN">1052</FONT><A NAME="1052"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setMinBoxRelWidth(<FONT ID="Double">double</FONT> i) {
+<FONT ID="LN">1053</FONT><A NAME="1053"></A>    m_MinBoxRelWidth = i;
+<FONT ID="LN">1054</FONT><A NAME="1054"></A>  }
+<FONT ID="LN">1055</FONT><A NAME="1055"></A>
+<FONT ID="LN">1056</FONT><A NAME="1056"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1057</FONT><A NAME="1057"></A>   * Gets the minimum relative box width.
+<FONT ID="LN">1058</FONT><A NAME="1058"></A>   * 
+<FONT ID="LN">1059</FONT><A NAME="1059"></A>   * @return        the minimum relative box width
+<FONT ID="LN">1060</FONT><A NAME="1060"></A>   */</FONT>
+<FONT ID="LN">1061</FONT><A NAME="1061"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getMinBoxRelWidth() {
+<FONT ID="LN">1062</FONT><A NAME="1062"></A>    <FONT ID="Return">return</FONT> m_MinBoxRelWidth;
+<FONT ID="LN">1063</FONT><A NAME="1063"></A>  }
+<FONT ID="LN">1064</FONT><A NAME="1064"></A>
+<FONT ID="LN">1065</FONT><A NAME="1065"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1066</FONT><A NAME="1066"></A>   * Tip text for this property.
+<FONT ID="LN">1067</FONT><A NAME="1067"></A>   * 
+<FONT ID="LN">1068</FONT><A NAME="1068"></A>   * @return        the tip text for this property
+<FONT ID="LN">1069</FONT><A NAME="1069"></A>   */</FONT>
+<FONT ID="LN">1070</FONT><A NAME="1070"></A>  <FONT ID="Public">public</FONT> String maxInstInLeafTipText() {
+<FONT ID="LN">1071</FONT><A NAME="1071"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"The max number of instances in a leaf."</FONT>;
+<FONT ID="LN">1072</FONT><A NAME="1072"></A>  }
+<FONT ID="LN">1073</FONT><A NAME="1073"></A>
+<FONT ID="LN">1074</FONT><A NAME="1074"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1075</FONT><A NAME="1075"></A>   * Sets the maximum number of instances in a leaf.
+<FONT ID="LN">1076</FONT><A NAME="1076"></A>   * 
+<FONT ID="LN">1077</FONT><A NAME="1077"></A>   * @param i       the maximum number of instances in a leaf
+<FONT ID="LN">1078</FONT><A NAME="1078"></A>   */</FONT>
+<FONT ID="LN">1079</FONT><A NAME="1079"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setMaxInstInLeaf(<FONT ID="Int">int</FONT> i) {
+<FONT ID="LN">1080</FONT><A NAME="1080"></A>    m_MaxInstInLeaf = i;
+<FONT ID="LN">1081</FONT><A NAME="1081"></A>  }
+<FONT ID="LN">1082</FONT><A NAME="1082"></A>
+<FONT ID="LN">1083</FONT><A NAME="1083"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1084</FONT><A NAME="1084"></A>   * Get the maximum number of instances in a leaf.
+<FONT ID="LN">1085</FONT><A NAME="1085"></A>   * 
+<FONT ID="LN">1086</FONT><A NAME="1086"></A>   * @return        the maximum number of instances in a leaf
+<FONT ID="LN">1087</FONT><A NAME="1087"></A>   */</FONT>
+<FONT ID="LN">1088</FONT><A NAME="1088"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getMaxInstInLeaf() {
+<FONT ID="LN">1089</FONT><A NAME="1089"></A>    <FONT ID="Return">return</FONT> m_MaxInstInLeaf;
+<FONT ID="LN">1090</FONT><A NAME="1090"></A>  }
+<FONT ID="LN">1091</FONT><A NAME="1091"></A>
+<FONT ID="LN">1092</FONT><A NAME="1092"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1093</FONT><A NAME="1093"></A>   * Tip text for this property.
+<FONT ID="LN">1094</FONT><A NAME="1094"></A>   * 
+<FONT ID="LN">1095</FONT><A NAME="1095"></A>   * @return        the tip text for this property
+<FONT ID="LN">1096</FONT><A NAME="1096"></A>   */</FONT>
+<FONT ID="LN">1097</FONT><A NAME="1097"></A>  <FONT ID="Public">public</FONT> String normalizeNodeWidthTipText() {
+<FONT ID="LN">1098</FONT><A NAME="1098"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"Whether if the widths of the KDTree node should be normalized "</FONT>
+<FONT ID="LN">1099</FONT><A NAME="1099"></A>        + <FONT ID="StringLiteral">"by the width of the universe or not. "</FONT>
+<FONT ID="LN">1100</FONT><A NAME="1100"></A>        + <FONT ID="StringLiteral">"Where, width of the node is the range of the split attribute "</FONT>
+<FONT ID="LN">1101</FONT><A NAME="1101"></A>        + <FONT ID="StringLiteral">"based on the instances in that node, and width of the "</FONT>
+<FONT ID="LN">1102</FONT><A NAME="1102"></A>        + <FONT ID="StringLiteral">"universe is the range of the split attribute based on all the "</FONT>
+<FONT ID="LN">1103</FONT><A NAME="1103"></A>        + <FONT ID="StringLiteral">"instances (default: false)."</FONT>;
+<FONT ID="LN">1104</FONT><A NAME="1104"></A>  }
+<FONT ID="LN">1105</FONT><A NAME="1105"></A>
+<FONT ID="LN">1106</FONT><A NAME="1106"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1107</FONT><A NAME="1107"></A>   * Sets the flag for normalizing the widths of a KDTree Node by the width of
+<FONT ID="LN">1108</FONT><A NAME="1108"></A>   * the dimension in the universe.
+<FONT ID="LN">1109</FONT><A NAME="1109"></A>   * 
+<FONT ID="LN">1110</FONT><A NAME="1110"></A>   * @param n       true to use normalizing.
+<FONT ID="LN">1111</FONT><A NAME="1111"></A>   */</FONT>
+<FONT ID="LN">1112</FONT><A NAME="1112"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setNormalizeNodeWidth(<FONT ID="Boolean">boolean</FONT> n) {
+<FONT ID="LN">1113</FONT><A NAME="1113"></A>    m_NormalizeNodeWidth = n;
+<FONT ID="LN">1114</FONT><A NAME="1114"></A>  }
+<FONT ID="LN">1115</FONT><A NAME="1115"></A>
+<FONT ID="LN">1116</FONT><A NAME="1116"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1117</FONT><A NAME="1117"></A>   * Gets the normalize flag.
+<FONT ID="LN">1118</FONT><A NAME="1118"></A>   * 
+<FONT ID="LN">1119</FONT><A NAME="1119"></A>   * @return        True if normalizing
+<FONT ID="LN">1120</FONT><A NAME="1120"></A>   */</FONT>
+<FONT ID="LN">1121</FONT><A NAME="1121"></A>  <FONT ID="Public">public</FONT> <FONT ID="Boolean">boolean</FONT> getNormalizeNodeWidth() {
+<FONT ID="LN">1122</FONT><A NAME="1122"></A>    <FONT ID="Return">return</FONT> m_NormalizeNodeWidth;
+<FONT ID="LN">1123</FONT><A NAME="1123"></A>  }
+<FONT ID="LN">1124</FONT><A NAME="1124"></A>
+<FONT ID="LN">1125</FONT><A NAME="1125"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1126</FONT><A NAME="1126"></A>   * returns the distance function currently in use.
+<FONT ID="LN">1127</FONT><A NAME="1127"></A>   * 
+<FONT ID="LN">1128</FONT><A NAME="1128"></A>   * @return        the distance function
+<FONT ID="LN">1129</FONT><A NAME="1129"></A>   */</FONT>
+<FONT ID="LN">1130</FONT><A NAME="1130"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/DistanceFunction.java.html">DistanceFunction</A> getDistanceFunction() {
+<FONT ID="LN">1131</FONT><A NAME="1131"></A>    <FONT ID="Return">return</FONT> (<A HREF="../../../weka/core/DistanceFunction.java.html">DistanceFunction</A>) m_EuclideanDistance;
+<FONT ID="LN">1132</FONT><A NAME="1132"></A>  }
+<FONT ID="LN">1133</FONT><A NAME="1133"></A>
+<FONT ID="LN">1134</FONT><A NAME="1134"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1135</FONT><A NAME="1135"></A>   * sets the distance function to use for nearest neighbour search.
+<FONT ID="LN">1136</FONT><A NAME="1136"></A>   * 
+<FONT ID="LN">1137</FONT><A NAME="1137"></A>   * @param df      the distance function to use
+<FONT ID="LN">1138</FONT><A NAME="1138"></A>   * @throws Exception  if not EuclideanDistance
+<FONT ID="LN">1139</FONT><A NAME="1139"></A>   */</FONT>
+<FONT ID="LN">1140</FONT><A NAME="1140"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDistanceFunction(<A HREF="../../../weka/core/DistanceFunction.java.html">DistanceFunction</A> df) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1141</FONT><A NAME="1141"></A>    <FONT ID="If">if</FONT> (!(df <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A>))
+<FONT ID="LN">1142</FONT><A NAME="1142"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"KDTree currently only works with "</FONT>
+<FONT ID="LN">1143</FONT><A NAME="1143"></A>          + <FONT ID="StringLiteral">"EuclideanDistanceFunction."</FONT>);
+<FONT ID="LN">1144</FONT><A NAME="1144"></A>    m_DistanceFunction = m_EuclideanDistance = (<A HREF="../../../weka/core/EuclideanDistance.java.html">EuclideanDistance</A>) df;
+<FONT ID="LN">1145</FONT><A NAME="1145"></A>  }
+<FONT ID="LN">1146</FONT><A NAME="1146"></A>  
+<FONT ID="LN">1147</FONT><A NAME="1147"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1148</FONT><A NAME="1148"></A>   * Returns the tip text for this property.
+<FONT ID="LN">1149</FONT><A NAME="1149"></A>   * 
+<FONT ID="LN">1150</FONT><A NAME="1150"></A>   * @return        tip text for this property suitable for
+<FONT ID="LN">1151</FONT><A NAME="1151"></A>   *            displaying in the explorer/experimenter gui
+<FONT ID="LN">1152</FONT><A NAME="1152"></A>   */</FONT>
+<FONT ID="LN">1153</FONT><A NAME="1153"></A>  <FONT ID="Public">public</FONT> String nodeSplitterTipText() {
+<FONT ID="LN">1154</FONT><A NAME="1154"></A>    <FONT ID="Return">return</FONT> <FONT ID="StringLiteral">"The the splitting method to split the nodes of the KDTree."</FONT>;
+<FONT ID="LN">1155</FONT><A NAME="1155"></A>  }
+<FONT ID="LN">1156</FONT><A NAME="1156"></A>
+<FONT ID="LN">1157</FONT><A NAME="1157"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1158</FONT><A NAME="1158"></A>   * Returns the splitting method currently in use to split the nodes of the
+<FONT ID="LN">1159</FONT><A NAME="1159"></A>   * KDTree.
+<FONT ID="LN">1160</FONT><A NAME="1160"></A>   * 
+<FONT ID="LN">1161</FONT><A NAME="1161"></A>   * @return The KDTreeNodeSplitter currently in use.
+<FONT ID="LN">1162</FONT><A NAME="1162"></A>   */</FONT>
+<FONT ID="LN">1163</FONT><A NAME="1163"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNodeSplitter.java.html">KDTreeNodeSplitter</A> getNodeSplitter() {
+<FONT ID="LN">1164</FONT><A NAME="1164"></A>    <FONT ID="Return">return</FONT> m_Splitter;
+<FONT ID="LN">1165</FONT><A NAME="1165"></A>  }
+<FONT ID="LN">1166</FONT><A NAME="1166"></A>
+<FONT ID="LN">1167</FONT><A NAME="1167"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1168</FONT><A NAME="1168"></A>   * Sets the splitting method to use to split the nodes of the KDTree.
+<FONT ID="LN">1169</FONT><A NAME="1169"></A>   * 
+<FONT ID="LN">1170</FONT><A NAME="1170"></A>   * @param splitter The KDTreeNodeSplitter to use.
+<FONT ID="LN">1171</FONT><A NAME="1171"></A>   */</FONT>
+<FONT ID="LN">1172</FONT><A NAME="1172"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setNodeSplitter(<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNodeSplitter.java.html">KDTreeNodeSplitter</A> splitter) {
+<FONT ID="LN">1173</FONT><A NAME="1173"></A>    m_Splitter = splitter;
+<FONT ID="LN">1174</FONT><A NAME="1174"></A>  }
+<FONT ID="LN">1175</FONT><A NAME="1175"></A>
+<FONT ID="LN">1176</FONT><A NAME="1176"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1177</FONT><A NAME="1177"></A>   * Returns a string describing this nearest neighbour search algorithm.
+<FONT ID="LN">1178</FONT><A NAME="1178"></A>   * 
+<FONT ID="LN">1179</FONT><A NAME="1179"></A>   * @return        a description of the algorithm for displaying in the
+<FONT ID="LN">1180</FONT><A NAME="1180"></A>   *                explorer/experimenter gui
+<FONT ID="LN">1181</FONT><A NAME="1181"></A>   */</FONT>
+<FONT ID="LN">1182</FONT><A NAME="1182"></A>  <FONT ID="Public">public</FONT> String globalInfo() {
+<FONT ID="LN">1183</FONT><A NAME="1183"></A>    <FONT ID="Return">return</FONT> 
+<FONT ID="LN">1184</FONT><A NAME="1184"></A>        <FONT ID="StringLiteral">"Class implementing the KDTree search algorithm for nearest "</FONT>
+<FONT ID="LN">1185</FONT><A NAME="1185"></A>      + <FONT ID="StringLiteral">"neighbour search.\n"</FONT>
+<FONT ID="LN">1186</FONT><A NAME="1186"></A>      + <FONT ID="StringLiteral">"The connection to dataset is only a reference. For the tree "</FONT>
+<FONT ID="LN">1187</FONT><A NAME="1187"></A>      + <FONT ID="StringLiteral">"structure the indexes are stored in an array. \n"</FONT>
+<FONT ID="LN">1188</FONT><A NAME="1188"></A>      + <FONT ID="StringLiteral">"Building the tree:\n"</FONT>
+<FONT ID="LN">1189</FONT><A NAME="1189"></A>      + <FONT ID="StringLiteral">"If a node has &lt;maximal-inst-number&gt; (option -L) instances no "</FONT>
+<FONT ID="LN">1190</FONT><A NAME="1190"></A>      + <FONT ID="StringLiteral">"further splitting is done. Also if the split would leave one "</FONT>
+<FONT ID="LN">1191</FONT><A NAME="1191"></A>      + <FONT ID="StringLiteral">"side empty, the branch is not split any further even if the "</FONT>
+<FONT ID="LN">1192</FONT><A NAME="1192"></A>      + <FONT ID="StringLiteral">"instances in the resulting node are more than "</FONT>
+<FONT ID="LN">1193</FONT><A NAME="1193"></A>      + <FONT ID="StringLiteral">"&lt;maximal-inst-number&gt; instances.\n"</FONT>
+<FONT ID="LN">1194</FONT><A NAME="1194"></A>      + <FONT ID="StringLiteral">"**PLEASE NOTE:** The algorithm can not handle missing values, so it "</FONT>
+<FONT ID="LN">1195</FONT><A NAME="1195"></A>      + <FONT ID="StringLiteral">"is advisable to run ReplaceMissingValues filter if there are any "</FONT>
+<FONT ID="LN">1196</FONT><A NAME="1196"></A>      + <FONT ID="StringLiteral">"missing values in the dataset.\n\n"</FONT>
+<FONT ID="LN">1197</FONT><A NAME="1197"></A>      + <FONT ID="StringLiteral">"For more information see:\n\n"</FONT>
+<FONT ID="LN">1198</FONT><A NAME="1198"></A>      + getTechnicalInformation().toString();
+<FONT ID="LN">1199</FONT><A NAME="1199"></A>  }
+<FONT ID="LN">1200</FONT><A NAME="1200"></A>
+<FONT ID="LN">1201</FONT><A NAME="1201"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1202</FONT><A NAME="1202"></A>   * Returns an enumeration describing the available options.
+<FONT ID="LN">1203</FONT><A NAME="1203"></A>   * 
+<FONT ID="LN">1204</FONT><A NAME="1204"></A>   * @return an enumeration of all the available options.
+<FONT ID="LN">1205</FONT><A NAME="1205"></A>   */</FONT>
+<FONT ID="LN">1206</FONT><A NAME="1206"></A>  <FONT ID="Public">public</FONT> Enumeration listOptions() {
+<FONT ID="LN">1207</FONT><A NAME="1207"></A>    Vector&lt;<A HREF="../../../weka/core/Option.java.html">Option</A>&gt; newVector = <FONT ID="New">new</FONT> Vector&lt;<A HREF="../../../weka/core/Option.java.html">Option</A>&gt;();
+<FONT ID="LN">1208</FONT><A NAME="1208"></A>    
+<FONT ID="LN">1209</FONT><A NAME="1209"></A>    newVector.add(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">1210</FONT><A NAME="1210"></A>    <FONT ID="StringLiteral">"\tNode splitting method to use.\n"</FONT>
+<FONT ID="LN">1211</FONT><A NAME="1211"></A>    + <FONT ID="StringLiteral">"\t(default: weka.core.neighboursearch.kdtrees.SlidingMidPointOfWidestSide)"</FONT>,
+<FONT ID="LN">1212</FONT><A NAME="1212"></A>    <FONT ID="StringLiteral">"S"</FONT>, <FONT ID="IntegerLiteral">1</FONT>, <FONT ID="StringLiteral">"-S &lt;classname and options&gt;"</FONT>));
+<FONT ID="LN">1213</FONT><A NAME="1213"></A>    
+<FONT ID="LN">1214</FONT><A NAME="1214"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">1215</FONT><A NAME="1215"></A>    <FONT ID="StringLiteral">"\tSet minimal width of a box\n"</FONT>
+<FONT ID="LN">1216</FONT><A NAME="1216"></A>        + <FONT ID="StringLiteral">"\t(default: 1.0E-2)."</FONT>, 
+<FONT ID="LN">1217</FONT><A NAME="1217"></A>        <FONT ID="StringLiteral">"W"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-W &lt;value&gt;"</FONT>));
+<FONT ID="LN">1218</FONT><A NAME="1218"></A>    
+<FONT ID="LN">1219</FONT><A NAME="1219"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">1220</FONT><A NAME="1220"></A>    <FONT ID="StringLiteral">"\tMaximal number of instances in a leaf\n"</FONT>
+<FONT ID="LN">1221</FONT><A NAME="1221"></A>        + <FONT ID="StringLiteral">"\t(default: 40)."</FONT>,
+<FONT ID="LN">1222</FONT><A NAME="1222"></A>        <FONT ID="StringLiteral">"L"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-L"</FONT>));
+<FONT ID="LN">1223</FONT><A NAME="1223"></A>    
+<FONT ID="LN">1224</FONT><A NAME="1224"></A>    newVector.addElement(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Option.java.html">Option</A>(
+<FONT ID="LN">1225</FONT><A NAME="1225"></A>    <FONT ID="StringLiteral">"\tNormalizing will be done\n"</FONT>
+<FONT ID="LN">1226</FONT><A NAME="1226"></A>        + <FONT ID="StringLiteral">"\t(Select dimension for split, with normalising to universe)."</FONT>,
+<FONT ID="LN">1227</FONT><A NAME="1227"></A>        <FONT ID="StringLiteral">"N"</FONT>, <FONT ID="IntegerLiteral">0</FONT>, <FONT ID="StringLiteral">"-N"</FONT>));
+<FONT ID="LN">1228</FONT><A NAME="1228"></A>    
+<FONT ID="LN">1229</FONT><A NAME="1229"></A>    <FONT ID="Return">return</FONT> newVector.elements();
+<FONT ID="LN">1230</FONT><A NAME="1230"></A>  }
+<FONT ID="LN">1231</FONT><A NAME="1231"></A>
+<FONT ID="LN">1232</FONT><A NAME="1232"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1233</FONT><A NAME="1233"></A>   * Parses a given list of options. &lt;p/&gt;
+<FONT ID="LN">1234</FONT><A NAME="1234"></A>   * 
+<FONT ID="LN">1235</FONT><A NAME="1235"></A>   &lt;!-- options-start --&gt;
+<FONT ID="LN">1236</FONT><A NAME="1236"></A>   * Valid options are: &lt;p/&gt;
+<FONT ID="LN">1237</FONT><A NAME="1237"></A>   * 
+<FONT ID="LN">1238</FONT><A NAME="1238"></A>   * &lt;pre&gt; -S &amp;lt;classname and options&amp;gt;
+<FONT ID="LN">1239</FONT><A NAME="1239"></A>   *  Node splitting method to use.
+<FONT ID="LN">1240</FONT><A NAME="1240"></A>   *  (default: weka.core.neighboursearch.kdtrees.SlidingMidPointOfWidestSide)&lt;/pre&gt;
+<FONT ID="LN">1241</FONT><A NAME="1241"></A>   * 
+<FONT ID="LN">1242</FONT><A NAME="1242"></A>   * &lt;pre&gt; -W &amp;lt;value&amp;gt;
+<FONT ID="LN">1243</FONT><A NAME="1243"></A>   *  Set minimal width of a box
+<FONT ID="LN">1244</FONT><A NAME="1244"></A>   *  (default: 1.0E-2).&lt;/pre&gt;
+<FONT ID="LN">1245</FONT><A NAME="1245"></A>   * 
+<FONT ID="LN">1246</FONT><A NAME="1246"></A>   * &lt;pre&gt; -L
+<FONT ID="LN">1247</FONT><A NAME="1247"></A>   *  Maximal number of instances in a leaf
+<FONT ID="LN">1248</FONT><A NAME="1248"></A>   *  (default: 40).&lt;/pre&gt;
+<FONT ID="LN">1249</FONT><A NAME="1249"></A>   * 
+<FONT ID="LN">1250</FONT><A NAME="1250"></A>   * &lt;pre&gt; -N
+<FONT ID="LN">1251</FONT><A NAME="1251"></A>   *  Normalizing will be done
+<FONT ID="LN">1252</FONT><A NAME="1252"></A>   *  (Select dimension for split, with normalising to universe).&lt;/pre&gt;
+<FONT ID="LN">1253</FONT><A NAME="1253"></A>   * 
+<FONT ID="LN">1254</FONT><A NAME="1254"></A>   &lt;!-- options-end --&gt;
+<FONT ID="LN">1255</FONT><A NAME="1255"></A>   * 
+<FONT ID="LN">1256</FONT><A NAME="1256"></A>   * @param options the list of options as an array of strings
+<FONT ID="LN">1257</FONT><A NAME="1257"></A>   * @throws Exception  if an option is not supported
+<FONT ID="LN">1258</FONT><A NAME="1258"></A>   */</FONT>
+<FONT ID="LN">1259</FONT><A NAME="1259"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOptions(String[] options) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">1260</FONT><A NAME="1260"></A>    <FONT ID="Super">super</FONT>.setOptions(options);
+<FONT ID="LN">1261</FONT><A NAME="1261"></A>
+<FONT ID="LN">1262</FONT><A NAME="1262"></A>    String optionString = Utils.getOption(<FONT ID="CharacerLiteral">'S'</FONT>, options);
+<FONT ID="LN">1263</FONT><A NAME="1263"></A>    <FONT ID="If">if</FONT> (optionString.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1264</FONT><A NAME="1264"></A>      String splitMethodSpec[] = Utils.splitOptions(optionString);
+<FONT ID="LN">1265</FONT><A NAME="1265"></A>      <FONT ID="If">if</FONT> (splitMethodSpec.length == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1266</FONT><A NAME="1266"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Invalid DistanceFunction specification string."</FONT>);
+<FONT ID="LN">1267</FONT><A NAME="1267"></A>      }
+<FONT ID="LN">1268</FONT><A NAME="1268"></A>      String className = splitMethodSpec[<FONT ID="IntegerLiteral">0</FONT>];
+<FONT ID="LN">1269</FONT><A NAME="1269"></A>      splitMethodSpec[<FONT ID="IntegerLiteral">0</FONT>] = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1270</FONT><A NAME="1270"></A>
+<FONT ID="LN">1271</FONT><A NAME="1271"></A>      setNodeSplitter((<A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNodeSplitter.java.html">KDTreeNodeSplitter</A>) Utils.forName(
+<FONT ID="LN">1272</FONT><A NAME="1272"></A>          <A HREF="../../../weka/core/neighboursearch/kdtrees/KDTreeNodeSplitter.java.html">KDTreeNodeSplitter</A>.<FONT ID="Class">class</FONT>, className, splitMethodSpec));
+<FONT ID="LN">1273</FONT><A NAME="1273"></A>    }
+<FONT ID="LN">1274</FONT><A NAME="1274"></A>    <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1275</FONT><A NAME="1275"></A>      setNodeSplitter(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/neighboursearch/kdtrees/SlidingMidPointOfWidestSide.java.html">SlidingMidPointOfWidestSide</A>());
+<FONT ID="LN">1276</FONT><A NAME="1276"></A>    }
+<FONT ID="LN">1277</FONT><A NAME="1277"></A>
+<FONT ID="LN">1278</FONT><A NAME="1278"></A>    optionString = Utils.getOption(<FONT ID="CharacerLiteral">'W'</FONT>, options);
+<FONT ID="LN">1279</FONT><A NAME="1279"></A>    <FONT ID="If">if</FONT> (optionString.length() != <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">1280</FONT><A NAME="1280"></A>      setMinBoxRelWidth(Double.parseDouble(optionString));
+<FONT ID="LN">1281</FONT><A NAME="1281"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">1282</FONT><A NAME="1282"></A>      setMinBoxRelWidth(<FONT ID="FloatPointLiteral">1.0E-2</FONT>);
+<FONT ID="LN">1283</FONT><A NAME="1283"></A>
+<FONT ID="LN">1284</FONT><A NAME="1284"></A>    optionString = Utils.getOption(<FONT ID="CharacerLiteral">'L'</FONT>, options);
+<FONT ID="LN">1285</FONT><A NAME="1285"></A>    <FONT ID="If">if</FONT> (optionString.length() != <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">1286</FONT><A NAME="1286"></A>      setMaxInstInLeaf(Integer.parseInt(optionString));
+<FONT ID="LN">1287</FONT><A NAME="1287"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">1288</FONT><A NAME="1288"></A>      setMaxInstInLeaf(<FONT ID="IntegerLiteral">40</FONT>);
+<FONT ID="LN">1289</FONT><A NAME="1289"></A>
+<FONT ID="LN">1290</FONT><A NAME="1290"></A>    setNormalizeNodeWidth(Utils.getFlag(<FONT ID="CharacerLiteral">'N'</FONT>, options));
+<FONT ID="LN">1291</FONT><A NAME="1291"></A>  }
+<FONT ID="LN">1292</FONT><A NAME="1292"></A>
+<FONT ID="LN">1293</FONT><A NAME="1293"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1294</FONT><A NAME="1294"></A>   * Gets the current settings of KDtree.
+<FONT ID="LN">1295</FONT><A NAME="1295"></A>   * 
+<FONT ID="LN">1296</FONT><A NAME="1296"></A>   * @return        an array of strings suitable for passing to setOptions
+<FONT ID="LN">1297</FONT><A NAME="1297"></A>   */</FONT>
+<FONT ID="LN">1298</FONT><A NAME="1298"></A>  <FONT ID="Public">public</FONT> String[] getOptions() {
+<FONT ID="LN">1299</FONT><A NAME="1299"></A>    Vector&lt;String&gt;  result;
+<FONT ID="LN">1300</FONT><A NAME="1300"></A>    String[]        options;
+<FONT ID="LN">1301</FONT><A NAME="1301"></A>    <FONT ID="Int">int</FONT>         i;
+<FONT ID="LN">1302</FONT><A NAME="1302"></A>    
+<FONT ID="LN">1303</FONT><A NAME="1303"></A>    result = <FONT ID="New">new</FONT> Vector&lt;String&gt;();
+<FONT ID="LN">1304</FONT><A NAME="1304"></A>    
+<FONT ID="LN">1305</FONT><A NAME="1305"></A>    options = <FONT ID="Super">super</FONT>.getOptions();
+<FONT ID="LN">1306</FONT><A NAME="1306"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; options.length; i++)
+<FONT ID="LN">1307</FONT><A NAME="1307"></A>      result.add(options[i]);
+<FONT ID="LN">1308</FONT><A NAME="1308"></A>    
+<FONT ID="LN">1309</FONT><A NAME="1309"></A>    result.add(<FONT ID="StringLiteral">"-S"</FONT>);
+<FONT ID="LN">1310</FONT><A NAME="1310"></A>    result.add(
+<FONT ID="LN">1311</FONT><A NAME="1311"></A>    (m_Splitter.getClass().getName() + <FONT ID="StringLiteral">" "</FONT> +
+<FONT ID="LN">1312</FONT><A NAME="1312"></A>     Utils.joinOptions(m_Splitter.getOptions())).trim());
+<FONT ID="LN">1313</FONT><A NAME="1313"></A>
+<FONT ID="LN">1314</FONT><A NAME="1314"></A>    result.add(<FONT ID="StringLiteral">"-W"</FONT>);
+<FONT ID="LN">1315</FONT><A NAME="1315"></A>    result.add(<FONT ID="StringLiteral">""</FONT> + getMinBoxRelWidth());
+<FONT ID="LN">1316</FONT><A NAME="1316"></A>
+<FONT ID="LN">1317</FONT><A NAME="1317"></A>    result.add(<FONT ID="StringLiteral">"-L"</FONT>);
+<FONT ID="LN">1318</FONT><A NAME="1318"></A>    result.add(<FONT ID="StringLiteral">""</FONT> + getMaxInstInLeaf());
+<FONT ID="LN">1319</FONT><A NAME="1319"></A>
+<FONT ID="LN">1320</FONT><A NAME="1320"></A>    <FONT ID="If">if</FONT> (getNormalizeNodeWidth())
+<FONT ID="LN">1321</FONT><A NAME="1321"></A>      result.add(<FONT ID="StringLiteral">"-N"</FONT>);
+<FONT ID="LN">1322</FONT><A NAME="1322"></A>
+<FONT ID="LN">1323</FONT><A NAME="1323"></A>    <FONT ID="Return">return</FONT> result.toArray(<FONT ID="New">new</FONT> String[result.size()]);
+<FONT ID="LN">1324</FONT><A NAME="1324"></A>  }
+<FONT ID="LN">1325</FONT><A NAME="1325"></A>  
+<FONT ID="LN">1326</FONT><A NAME="1326"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1327</FONT><A NAME="1327"></A>   * Returns the revision string.
+<FONT ID="LN">1328</FONT><A NAME="1328"></A>   * 
+<FONT ID="LN">1329</FONT><A NAME="1329"></A>   * @return        the revision
+<FONT ID="LN">1330</FONT><A NAME="1330"></A>   */</FONT>
+<FONT ID="LN">1331</FONT><A NAME="1331"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">1332</FONT><A NAME="1332"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5987 $"</FONT>);
+<FONT ID="LN">1333</FONT><A NAME="1333"></A>  }
+<FONT ID="LN">1334</FONT><A NAME="1334"></A>}
+<FONT ID="LN">1335</FONT><A NAME="1335"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">KDTree.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,320 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.test.WekaTestSuite (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">WekaTestSuite.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> * WekaTestSuite.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> * Copyright (C) 2005 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.test;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/core/ClassDiscovery.java.html">weka.core.ClassDiscovery</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../weka/gui/GenericPropertiesCreator.java.html">weka.gui.GenericPropertiesCreator</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.util.Collections;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.util.StringTokenizer;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> junit.framework.Test;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> junit.framework.TestSuite;
+<FONT ID="LN">34  </FONT><A NAME="34"></A>
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * Extends the standard TestSuite class wtih some additional methods for
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * automatic generation of a series of tests.
+<FONT ID="LN">38  </FONT><A NAME="38"></A> *
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * @author  FracPete (fracpete at waikato dot ac dot nz)
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * @version $Revision: 1.5 $
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * @see     GenericPropertiesCreator
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * @see     ClassDiscovery
+<FONT ID="LN">43  </FONT><A NAME="43"></A> */</FONT>
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> WekaTestSuite
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="Extends">extends</FONT> TestSuite {
+<FONT ID="LN">46  </FONT><A NAME="46"></A>
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   * checks whether the classname is a valid one, i.e., from a public class
+<FONT ID="LN">49  </FONT><A NAME="49"></A>   *
+<FONT ID="LN">50  </FONT><A NAME="50"></A>   * @param classname   the classname to check
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   * @return            whether the classname is a valid one
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   */</FONT>
+<FONT ID="LN">53  </FONT><A NAME="53"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Boolean">boolean</FONT> isValidClassname(String classname) {
+<FONT ID="LN">54  </FONT><A NAME="54"></A>    <FONT ID="Return">return</FONT> (classname.indexOf(<FONT ID="StringLiteral">"$"</FONT>) == -<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>  }
+<FONT ID="LN">56  </FONT><A NAME="56"></A>  
+<FONT ID="LN">57  </FONT><A NAME="57"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   * determines all the classes derived from the given superclass in the
+<FONT ID="LN">59  </FONT><A NAME="59"></A>   * specified packages
+<FONT ID="LN">60  </FONT><A NAME="60"></A>   *
+<FONT ID="LN">61  </FONT><A NAME="61"></A>   * @param superclass  the class to find subclasses for
+<FONT ID="LN">62  </FONT><A NAME="62"></A>   * @param pacakges    the packages to search in for subclasses
+<FONT ID="LN">63  </FONT><A NAME="63"></A>   * @return            the classes that were found
+<FONT ID="LN">64  </FONT><A NAME="64"></A>   */</FONT>
+<FONT ID="LN">65  </FONT><A NAME="65"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> Vector getClassnames(String superclass, Vector packages) {
+<FONT ID="LN">66  </FONT><A NAME="66"></A>    Vector        result;
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    Vector        names;
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    <FONT ID="Int">int</FONT>           i;
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="Int">int</FONT>           n;
+<FONT ID="LN">70  </FONT><A NAME="70"></A>
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    result = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">72  </FONT><A NAME="72"></A>
+<FONT ID="LN">73  </FONT><A NAME="73"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; packages.size(); i++) {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>      names = ClassDiscovery.find(superclass, (String) packages.get(i));
+<FONT ID="LN">75  </FONT><A NAME="75"></A>      <FONT ID="For">for</FONT> (n = <FONT ID="IntegerLiteral">0</FONT>; n &lt; names.size(); n++) {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>        <FONT ID="SingleLineComment">// skip non-public classes
+<FONT ID="LN">77  </FONT><A NAME="77"></A></FONT>        <FONT ID="If">if</FONT> (isValidClassname((String) names.get(n)))
+<FONT ID="LN">78  </FONT><A NAME="78"></A>          result.add(names.get(n));
+<FONT ID="LN">79  </FONT><A NAME="79"></A>      }
+<FONT ID="LN">80  </FONT><A NAME="80"></A>    }
+<FONT ID="LN">81  </FONT><A NAME="81"></A>    
+<FONT ID="LN">82  </FONT><A NAME="82"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">86  </FONT><A NAME="86"></A>   * returns a Vector with all the classnames of the specified property in 
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   * the GenericPropertiesCreator.
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   *
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * @param property    the property to get the classnames for
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   * @return            the classnames of the given property
+<FONT ID="LN">91  </FONT><A NAME="91"></A>   * @see               GenericPropertiesCreator
+<FONT ID="LN">92  </FONT><A NAME="92"></A>   */</FONT>
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> Vector getClassnames(String property) {
+<FONT ID="LN">94  </FONT><A NAME="94"></A>    <A HREF="../../weka/gui/GenericPropertiesCreator.java.html">GenericPropertiesCreator</A>  gpc;
+<FONT ID="LN">95  </FONT><A NAME="95"></A>    String                    classes;
+<FONT ID="LN">96  </FONT><A NAME="96"></A>    Vector                    result;
+<FONT ID="LN">97  </FONT><A NAME="97"></A>    StringTokenizer           tok;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>    String                    classname;
+<FONT ID="LN">99  </FONT><A NAME="99"></A>    
+<FONT ID="LN">100 </FONT><A NAME="100"></A>    result = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">103 </FONT><A NAME="103"></A>      gpc = <FONT ID="New">new</FONT> <A HREF="../../weka/gui/GenericPropertiesCreator.java.html">GenericPropertiesCreator</A>();
+<FONT ID="LN">104 </FONT><A NAME="104"></A>      gpc.execute(<FONT ID="False">false</FONT>);
+<FONT ID="LN">105 </FONT><A NAME="105"></A>      
+<FONT ID="LN">106 </FONT><A NAME="106"></A>      classes = gpc.getOutputProperties().getProperty(property);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>      tok     = <FONT ID="New">new</FONT> StringTokenizer(classes, <FONT ID="StringLiteral">","</FONT>);
+<FONT ID="LN">108 </FONT><A NAME="108"></A>      
+<FONT ID="LN">109 </FONT><A NAME="109"></A>      <FONT ID="While">while</FONT> (tok.hasMoreTokens()) {
+<FONT ID="LN">110 </FONT><A NAME="110"></A>        classname = tok.nextToken();
+<FONT ID="LN">111 </FONT><A NAME="111"></A>        <FONT ID="SingleLineComment">// skip non-public classes
+<FONT ID="LN">112 </FONT><A NAME="112"></A></FONT>        <FONT ID="If">if</FONT> (isValidClassname(classname))
+<FONT ID="LN">113 </FONT><A NAME="113"></A>          result.add(classname);
+<FONT ID="LN">114 </FONT><A NAME="114"></A>      }
+<FONT ID="LN">115 </FONT><A NAME="115"></A>    }
+<FONT ID="LN">116 </FONT><A NAME="116"></A>    <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">117 </FONT><A NAME="117"></A>      e.printStackTrace();
+<FONT ID="LN">118 </FONT><A NAME="118"></A>    }
+<FONT ID="LN">119 </FONT><A NAME="119"></A>
+<FONT ID="LN">120 </FONT><A NAME="120"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">124 </FONT><A NAME="124"></A>   * generates a Test class name for a given "regular" class
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * 
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   * @param classname   the class to generate the Test class name for
+<FONT ID="LN">127 </FONT><A NAME="127"></A>   * @return            the classname of the test
+<FONT ID="LN">128 </FONT><A NAME="128"></A>   */</FONT>
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> String getTestClassname(String classname) {
+<FONT ID="LN">130 </FONT><A NAME="130"></A>    <FONT ID="If">if</FONT> (!classname.endsWith(<FONT ID="StringLiteral">"Test"</FONT>))
+<FONT ID="LN">131 </FONT><A NAME="131"></A>      <FONT ID="Return">return</FONT> classname + <FONT ID="StringLiteral">"Test"</FONT>;
+<FONT ID="LN">132 </FONT><A NAME="132"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">133 </FONT><A NAME="133"></A>      <FONT ID="Return">return</FONT> classname;
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  }
+<FONT ID="LN">135 </FONT><A NAME="135"></A>
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * returns the test class if it exists, for the given class, otherwise
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   * null
+<FONT ID="LN">139 </FONT><A NAME="139"></A>   *
+<FONT ID="LN">140 </FONT><A NAME="140"></A>   * @param classname   the class to retrieve the Test class for
+<FONT ID="LN">141 </FONT><A NAME="141"></A>   * @return            non-null, if the Test class exists
+<FONT ID="LN">142 </FONT><A NAME="142"></A>   */</FONT>
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> Class testClassFor(String classname) {
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    Class         result;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    result = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">149 </FONT><A NAME="149"></A>      result = Class.forName(getTestClassname(classname));
+<FONT ID="LN">150 </FONT><A NAME="150"></A>    }
+<FONT ID="LN">151 </FONT><A NAME="151"></A>    <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">152 </FONT><A NAME="152"></A>      <FONT ID="SingleLineComment">// ignore it
+<FONT ID="LN">153 </FONT><A NAME="153"></A></FONT>    }
+<FONT ID="LN">154 </FONT><A NAME="154"></A>
+<FONT ID="LN">155 </FONT><A NAME="155"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">156 </FONT><A NAME="156"></A>  }
+<FONT ID="LN">157 </FONT><A NAME="157"></A>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">159 </FONT><A NAME="159"></A>   * tries to find Test classes for all the given classnames, if successful
+<FONT ID="LN">160 </FONT><A NAME="160"></A>   * they're added to the Test
+<FONT ID="LN">161 </FONT><A NAME="161"></A>   *
+<FONT ID="LN">162 </FONT><A NAME="162"></A>   * @param classnames    the classnames to get 
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   */</FONT>
+<FONT ID="LN">164 </FONT><A NAME="164"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> TestSuite addAll(Vector classnames) {
+<FONT ID="LN">165 </FONT><A NAME="165"></A>    <FONT ID="Int">int</FONT>           i;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>    Class         tc;
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    TestSuite     result;
+<FONT ID="LN">168 </FONT><A NAME="168"></A>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    result = <FONT ID="New">new</FONT> TestSuite();
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; classnames.size(); i++) {
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      tc = testClassFor((String) classnames.get(i));
+<FONT ID="LN">173 </FONT><A NAME="173"></A>      <FONT ID="If">if</FONT> (tc != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">174 </FONT><A NAME="174"></A>        result.addTest(<FONT ID="New">new</FONT> TestSuite(tc));
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  }
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  
+<FONT ID="LN">180 </FONT><A NAME="180"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">181 </FONT><A NAME="181"></A>   * adds all Tests for classes that are available via the
+<FONT ID="LN">182 </FONT><A NAME="182"></A>   * GenericPropertiesCreator's property to the Test and returns that
+<FONT ID="LN">183 </FONT><A NAME="183"></A>   *
+<FONT ID="LN">184 </FONT><A NAME="184"></A>   * @param property    the GPC property to add all the classes to the Test
+<FONT ID="LN">185 </FONT><A NAME="185"></A>   * @return            the generated Test
+<FONT ID="LN">186 </FONT><A NAME="186"></A>   * @see               GenericPropertiesCreator
+<FONT ID="LN">187 </FONT><A NAME="187"></A>   */</FONT>
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> TestSuite addAll(String property) {
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    <FONT ID="Return">return</FONT> addAll(getClassnames(property));
+<FONT ID="LN">190 </FONT><A NAME="190"></A>  }
+<FONT ID="LN">191 </FONT><A NAME="191"></A>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">193 </FONT><A NAME="193"></A>   * adds all available Tests for a given superclass and the packages to 
+<FONT ID="LN">194 </FONT><A NAME="194"></A>   * check in
+<FONT ID="LN">195 </FONT><A NAME="195"></A>   *
+<FONT ID="LN">196 </FONT><A NAME="196"></A>   * @param superclass  the superclass to find tests of subclasses for
+<FONT ID="LN">197 </FONT><A NAME="197"></A>   * @param packages    the packages (strings) to search in
+<FONT ID="LN">198 </FONT><A NAME="198"></A>   * @return            the generated Test
+<FONT ID="LN">199 </FONT><A NAME="199"></A>   */</FONT>
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> TestSuite addAll(String superclass, Vector packages) {
+<FONT ID="LN">201 </FONT><A NAME="201"></A>    <FONT ID="Return">return</FONT> addAll(getClassnames(superclass, packages));
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  }
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">205 </FONT><A NAME="205"></A>   * determines all the test classes that are missing for the given 
+<FONT ID="LN">206 </FONT><A NAME="206"></A>   * classnames.
+<FONT ID="LN">207 </FONT><A NAME="207"></A>   *
+<FONT ID="LN">208 </FONT><A NAME="208"></A>   * @param classnames  the classnames that are to be checked
+<FONT ID="LN">209 </FONT><A NAME="209"></A>   * @return            the missing Test classes
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   */</FONT>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> Vector getMissing(Vector classnames) {
+<FONT ID="LN">212 </FONT><A NAME="212"></A>    <FONT ID="Int">int</FONT>           i;
+<FONT ID="LN">213 </FONT><A NAME="213"></A>    Vector        result;
+<FONT ID="LN">214 </FONT><A NAME="214"></A>
+<FONT ID="LN">215 </FONT><A NAME="215"></A>    result = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">216 </FONT><A NAME="216"></A>    
+<FONT ID="LN">217 </FONT><A NAME="217"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; classnames.size(); i++) {
+<FONT ID="LN">218 </FONT><A NAME="218"></A>      <FONT ID="If">if</FONT> (testClassFor((String) classnames.get(i)) == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">219 </FONT><A NAME="219"></A>        result.add(getTestClassname((String) classnames.get(i)));
+<FONT ID="LN">220 </FONT><A NAME="220"></A>    }
+<FONT ID="LN">221 </FONT><A NAME="221"></A>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">223 </FONT><A NAME="223"></A>  }
+<FONT ID="LN">224 </FONT><A NAME="224"></A>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   * determines all the test classes that are missing for the given
+<FONT ID="LN">227 </FONT><A NAME="227"></A>   * GenericPropertiesCreator's property's elements
+<FONT ID="LN">228 </FONT><A NAME="228"></A>   *
+<FONT ID="LN">229 </FONT><A NAME="229"></A>   * @param property    the GPC property to determine the missing Tests for
+<FONT ID="LN">230 </FONT><A NAME="230"></A>   * @return            the classnames of the missing Tests
+<FONT ID="LN">231 </FONT><A NAME="231"></A>   */</FONT>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Vector getMissing(String property) {
+<FONT ID="LN">233 </FONT><A NAME="233"></A>    <FONT ID="Return">return</FONT> getMissing(getClassnames(property));
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  }
+<FONT ID="LN">235 </FONT><A NAME="235"></A>
+<FONT ID="LN">236 </FONT><A NAME="236"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * determines all the test classes of subclasses that are missing for the 
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * given superclass and packages to look in for
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   *
+<FONT ID="LN">240 </FONT><A NAME="240"></A>   * @param superclass  the superclass to check for tests of derived classes
+<FONT ID="LN">241 </FONT><A NAME="241"></A>   * @param packages    the packages to search in
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   * @return            the classnames of the missing Tests
+<FONT ID="LN">243 </FONT><A NAME="243"></A>   */</FONT>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Vector getMissing(String superclass, Vector packages) {
+<FONT ID="LN">245 </FONT><A NAME="245"></A>    <FONT ID="Return">return</FONT> getMissing(getClassnames(superclass, packages));
+<FONT ID="LN">246 </FONT><A NAME="246"></A>  }
+<FONT ID="LN">247 </FONT><A NAME="247"></A>
+<FONT ID="LN">248 </FONT><A NAME="248"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">249 </FONT><A NAME="249"></A>   * outputs the missing Test classes (if any) and returns the given TestSuite
+<FONT ID="LN">250 </FONT><A NAME="250"></A>   * 
+<FONT ID="LN">251 </FONT><A NAME="251"></A>   * @param t           the generated test suite, is only passed through
+<FONT ID="LN">252 </FONT><A NAME="252"></A>   * @param missing     the missing test classes, if any
+<FONT ID="LN">253 </FONT><A NAME="253"></A>   * @return            the previously generate test suite
+<FONT ID="LN">254 </FONT><A NAME="254"></A>   */</FONT>
+<FONT ID="LN">255 </FONT><A NAME="255"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> Test suite(Test t, Vector missing) {
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    <FONT ID="If">if</FONT> (missing.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">257 </FONT><A NAME="257"></A>      Collections.sort(missing);
+<FONT ID="LN">258 </FONT><A NAME="258"></A>
+<FONT ID="LN">259 </FONT><A NAME="259"></A>      System.out.println(<FONT ID="StringLiteral">"Missing Test classes:"</FONT>);
+<FONT ID="LN">260 </FONT><A NAME="260"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; missing.size(); i++)
+<FONT ID="LN">261 </FONT><A NAME="261"></A>        System.out.println(<FONT ID="StringLiteral">"- "</FONT> + missing.get(i));
+<FONT ID="LN">262 </FONT><A NAME="262"></A>      System.out.println();
+<FONT ID="LN">263 </FONT><A NAME="263"></A>    }
+<FONT ID="LN">264 </FONT><A NAME="264"></A>
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    <FONT ID="Return">return</FONT> t;
+<FONT ID="LN">266 </FONT><A NAME="266"></A>  }
+<FONT ID="LN">267 </FONT><A NAME="267"></A>
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">269 </FONT><A NAME="269"></A>   * Generates a TestSuite for the given GenericPropertiesCreator property
+<FONT ID="LN">270 </FONT><A NAME="270"></A>   * and returns it. Potentially missing test classes are output.
+<FONT ID="LN">271 </FONT><A NAME="271"></A>   *
+<FONT ID="LN">272 </FONT><A NAME="272"></A>   * @param property  the GPC property to generate a test suite from
+<FONT ID="LN">273 </FONT><A NAME="273"></A>   * @return          the generated test suite
+<FONT ID="LN">274 </FONT><A NAME="274"></A>   */</FONT>
+<FONT ID="LN">275 </FONT><A NAME="275"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Test suite(String property) {
+<FONT ID="LN">276 </FONT><A NAME="276"></A>    <FONT ID="Return">return</FONT> suite(addAll(property), getMissing(property));
+<FONT ID="LN">277 </FONT><A NAME="277"></A>  }
+<FONT ID="LN">278 </FONT><A NAME="278"></A>
+<FONT ID="LN">279 </FONT><A NAME="279"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">280 </FONT><A NAME="280"></A>   * Generates a TestSuite for all the Test class of subclasses of the given
+<FONT ID="LN">281 </FONT><A NAME="281"></A>   * superclasses. The given package names are used in the search.
+<FONT ID="LN">282 </FONT><A NAME="282"></A>   * Potentially missing test classes are output.
+<FONT ID="LN">283 </FONT><A NAME="283"></A>   *
+<FONT ID="LN">284 </FONT><A NAME="284"></A>   * @param superclass  the class to generate the test suite for
+<FONT ID="LN">285 </FONT><A NAME="285"></A>   * @param packages    the packages to look for test classes
+<FONT ID="LN">286 </FONT><A NAME="286"></A>   * @return            the generated test suite
+<FONT ID="LN">287 </FONT><A NAME="287"></A>   */</FONT>
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> Test suite(String superclass, Vector packages) {
+<FONT ID="LN">289 </FONT><A NAME="289"></A>    <FONT ID="Return">return</FONT> suite(addAll(superclass, packages), getMissing(superclass, packages));
+<FONT ID="LN">290 </FONT><A NAME="290"></A>  }
+<FONT ID="LN">291 </FONT><A NAME="291"></A>}
+<FONT ID="LN">292 </FONT><A NAME="292"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">WekaTestSuite.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

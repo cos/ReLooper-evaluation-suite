@@ -1,0 +1,1384 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.gui.experiment.ResultsPanel (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ResultsPanel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    ResultsPanel.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 1999 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.gui.experiment;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.awt.BorderLayout;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.awt.Dimension;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> java.awt.Font;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> java.awt.GridBagConstraints;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> java.awt.GridBagLayout;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> java.awt.GridLayout;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> java.awt.Insets;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> java.awt.event.ActionEvent;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> java.awt.event.ActionListener;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.awt.event.WindowAdapter;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.awt.event.WindowEvent;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.io.BufferedReader;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.io.FileReader;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.io.Reader;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> java.text.SimpleDateFormat;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.util.Date;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> java.util.StringTokenizer;
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> java.util.Vector;
+<FONT ID="LN">44  </FONT><A NAME="44"></A>
+<FONT ID="LN">45  </FONT><A NAME="45"></A><FONT ID="Import">import</FONT> javax.swing.BorderFactory;
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="Import">import</FONT> javax.swing.DefaultComboBoxModel;
+<FONT ID="LN">47  </FONT><A NAME="47"></A><FONT ID="Import">import</FONT> javax.swing.DefaultListModel;
+<FONT ID="LN">48  </FONT><A NAME="48"></A><FONT ID="Import">import</FONT> javax.swing.JButton;
+<FONT ID="LN">49  </FONT><A NAME="49"></A><FONT ID="Import">import</FONT> javax.swing.JCheckBox;
+<FONT ID="LN">50  </FONT><A NAME="50"></A><FONT ID="Import">import</FONT> javax.swing.JComboBox;
+<FONT ID="LN">51  </FONT><A NAME="51"></A><FONT ID="Import">import</FONT> javax.swing.JFileChooser;
+<FONT ID="LN">52  </FONT><A NAME="52"></A><FONT ID="Import">import</FONT> javax.swing.JFrame;
+<FONT ID="LN">53  </FONT><A NAME="53"></A><FONT ID="Import">import</FONT> javax.swing.JLabel;
+<FONT ID="LN">54  </FONT><A NAME="54"></A><FONT ID="Import">import</FONT> javax.swing.JList;
+<FONT ID="LN">55  </FONT><A NAME="55"></A><FONT ID="Import">import</FONT> javax.swing.JOptionPane;
+<FONT ID="LN">56  </FONT><A NAME="56"></A><FONT ID="Import">import</FONT> javax.swing.JPanel;
+<FONT ID="LN">57  </FONT><A NAME="57"></A><FONT ID="Import">import</FONT> javax.swing.JScrollPane;
+<FONT ID="LN">58  </FONT><A NAME="58"></A><FONT ID="Import">import</FONT> javax.swing.JSplitPane;
+<FONT ID="LN">59  </FONT><A NAME="59"></A><FONT ID="Import">import</FONT> javax.swing.JTextArea;
+<FONT ID="LN">60  </FONT><A NAME="60"></A><FONT ID="Import">import</FONT> javax.swing.JTextField;
+<FONT ID="LN">61  </FONT><A NAME="61"></A><FONT ID="Import">import</FONT> javax.swing.ListSelectionModel;
+<FONT ID="LN">62  </FONT><A NAME="62"></A><FONT ID="Import">import</FONT> javax.swing.SwingConstants;
+<FONT ID="LN">63  </FONT><A NAME="63"></A><FONT ID="Import">import</FONT> javax.swing.SwingUtilities;
+<FONT ID="LN">64  </FONT><A NAME="64"></A>
+<FONT ID="LN">65  </FONT><A NAME="65"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Attribute.java.html">weka.core.Attribute</A>;
+<FONT ID="LN">66  </FONT><A NAME="66"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/ClassDiscovery.java.html">weka.core.ClassDiscovery</A>;
+<FONT ID="LN">67  </FONT><A NAME="67"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">68  </FONT><A NAME="68"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">69  </FONT><A NAME="69"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Range.java.html">weka.core.Range</A>;
+<FONT ID="LN">70  </FONT><A NAME="70"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/converters/CSVLoader.java.html">weka.core.converters.CSVLoader</A>;
+<FONT ID="LN">71  </FONT><A NAME="71"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/CSVResultListener.java.html">weka.experiment.CSVResultListener</A>;
+<FONT ID="LN">72  </FONT><A NAME="72"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/DatabaseResultListener.java.html">weka.experiment.DatabaseResultListener</A>;
+<FONT ID="LN">73  </FONT><A NAME="73"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/Experiment.java.html">weka.experiment.Experiment</A>;
+<FONT ID="LN">74  </FONT><A NAME="74"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/InstanceQuery.java.html">weka.experiment.InstanceQuery</A>;
+<FONT ID="LN">75  </FONT><A NAME="75"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">weka.experiment.PairedCorrectedTTester</A>;
+<FONT ID="LN">76  </FONT><A NAME="76"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/ResultMatrix.java.html">weka.experiment.ResultMatrix</A>;
+<FONT ID="LN">77  </FONT><A NAME="77"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/ResultMatrixPlainText.java.html">weka.experiment.ResultMatrixPlainText</A>;
+<FONT ID="LN">78  </FONT><A NAME="78"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/experiment/Tester.java.html">weka.experiment.Tester</A>;
+<FONT ID="LN">79  </FONT><A NAME="79"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/DatabaseConnectionDialog.java.html">weka.gui.DatabaseConnectionDialog</A>;
+<FONT ID="LN">80  </FONT><A NAME="80"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">weka.gui.ExtensionFileFilter</A>;
+<FONT ID="LN">81  </FONT><A NAME="81"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/GenericObjectEditor.java.html">weka.gui.GenericObjectEditor</A>;
+<FONT ID="LN">82  </FONT><A NAME="82"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/ListSelectorDialog.java.html">weka.gui.ListSelectorDialog</A>;
+<FONT ID="LN">83  </FONT><A NAME="83"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/PropertyDialog.java.html">weka.gui.PropertyDialog</A>;
+<FONT ID="LN">84  </FONT><A NAME="84"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/ResultHistoryPanel.java.html">weka.gui.ResultHistoryPanel</A>;
+<FONT ID="LN">85  </FONT><A NAME="85"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/gui/SaveBuffer.java.html">weka.gui.SaveBuffer</A>;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>
+<FONT ID="LN">87  </FONT><A NAME="87"></A><FONT ID="FormalComment">/** 
+<FONT ID="LN">88  </FONT><A NAME="88"></A> * This panel controls simple analysis of experimental results.
+<FONT ID="LN">89  </FONT><A NAME="89"></A> *
+<FONT ID="LN">90  </FONT><A NAME="90"></A> * @author Len Trigg (trigg@cs.waikato.ac.nz)
+<FONT ID="LN">91  </FONT><A NAME="91"></A> * @version $Revision: 6087 $
+<FONT ID="LN">92  </FONT><A NAME="92"></A> */</FONT>
+<FONT ID="LN">93  </FONT><A NAME="93"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> ResultsPanel
+<FONT ID="LN">94  </FONT><A NAME="94"></A>  <FONT ID="Extends">extends</FONT> JPanel {
+<FONT ID="LN">95  </FONT><A NAME="95"></A>
+<FONT ID="LN">96  </FONT><A NAME="96"></A>  <FONT ID="FormalComment">/** for serialization. */</FONT>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">4913007978534178569L</FONT>;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="FormalComment">/** Message shown when no experimental results have been loaded. */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String NO_SOURCE = <FONT ID="StringLiteral">"No source"</FONT>;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="FormalComment">/** Click to load results from a file. */</FONT>
+<FONT ID="LN">103 </FONT><A NAME="103"></A>  <FONT ID="Protected">protected</FONT> JButton m_FromFileBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"File..."</FONT>);
+<FONT ID="LN">104 </FONT><A NAME="104"></A>
+<FONT ID="LN">105 </FONT><A NAME="105"></A>  <FONT ID="FormalComment">/** Click to load results from a database. */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="Protected">protected</FONT> JButton m_FromDBaseBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Database..."</FONT>);
+<FONT ID="LN">107 </FONT><A NAME="107"></A>
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  <FONT ID="FormalComment">/** Click to get results from the destination given in the experiment. */</FONT>
+<FONT ID="LN">109 </FONT><A NAME="109"></A>  <FONT ID="Protected">protected</FONT> JButton m_FromExpBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Experiment"</FONT>);
+<FONT ID="LN">110 </FONT><A NAME="110"></A>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  <FONT ID="FormalComment">/** Displays a message about the current result set. */</FONT>
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  <FONT ID="Protected">protected</FONT> JLabel m_FromLab = <FONT ID="New">new</FONT> JLabel(NO_SOURCE);
+<FONT ID="LN">113 </FONT><A NAME="113"></A>
+<FONT ID="LN">114 </FONT><A NAME="114"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   * This is needed to get around a bug in Swing &lt;= 1.1 -- Once everyone
+<FONT ID="LN">116 </FONT><A NAME="116"></A>   * is using Swing 1.1.1 or higher just remove this variable and use the
+<FONT ID="LN">117 </FONT><A NAME="117"></A>   * no-arg constructor to DefaultComboBoxModel.
+<FONT ID="LN">118 </FONT><A NAME="118"></A>   */</FONT>
+<FONT ID="LN">119 </FONT><A NAME="119"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> String [] FOR_JFC_1_1_DCBM_BUG = {<FONT ID="StringLiteral">""</FONT>};
+<FONT ID="LN">120 </FONT><A NAME="120"></A>
+<FONT ID="LN">121 </FONT><A NAME="121"></A>  <FONT ID="FormalComment">/** The model embedded in m_DatasetCombo. */</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  <FONT ID="Protected">protected</FONT> DefaultComboBoxModel m_DatasetModel =
+<FONT ID="LN">123 </FONT><A NAME="123"></A>    <FONT ID="New">new</FONT> DefaultComboBoxModel(FOR_JFC_1_1_DCBM_BUG);
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  
+<FONT ID="LN">125 </FONT><A NAME="125"></A>  <FONT ID="FormalComment">/** The model embedded in m_CompareCombo. */</FONT>
+<FONT ID="LN">126 </FONT><A NAME="126"></A>  <FONT ID="Protected">protected</FONT> DefaultComboBoxModel m_CompareModel = 
+<FONT ID="LN">127 </FONT><A NAME="127"></A>    <FONT ID="New">new</FONT> DefaultComboBoxModel(FOR_JFC_1_1_DCBM_BUG);
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  <FONT ID="FormalComment">/** The model embedded in m_SortCombo. */</FONT>
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  <FONT ID="Protected">protected</FONT> DefaultComboBoxModel m_SortModel = 
+<FONT ID="LN">131 </FONT><A NAME="131"></A>    <FONT ID="New">new</FONT> DefaultComboBoxModel(FOR_JFC_1_1_DCBM_BUG);
+<FONT ID="LN">132 </FONT><A NAME="132"></A>  
+<FONT ID="LN">133 </FONT><A NAME="133"></A>  <FONT ID="FormalComment">/** The model embedded in m_TestsList. */</FONT>
+<FONT ID="LN">134 </FONT><A NAME="134"></A>  <FONT ID="Protected">protected</FONT> DefaultListModel m_TestsModel = <FONT ID="New">new</FONT> DefaultListModel();
+<FONT ID="LN">135 </FONT><A NAME="135"></A>  
+<FONT ID="LN">136 </FONT><A NAME="136"></A>  <FONT ID="FormalComment">/** The model embedded in m_DisplayedList. */</FONT>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="Protected">protected</FONT> DefaultListModel m_DisplayedModel = <FONT ID="New">new</FONT> DefaultListModel();
+<FONT ID="LN">138 </FONT><A NAME="138"></A>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  <FONT ID="FormalComment">/** Displays the currently selected Tester-Class. */</FONT>
+<FONT ID="LN">140 </FONT><A NAME="140"></A>  <FONT ID="Protected">protected</FONT> JLabel m_TesterClassesLabel = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Testing with"</FONT>,
+<FONT ID="LN">141 </FONT><A NAME="141"></A>                         SwingConstants.RIGHT);
+<FONT ID="LN">142 </FONT><A NAME="142"></A>  
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  <FONT ID="FormalComment">/** Contains all the available classes implementing the Tester-Interface 
+<FONT ID="LN">144 </FONT><A NAME="144"></A>   * (the display names).
+<FONT ID="LN">145 </FONT><A NAME="145"></A>   * @see Tester */</FONT>
+<FONT ID="LN">146 </FONT><A NAME="146"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> DefaultComboBoxModel m_TesterClassesModel = 
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    <FONT ID="New">new</FONT> DefaultComboBoxModel(FOR_JFC_1_1_DCBM_BUG);
+<FONT ID="LN">148 </FONT><A NAME="148"></A>
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  <FONT ID="FormalComment">/** Contains all the available classes implementing the Tester-Interface
+<FONT ID="LN">150 </FONT><A NAME="150"></A>   * (the actual Classes).
+<FONT ID="LN">151 </FONT><A NAME="151"></A>   * @see Tester */</FONT>
+<FONT ID="LN">152 </FONT><A NAME="152"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Static">static</FONT> Vector m_Testers = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">153 </FONT><A NAME="153"></A>  
+<FONT ID="LN">154 </FONT><A NAME="154"></A>  <FONT ID="FormalComment">/** determine all classes implementing the Tester interface (in the same
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * package!).
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * @see Tester
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   * @see ClassDiscovery */</FONT>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="Static">static</FONT> {
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    Vector classes = GenericObjectEditor.getClassnames(<A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">Tester</A>.<FONT ID="Class">class</FONT>.getName());
+<FONT ID="LN">160 </FONT><A NAME="160"></A>
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    <FONT ID="SingleLineComment">// set names and classes
+<FONT ID="LN">162 </FONT><A NAME="162"></A></FONT>    m_Testers            = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">163 </FONT><A NAME="163"></A>    m_TesterClassesModel = <FONT ID="New">new</FONT> DefaultComboBoxModel();
+<FONT ID="LN">164 </FONT><A NAME="164"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; classes.size(); i++) {
+<FONT ID="LN">165 </FONT><A NAME="165"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">166 </FONT><A NAME="166"></A>        Class cls = Class.forName(classes.get(i).toString());
+<FONT ID="LN">167 </FONT><A NAME="167"></A>        <A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">Tester</A> tester = (<A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">Tester</A>) cls.newInstance();
+<FONT ID="LN">168 </FONT><A NAME="168"></A>        m_Testers.add(cls);
+<FONT ID="LN">169 </FONT><A NAME="169"></A>        m_TesterClassesModel.addElement(tester.getDisplayName());
+<FONT ID="LN">170 </FONT><A NAME="170"></A>      }
+<FONT ID="LN">171 </FONT><A NAME="171"></A>      <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">172 </FONT><A NAME="172"></A>        e.printStackTrace();
+<FONT ID="LN">173 </FONT><A NAME="173"></A>      }
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    }
+<FONT ID="LN">175 </FONT><A NAME="175"></A>  }
+<FONT ID="LN">176 </FONT><A NAME="176"></A>
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  <FONT ID="FormalComment">/** Lists all the available classes implementing the Tester-Interface.
+<FONT ID="LN">178 </FONT><A NAME="178"></A>   * @see Tester */</FONT>
+<FONT ID="LN">179 </FONT><A NAME="179"></A>  <FONT ID="Protected">protected</FONT> JComboBox m_TesterClasses = 
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    <FONT ID="New">new</FONT> JComboBox(m_TesterClassesModel);
+<FONT ID="LN">181 </FONT><A NAME="181"></A>
+<FONT ID="LN">182 </FONT><A NAME="182"></A>  <FONT ID="FormalComment">/** Label for the dataset and result key buttons. */</FONT>
+<FONT ID="LN">183 </FONT><A NAME="183"></A>  <FONT ID="Protected">protected</FONT> JLabel m_DatasetAndResultKeysLabel = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Select rows and cols"</FONT>,
+<FONT ID="LN">184 </FONT><A NAME="184"></A>                         SwingConstants.RIGHT);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>
+<FONT ID="LN">186 </FONT><A NAME="186"></A>  <FONT ID="FormalComment">/** the panel encapsulating the Rows/Columns/Swap buttons. */</FONT>
+<FONT ID="LN">187 </FONT><A NAME="187"></A>  <FONT ID="Protected">protected</FONT> JPanel m_PanelDatasetResultKeys = <FONT ID="New">new</FONT> JPanel(<FONT ID="New">new</FONT> GridLayout(<FONT ID="IntegerLiteral">1</FONT>, <FONT ID="IntegerLiteral">3</FONT>));
+<FONT ID="LN">188 </FONT><A NAME="188"></A>  
+<FONT ID="LN">189 </FONT><A NAME="189"></A>  <FONT ID="FormalComment">/** Click to edit the columns used to determine the scheme. */</FONT>
+<FONT ID="LN">190 </FONT><A NAME="190"></A>  <FONT ID="Protected">protected</FONT> JButton m_DatasetKeyBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Rows"</FONT>);
+<FONT ID="LN">191 </FONT><A NAME="191"></A>
+<FONT ID="LN">192 </FONT><A NAME="192"></A>  <FONT ID="FormalComment">/** Stores the list of attributes for selecting the scheme columns. */</FONT>
+<FONT ID="LN">193 </FONT><A NAME="193"></A>  <FONT ID="Protected">protected</FONT> DefaultListModel m_DatasetKeyModel = <FONT ID="New">new</FONT> DefaultListModel();
+<FONT ID="LN">194 </FONT><A NAME="194"></A>
+<FONT ID="LN">195 </FONT><A NAME="195"></A>  <FONT ID="FormalComment">/** Displays the list of selected columns determining the scheme. */</FONT>
+<FONT ID="LN">196 </FONT><A NAME="196"></A>  <FONT ID="Protected">protected</FONT> JList m_DatasetKeyList = <FONT ID="New">new</FONT> JList(m_DatasetKeyModel);
+<FONT ID="LN">197 </FONT><A NAME="197"></A>
+<FONT ID="LN">198 </FONT><A NAME="198"></A>  <FONT ID="FormalComment">/** Click to edit the columns used to determine the scheme. */</FONT>
+<FONT ID="LN">199 </FONT><A NAME="199"></A>  <FONT ID="Protected">protected</FONT> JButton m_ResultKeyBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Cols"</FONT>);
+<FONT ID="LN">200 </FONT><A NAME="200"></A>
+<FONT ID="LN">201 </FONT><A NAME="201"></A>  <FONT ID="FormalComment">/** For swapping rows and columns. */</FONT>
+<FONT ID="LN">202 </FONT><A NAME="202"></A>  <FONT ID="Protected">protected</FONT> JButton m_SwapDatasetKeyAndResultKeyBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Swap"</FONT>);
+<FONT ID="LN">203 </FONT><A NAME="203"></A>
+<FONT ID="LN">204 </FONT><A NAME="204"></A>  <FONT ID="FormalComment">/** Stores the list of attributes for selecting the scheme columns. */</FONT>
+<FONT ID="LN">205 </FONT><A NAME="205"></A>  <FONT ID="Protected">protected</FONT> DefaultListModel m_ResultKeyModel = <FONT ID="New">new</FONT> DefaultListModel();
+<FONT ID="LN">206 </FONT><A NAME="206"></A>
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  <FONT ID="FormalComment">/** Displays the list of selected columns determining the scheme. */</FONT>
+<FONT ID="LN">208 </FONT><A NAME="208"></A>  <FONT ID="Protected">protected</FONT> JList m_ResultKeyList = <FONT ID="New">new</FONT> JList(m_ResultKeyModel);
+<FONT ID="LN">209 </FONT><A NAME="209"></A>
+<FONT ID="LN">210 </FONT><A NAME="210"></A>  <FONT ID="FormalComment">/** Lets the user select which scheme to base comparisons against. */</FONT>
+<FONT ID="LN">211 </FONT><A NAME="211"></A>  <FONT ID="Protected">protected</FONT> JButton m_TestsButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Select"</FONT>);
+<FONT ID="LN">212 </FONT><A NAME="212"></A>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  <FONT ID="FormalComment">/** Lets the user select which schemes are compared to base. */</FONT>
+<FONT ID="LN">214 </FONT><A NAME="214"></A>  <FONT ID="Protected">protected</FONT> JButton m_DisplayedButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Select"</FONT>);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>
+<FONT ID="LN">216 </FONT><A NAME="216"></A>  <FONT ID="FormalComment">/** Holds the list of schemes to base the test against. */</FONT>
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  <FONT ID="Protected">protected</FONT> JList m_TestsList = <FONT ID="New">new</FONT> JList(m_TestsModel);
+<FONT ID="LN">218 </FONT><A NAME="218"></A>
+<FONT ID="LN">219 </FONT><A NAME="219"></A>  <FONT ID="FormalComment">/** Holds the list of schemes to display. */</FONT>
+<FONT ID="LN">220 </FONT><A NAME="220"></A>  <FONT ID="Protected">protected</FONT> JList m_DisplayedList = <FONT ID="New">new</FONT> JList(m_DisplayedModel);
+<FONT ID="LN">221 </FONT><A NAME="221"></A>
+<FONT ID="LN">222 </FONT><A NAME="222"></A>  <FONT ID="FormalComment">/** Lets the user select which performance measure to analyze. */</FONT>
+<FONT ID="LN">223 </FONT><A NAME="223"></A>  <FONT ID="Protected">protected</FONT> JComboBox m_CompareCombo = <FONT ID="New">new</FONT> JComboBox(m_CompareModel);
+<FONT ID="LN">224 </FONT><A NAME="224"></A>
+<FONT ID="LN">225 </FONT><A NAME="225"></A>  <FONT ID="FormalComment">/** Lets the user select which column to use for sorting. */</FONT>
+<FONT ID="LN">226 </FONT><A NAME="226"></A>  <FONT ID="Protected">protected</FONT> JComboBox m_SortCombo = <FONT ID="New">new</FONT> JComboBox(m_SortModel);
+<FONT ID="LN">227 </FONT><A NAME="227"></A>
+<FONT ID="LN">228 </FONT><A NAME="228"></A>  <FONT ID="FormalComment">/** Lets the user edit the test significance. */</FONT>
+<FONT ID="LN">229 </FONT><A NAME="229"></A>  <FONT ID="Protected">protected</FONT> JTextField m_SigTex = <FONT ID="New">new</FONT> JTextField(
+<FONT ID="LN">230 </FONT><A NAME="230"></A>      <FONT ID="StringLiteral">""</FONT> + ExperimenterDefaults.getSignificance());
+<FONT ID="LN">231 </FONT><A NAME="231"></A>
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  <FONT ID="FormalComment">/** Lets the user select whether standard deviations are to be output
+<FONT ID="LN">233 </FONT><A NAME="233"></A>      or not. */</FONT>
+<FONT ID="LN">234 </FONT><A NAME="234"></A>  <FONT ID="Protected">protected</FONT> JCheckBox m_ShowStdDevs = 
+<FONT ID="LN">235 </FONT><A NAME="235"></A>    <FONT ID="New">new</FONT> JCheckBox(<FONT ID="StringLiteral">""</FONT>);
+<FONT ID="LN">236 </FONT><A NAME="236"></A>  
+<FONT ID="LN">237 </FONT><A NAME="237"></A>  <FONT ID="FormalComment">/** lets the user choose the format for the output. */</FONT>
+<FONT ID="LN">238 </FONT><A NAME="238"></A>  <FONT ID="Protected">protected</FONT> JButton m_OutputFormatButton = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Select"</FONT>);
+<FONT ID="LN">239 </FONT><A NAME="239"></A>
+<FONT ID="LN">240 </FONT><A NAME="240"></A>  <FONT ID="FormalComment">/** Click to start the test. */</FONT>
+<FONT ID="LN">241 </FONT><A NAME="241"></A>  <FONT ID="Protected">protected</FONT> JButton m_PerformBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Perform test"</FONT>);
+<FONT ID="LN">242 </FONT><A NAME="242"></A>  
+<FONT ID="LN">243 </FONT><A NAME="243"></A>  <FONT ID="FormalComment">/** Click to save test output to a file. */</FONT>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  <FONT ID="Protected">protected</FONT> JButton m_SaveOutBut = <FONT ID="New">new</FONT> JButton(<FONT ID="StringLiteral">"Save output"</FONT>);
+<FONT ID="LN">245 </FONT><A NAME="245"></A>
+<FONT ID="LN">246 </FONT><A NAME="246"></A>  <FONT ID="FormalComment">/** The buffer saving object for saving output. */</FONT>
+<FONT ID="LN">247 </FONT><A NAME="247"></A>  <A HREF="../../../weka/gui/SaveBuffer.java.html">SaveBuffer</A> m_SaveOut = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/SaveBuffer.java.html">SaveBuffer</A>(<FONT ID="Null">null</FONT>, <FONT ID="This">this</FONT>);
+<FONT ID="LN">248 </FONT><A NAME="248"></A>
+<FONT ID="LN">249 </FONT><A NAME="249"></A>  <FONT ID="FormalComment">/** Displays the output of tests. */</FONT>
+<FONT ID="LN">250 </FONT><A NAME="250"></A>  <FONT ID="Protected">protected</FONT> JTextArea m_OutText = <FONT ID="New">new</FONT> JTextArea();
+<FONT ID="LN">251 </FONT><A NAME="251"></A>
+<FONT ID="LN">252 </FONT><A NAME="252"></A>  <FONT ID="FormalComment">/** A panel controlling results viewing. */</FONT>
+<FONT ID="LN">253 </FONT><A NAME="253"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/gui/ResultHistoryPanel.java.html">ResultHistoryPanel</A> m_History = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ResultHistoryPanel.java.html">ResultHistoryPanel</A>(m_OutText);
+<FONT ID="LN">254 </FONT><A NAME="254"></A>  
+<FONT ID="LN">255 </FONT><A NAME="255"></A>  <FONT ID="FormalComment">/** The file chooser for selecting result files. */</FONT>
+<FONT ID="LN">256 </FONT><A NAME="256"></A>  <FONT ID="Protected">protected</FONT> JFileChooser m_FileChooser = <FONT ID="New">new</FONT> JFileChooser(<FONT ID="New">new</FONT> File(System.getProperty(<FONT ID="StringLiteral">"user.dir"</FONT>)));
+<FONT ID="LN">257 </FONT><A NAME="257"></A> 
+<FONT ID="LN">258 </FONT><A NAME="258"></A>  <FONT ID="SingleLineComment">// File filters for various file types.
+<FONT ID="LN">259 </FONT><A NAME="259"></A></FONT>  <FONT ID="FormalComment">/** CSV file filter. */</FONT>
+<FONT ID="LN">260 </FONT><A NAME="260"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">ExtensionFileFilter</A> m_csvFileFilter = 
+<FONT ID="LN">261 </FONT><A NAME="261"></A>    <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">ExtensionFileFilter</A>(CSVLoader.FILE_EXTENSION, <FONT ID="StringLiteral">"CSV data files"</FONT>);
+<FONT ID="LN">262 </FONT><A NAME="262"></A>
+<FONT ID="LN">263 </FONT><A NAME="263"></A>  <FONT ID="FormalComment">/** ARFF file filter. */</FONT>
+<FONT ID="LN">264 </FONT><A NAME="264"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">ExtensionFileFilter</A> m_arffFileFilter = 
+<FONT ID="LN">265 </FONT><A NAME="265"></A>    <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ExtensionFileFilter.java.html">ExtensionFileFilter</A>(Instances.FILE_EXTENSION, <FONT ID="StringLiteral">"Arff data files"</FONT>);
+<FONT ID="LN">266 </FONT><A NAME="266"></A>
+<FONT ID="LN">267 </FONT><A NAME="267"></A>  <FONT ID="FormalComment">/** The PairedTTester object. */</FONT>
+<FONT ID="LN">268 </FONT><A NAME="268"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">Tester</A> m_TTester = <FONT ID="New">new</FONT> <A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">PairedCorrectedTTester</A>();
+<FONT ID="LN">269 </FONT><A NAME="269"></A>  
+<FONT ID="LN">270 </FONT><A NAME="270"></A>  <FONT ID="FormalComment">/** The instances we're extracting results from. */</FONT>
+<FONT ID="LN">271 </FONT><A NAME="271"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A> m_Instances;
+<FONT ID="LN">272 </FONT><A NAME="272"></A>
+<FONT ID="LN">273 </FONT><A NAME="273"></A>  <FONT ID="FormalComment">/** Does any database querying for us. */</FONT>
+<FONT ID="LN">274 </FONT><A NAME="274"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/experiment/InstanceQuery.java.html">InstanceQuery</A> m_InstanceQuery;
+<FONT ID="LN">275 </FONT><A NAME="275"></A>
+<FONT ID="LN">276 </FONT><A NAME="276"></A>  <FONT ID="FormalComment">/** A thread to load results instances from a file or database. */</FONT>
+<FONT ID="LN">277 </FONT><A NAME="277"></A>  <FONT ID="Protected">protected</FONT> Thread m_LoadThread;
+<FONT ID="LN">278 </FONT><A NAME="278"></A>  
+<FONT ID="LN">279 </FONT><A NAME="279"></A>  <FONT ID="FormalComment">/** An experiment (used for identifying a result source) -- optional. */</FONT>
+<FONT ID="LN">280 </FONT><A NAME="280"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> m_Exp;
+<FONT ID="LN">281 </FONT><A NAME="281"></A>
+<FONT ID="LN">282 </FONT><A NAME="282"></A>  <FONT ID="FormalComment">/** the size for a combobox. */</FONT>
+<FONT ID="LN">283 </FONT><A NAME="283"></A>  <FONT ID="Private">private</FONT> Dimension COMBO_SIZE = <FONT ID="New">new</FONT> Dimension(<FONT ID="IntegerLiteral">210</FONT>, m_ResultKeyBut.getPreferredSize().height);
+<FONT ID="LN">284 </FONT><A NAME="284"></A>
+<FONT ID="LN">285 </FONT><A NAME="285"></A>  <FONT ID="FormalComment">/** the initial result matrix. */</FONT>
+<FONT ID="LN">286 </FONT><A NAME="286"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/experiment/ResultMatrix.java.html">ResultMatrix</A> m_ResultMatrix = <FONT ID="New">new</FONT> <A HREF="../../../weka/experiment/ResultMatrixPlainText.java.html">ResultMatrixPlainText</A>();
+<FONT ID="LN">287 </FONT><A NAME="287"></A>  
+<FONT ID="LN">288 </FONT><A NAME="288"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">289 </FONT><A NAME="289"></A>   * Creates the results panel with no initial experiment.
+<FONT ID="LN">290 </FONT><A NAME="290"></A>   */</FONT>
+<FONT ID="LN">291 </FONT><A NAME="291"></A>  <FONT ID="Public">public</FONT> ResultsPanel() {
+<FONT ID="LN">292 </FONT><A NAME="292"></A>
+<FONT ID="LN">293 </FONT><A NAME="293"></A>    <FONT ID="SingleLineComment">// defaults
+<FONT ID="LN">294 </FONT><A NAME="294"></A></FONT>    m_TTester.setSignificanceLevel(ExperimenterDefaults.getSignificance());
+<FONT ID="LN">295 </FONT><A NAME="295"></A>    m_TTester.setShowStdDevs(ExperimenterDefaults.getShowStdDevs());
+<FONT ID="LN">296 </FONT><A NAME="296"></A>    m_ResultMatrix = ExperimenterDefaults.getOutputFormat();
+<FONT ID="LN">297 </FONT><A NAME="297"></A>    m_ResultMatrix.setShowStdDev(ExperimenterDefaults.getShowStdDevs());
+<FONT ID="LN">298 </FONT><A NAME="298"></A>    m_ResultMatrix.setMeanPrec(ExperimenterDefaults.getMeanPrecision());
+<FONT ID="LN">299 </FONT><A NAME="299"></A>    m_ResultMatrix.setStdDevPrec(ExperimenterDefaults.getStdDevPrecision());
+<FONT ID="LN">300 </FONT><A NAME="300"></A>    m_ResultMatrix.setRemoveFilterName(ExperimenterDefaults.getRemoveFilterClassnames());
+<FONT ID="LN">301 </FONT><A NAME="301"></A>    m_ResultMatrix.setShowAverage(ExperimenterDefaults.getShowAverage());
+<FONT ID="LN">302 </FONT><A NAME="302"></A>
+<FONT ID="LN">303 </FONT><A NAME="303"></A>    <FONT ID="SingleLineComment">// Create/Configure/Connect components
+<FONT ID="LN">304 </FONT><A NAME="304"></A></FONT>    
+<FONT ID="LN">305 </FONT><A NAME="305"></A>    m_FileChooser.
+<FONT ID="LN">306 </FONT><A NAME="306"></A>      addChoosableFileFilter(m_csvFileFilter);
+<FONT ID="LN">307 </FONT><A NAME="307"></A>    m_FileChooser.
+<FONT ID="LN">308 </FONT><A NAME="308"></A>      addChoosableFileFilter(m_arffFileFilter);
+<FONT ID="LN">309 </FONT><A NAME="309"></A>
+<FONT ID="LN">310 </FONT><A NAME="310"></A>    m_FileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+<FONT ID="LN">311 </FONT><A NAME="311"></A>    m_FromExpBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">312 </FONT><A NAME="312"></A>    m_FromExpBut.setMnemonic(<FONT ID="CharacerLiteral">'E'</FONT>);
+<FONT ID="LN">313 </FONT><A NAME="313"></A>    m_FromExpBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">315 </FONT><A NAME="315"></A>    <FONT ID="If">if</FONT> (m_LoadThread == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">316 </FONT><A NAME="316"></A>      m_LoadThread = <FONT ID="New">new</FONT> Thread() {
+<FONT ID="LN">317 </FONT><A NAME="317"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run() {
+<FONT ID="LN">318 </FONT><A NAME="318"></A>          setInstancesFromExp(m_Exp);
+<FONT ID="LN">319 </FONT><A NAME="319"></A>          m_LoadThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">320 </FONT><A NAME="320"></A>        }
+<FONT ID="LN">321 </FONT><A NAME="321"></A>      };
+<FONT ID="LN">322 </FONT><A NAME="322"></A>      m_LoadThread.start();
+<FONT ID="LN">323 </FONT><A NAME="323"></A>    }
+<FONT ID="LN">324 </FONT><A NAME="324"></A>      }
+<FONT ID="LN">325 </FONT><A NAME="325"></A>    });
+<FONT ID="LN">326 </FONT><A NAME="326"></A>    m_FromDBaseBut.setMnemonic(<FONT ID="CharacerLiteral">'D'</FONT>);
+<FONT ID="LN">327 </FONT><A NAME="327"></A>    m_FromDBaseBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">328 </FONT><A NAME="328"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">329 </FONT><A NAME="329"></A>    <FONT ID="If">if</FONT> (m_LoadThread == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">330 </FONT><A NAME="330"></A>      m_LoadThread = <FONT ID="New">new</FONT> Thread() {
+<FONT ID="LN">331 </FONT><A NAME="331"></A>        <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run() {
+<FONT ID="LN">332 </FONT><A NAME="332"></A>          setInstancesFromDBaseQuery();
+<FONT ID="LN">333 </FONT><A NAME="333"></A>        m_LoadThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">334 </FONT><A NAME="334"></A>        }
+<FONT ID="LN">335 </FONT><A NAME="335"></A>      };
+<FONT ID="LN">336 </FONT><A NAME="336"></A>      m_LoadThread.start();
+<FONT ID="LN">337 </FONT><A NAME="337"></A>    }
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      }
+<FONT ID="LN">339 </FONT><A NAME="339"></A>    });
+<FONT ID="LN">340 </FONT><A NAME="340"></A>    m_FromFileBut.setMnemonic(<FONT ID="CharacerLiteral">'F'</FONT>);
+<FONT ID="LN">341 </FONT><A NAME="341"></A>    m_FromFileBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">342 </FONT><A NAME="342"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">343 </FONT><A NAME="343"></A>    <FONT ID="Int">int</FONT> returnVal = m_FileChooser.showOpenDialog(ResultsPanel.<FONT ID="This">this</FONT>);
+<FONT ID="LN">344 </FONT><A NAME="344"></A>    <FONT ID="If">if</FONT> (returnVal == JFileChooser.APPROVE_OPTION) {
+<FONT ID="LN">345 </FONT><A NAME="345"></A>      <FONT ID="Final">final</FONT> File selected = m_FileChooser.getSelectedFile();
+<FONT ID="LN">346 </FONT><A NAME="346"></A>      <FONT ID="If">if</FONT> (m_LoadThread == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">347 </FONT><A NAME="347"></A>        m_LoadThread = <FONT ID="New">new</FONT> Thread() {
+<FONT ID="LN">348 </FONT><A NAME="348"></A>          <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run() {
+<FONT ID="LN">349 </FONT><A NAME="349"></A>        setInstancesFromFile(selected);
+<FONT ID="LN">350 </FONT><A NAME="350"></A>        m_LoadThread = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">351 </FONT><A NAME="351"></A>          }
+<FONT ID="LN">352 </FONT><A NAME="352"></A>        };
+<FONT ID="LN">353 </FONT><A NAME="353"></A>        m_LoadThread.start();
+<FONT ID="LN">354 </FONT><A NAME="354"></A>      }
+<FONT ID="LN">355 </FONT><A NAME="355"></A>    }
+<FONT ID="LN">356 </FONT><A NAME="356"></A>      }
+<FONT ID="LN">357 </FONT><A NAME="357"></A>    });
+<FONT ID="LN">358 </FONT><A NAME="358"></A>    setComboSizes();
+<FONT ID="LN">359 </FONT><A NAME="359"></A>    m_TesterClasses.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">360 </FONT><A NAME="360"></A>    m_DatasetKeyBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">361 </FONT><A NAME="361"></A>    m_DatasetKeyBut.setToolTipText(<FONT ID="StringLiteral">"For selecting the keys that are shown as rows."</FONT>);
+<FONT ID="LN">362 </FONT><A NAME="362"></A>    m_DatasetKeyBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">363 </FONT><A NAME="363"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">364 </FONT><A NAME="364"></A>    setDatasetKeyFromDialog();
+<FONT ID="LN">365 </FONT><A NAME="365"></A>      }
+<FONT ID="LN">366 </FONT><A NAME="366"></A>    });
+<FONT ID="LN">367 </FONT><A NAME="367"></A>    m_DatasetKeyList.setSelectionMode(ListSelectionModel
+<FONT ID="LN">368 </FONT><A NAME="368"></A>                      .MULTIPLE_INTERVAL_SELECTION);
+<FONT ID="LN">369 </FONT><A NAME="369"></A>    m_ResultKeyBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">370 </FONT><A NAME="370"></A>    m_ResultKeyBut.setToolTipText(<FONT ID="StringLiteral">"For selecting the keys that are shown as columns."</FONT>);
+<FONT ID="LN">371 </FONT><A NAME="371"></A>    m_ResultKeyBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">372 </FONT><A NAME="372"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">373 </FONT><A NAME="373"></A>    setResultKeyFromDialog();
+<FONT ID="LN">374 </FONT><A NAME="374"></A>      }
+<FONT ID="LN">375 </FONT><A NAME="375"></A>    });
+<FONT ID="LN">376 </FONT><A NAME="376"></A>    m_ResultKeyList.setSelectionMode(ListSelectionModel
+<FONT ID="LN">377 </FONT><A NAME="377"></A>                     .MULTIPLE_INTERVAL_SELECTION);
+<FONT ID="LN">378 </FONT><A NAME="378"></A>    m_SwapDatasetKeyAndResultKeyBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">379 </FONT><A NAME="379"></A>    m_SwapDatasetKeyAndResultKeyBut.setToolTipText(<FONT ID="StringLiteral">"Swaps the keys for selecting rows and columns."</FONT>);
+<FONT ID="LN">380 </FONT><A NAME="380"></A>    m_SwapDatasetKeyAndResultKeyBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">381 </FONT><A NAME="381"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">382 </FONT><A NAME="382"></A>    swapDatasetKeyAndResultKey();
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      }
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    });
+<FONT ID="LN">385 </FONT><A NAME="385"></A>    m_CompareCombo.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">386 </FONT><A NAME="386"></A>    m_SortCombo.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">387 </FONT><A NAME="387"></A>
+<FONT ID="LN">388 </FONT><A NAME="388"></A>    m_SigTex.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">389 </FONT><A NAME="389"></A>    m_TestsButton.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">390 </FONT><A NAME="390"></A>    m_TestsButton.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">391 </FONT><A NAME="391"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">392 </FONT><A NAME="392"></A>      setTestBaseFromDialog();
+<FONT ID="LN">393 </FONT><A NAME="393"></A>    }
+<FONT ID="LN">394 </FONT><A NAME="394"></A>      });
+<FONT ID="LN">395 </FONT><A NAME="395"></A>
+<FONT ID="LN">396 </FONT><A NAME="396"></A>    m_DisplayedButton.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">397 </FONT><A NAME="397"></A>    m_DisplayedButton.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">398 </FONT><A NAME="398"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">399 </FONT><A NAME="399"></A>        setDisplayedFromDialog();
+<FONT ID="LN">400 </FONT><A NAME="400"></A>      }
+<FONT ID="LN">401 </FONT><A NAME="401"></A>      });
+<FONT ID="LN">402 </FONT><A NAME="402"></A>
+<FONT ID="LN">403 </FONT><A NAME="403"></A>    m_ShowStdDevs.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">404 </FONT><A NAME="404"></A>    m_ShowStdDevs.setSelected(ExperimenterDefaults.getShowStdDevs());
+<FONT ID="LN">405 </FONT><A NAME="405"></A>    m_OutputFormatButton.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">406 </FONT><A NAME="406"></A>    m_OutputFormatButton.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">407 </FONT><A NAME="407"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">408 </FONT><A NAME="408"></A>        setOutputFormatFromDialog();
+<FONT ID="LN">409 </FONT><A NAME="409"></A>      }
+<FONT ID="LN">410 </FONT><A NAME="410"></A>      });
+<FONT ID="LN">411 </FONT><A NAME="411"></A>    
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    m_PerformBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">413 </FONT><A NAME="413"></A>    m_PerformBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">414 </FONT><A NAME="414"></A>      <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">415 </FONT><A NAME="415"></A>    performTest();
+<FONT ID="LN">416 </FONT><A NAME="416"></A>    m_SaveOutBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">417 </FONT><A NAME="417"></A>      }
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    });
+<FONT ID="LN">419 </FONT><A NAME="419"></A>
+<FONT ID="LN">420 </FONT><A NAME="420"></A>    m_PerformBut.setToolTipText(m_TTester.getToolTipText());
+<FONT ID="LN">421 </FONT><A NAME="421"></A>
+<FONT ID="LN">422 </FONT><A NAME="422"></A>    m_SaveOutBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    m_SaveOutBut.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">424 </FONT><A NAME="424"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">425 </FONT><A NAME="425"></A>      saveBuffer();
+<FONT ID="LN">426 </FONT><A NAME="426"></A>    }
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      });
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    m_OutText.setFont(<FONT ID="New">new</FONT> Font(<FONT ID="StringLiteral">"Monospaced"</FONT>, Font.PLAIN, <FONT ID="IntegerLiteral">12</FONT>));
+<FONT ID="LN">429 </FONT><A NAME="429"></A>    m_OutText.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">5</FONT>));
+<FONT ID="LN">430 </FONT><A NAME="430"></A>    m_OutText.setEditable(<FONT ID="False">false</FONT>);
+<FONT ID="LN">431 </FONT><A NAME="431"></A>    m_History.setBorder(BorderFactory.createTitledBorder(<FONT ID="StringLiteral">"Result list"</FONT>));
+<FONT ID="LN">432 </FONT><A NAME="432"></A>
+<FONT ID="LN">433 </FONT><A NAME="433"></A>
+<FONT ID="LN">434 </FONT><A NAME="434"></A>    <FONT ID="SingleLineComment">// Set up the GUI layout
+<FONT ID="LN">435 </FONT><A NAME="435"></A></FONT>    JPanel p1 = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">436 </FONT><A NAME="436"></A>    p1.setBorder(BorderFactory.createTitledBorder(<FONT ID="StringLiteral">"Source"</FONT>));
+<FONT ID="LN">437 </FONT><A NAME="437"></A>    JPanel p2 = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">438 </FONT><A NAME="438"></A>    GridBagLayout gb = <FONT ID="New">new</FONT> GridBagLayout();
+<FONT ID="LN">439 </FONT><A NAME="439"></A>    GridBagConstraints constraints = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">440 </FONT><A NAME="440"></A>    p2.setBorder(BorderFactory.createEmptyBorder(<FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">5</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">5</FONT>));
+<FONT ID="LN">441 </FONT><A NAME="441"></A>    <FONT ID="SingleLineComment">//    p2.setLayout(new GridLayout(1, 3));
+<FONT ID="LN">442 </FONT><A NAME="442"></A></FONT>    p2.setLayout(gb);
+<FONT ID="LN">443 </FONT><A NAME="443"></A>    constraints.gridx=<FONT ID="IntegerLiteral">0</FONT>;constraints.gridy=<FONT ID="IntegerLiteral">0</FONT>;constraints.weightx=<FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">444 </FONT><A NAME="444"></A>    constraints.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">445 </FONT><A NAME="445"></A>    constraints.gridwidth=<FONT ID="IntegerLiteral">1</FONT>;constraints.gridheight=<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">446 </FONT><A NAME="446"></A>    constraints.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">2</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">2</FONT>);
+<FONT ID="LN">447 </FONT><A NAME="447"></A>    p2.add(m_FromFileBut,constraints);
+<FONT ID="LN">448 </FONT><A NAME="448"></A>    constraints.gridx=<FONT ID="IntegerLiteral">1</FONT>;constraints.gridy=<FONT ID="IntegerLiteral">0</FONT>;constraints.weightx=<FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">449 </FONT><A NAME="449"></A>    constraints.gridwidth=<FONT ID="IntegerLiteral">1</FONT>;constraints.gridheight=<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">450 </FONT><A NAME="450"></A>    p2.add(m_FromDBaseBut,constraints);
+<FONT ID="LN">451 </FONT><A NAME="451"></A>    constraints.gridx=<FONT ID="IntegerLiteral">2</FONT>;constraints.gridy=<FONT ID="IntegerLiteral">0</FONT>;constraints.weightx=<FONT ID="IntegerLiteral">5</FONT>;
+<FONT ID="LN">452 </FONT><A NAME="452"></A>    constraints.gridwidth=<FONT ID="IntegerLiteral">1</FONT>;constraints.gridheight=<FONT ID="IntegerLiteral">1</FONT>;
+<FONT ID="LN">453 </FONT><A NAME="453"></A>    p2.add(m_FromExpBut,constraints);
+<FONT ID="LN">454 </FONT><A NAME="454"></A>    p1.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">455 </FONT><A NAME="455"></A>    p1.add(m_FromLab, BorderLayout.CENTER);
+<FONT ID="LN">456 </FONT><A NAME="456"></A>    p1.add(p2, BorderLayout.EAST);
+<FONT ID="LN">457 </FONT><A NAME="457"></A>
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    JPanel p3 = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">459 </FONT><A NAME="459"></A>    p3.setBorder(BorderFactory.createTitledBorder(<FONT ID="StringLiteral">"Configure test"</FONT>));
+<FONT ID="LN">460 </FONT><A NAME="460"></A>    GridBagLayout gbL = <FONT ID="New">new</FONT> GridBagLayout();
+<FONT ID="LN">461 </FONT><A NAME="461"></A>    p3.setLayout(gbL);
+<FONT ID="LN">462 </FONT><A NAME="462"></A>
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    <FONT ID="Int">int</FONT> y = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">464 </FONT><A NAME="464"></A>    GridBagConstraints gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">465 </FONT><A NAME="465"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">466 </FONT><A NAME="466"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">467 </FONT><A NAME="467"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">468 </FONT><A NAME="468"></A>    gbL.setConstraints(m_TesterClassesLabel,gbC);
+<FONT ID="LN">469 </FONT><A NAME="469"></A>    m_TesterClassesLabel.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'w'</FONT>);
+<FONT ID="LN">470 </FONT><A NAME="470"></A>    m_TesterClassesLabel.setLabelFor(m_TesterClasses);
+<FONT ID="LN">471 </FONT><A NAME="471"></A>    p3.add(m_TesterClassesLabel);
+<FONT ID="LN">472 </FONT><A NAME="472"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">473 </FONT><A NAME="473"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">474 </FONT><A NAME="474"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">475 </FONT><A NAME="475"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">476 </FONT><A NAME="476"></A>    gbL.setConstraints(m_TesterClasses, gbC);
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    p3.add(m_TesterClasses);
+<FONT ID="LN">478 </FONT><A NAME="478"></A>    m_TesterClasses.addActionListener(<FONT ID="New">new</FONT> ActionListener() {
+<FONT ID="LN">479 </FONT><A NAME="479"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> actionPerformed(ActionEvent e) {
+<FONT ID="LN">480 </FONT><A NAME="480"></A>      setTester();
+<FONT ID="LN">481 </FONT><A NAME="481"></A>    }
+<FONT ID="LN">482 </FONT><A NAME="482"></A>      });
+<FONT ID="LN">483 </FONT><A NAME="483"></A>    setSelectedItem(m_TesterClasses, ExperimenterDefaults.getTester());
+<FONT ID="LN">484 </FONT><A NAME="484"></A>    
+<FONT ID="LN">485 </FONT><A NAME="485"></A>    y++;
+<FONT ID="LN">486 </FONT><A NAME="486"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">487 </FONT><A NAME="487"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">488 </FONT><A NAME="488"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">489 </FONT><A NAME="489"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">490 </FONT><A NAME="490"></A>    gbL.setConstraints(m_DatasetAndResultKeysLabel,gbC);
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    m_DatasetAndResultKeysLabel.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'R'</FONT>);
+<FONT ID="LN">492 </FONT><A NAME="492"></A>    m_DatasetAndResultKeysLabel.setLabelFor(m_DatasetKeyBut);
+<FONT ID="LN">493 </FONT><A NAME="493"></A>    p3.add(m_DatasetAndResultKeysLabel);
+<FONT ID="LN">494 </FONT><A NAME="494"></A>    
+<FONT ID="LN">495 </FONT><A NAME="495"></A>    m_PanelDatasetResultKeys.add(m_DatasetKeyBut);
+<FONT ID="LN">496 </FONT><A NAME="496"></A>    m_PanelDatasetResultKeys.add(m_ResultKeyBut);
+<FONT ID="LN">497 </FONT><A NAME="497"></A>    m_PanelDatasetResultKeys.add(m_SwapDatasetKeyAndResultKeyBut);
+<FONT ID="LN">498 </FONT><A NAME="498"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">499 </FONT><A NAME="499"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">500 </FONT><A NAME="500"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">501 </FONT><A NAME="501"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">502 </FONT><A NAME="502"></A>    gbL.setConstraints(m_PanelDatasetResultKeys, gbC);
+<FONT ID="LN">503 </FONT><A NAME="503"></A>    p3.add(m_PanelDatasetResultKeys);
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    
+<FONT ID="LN">505 </FONT><A NAME="505"></A>    y++;
+<FONT ID="LN">506 </FONT><A NAME="506"></A>    JLabel lab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Comparison field"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">507 </FONT><A NAME="507"></A>    lab.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'m'</FONT>);
+<FONT ID="LN">508 </FONT><A NAME="508"></A>    lab.setLabelFor(m_CompareCombo);
+<FONT ID="LN">509 </FONT><A NAME="509"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">510 </FONT><A NAME="510"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">511 </FONT><A NAME="511"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">512 </FONT><A NAME="512"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">513 </FONT><A NAME="513"></A>    gbL.setConstraints(lab, gbC);
+<FONT ID="LN">514 </FONT><A NAME="514"></A>    p3.add(lab);
+<FONT ID="LN">515 </FONT><A NAME="515"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">516 </FONT><A NAME="516"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">517 </FONT><A NAME="517"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">518 </FONT><A NAME="518"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">519 </FONT><A NAME="519"></A>    gbL.setConstraints(m_CompareCombo, gbC);
+<FONT ID="LN">520 </FONT><A NAME="520"></A>    p3.add(m_CompareCombo);
+<FONT ID="LN">521 </FONT><A NAME="521"></A>    
+<FONT ID="LN">522 </FONT><A NAME="522"></A>    y++;
+<FONT ID="LN">523 </FONT><A NAME="523"></A>    lab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Significance"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">524 </FONT><A NAME="524"></A>    lab.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'g'</FONT>);
+<FONT ID="LN">525 </FONT><A NAME="525"></A>    lab.setLabelFor(m_SigTex);
+<FONT ID="LN">526 </FONT><A NAME="526"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">527 </FONT><A NAME="527"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">528 </FONT><A NAME="528"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">529 </FONT><A NAME="529"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">530 </FONT><A NAME="530"></A>    gbL.setConstraints(lab, gbC);
+<FONT ID="LN">531 </FONT><A NAME="531"></A>    p3.add(lab);
+<FONT ID="LN">532 </FONT><A NAME="532"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">533 </FONT><A NAME="533"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">535 </FONT><A NAME="535"></A>    gbL.setConstraints(m_SigTex, gbC);
+<FONT ID="LN">536 </FONT><A NAME="536"></A>    p3.add(m_SigTex);
+<FONT ID="LN">537 </FONT><A NAME="537"></A>    
+<FONT ID="LN">538 </FONT><A NAME="538"></A>    y++;
+<FONT ID="LN">539 </FONT><A NAME="539"></A>    lab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Sorting (asc.) by"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">540 </FONT><A NAME="540"></A>    lab.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'S'</FONT>);
+<FONT ID="LN">541 </FONT><A NAME="541"></A>    lab.setLabelFor(m_SortCombo);
+<FONT ID="LN">542 </FONT><A NAME="542"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">543 </FONT><A NAME="543"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">544 </FONT><A NAME="544"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">545 </FONT><A NAME="545"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">546 </FONT><A NAME="546"></A>    gbL.setConstraints(lab, gbC);
+<FONT ID="LN">547 </FONT><A NAME="547"></A>    p3.add(lab);
+<FONT ID="LN">548 </FONT><A NAME="548"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">549 </FONT><A NAME="549"></A>    gbC.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">550 </FONT><A NAME="550"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">551 </FONT><A NAME="551"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">552 </FONT><A NAME="552"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">553 </FONT><A NAME="553"></A>    gbL.setConstraints(m_SortCombo, gbC);
+<FONT ID="LN">554 </FONT><A NAME="554"></A>    p3.add(m_SortCombo);
+<FONT ID="LN">555 </FONT><A NAME="555"></A>    
+<FONT ID="LN">556 </FONT><A NAME="556"></A>    y++;
+<FONT ID="LN">557 </FONT><A NAME="557"></A>    lab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Test base"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">558 </FONT><A NAME="558"></A>    lab.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'b'</FONT>);
+<FONT ID="LN">559 </FONT><A NAME="559"></A>    lab.setLabelFor(m_TestsButton);
+<FONT ID="LN">560 </FONT><A NAME="560"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">561 </FONT><A NAME="561"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">562 </FONT><A NAME="562"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">563 </FONT><A NAME="563"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">564 </FONT><A NAME="564"></A>    gbL.setConstraints(lab, gbC);
+<FONT ID="LN">565 </FONT><A NAME="565"></A>    p3.add(lab);
+<FONT ID="LN">566 </FONT><A NAME="566"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">567 </FONT><A NAME="567"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">568 </FONT><A NAME="568"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">569 </FONT><A NAME="569"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">570 </FONT><A NAME="570"></A>    gbL.setConstraints(m_TestsButton, gbC);
+<FONT ID="LN">571 </FONT><A NAME="571"></A>    p3.add(m_TestsButton);
+<FONT ID="LN">572 </FONT><A NAME="572"></A>
+<FONT ID="LN">573 </FONT><A NAME="573"></A>    y++;
+<FONT ID="LN">574 </FONT><A NAME="574"></A>    lab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Displayed Columns"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">575 </FONT><A NAME="575"></A>    lab.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'i'</FONT>);
+<FONT ID="LN">576 </FONT><A NAME="576"></A>    lab.setLabelFor(m_DisplayedButton);
+<FONT ID="LN">577 </FONT><A NAME="577"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">578 </FONT><A NAME="578"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">579 </FONT><A NAME="579"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">580 </FONT><A NAME="580"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">581 </FONT><A NAME="581"></A>    gbL.setConstraints(lab, gbC);
+<FONT ID="LN">582 </FONT><A NAME="582"></A>    p3.add(lab);
+<FONT ID="LN">583 </FONT><A NAME="583"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">584 </FONT><A NAME="584"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">585 </FONT><A NAME="585"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">586 </FONT><A NAME="586"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">587 </FONT><A NAME="587"></A>    gbL.setConstraints(m_DisplayedButton, gbC);
+<FONT ID="LN">588 </FONT><A NAME="588"></A>    p3.add(m_DisplayedButton);
+<FONT ID="LN">589 </FONT><A NAME="589"></A>
+<FONT ID="LN">590 </FONT><A NAME="590"></A>    y++;
+<FONT ID="LN">591 </FONT><A NAME="591"></A>    lab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Show std. deviations"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">592 </FONT><A NAME="592"></A>    lab.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'a'</FONT>);
+<FONT ID="LN">593 </FONT><A NAME="593"></A>    lab.setLabelFor(m_ShowStdDevs);
+<FONT ID="LN">594 </FONT><A NAME="594"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">595 </FONT><A NAME="595"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">596 </FONT><A NAME="596"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">597 </FONT><A NAME="597"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">598 </FONT><A NAME="598"></A>    gbL.setConstraints(lab, gbC);
+<FONT ID="LN">599 </FONT><A NAME="599"></A>    p3.add(lab);
+<FONT ID="LN">600 </FONT><A NAME="600"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">601 </FONT><A NAME="601"></A>    gbC.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">602 </FONT><A NAME="602"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">603 </FONT><A NAME="603"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">604 </FONT><A NAME="604"></A>    gbL.setConstraints(m_ShowStdDevs, gbC);
+<FONT ID="LN">605 </FONT><A NAME="605"></A>    p3.add(m_ShowStdDevs);
+<FONT ID="LN">606 </FONT><A NAME="606"></A>
+<FONT ID="LN">607 </FONT><A NAME="607"></A>    y++;
+<FONT ID="LN">608 </FONT><A NAME="608"></A>    lab = <FONT ID="New">new</FONT> JLabel(<FONT ID="StringLiteral">"Output Format"</FONT>, SwingConstants.RIGHT);
+<FONT ID="LN">609 </FONT><A NAME="609"></A>    lab.setDisplayedMnemonic(<FONT ID="CharacerLiteral">'O'</FONT>);
+<FONT ID="LN">610 </FONT><A NAME="610"></A>    lab.setLabelFor(m_OutputFormatButton);
+<FONT ID="LN">611 </FONT><A NAME="611"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">612 </FONT><A NAME="612"></A>    gbC.anchor = GridBagConstraints.EAST;
+<FONT ID="LN">613 </FONT><A NAME="613"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">614 </FONT><A NAME="614"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>, <FONT ID="IntegerLiteral">2</FONT>, <FONT ID="IntegerLiteral">10</FONT>);
+<FONT ID="LN">615 </FONT><A NAME="615"></A>    gbL.setConstraints(lab, gbC);
+<FONT ID="LN">616 </FONT><A NAME="616"></A>    p3.add(lab);
+<FONT ID="LN">617 </FONT><A NAME="617"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">618 </FONT><A NAME="618"></A>    gbC.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">619 </FONT><A NAME="619"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">620 </FONT><A NAME="620"></A>    gbC.gridy = y;     gbC.gridx = <FONT ID="IntegerLiteral">1</FONT>;  gbC.weightx = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">621 </FONT><A NAME="621"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">622 </FONT><A NAME="622"></A>    gbL.setConstraints(m_OutputFormatButton, gbC);
+<FONT ID="LN">623 </FONT><A NAME="623"></A>    p3.add(m_OutputFormatButton);
+<FONT ID="LN">624 </FONT><A NAME="624"></A>    
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    JPanel output = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">626 </FONT><A NAME="626"></A>    output.setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">627 </FONT><A NAME="627"></A>    output.setBorder(BorderFactory.createTitledBorder(<FONT ID="StringLiteral">"Test output"</FONT>));
+<FONT ID="LN">628 </FONT><A NAME="628"></A>    output.add(<FONT ID="New">new</FONT> JScrollPane(m_OutText), BorderLayout.CENTER);
+<FONT ID="LN">629 </FONT><A NAME="629"></A>
+<FONT ID="LN">630 </FONT><A NAME="630"></A>    JPanel mondo = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">631 </FONT><A NAME="631"></A>    gbL = <FONT ID="New">new</FONT> GridBagLayout();
+<FONT ID="LN">632 </FONT><A NAME="632"></A>    mondo.setLayout(gbL);
+<FONT ID="LN">633 </FONT><A NAME="633"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">634 </FONT><A NAME="634"></A>    <FONT ID="SingleLineComment">//    gbC.anchor = GridBagConstraints.WEST;
+<FONT ID="LN">635 </FONT><A NAME="635"></A></FONT>    <FONT ID="SingleLineComment">//    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">636 </FONT><A NAME="636"></A></FONT>    gbC.gridy = <FONT ID="IntegerLiteral">0</FONT>;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">637 </FONT><A NAME="637"></A>    gbL.setConstraints(p3, gbC);
+<FONT ID="LN">638 </FONT><A NAME="638"></A>    mondo.add(p3);
+<FONT ID="LN">639 </FONT><A NAME="639"></A>
+<FONT ID="LN">640 </FONT><A NAME="640"></A>    JPanel bts = <FONT ID="New">new</FONT> JPanel();
+<FONT ID="LN">641 </FONT><A NAME="641"></A>    m_PerformBut.setMnemonic(<FONT ID="CharacerLiteral">'t'</FONT>);
+<FONT ID="LN">642 </FONT><A NAME="642"></A>    m_SaveOutBut.setMnemonic(<FONT ID="CharacerLiteral">'S'</FONT>);
+<FONT ID="LN">643 </FONT><A NAME="643"></A>    bts.setLayout(<FONT ID="New">new</FONT> GridLayout(<FONT ID="IntegerLiteral">1</FONT>,<FONT ID="IntegerLiteral">2</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">5</FONT>));
+<FONT ID="LN">644 </FONT><A NAME="644"></A>    bts.add(m_PerformBut);
+<FONT ID="LN">645 </FONT><A NAME="645"></A>    bts.add(m_SaveOutBut);
+<FONT ID="LN">646 </FONT><A NAME="646"></A>
+<FONT ID="LN">647 </FONT><A NAME="647"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">648 </FONT><A NAME="648"></A>    gbC.anchor = GridBagConstraints.NORTH;
+<FONT ID="LN">649 </FONT><A NAME="649"></A>    gbC.fill = GridBagConstraints.HORIZONTAL;
+<FONT ID="LN">650 </FONT><A NAME="650"></A>    gbC.gridy = <FONT ID="IntegerLiteral">1</FONT>;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">651 </FONT><A NAME="651"></A>    gbC.insets = <FONT ID="New">new</FONT> Insets(<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">5</FONT>,<FONT ID="IntegerLiteral">5</FONT>);
+<FONT ID="LN">652 </FONT><A NAME="652"></A>    gbL.setConstraints(bts, gbC);
+<FONT ID="LN">653 </FONT><A NAME="653"></A>    mondo.add(bts);
+<FONT ID="LN">654 </FONT><A NAME="654"></A>    gbC = <FONT ID="New">new</FONT> GridBagConstraints();
+<FONT ID="LN">655 </FONT><A NAME="655"></A>    <FONT ID="SingleLineComment">//gbC.anchor = GridBagConstraints.NORTH;
+<FONT ID="LN">656 </FONT><A NAME="656"></A></FONT>    gbC.fill = GridBagConstraints.BOTH;
+<FONT ID="LN">657 </FONT><A NAME="657"></A>    gbC.gridy = <FONT ID="IntegerLiteral">2</FONT>;     gbC.gridx = <FONT ID="IntegerLiteral">0</FONT>; gbC.weightx = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">658 </FONT><A NAME="658"></A>    gbC.weighty = <FONT ID="IntegerLiteral">100</FONT>;
+<FONT ID="LN">659 </FONT><A NAME="659"></A>    gbL.setConstraints(m_History, gbC);
+<FONT ID="LN">660 </FONT><A NAME="660"></A>    mondo.add(m_History);
+<FONT ID="LN">661 </FONT><A NAME="661"></A>    <FONT ID="MultiLineComment">/*gbC = new GridBagConstraints();
+<FONT ID="LN">662 </FONT><A NAME="662"></A>    gbC.fill = GridBagConstraints.BOTH;
+<FONT ID="LN">663 </FONT><A NAME="663"></A>    gbC.gridy = 0;     gbC.gridx = 1;
+<FONT ID="LN">664 </FONT><A NAME="664"></A>    gbC.gridheight = 3;
+<FONT ID="LN">665 </FONT><A NAME="665"></A>    gbC.weightx = 100; gbC.weighty = 100;
+<FONT ID="LN">666 </FONT><A NAME="666"></A>    gbL.setConstraints(output, gbC);*/</FONT>
+<FONT ID="LN">667 </FONT><A NAME="667"></A>    <FONT ID="SingleLineComment">//mondo.add(output);
+<FONT ID="LN">668 </FONT><A NAME="668"></A></FONT>    JSplitPane splitPane = <FONT ID="New">new</FONT> JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+<FONT ID="LN">669 </FONT><A NAME="669"></A>                      mondo, output);
+<FONT ID="LN">670 </FONT><A NAME="670"></A>    splitPane.setOneTouchExpandable(<FONT ID="True">true</FONT>);
+<FONT ID="LN">671 </FONT><A NAME="671"></A>    <FONT ID="SingleLineComment">//splitPane.setDividerLocation(100);
+<FONT ID="LN">672 </FONT><A NAME="672"></A></FONT>
+<FONT ID="LN">673 </FONT><A NAME="673"></A>    setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">674 </FONT><A NAME="674"></A>    add(p1, BorderLayout.NORTH);
+<FONT ID="LN">675 </FONT><A NAME="675"></A>    <FONT ID="SingleLineComment">//add(mondo , BorderLayout.CENTER);
+<FONT ID="LN">676 </FONT><A NAME="676"></A></FONT>    add(splitPane , BorderLayout.CENTER);
+<FONT ID="LN">677 </FONT><A NAME="677"></A>  }
+<FONT ID="LN">678 </FONT><A NAME="678"></A>
+<FONT ID="LN">679 </FONT><A NAME="679"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">680 </FONT><A NAME="680"></A>   * Sets the combo-boxes to a fixed size so they don't take up too much room
+<FONT ID="LN">681 </FONT><A NAME="681"></A>   * that would be better devoted to the test output box.
+<FONT ID="LN">682 </FONT><A NAME="682"></A>   */</FONT>
+<FONT ID="LN">683 </FONT><A NAME="683"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setComboSizes() {
+<FONT ID="LN">684 </FONT><A NAME="684"></A>    
+<FONT ID="LN">685 </FONT><A NAME="685"></A>    m_TesterClasses.setPreferredSize(COMBO_SIZE);
+<FONT ID="LN">686 </FONT><A NAME="686"></A>    m_PanelDatasetResultKeys.setPreferredSize(COMBO_SIZE);
+<FONT ID="LN">687 </FONT><A NAME="687"></A>    m_CompareCombo.setPreferredSize(COMBO_SIZE);
+<FONT ID="LN">688 </FONT><A NAME="688"></A>    m_SigTex.setPreferredSize(COMBO_SIZE);
+<FONT ID="LN">689 </FONT><A NAME="689"></A>    m_SortCombo.setPreferredSize(COMBO_SIZE);
+<FONT ID="LN">690 </FONT><A NAME="690"></A>
+<FONT ID="LN">691 </FONT><A NAME="691"></A>    m_TesterClasses.setMaximumSize(COMBO_SIZE);
+<FONT ID="LN">692 </FONT><A NAME="692"></A>    m_PanelDatasetResultKeys.setMaximumSize(COMBO_SIZE);
+<FONT ID="LN">693 </FONT><A NAME="693"></A>    m_CompareCombo.setMaximumSize(COMBO_SIZE);
+<FONT ID="LN">694 </FONT><A NAME="694"></A>    m_SigTex.setMaximumSize(COMBO_SIZE);
+<FONT ID="LN">695 </FONT><A NAME="695"></A>    m_SortCombo.setMaximumSize(COMBO_SIZE);
+<FONT ID="LN">696 </FONT><A NAME="696"></A>
+<FONT ID="LN">697 </FONT><A NAME="697"></A>    m_TesterClasses.setMinimumSize(COMBO_SIZE);
+<FONT ID="LN">698 </FONT><A NAME="698"></A>    m_PanelDatasetResultKeys.setMinimumSize(COMBO_SIZE);
+<FONT ID="LN">699 </FONT><A NAME="699"></A>    m_CompareCombo.setMinimumSize(COMBO_SIZE);
+<FONT ID="LN">700 </FONT><A NAME="700"></A>    m_SigTex.setMinimumSize(COMBO_SIZE);
+<FONT ID="LN">701 </FONT><A NAME="701"></A>    m_SortCombo.setMinimumSize(COMBO_SIZE);
+<FONT ID="LN">702 </FONT><A NAME="702"></A>  }
+<FONT ID="LN">703 </FONT><A NAME="703"></A>  
+<FONT ID="LN">704 </FONT><A NAME="704"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">705 </FONT><A NAME="705"></A>   * Tells the panel to use a new experiment.
+<FONT ID="LN">706 </FONT><A NAME="706"></A>   *
+<FONT ID="LN">707 </FONT><A NAME="707"></A>   * @param exp a value of type 'Experiment'
+<FONT ID="LN">708 </FONT><A NAME="708"></A>   */</FONT>
+<FONT ID="LN">709 </FONT><A NAME="709"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setExperiment(<A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> exp) {
+<FONT ID="LN">710 </FONT><A NAME="710"></A>    
+<FONT ID="LN">711 </FONT><A NAME="711"></A>    m_Exp = exp;
+<FONT ID="LN">712 </FONT><A NAME="712"></A>    m_FromExpBut.setEnabled(exp != <FONT ID="Null">null</FONT>);
+<FONT ID="LN">713 </FONT><A NAME="713"></A>  }
+<FONT ID="LN">714 </FONT><A NAME="714"></A>
+<FONT ID="LN">715 </FONT><A NAME="715"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">716 </FONT><A NAME="716"></A>   * Queries the user enough to make a database query to retrieve experiment
+<FONT ID="LN">717 </FONT><A NAME="717"></A>   * results.
+<FONT ID="LN">718 </FONT><A NAME="718"></A>   */</FONT>
+<FONT ID="LN">719 </FONT><A NAME="719"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setInstancesFromDBaseQuery() {
+<FONT ID="LN">720 </FONT><A NAME="720"></A>
+<FONT ID="LN">721 </FONT><A NAME="721"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">722 </FONT><A NAME="722"></A>      <FONT ID="If">if</FONT> (m_InstanceQuery == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">723 </FONT><A NAME="723"></A>    m_InstanceQuery = <FONT ID="New">new</FONT> <A HREF="../../../weka/experiment/InstanceQuery.java.html">InstanceQuery</A>();
+<FONT ID="LN">724 </FONT><A NAME="724"></A>      }
+<FONT ID="LN">725 </FONT><A NAME="725"></A>      String dbaseURL = m_InstanceQuery.getDatabaseURL();
+<FONT ID="LN">726 </FONT><A NAME="726"></A>      String username = m_InstanceQuery.getUsername();
+<FONT ID="LN">727 </FONT><A NAME="727"></A>      String passwd = m_InstanceQuery.getPassword();
+<FONT ID="LN">728 </FONT><A NAME="728"></A>      <FONT ID="MultiLineComment">/*dbaseURL = (String) JOptionPane.showInputDialog(this,
+<FONT ID="LN">729 </FONT><A NAME="729"></A>                         "Enter the database URL",
+<FONT ID="LN">730 </FONT><A NAME="730"></A>                         "Query Database",
+<FONT ID="LN">731 </FONT><A NAME="731"></A>                         JOptionPane.PLAIN_MESSAGE,
+<FONT ID="LN">732 </FONT><A NAME="732"></A>                         null,
+<FONT ID="LN">733 </FONT><A NAME="733"></A>                         null,
+<FONT ID="LN">734 </FONT><A NAME="734"></A>                         dbaseURL);*/</FONT>
+<FONT ID="LN">735 </FONT><A NAME="735"></A>     
+<FONT ID="LN">736 </FONT><A NAME="736"></A>      
+<FONT ID="LN">737 </FONT><A NAME="737"></A>      
+<FONT ID="LN">738 </FONT><A NAME="738"></A>      <A HREF="../../../weka/gui/DatabaseConnectionDialog.java.html">DatabaseConnectionDialog</A> dbd= <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/DatabaseConnectionDialog.java.html">DatabaseConnectionDialog</A>(<FONT ID="Null">null</FONT>,dbaseURL,username);
+<FONT ID="LN">739 </FONT><A NAME="739"></A>      dbd.setVisible(<FONT ID="True">true</FONT>);
+<FONT ID="LN">740 </FONT><A NAME="740"></A>      
+<FONT ID="LN">741 </FONT><A NAME="741"></A>      <FONT ID="SingleLineComment">//if (dbaseURL == null) {
+<FONT ID="LN">742 </FONT><A NAME="742"></A></FONT>      <FONT ID="If">if</FONT> (dbd.getReturnValue()==JOptionPane.CLOSED_OPTION) {
+<FONT ID="LN">743 </FONT><A NAME="743"></A>    m_FromLab.setText(<FONT ID="StringLiteral">"Cancelled"</FONT>);
+<FONT ID="LN">744 </FONT><A NAME="744"></A>    <FONT ID="Return">return</FONT>;
+<FONT ID="LN">745 </FONT><A NAME="745"></A>      }
+<FONT ID="LN">746 </FONT><A NAME="746"></A>      dbaseURL=dbd.getURL();
+<FONT ID="LN">747 </FONT><A NAME="747"></A>      username=dbd.getUsername();
+<FONT ID="LN">748 </FONT><A NAME="748"></A>      passwd=dbd.getPassword();
+<FONT ID="LN">749 </FONT><A NAME="749"></A>      m_InstanceQuery.setDatabaseURL(dbaseURL);
+<FONT ID="LN">750 </FONT><A NAME="750"></A>      m_InstanceQuery.setUsername(username);
+<FONT ID="LN">751 </FONT><A NAME="751"></A>      m_InstanceQuery.setPassword(passwd);
+<FONT ID="LN">752 </FONT><A NAME="752"></A>      m_InstanceQuery.setDebug(dbd.getDebug());
+<FONT ID="LN">753 </FONT><A NAME="753"></A>      
+<FONT ID="LN">754 </FONT><A NAME="754"></A>      m_InstanceQuery.connectToDatabase();
+<FONT ID="LN">755 </FONT><A NAME="755"></A>      <FONT ID="If">if</FONT> (!m_InstanceQuery.experimentIndexExists()) {
+<FONT ID="LN">756 </FONT><A NAME="756"></A>    System.err.println(<FONT ID="StringLiteral">"not found"</FONT>);
+<FONT ID="LN">757 </FONT><A NAME="757"></A>    m_FromLab.setText(<FONT ID="StringLiteral">"No experiment index"</FONT>);
+<FONT ID="LN">758 </FONT><A NAME="758"></A>        m_InstanceQuery.disconnectFromDatabase();
+<FONT ID="LN">759 </FONT><A NAME="759"></A>    <FONT ID="Return">return</FONT>;
+<FONT ID="LN">760 </FONT><A NAME="760"></A>      }
+<FONT ID="LN">761 </FONT><A NAME="761"></A>      System.err.println(<FONT ID="StringLiteral">"found"</FONT>);
+<FONT ID="LN">762 </FONT><A NAME="762"></A>      m_FromLab.setText(<FONT ID="StringLiteral">"Getting experiment index"</FONT>);
+<FONT ID="LN">763 </FONT><A NAME="763"></A>      <A HREF="../../../weka/core/Instances.java.html">Instances</A> index = m_InstanceQuery.retrieveInstances(<FONT ID="StringLiteral">"SELECT * FROM "</FONT>
+<FONT ID="LN">764 </FONT><A NAME="764"></A>                       + InstanceQuery.EXP_INDEX_TABLE);
+<FONT ID="LN">765 </FONT><A NAME="765"></A>      <FONT ID="If">if</FONT> (index.numInstances() == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">766 </FONT><A NAME="766"></A>    m_FromLab.setText(<FONT ID="StringLiteral">"No experiments available"</FONT>);
+<FONT ID="LN">767 </FONT><A NAME="767"></A>        m_InstanceQuery.disconnectFromDatabase();
+<FONT ID="LN">768 </FONT><A NAME="768"></A>    <FONT ID="Return">return</FONT>; 
+<FONT ID="LN">769 </FONT><A NAME="769"></A>      }
+<FONT ID="LN">770 </FONT><A NAME="770"></A>      m_FromLab.setText(<FONT ID="StringLiteral">"Got experiment index"</FONT>);
+<FONT ID="LN">771 </FONT><A NAME="771"></A>
+<FONT ID="LN">772 </FONT><A NAME="772"></A>      DefaultListModel lm = <FONT ID="New">new</FONT> DefaultListModel();
+<FONT ID="LN">773 </FONT><A NAME="773"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; index.numInstances(); i++) {
+<FONT ID="LN">774 </FONT><A NAME="774"></A>    lm.addElement(index.instance(i).toString());
+<FONT ID="LN">775 </FONT><A NAME="775"></A>      }
+<FONT ID="LN">776 </FONT><A NAME="776"></A>      JList jl = <FONT ID="New">new</FONT> JList(lm);
+<FONT ID="LN">777 </FONT><A NAME="777"></A>      jl.setSelectedIndex(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">778 </FONT><A NAME="778"></A>      <FONT ID="Int">int</FONT> result;
+<FONT ID="LN">779 </FONT><A NAME="779"></A>      <FONT ID="SingleLineComment">// display dialog only if there's not just one result!
+<FONT ID="LN">780 </FONT><A NAME="780"></A></FONT>      <FONT ID="If">if</FONT> (jl.getModel().getSize() != <FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">781 </FONT><A NAME="781"></A>        <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A> jd = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A>(<FONT ID="Null">null</FONT>, jl);
+<FONT ID="LN">782 </FONT><A NAME="782"></A>        result = jd.showDialog();
+<FONT ID="LN">783 </FONT><A NAME="783"></A>      }
+<FONT ID="LN">784 </FONT><A NAME="784"></A>      <FONT ID="Else">else</FONT> {
+<FONT ID="LN">785 </FONT><A NAME="785"></A>        result = ListSelectorDialog.APPROVE_OPTION;
+<FONT ID="LN">786 </FONT><A NAME="786"></A>      }
+<FONT ID="LN">787 </FONT><A NAME="787"></A>      <FONT ID="If">if</FONT> (result != ListSelectorDialog.APPROVE_OPTION) {
+<FONT ID="LN">788 </FONT><A NAME="788"></A>    m_FromLab.setText(<FONT ID="StringLiteral">"Cancelled"</FONT>);
+<FONT ID="LN">789 </FONT><A NAME="789"></A>        m_InstanceQuery.disconnectFromDatabase();
+<FONT ID="LN">790 </FONT><A NAME="790"></A>    <FONT ID="Return">return</FONT>;
+<FONT ID="LN">791 </FONT><A NAME="791"></A>      }
+<FONT ID="LN">792 </FONT><A NAME="792"></A>      <A HREF="../../../weka/core/Instance.java.html">Instance</A> selInst = index.instance(jl.getSelectedIndex());
+<FONT ID="LN">793 </FONT><A NAME="793"></A>      <A HREF="../../../weka/core/Attribute.java.html">Attribute</A> tableAttr = index.attribute(InstanceQuery.EXP_RESULT_COL);
+<FONT ID="LN">794 </FONT><A NAME="794"></A>      String table = InstanceQuery.EXP_RESULT_PREFIX
+<FONT ID="LN">795 </FONT><A NAME="795"></A>    + selInst.toString(tableAttr);
+<FONT ID="LN">796 </FONT><A NAME="796"></A>      setInstancesFromDatabaseTable(table);
+<FONT ID="LN">797 </FONT><A NAME="797"></A>      
+<FONT ID="LN">798 </FONT><A NAME="798"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">799 </FONT><A NAME="799"></A>       <FONT ID="SingleLineComment">// 1. print complete stacktrace
+<FONT ID="LN">800 </FONT><A NAME="800"></A></FONT>       ex.printStackTrace();
+<FONT ID="LN">801 </FONT><A NAME="801"></A>       <FONT ID="SingleLineComment">// 2. print message in panel
+<FONT ID="LN">802 </FONT><A NAME="802"></A></FONT>       m_FromLab.setText(<FONT ID="StringLiteral">"Problem reading database: '"</FONT> + ex.getMessage() + <FONT ID="StringLiteral">"'"</FONT>);
+<FONT ID="LN">803 </FONT><A NAME="803"></A>    }
+<FONT ID="LN">804 </FONT><A NAME="804"></A>  }
+<FONT ID="LN">805 </FONT><A NAME="805"></A>  
+<FONT ID="LN">806 </FONT><A NAME="806"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">807 </FONT><A NAME="807"></A>   * Examines the supplied experiment to determine the results destination
+<FONT ID="LN">808 </FONT><A NAME="808"></A>   * and attempts to load the results.
+<FONT ID="LN">809 </FONT><A NAME="809"></A>   *
+<FONT ID="LN">810 </FONT><A NAME="810"></A>   * @param exp a value of type 'Experiment'
+<FONT ID="LN">811 </FONT><A NAME="811"></A>   */</FONT>
+<FONT ID="LN">812 </FONT><A NAME="812"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setInstancesFromExp(<A HREF="../../../weka/experiment/Experiment.java.html">Experiment</A> exp) {
+<FONT ID="LN">813 </FONT><A NAME="813"></A>
+<FONT ID="LN">814 </FONT><A NAME="814"></A>    <FONT ID="If">if</FONT> ((exp.getResultListener() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/CSVResultListener.java.html">CSVResultListener</A>)) { 
+<FONT ID="LN">815 </FONT><A NAME="815"></A>      File resultFile = ((<A HREF="../../../weka/experiment/CSVResultListener.java.html">CSVResultListener</A>) exp.getResultListener())
+<FONT ID="LN">816 </FONT><A NAME="816"></A>    .getOutputFile();
+<FONT ID="LN">817 </FONT><A NAME="817"></A>      <FONT ID="If">if</FONT> ((resultFile == <FONT ID="Null">null</FONT>)) {
+<FONT ID="LN">818 </FONT><A NAME="818"></A>    m_FromLab.setText(<FONT ID="StringLiteral">"No result file"</FONT>);
+<FONT ID="LN">819 </FONT><A NAME="819"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">820 </FONT><A NAME="820"></A>    setInstancesFromFile(resultFile);
+<FONT ID="LN">821 </FONT><A NAME="821"></A>      }
+<FONT ID="LN">822 </FONT><A NAME="822"></A>    } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (exp.getResultListener() <FONT ID="InstanceOf">instanceof</FONT> <A HREF="../../../weka/experiment/DatabaseResultListener.java.html">DatabaseResultListener</A>) {
+<FONT ID="LN">823 </FONT><A NAME="823"></A>      String dbaseURL = ((<A HREF="../../../weka/experiment/DatabaseResultListener.java.html">DatabaseResultListener</A>) exp.getResultListener())
+<FONT ID="LN">824 </FONT><A NAME="824"></A>    .getDatabaseURL();
+<FONT ID="LN">825 </FONT><A NAME="825"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">826 </FONT><A NAME="826"></A>    <FONT ID="If">if</FONT> (m_InstanceQuery == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">827 </FONT><A NAME="827"></A>      m_InstanceQuery = <FONT ID="New">new</FONT> <A HREF="../../../weka/experiment/InstanceQuery.java.html">InstanceQuery</A>();
+<FONT ID="LN">828 </FONT><A NAME="828"></A>    }
+<FONT ID="LN">829 </FONT><A NAME="829"></A>    m_InstanceQuery.setDatabaseURL(dbaseURL);
+<FONT ID="LN">830 </FONT><A NAME="830"></A>    m_InstanceQuery.connectToDatabase();
+<FONT ID="LN">831 </FONT><A NAME="831"></A>    String tableName = m_InstanceQuery
+<FONT ID="LN">832 </FONT><A NAME="832"></A>      .getResultsTableName(exp.getResultProducer());
+<FONT ID="LN">833 </FONT><A NAME="833"></A>    setInstancesFromDatabaseTable(tableName);
+<FONT ID="LN">834 </FONT><A NAME="834"></A>      } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">835 </FONT><A NAME="835"></A>    m_FromLab.setText(<FONT ID="StringLiteral">"Problem reading database"</FONT>);
+<FONT ID="LN">836 </FONT><A NAME="836"></A>      }
+<FONT ID="LN">837 </FONT><A NAME="837"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">838 </FONT><A NAME="838"></A>      m_FromLab.setText(<FONT ID="StringLiteral">"Can't get results from experiment"</FONT>);
+<FONT ID="LN">839 </FONT><A NAME="839"></A>    }
+<FONT ID="LN">840 </FONT><A NAME="840"></A>  }
+<FONT ID="LN">841 </FONT><A NAME="841"></A>
+<FONT ID="LN">842 </FONT><A NAME="842"></A>  
+<FONT ID="LN">843 </FONT><A NAME="843"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">844 </FONT><A NAME="844"></A>   * Queries a database to load results from the specified table name. The
+<FONT ID="LN">845 </FONT><A NAME="845"></A>   * database connection must have already made by m_InstanceQuery.
+<FONT ID="LN">846 </FONT><A NAME="846"></A>   *
+<FONT ID="LN">847 </FONT><A NAME="847"></A>   * @param tableName the name of the table containing results to retrieve.
+<FONT ID="LN">848 </FONT><A NAME="848"></A>   */</FONT>
+<FONT ID="LN">849 </FONT><A NAME="849"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setInstancesFromDatabaseTable(String tableName) {
+<FONT ID="LN">850 </FONT><A NAME="850"></A>
+<FONT ID="LN">851 </FONT><A NAME="851"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">852 </FONT><A NAME="852"></A>      m_FromLab.setText(<FONT ID="StringLiteral">"Reading from database, please wait..."</FONT>);
+<FONT ID="LN">853 </FONT><A NAME="853"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A> i = m_InstanceQuery.retrieveInstances(<FONT ID="StringLiteral">"SELECT * FROM "</FONT>
+<FONT ID="LN">854 </FONT><A NAME="854"></A>                              + tableName);
+<FONT ID="LN">855 </FONT><A NAME="855"></A>      SwingUtilities.invokeAndWait(<FONT ID="New">new</FONT> Runnable() {
+<FONT ID="LN">856 </FONT><A NAME="856"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> run() {
+<FONT ID="LN">857 </FONT><A NAME="857"></A>      setInstances(i);
+<FONT ID="LN">858 </FONT><A NAME="858"></A>    }
+<FONT ID="LN">859 </FONT><A NAME="859"></A>      });
+<FONT ID="LN">860 </FONT><A NAME="860"></A>      m_InstanceQuery.disconnectFromDatabase();
+<FONT ID="LN">861 </FONT><A NAME="861"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">862 </FONT><A NAME="862"></A>      m_FromLab.setText(ex.getMessage());
+<FONT ID="LN">863 </FONT><A NAME="863"></A>    }
+<FONT ID="LN">864 </FONT><A NAME="864"></A>  }
+<FONT ID="LN">865 </FONT><A NAME="865"></A>  
+<FONT ID="LN">866 </FONT><A NAME="866"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">867 </FONT><A NAME="867"></A>   * Loads results from a set of instances contained in the supplied
+<FONT ID="LN">868 </FONT><A NAME="868"></A>   * file.
+<FONT ID="LN">869 </FONT><A NAME="869"></A>   *
+<FONT ID="LN">870 </FONT><A NAME="870"></A>   * @param f a value of type 'File'
+<FONT ID="LN">871 </FONT><A NAME="871"></A>   */</FONT>
+<FONT ID="LN">872 </FONT><A NAME="872"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setInstancesFromFile(File f) {
+<FONT ID="LN">873 </FONT><A NAME="873"></A>
+<FONT ID="LN">874 </FONT><A NAME="874"></A>    String fileType = f.getName();
+<FONT ID="LN">875 </FONT><A NAME="875"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">876 </FONT><A NAME="876"></A>      m_FromLab.setText(<FONT ID="StringLiteral">"Reading from file..."</FONT>);
+<FONT ID="LN">877 </FONT><A NAME="877"></A>      <FONT ID="If">if</FONT> (f.getName().toLowerCase().endsWith(Instances.FILE_EXTENSION)) {       
+<FONT ID="LN">878 </FONT><A NAME="878"></A>    fileType = <FONT ID="StringLiteral">"arff"</FONT>;
+<FONT ID="LN">879 </FONT><A NAME="879"></A>    Reader r = <FONT ID="New">new</FONT> BufferedReader(<FONT ID="New">new</FONT> FileReader(f));
+<FONT ID="LN">880 </FONT><A NAME="880"></A>    setInstances(<FONT ID="New">new</FONT> <A HREF="../../../weka/core/Instances.java.html">Instances</A>(r));
+<FONT ID="LN">881 </FONT><A NAME="881"></A>    r.close();
+<FONT ID="LN">882 </FONT><A NAME="882"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (f.getName().toLowerCase().endsWith(CSVLoader.FILE_EXTENSION)) {
+<FONT ID="LN">883 </FONT><A NAME="883"></A>    fileType = <FONT ID="StringLiteral">"csv"</FONT>;
+<FONT ID="LN">884 </FONT><A NAME="884"></A>    <A HREF="../../../weka/core/converters/CSVLoader.java.html">CSVLoader</A> cnv = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/converters/CSVLoader.java.html">CSVLoader</A>();
+<FONT ID="LN">885 </FONT><A NAME="885"></A>    cnv.setSource(f);
+<FONT ID="LN">886 </FONT><A NAME="886"></A>    <A HREF="../../../weka/core/Instances.java.html">Instances</A> inst = cnv.getDataSet();
+<FONT ID="LN">887 </FONT><A NAME="887"></A>    setInstances(inst);
+<FONT ID="LN">888 </FONT><A NAME="888"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">889 </FONT><A NAME="889"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Unrecognized file type"</FONT>);
+<FONT ID="LN">890 </FONT><A NAME="890"></A>      }
+<FONT ID="LN">891 </FONT><A NAME="891"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">892 </FONT><A NAME="892"></A>      m_FromLab.setText(<FONT ID="StringLiteral">"File '"</FONT> + f.getName() + <FONT ID="StringLiteral">"' not recognised as an "</FONT>
+<FONT ID="LN">893 </FONT><A NAME="893"></A>              +fileType+<FONT ID="StringLiteral">" file."</FONT>);
+<FONT ID="LN">894 </FONT><A NAME="894"></A>      <FONT ID="If">if</FONT> (JOptionPane.showOptionDialog(ResultsPanel.<FONT ID="This">this</FONT>,
+<FONT ID="LN">895 </FONT><A NAME="895"></A>                       <FONT ID="StringLiteral">"File '"</FONT> + f.getName()
+<FONT ID="LN">896 </FONT><A NAME="896"></A>                       + <FONT ID="StringLiteral">"' not recognised as an "</FONT>
+<FONT ID="LN">897 </FONT><A NAME="897"></A>                       +fileType+<FONT ID="StringLiteral">" file.\n"</FONT>
+<FONT ID="LN">898 </FONT><A NAME="898"></A>                       + <FONT ID="StringLiteral">"Reason:\n"</FONT> + ex.getMessage(),
+<FONT ID="LN">899 </FONT><A NAME="899"></A>                       <FONT ID="StringLiteral">"Load Instances"</FONT>,
+<FONT ID="LN">900 </FONT><A NAME="900"></A>                       <FONT ID="IntegerLiteral">0</FONT>,
+<FONT ID="LN">901 </FONT><A NAME="901"></A>                       JOptionPane.ERROR_MESSAGE,
+<FONT ID="LN">902 </FONT><A NAME="902"></A>                       <FONT ID="Null">null</FONT>,
+<FONT ID="LN">903 </FONT><A NAME="903"></A>                       <FONT ID="New">new</FONT> String[] {<FONT ID="StringLiteral">"OK"</FONT>},
+<FONT ID="LN">904 </FONT><A NAME="904"></A>                       <FONT ID="Null">null</FONT>) == <FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">905 </FONT><A NAME="905"></A>    
+<FONT ID="LN">906 </FONT><A NAME="906"></A>      }
+<FONT ID="LN">907 </FONT><A NAME="907"></A>    }  
+<FONT ID="LN">908 </FONT><A NAME="908"></A>  }
+<FONT ID="LN">909 </FONT><A NAME="909"></A>  
+<FONT ID="LN">910 </FONT><A NAME="910"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">911 </FONT><A NAME="911"></A>   * Returns a vector with column names of the dataset, listed in "list". If
+<FONT ID="LN">912 </FONT><A NAME="912"></A>   * a column cannot be found or the list is empty the ones from the default 
+<FONT ID="LN">913 </FONT><A NAME="913"></A>   * list are returned. 
+<FONT ID="LN">914 </FONT><A NAME="914"></A>   * 
+<FONT ID="LN">915 </FONT><A NAME="915"></A>   * @param list           comma-separated list of attribute names
+<FONT ID="LN">916 </FONT><A NAME="916"></A>   * @param defaultList    the default list of attribute names
+<FONT ID="LN">917 </FONT><A NAME="917"></A>   * @param inst           the instances to get the attribute names from
+<FONT ID="LN">918 </FONT><A NAME="918"></A>   * @return               a vector containing attribute names
+<FONT ID="LN">919 </FONT><A NAME="919"></A>   */</FONT>
+<FONT ID="LN">920 </FONT><A NAME="920"></A>  <FONT ID="Protected">protected</FONT> Vector determineColumnNames(String list, String defaultList, <A HREF="../../../weka/core/Instances.java.html">Instances</A> inst) {
+<FONT ID="LN">921 </FONT><A NAME="921"></A>    Vector              result;
+<FONT ID="LN">922 </FONT><A NAME="922"></A>    Vector              atts;
+<FONT ID="LN">923 </FONT><A NAME="923"></A>    StringTokenizer     tok;
+<FONT ID="LN">924 </FONT><A NAME="924"></A>    <FONT ID="Int">int</FONT>                 i;
+<FONT ID="LN">925 </FONT><A NAME="925"></A>    String              item;
+<FONT ID="LN">926 </FONT><A NAME="926"></A>    
+<FONT ID="LN">927 </FONT><A NAME="927"></A>    <FONT ID="SingleLineComment">// get attribute names
+<FONT ID="LN">928 </FONT><A NAME="928"></A></FONT>    atts = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">929 </FONT><A NAME="929"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; inst.numAttributes(); i++)
+<FONT ID="LN">930 </FONT><A NAME="930"></A>      atts.add(inst.attribute(i).name().toLowerCase());
+<FONT ID="LN">931 </FONT><A NAME="931"></A>
+<FONT ID="LN">932 </FONT><A NAME="932"></A>    <FONT ID="SingleLineComment">// process list
+<FONT ID="LN">933 </FONT><A NAME="933"></A></FONT>    result = <FONT ID="New">new</FONT> Vector();
+<FONT ID="LN">934 </FONT><A NAME="934"></A>    tok = <FONT ID="New">new</FONT> StringTokenizer(list, <FONT ID="StringLiteral">","</FONT>);
+<FONT ID="LN">935 </FONT><A NAME="935"></A>    <FONT ID="While">while</FONT> (tok.hasMoreTokens()) {
+<FONT ID="LN">936 </FONT><A NAME="936"></A>      item = tok.nextToken().toLowerCase();
+<FONT ID="LN">937 </FONT><A NAME="937"></A>      <FONT ID="If">if</FONT> (atts.contains(item)) {
+<FONT ID="LN">938 </FONT><A NAME="938"></A>        result.add(item);
+<FONT ID="LN">939 </FONT><A NAME="939"></A>      }
+<FONT ID="LN">940 </FONT><A NAME="940"></A>      <FONT ID="Else">else</FONT> {
+<FONT ID="LN">941 </FONT><A NAME="941"></A>        result.clear();
+<FONT ID="LN">942 </FONT><A NAME="942"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">943 </FONT><A NAME="943"></A>      }
+<FONT ID="LN">944 </FONT><A NAME="944"></A>    }
+<FONT ID="LN">945 </FONT><A NAME="945"></A>    
+<FONT ID="LN">946 </FONT><A NAME="946"></A>    <FONT ID="SingleLineComment">// do we have to return defaults?
+<FONT ID="LN">947 </FONT><A NAME="947"></A></FONT>    <FONT ID="If">if</FONT> (result.size() == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">948 </FONT><A NAME="948"></A>      tok = <FONT ID="New">new</FONT> StringTokenizer(defaultList, <FONT ID="StringLiteral">","</FONT>);
+<FONT ID="LN">949 </FONT><A NAME="949"></A>      <FONT ID="While">while</FONT> (tok.hasMoreTokens())
+<FONT ID="LN">950 </FONT><A NAME="950"></A>        result.add(tok.nextToken().toLowerCase());
+<FONT ID="LN">951 </FONT><A NAME="951"></A>    }
+<FONT ID="LN">952 </FONT><A NAME="952"></A>    
+<FONT ID="LN">953 </FONT><A NAME="953"></A>    <FONT ID="Return">return</FONT> result;
+<FONT ID="LN">954 </FONT><A NAME="954"></A>  }
+<FONT ID="LN">955 </FONT><A NAME="955"></A>
+<FONT ID="LN">956 </FONT><A NAME="956"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">957 </FONT><A NAME="957"></A>   * Sets up the panel with a new set of instances, attempting
+<FONT ID="LN">958 </FONT><A NAME="958"></A>   * to guess the correct settings for various columns.
+<FONT ID="LN">959 </FONT><A NAME="959"></A>   *
+<FONT ID="LN">960 </FONT><A NAME="960"></A>   * @param newInstances the new set of results.
+<FONT ID="LN">961 </FONT><A NAME="961"></A>   */</FONT>
+<FONT ID="LN">962 </FONT><A NAME="962"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setInstances(<A HREF="../../../weka/core/Instances.java.html">Instances</A> newInstances) {
+<FONT ID="LN">963 </FONT><A NAME="963"></A>
+<FONT ID="LN">964 </FONT><A NAME="964"></A>    m_Instances = newInstances;
+<FONT ID="LN">965 </FONT><A NAME="965"></A>    m_TTester.setInstances(m_Instances);
+<FONT ID="LN">966 </FONT><A NAME="966"></A>    m_FromLab.setText(<FONT ID="StringLiteral">"Got "</FONT> + m_Instances.numInstances() + <FONT ID="StringLiteral">" results"</FONT>);
+<FONT ID="LN">967 </FONT><A NAME="967"></A>    
+<FONT ID="LN">968 </FONT><A NAME="968"></A>    <FONT ID="SingleLineComment">// setup row and column names
+<FONT ID="LN">969 </FONT><A NAME="969"></A></FONT>    Vector rows = determineColumnNames(
+<FONT ID="LN">970 </FONT><A NAME="970"></A>        ExperimenterDefaults.getRow(), <FONT ID="StringLiteral">"Key_Dataset"</FONT>, m_Instances);
+<FONT ID="LN">971 </FONT><A NAME="971"></A>    Vector cols = determineColumnNames(
+<FONT ID="LN">972 </FONT><A NAME="972"></A>        ExperimenterDefaults.getColumn(), <FONT ID="StringLiteral">"Key_Scheme,Key_Scheme_options,Key_Scheme_version_ID"</FONT>, m_Instances);
+<FONT ID="LN">973 </FONT><A NAME="973"></A>    
+<FONT ID="LN">974 </FONT><A NAME="974"></A>    <FONT ID="SingleLineComment">// Do other stuff
+<FONT ID="LN">975 </FONT><A NAME="975"></A></FONT>    m_DatasetKeyModel.removeAllElements();
+<FONT ID="LN">976 </FONT><A NAME="976"></A>    m_ResultKeyModel.removeAllElements();
+<FONT ID="LN">977 </FONT><A NAME="977"></A>    m_CompareModel.removeAllElements();
+<FONT ID="LN">978 </FONT><A NAME="978"></A>    m_SortModel.removeAllElements();
+<FONT ID="LN">979 </FONT><A NAME="979"></A>    m_SortModel.addElement(<FONT ID="StringLiteral">"&lt;default&gt;"</FONT>);
+<FONT ID="LN">980 </FONT><A NAME="980"></A>    m_TTester.setSortColumn(-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">981 </FONT><A NAME="981"></A>    String selectedList = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">982 </FONT><A NAME="982"></A>    String selectedListDataset = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">983 </FONT><A NAME="983"></A>    <FONT ID="Boolean">boolean</FONT> comparisonFieldSet = <FONT ID="False">false</FONT>; 
+<FONT ID="LN">984 </FONT><A NAME="984"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_Instances.numAttributes(); i++) {
+<FONT ID="LN">985 </FONT><A NAME="985"></A>      String name = m_Instances.attribute(i).name();
+<FONT ID="LN">986 </FONT><A NAME="986"></A>      <FONT ID="If">if</FONT> (name.toLowerCase().startsWith(<FONT ID="StringLiteral">"key_"</FONT>, <FONT ID="IntegerLiteral">0</FONT>)) {
+<FONT ID="LN">987 </FONT><A NAME="987"></A>    m_DatasetKeyModel.addElement(name.substring(<FONT ID="IntegerLiteral">4</FONT>));
+<FONT ID="LN">988 </FONT><A NAME="988"></A>    m_ResultKeyModel.addElement(name.substring(<FONT ID="IntegerLiteral">4</FONT>));
+<FONT ID="LN">989 </FONT><A NAME="989"></A>    m_CompareModel.addElement(name.substring(<FONT ID="IntegerLiteral">4</FONT>));
+<FONT ID="LN">990 </FONT><A NAME="990"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">991 </FONT><A NAME="991"></A>    m_DatasetKeyModel.addElement(name);
+<FONT ID="LN">992 </FONT><A NAME="992"></A>    m_ResultKeyModel.addElement(name);
+<FONT ID="LN">993 </FONT><A NAME="993"></A>    m_CompareModel.addElement(name);
+<FONT ID="LN">994 </FONT><A NAME="994"></A>        <FONT ID="If">if</FONT> (m_Instances.attribute(i).isNumeric())
+<FONT ID="LN">995 </FONT><A NAME="995"></A>      m_SortModel.addElement(name);
+<FONT ID="LN">996 </FONT><A NAME="996"></A>      }
+<FONT ID="LN">997 </FONT><A NAME="997"></A>
+<FONT ID="LN">998 </FONT><A NAME="998"></A>      <FONT ID="If">if</FONT> (rows.contains(name.toLowerCase())) {
+<FONT ID="LN">999 </FONT><A NAME="999"></A>    m_DatasetKeyList.addSelectionInterval(i, i);
+<FONT ID="LN">1000</FONT><A NAME="1000"></A>    selectedListDataset += <FONT ID="StringLiteral">","</FONT> + (i + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1001</FONT><A NAME="1001"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.toLowerCase().equals(<FONT ID="StringLiteral">"key_run"</FONT>)) {
+<FONT ID="LN">1002</FONT><A NAME="1002"></A>    m_TTester.setRunColumn(i);
+<FONT ID="LN">1003</FONT><A NAME="1003"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.toLowerCase().equals(<FONT ID="StringLiteral">"key_fold"</FONT>)) {
+<FONT ID="LN">1004</FONT><A NAME="1004"></A>    m_TTester.setFoldColumn(i);
+<FONT ID="LN">1005</FONT><A NAME="1005"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (cols.contains(name.toLowerCase())) {
+<FONT ID="LN">1006</FONT><A NAME="1006"></A>    m_ResultKeyList.addSelectionInterval(i, i);
+<FONT ID="LN">1007</FONT><A NAME="1007"></A>    selectedList += <FONT ID="StringLiteral">","</FONT> + (i + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1008</FONT><A NAME="1008"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (name.toLowerCase().indexOf(ExperimenterDefaults.getComparisonField()) != -<FONT ID="IntegerLiteral">1</FONT>) {
+<FONT ID="LN">1009</FONT><A NAME="1009"></A>    m_CompareCombo.setSelectedIndex(i);
+<FONT ID="LN">1010</FONT><A NAME="1010"></A>    comparisonFieldSet = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1011</FONT><A NAME="1011"></A>    <FONT ID="SingleLineComment">//  break;
+<FONT ID="LN">1012</FONT><A NAME="1012"></A></FONT>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> ((name.toLowerCase().indexOf(<FONT ID="StringLiteral">"root_relative_squared_error"</FONT>) != -<FONT ID="IntegerLiteral">1</FONT>) &amp;&amp;
+<FONT ID="LN">1013</FONT><A NAME="1013"></A>          (!comparisonFieldSet)) {
+<FONT ID="LN">1014</FONT><A NAME="1014"></A>    m_CompareCombo.setSelectedIndex(i);
+<FONT ID="LN">1015</FONT><A NAME="1015"></A>    comparisonFieldSet = <FONT ID="True">true</FONT>;
+<FONT ID="LN">1016</FONT><A NAME="1016"></A>      }
+<FONT ID="LN">1017</FONT><A NAME="1017"></A>    }
+<FONT ID="LN">1018</FONT><A NAME="1018"></A>    m_TesterClasses.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1019</FONT><A NAME="1019"></A>    m_DatasetKeyBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1020</FONT><A NAME="1020"></A>    m_ResultKeyBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1021</FONT><A NAME="1021"></A>    m_SwapDatasetKeyAndResultKeyBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1022</FONT><A NAME="1022"></A>    m_CompareCombo.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1023</FONT><A NAME="1023"></A>    m_SortCombo.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1024</FONT><A NAME="1024"></A>    <FONT ID="If">if</FONT> (ExperimenterDefaults.getSorting().length() != <FONT ID="IntegerLiteral">0</FONT>)
+<FONT ID="LN">1025</FONT><A NAME="1025"></A>      setSelectedItem(m_SortCombo, ExperimenterDefaults.getSorting());
+<FONT ID="LN">1026</FONT><A NAME="1026"></A>
+<FONT ID="LN">1027</FONT><A NAME="1027"></A>    <A HREF="../../../weka/core/Range.java.html">Range</A> generatorRange = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Range.java.html">Range</A>();
+<FONT ID="LN">1028</FONT><A NAME="1028"></A>    <FONT ID="If">if</FONT> (selectedList.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1029</FONT><A NAME="1029"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1030</FONT><A NAME="1030"></A>    generatorRange.setRanges(selectedList);
+<FONT ID="LN">1031</FONT><A NAME="1031"></A>      } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">1032</FONT><A NAME="1032"></A>    ex.printStackTrace();
+<FONT ID="LN">1033</FONT><A NAME="1033"></A>    System.err.println(ex.getMessage());
+<FONT ID="LN">1034</FONT><A NAME="1034"></A>      }
+<FONT ID="LN">1035</FONT><A NAME="1035"></A>    }
+<FONT ID="LN">1036</FONT><A NAME="1036"></A>    m_TTester.setResultsetKeyColumns(generatorRange);
+<FONT ID="LN">1037</FONT><A NAME="1037"></A>
+<FONT ID="LN">1038</FONT><A NAME="1038"></A>    generatorRange = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Range.java.html">Range</A>();
+<FONT ID="LN">1039</FONT><A NAME="1039"></A>    <FONT ID="If">if</FONT> (selectedListDataset.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1040</FONT><A NAME="1040"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1041</FONT><A NAME="1041"></A>    generatorRange.setRanges(selectedListDataset);
+<FONT ID="LN">1042</FONT><A NAME="1042"></A>      } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">1043</FONT><A NAME="1043"></A>    ex.printStackTrace();
+<FONT ID="LN">1044</FONT><A NAME="1044"></A>    System.err.println(ex.getMessage());
+<FONT ID="LN">1045</FONT><A NAME="1045"></A>      }
+<FONT ID="LN">1046</FONT><A NAME="1046"></A>    }
+<FONT ID="LN">1047</FONT><A NAME="1047"></A>    m_TTester.setDatasetKeyColumns(generatorRange);
+<FONT ID="LN">1048</FONT><A NAME="1048"></A>
+<FONT ID="LN">1049</FONT><A NAME="1049"></A>    m_SigTex.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1050</FONT><A NAME="1050"></A>
+<FONT ID="LN">1051</FONT><A NAME="1051"></A>    setTTester();
+<FONT ID="LN">1052</FONT><A NAME="1052"></A>  }
+<FONT ID="LN">1053</FONT><A NAME="1053"></A>
+<FONT ID="LN">1054</FONT><A NAME="1054"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1055</FONT><A NAME="1055"></A>   * Sets the selected item of an combobox, since using setSelectedItem(...)
+<FONT ID="LN">1056</FONT><A NAME="1056"></A>   * doesn't work, if one checks object references!
+<FONT ID="LN">1057</FONT><A NAME="1057"></A>   *
+<FONT ID="LN">1058</FONT><A NAME="1058"></A>   * @param cb      the combobox to set the item for
+<FONT ID="LN">1059</FONT><A NAME="1059"></A>   * @param item    the item to set active
+<FONT ID="LN">1060</FONT><A NAME="1060"></A>   */</FONT>
+<FONT ID="LN">1061</FONT><A NAME="1061"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setSelectedItem(JComboBox cb, String item) {
+<FONT ID="LN">1062</FONT><A NAME="1062"></A>    <FONT ID="Int">int</FONT>       i;
+<FONT ID="LN">1063</FONT><A NAME="1063"></A>
+<FONT ID="LN">1064</FONT><A NAME="1064"></A>    <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; cb.getItemCount(); i++) {
+<FONT ID="LN">1065</FONT><A NAME="1065"></A>      <FONT ID="If">if</FONT> (cb.getItemAt(i).toString().equals(item)) {
+<FONT ID="LN">1066</FONT><A NAME="1066"></A>        cb.setSelectedIndex(i);
+<FONT ID="LN">1067</FONT><A NAME="1067"></A>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">1068</FONT><A NAME="1068"></A>      }
+<FONT ID="LN">1069</FONT><A NAME="1069"></A>    }
+<FONT ID="LN">1070</FONT><A NAME="1070"></A>  }
+<FONT ID="LN">1071</FONT><A NAME="1071"></A>
+<FONT ID="LN">1072</FONT><A NAME="1072"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1073</FONT><A NAME="1073"></A>   * Updates the test chooser with possible tests.
+<FONT ID="LN">1074</FONT><A NAME="1074"></A>   */</FONT>
+<FONT ID="LN">1075</FONT><A NAME="1075"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setTTester() {
+<FONT ID="LN">1076</FONT><A NAME="1076"></A>    
+<FONT ID="LN">1077</FONT><A NAME="1077"></A>    <FONT ID="SingleLineComment">// default is to display all columns
+<FONT ID="LN">1078</FONT><A NAME="1078"></A></FONT>    m_TTester.setDisplayedResultsets(<FONT ID="Null">null</FONT>);       
+<FONT ID="LN">1079</FONT><A NAME="1079"></A>
+<FONT ID="LN">1080</FONT><A NAME="1080"></A>    String name = (<FONT ID="New">new</FONT> SimpleDateFormat(<FONT ID="StringLiteral">"HH:mm:ss - "</FONT>))
+<FONT ID="LN">1081</FONT><A NAME="1081"></A>      .format(<FONT ID="New">new</FONT> Date())
+<FONT ID="LN">1082</FONT><A NAME="1082"></A>      + <FONT ID="StringLiteral">"Available resultsets"</FONT>;
+<FONT ID="LN">1083</FONT><A NAME="1083"></A>    StringBuffer outBuff = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">1084</FONT><A NAME="1084"></A>    outBuff.append(<FONT ID="StringLiteral">"Available resultsets\n"</FONT>
+<FONT ID="LN">1085</FONT><A NAME="1085"></A>           + m_TTester.resultsetKey() + <FONT ID="StringLiteral">"\n\n"</FONT>);
+<FONT ID="LN">1086</FONT><A NAME="1086"></A>    m_History.addResult(name, outBuff);
+<FONT ID="LN">1087</FONT><A NAME="1087"></A>    m_History.setSingle(name);
+<FONT ID="LN">1088</FONT><A NAME="1088"></A>
+<FONT ID="LN">1089</FONT><A NAME="1089"></A>    m_TestsModel.removeAllElements();
+<FONT ID="LN">1090</FONT><A NAME="1090"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_TTester.getNumResultsets(); i++) {
+<FONT ID="LN">1091</FONT><A NAME="1091"></A>      String tname = m_TTester.getResultsetName(i);
+<FONT ID="LN">1092</FONT><A NAME="1092"></A>      <FONT ID="MultiLineComment">/*      if (tname.length() &gt; 20) {
+<FONT ID="LN">1093</FONT><A NAME="1093"></A>    tname = tname.substring(0, 20);
+<FONT ID="LN">1094</FONT><A NAME="1094"></A>    } */</FONT>
+<FONT ID="LN">1095</FONT><A NAME="1095"></A>      m_TestsModel.addElement(tname);
+<FONT ID="LN">1096</FONT><A NAME="1096"></A>    }
+<FONT ID="LN">1097</FONT><A NAME="1097"></A>    
+<FONT ID="LN">1098</FONT><A NAME="1098"></A>    m_DisplayedModel.removeAllElements();
+<FONT ID="LN">1099</FONT><A NAME="1099"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_TestsModel.size(); i++)
+<FONT ID="LN">1100</FONT><A NAME="1100"></A>      m_DisplayedModel.addElement(m_TestsModel.elementAt(i));
+<FONT ID="LN">1101</FONT><A NAME="1101"></A>    
+<FONT ID="LN">1102</FONT><A NAME="1102"></A>    m_TestsModel.addElement(<FONT ID="StringLiteral">"Summary"</FONT>);
+<FONT ID="LN">1103</FONT><A NAME="1103"></A>    m_TestsModel.addElement(<FONT ID="StringLiteral">"Ranking"</FONT>);
+<FONT ID="LN">1104</FONT><A NAME="1104"></A>
+<FONT ID="LN">1105</FONT><A NAME="1105"></A>    m_TestsList.setSelectedIndex(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">1106</FONT><A NAME="1106"></A>    m_DisplayedList.setSelectionInterval(<FONT ID="IntegerLiteral">0</FONT>, m_DisplayedModel.size() - <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1107</FONT><A NAME="1107"></A>    
+<FONT ID="LN">1108</FONT><A NAME="1108"></A>    m_TestsButton.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1109</FONT><A NAME="1109"></A>    m_DisplayedButton.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1110</FONT><A NAME="1110"></A>    m_ShowStdDevs.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1111</FONT><A NAME="1111"></A>    m_OutputFormatButton.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1112</FONT><A NAME="1112"></A>    m_PerformBut.setEnabled(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1113</FONT><A NAME="1113"></A>    
+<FONT ID="LN">1114</FONT><A NAME="1114"></A>  }
+<FONT ID="LN">1115</FONT><A NAME="1115"></A>
+<FONT ID="LN">1116</FONT><A NAME="1116"></A>  
+<FONT ID="LN">1117</FONT><A NAME="1117"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1118</FONT><A NAME="1118"></A>   * Carries out a t-test using the current configuration.
+<FONT ID="LN">1119</FONT><A NAME="1119"></A>   */</FONT>
+<FONT ID="LN">1120</FONT><A NAME="1120"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> performTest() {
+<FONT ID="LN">1121</FONT><A NAME="1121"></A>
+<FONT ID="LN">1122</FONT><A NAME="1122"></A>    String sigStr = m_SigTex.getText();
+<FONT ID="LN">1123</FONT><A NAME="1123"></A>    <FONT ID="If">if</FONT> (sigStr.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1124</FONT><A NAME="1124"></A>      m_TTester.setSignificanceLevel((<FONT ID="New">new</FONT> Double(sigStr)).doubleValue());
+<FONT ID="LN">1125</FONT><A NAME="1125"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1126</FONT><A NAME="1126"></A>      m_TTester.setSignificanceLevel(ExperimenterDefaults.getSignificance());
+<FONT ID="LN">1127</FONT><A NAME="1127"></A>    }
+<FONT ID="LN">1128</FONT><A NAME="1128"></A>
+<FONT ID="LN">1129</FONT><A NAME="1129"></A>    <FONT ID="SingleLineComment">// Carry out the test chosen and biff the results to the output area
+<FONT ID="LN">1130</FONT><A NAME="1130"></A></FONT>    m_TTester.setShowStdDevs(m_ShowStdDevs.isSelected());
+<FONT ID="LN">1131</FONT><A NAME="1131"></A>    <FONT ID="If">if</FONT> (m_Instances.attribute(m_SortCombo.getSelectedItem().toString()) != <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1132</FONT><A NAME="1132"></A>      m_TTester.setSortColumn(
+<FONT ID="LN">1133</FONT><A NAME="1133"></A>          m_Instances.attribute(
+<FONT ID="LN">1134</FONT><A NAME="1134"></A>            m_SortCombo.getSelectedItem().toString()).index());
+<FONT ID="LN">1135</FONT><A NAME="1135"></A>    <FONT ID="Else">else</FONT>
+<FONT ID="LN">1136</FONT><A NAME="1136"></A>      m_TTester.setSortColumn(-<FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1137</FONT><A NAME="1137"></A>    <FONT ID="Int">int</FONT> compareCol = m_CompareCombo.getSelectedIndex();
+<FONT ID="LN">1138</FONT><A NAME="1138"></A>    <FONT ID="Int">int</FONT> tType = m_TestsList.getSelectedIndex();
+<FONT ID="LN">1139</FONT><A NAME="1139"></A>
+<FONT ID="LN">1140</FONT><A NAME="1140"></A>    String name = (<FONT ID="New">new</FONT> SimpleDateFormat(<FONT ID="StringLiteral">"HH:mm:ss - "</FONT>))
+<FONT ID="LN">1141</FONT><A NAME="1141"></A>      .format(<FONT ID="New">new</FONT> Date())
+<FONT ID="LN">1142</FONT><A NAME="1142"></A>      + (String) m_CompareCombo.getSelectedItem() + <FONT ID="StringLiteral">" - "</FONT>
+<FONT ID="LN">1143</FONT><A NAME="1143"></A>      + (String) m_TestsList.getSelectedValue();
+<FONT ID="LN">1144</FONT><A NAME="1144"></A>    StringBuffer outBuff = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">1145</FONT><A NAME="1145"></A>    outBuff.append(m_TTester.header(compareCol));
+<FONT ID="LN">1146</FONT><A NAME="1146"></A>    outBuff.append(<FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">1147</FONT><A NAME="1147"></A>    m_History.addResult(name, outBuff);
+<FONT ID="LN">1148</FONT><A NAME="1148"></A>    m_History.setSingle(name);
+<FONT ID="LN">1149</FONT><A NAME="1149"></A>    m_TTester.setDisplayedResultsets(m_DisplayedList.getSelectedIndices());
+<FONT ID="LN">1150</FONT><A NAME="1150"></A>    m_TTester.setResultMatrix(m_ResultMatrix);
+<FONT ID="LN">1151</FONT><A NAME="1151"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1152</FONT><A NAME="1152"></A>      <FONT ID="If">if</FONT> (tType &lt; m_TTester.getNumResultsets()) {
+<FONT ID="LN">1153</FONT><A NAME="1153"></A>    outBuff.append(m_TTester.multiResultsetFull(tType, compareCol));
+<FONT ID="LN">1154</FONT><A NAME="1154"></A>      } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (tType == m_TTester.getNumResultsets()) {
+<FONT ID="LN">1155</FONT><A NAME="1155"></A>    outBuff.append(m_TTester.multiResultsetSummary(compareCol));
+<FONT ID="LN">1156</FONT><A NAME="1156"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1157</FONT><A NAME="1157"></A>    outBuff.append(m_TTester.multiResultsetRanking(compareCol));
+<FONT ID="LN">1158</FONT><A NAME="1158"></A>      }
+<FONT ID="LN">1159</FONT><A NAME="1159"></A>      outBuff.append(<FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">1160</FONT><A NAME="1160"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">1161</FONT><A NAME="1161"></A>      outBuff.append(ex.getMessage() + <FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">1162</FONT><A NAME="1162"></A>    }
+<FONT ID="LN">1163</FONT><A NAME="1163"></A>    m_History.updateResult(name);
+<FONT ID="LN">1164</FONT><A NAME="1164"></A>  }
+<FONT ID="LN">1165</FONT><A NAME="1165"></A>
+<FONT ID="LN">1166</FONT><A NAME="1166"></A>  
+<FONT ID="LN">1167</FONT><A NAME="1167"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setResultKeyFromDialog() {
+<FONT ID="LN">1168</FONT><A NAME="1168"></A>
+<FONT ID="LN">1169</FONT><A NAME="1169"></A>    <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A> jd = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A>(<FONT ID="Null">null</FONT>, m_ResultKeyList);
+<FONT ID="LN">1170</FONT><A NAME="1170"></A>
+<FONT ID="LN">1171</FONT><A NAME="1171"></A>    <FONT ID="SingleLineComment">// Open the dialog
+<FONT ID="LN">1172</FONT><A NAME="1172"></A></FONT>    <FONT ID="Int">int</FONT> result = jd.showDialog();
+<FONT ID="LN">1173</FONT><A NAME="1173"></A>  
+<FONT ID="LN">1174</FONT><A NAME="1174"></A>    <FONT ID="SingleLineComment">// If accepted, update the ttester
+<FONT ID="LN">1175</FONT><A NAME="1175"></A></FONT>    <FONT ID="If">if</FONT> (result == ListSelectorDialog.APPROVE_OPTION) {
+<FONT ID="LN">1176</FONT><A NAME="1176"></A>      <FONT ID="Int">int</FONT> [] selected = m_ResultKeyList.getSelectedIndices();
+<FONT ID="LN">1177</FONT><A NAME="1177"></A>      String selectedList = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1178</FONT><A NAME="1178"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; selected.length; i++) {
+<FONT ID="LN">1179</FONT><A NAME="1179"></A>    selectedList += <FONT ID="StringLiteral">","</FONT> + (selected[i] + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1180</FONT><A NAME="1180"></A>      }
+<FONT ID="LN">1181</FONT><A NAME="1181"></A>      <A HREF="../../../weka/core/Range.java.html">Range</A> generatorRange = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Range.java.html">Range</A>();
+<FONT ID="LN">1182</FONT><A NAME="1182"></A>      <FONT ID="If">if</FONT> (selectedList.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1183</FONT><A NAME="1183"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1184</FONT><A NAME="1184"></A>      generatorRange.setRanges(selectedList);
+<FONT ID="LN">1185</FONT><A NAME="1185"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">1186</FONT><A NAME="1186"></A>      ex.printStackTrace();
+<FONT ID="LN">1187</FONT><A NAME="1187"></A>      System.err.println(ex.getMessage());
+<FONT ID="LN">1188</FONT><A NAME="1188"></A>    }
+<FONT ID="LN">1189</FONT><A NAME="1189"></A>      }
+<FONT ID="LN">1190</FONT><A NAME="1190"></A>      m_TTester.setResultsetKeyColumns(generatorRange);
+<FONT ID="LN">1191</FONT><A NAME="1191"></A>      setTTester();
+<FONT ID="LN">1192</FONT><A NAME="1192"></A>    }
+<FONT ID="LN">1193</FONT><A NAME="1193"></A>  }
+<FONT ID="LN">1194</FONT><A NAME="1194"></A>  
+<FONT ID="LN">1195</FONT><A NAME="1195"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDatasetKeyFromDialog() {
+<FONT ID="LN">1196</FONT><A NAME="1196"></A>
+<FONT ID="LN">1197</FONT><A NAME="1197"></A>    <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A> jd = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A>(<FONT ID="Null">null</FONT>, m_DatasetKeyList);
+<FONT ID="LN">1198</FONT><A NAME="1198"></A>
+<FONT ID="LN">1199</FONT><A NAME="1199"></A>    <FONT ID="SingleLineComment">// Open the dialog
+<FONT ID="LN">1200</FONT><A NAME="1200"></A></FONT>    <FONT ID="Int">int</FONT> result = jd.showDialog();
+<FONT ID="LN">1201</FONT><A NAME="1201"></A>    
+<FONT ID="LN">1202</FONT><A NAME="1202"></A>    <FONT ID="SingleLineComment">// If accepted, update the ttester
+<FONT ID="LN">1203</FONT><A NAME="1203"></A></FONT>    <FONT ID="If">if</FONT> (result == ListSelectorDialog.APPROVE_OPTION) {
+<FONT ID="LN">1204</FONT><A NAME="1204"></A>      <FONT ID="Int">int</FONT> [] selected = m_DatasetKeyList.getSelectedIndices();
+<FONT ID="LN">1205</FONT><A NAME="1205"></A>      String selectedList = <FONT ID="StringLiteral">""</FONT>;
+<FONT ID="LN">1206</FONT><A NAME="1206"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; selected.length; i++) {
+<FONT ID="LN">1207</FONT><A NAME="1207"></A>    selectedList += <FONT ID="StringLiteral">","</FONT> + (selected[i] + <FONT ID="IntegerLiteral">1</FONT>);
+<FONT ID="LN">1208</FONT><A NAME="1208"></A>      }
+<FONT ID="LN">1209</FONT><A NAME="1209"></A>      <A HREF="../../../weka/core/Range.java.html">Range</A> generatorRange = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/Range.java.html">Range</A>();
+<FONT ID="LN">1210</FONT><A NAME="1210"></A>      <FONT ID="If">if</FONT> (selectedList.length() != <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">1211</FONT><A NAME="1211"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1212</FONT><A NAME="1212"></A>      generatorRange.setRanges(selectedList);
+<FONT ID="LN">1213</FONT><A NAME="1213"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">1214</FONT><A NAME="1214"></A>      ex.printStackTrace();
+<FONT ID="LN">1215</FONT><A NAME="1215"></A>      System.err.println(ex.getMessage());
+<FONT ID="LN">1216</FONT><A NAME="1216"></A>    }
+<FONT ID="LN">1217</FONT><A NAME="1217"></A>      }
+<FONT ID="LN">1218</FONT><A NAME="1218"></A>      m_TTester.setDatasetKeyColumns(generatorRange);
+<FONT ID="LN">1219</FONT><A NAME="1219"></A>      setTTester();
+<FONT ID="LN">1220</FONT><A NAME="1220"></A>    }
+<FONT ID="LN">1221</FONT><A NAME="1221"></A>  }
+<FONT ID="LN">1222</FONT><A NAME="1222"></A>
+<FONT ID="LN">1223</FONT><A NAME="1223"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1224</FONT><A NAME="1224"></A>   * Swaps the keys for dataset and result.
+<FONT ID="LN">1225</FONT><A NAME="1225"></A>   */</FONT>
+<FONT ID="LN">1226</FONT><A NAME="1226"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> swapDatasetKeyAndResultKey() {
+<FONT ID="LN">1227</FONT><A NAME="1227"></A>    <FONT ID="Int">int</FONT>[]   tmpSelected;
+<FONT ID="LN">1228</FONT><A NAME="1228"></A>    <A HREF="../../../weka/core/Range.java.html">Range</A>   tmpRange;
+<FONT ID="LN">1229</FONT><A NAME="1229"></A>    
+<FONT ID="LN">1230</FONT><A NAME="1230"></A>    <FONT ID="SingleLineComment">// lists
+<FONT ID="LN">1231</FONT><A NAME="1231"></A></FONT>    tmpSelected = m_DatasetKeyList.getSelectedIndices();
+<FONT ID="LN">1232</FONT><A NAME="1232"></A>    m_DatasetKeyList.setSelectedIndices(m_ResultKeyList.getSelectedIndices());
+<FONT ID="LN">1233</FONT><A NAME="1233"></A>    m_ResultKeyList.setSelectedIndices(tmpSelected);
+<FONT ID="LN">1234</FONT><A NAME="1234"></A>    
+<FONT ID="LN">1235</FONT><A NAME="1235"></A>    <FONT ID="SingleLineComment">// tester
+<FONT ID="LN">1236</FONT><A NAME="1236"></A></FONT>    tmpRange = m_TTester.getDatasetKeyColumns();
+<FONT ID="LN">1237</FONT><A NAME="1237"></A>    m_TTester.setDatasetKeyColumns(m_TTester.getResultsetKeyColumns());
+<FONT ID="LN">1238</FONT><A NAME="1238"></A>    m_TTester.setResultsetKeyColumns(tmpRange);
+<FONT ID="LN">1239</FONT><A NAME="1239"></A>    setTTester();
+<FONT ID="LN">1240</FONT><A NAME="1240"></A>  }
+<FONT ID="LN">1241</FONT><A NAME="1241"></A>  
+<FONT ID="LN">1242</FONT><A NAME="1242"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setTestBaseFromDialog() {
+<FONT ID="LN">1243</FONT><A NAME="1243"></A>    <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A> jd = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A>(<FONT ID="Null">null</FONT>, m_TestsList);
+<FONT ID="LN">1244</FONT><A NAME="1244"></A>
+<FONT ID="LN">1245</FONT><A NAME="1245"></A>    <FONT ID="SingleLineComment">// Open the dialog
+<FONT ID="LN">1246</FONT><A NAME="1246"></A></FONT>    jd.showDialog();
+<FONT ID="LN">1247</FONT><A NAME="1247"></A>  }
+<FONT ID="LN">1248</FONT><A NAME="1248"></A>
+<FONT ID="LN">1249</FONT><A NAME="1249"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDisplayedFromDialog() {
+<FONT ID="LN">1250</FONT><A NAME="1250"></A>    <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A> jd = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/ListSelectorDialog.java.html">ListSelectorDialog</A>(<FONT ID="Null">null</FONT>, m_DisplayedList);
+<FONT ID="LN">1251</FONT><A NAME="1251"></A>
+<FONT ID="LN">1252</FONT><A NAME="1252"></A>    <FONT ID="SingleLineComment">// Open the dialog
+<FONT ID="LN">1253</FONT><A NAME="1253"></A></FONT>    jd.showDialog();
+<FONT ID="LN">1254</FONT><A NAME="1254"></A>  }
+<FONT ID="LN">1255</FONT><A NAME="1255"></A>  
+<FONT ID="LN">1256</FONT><A NAME="1256"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1257</FONT><A NAME="1257"></A>   * displays the Dialog for the output format and sets the chosen settings, 
+<FONT ID="LN">1258</FONT><A NAME="1258"></A>   * if the user approves.
+<FONT ID="LN">1259</FONT><A NAME="1259"></A>   */</FONT>
+<FONT ID="LN">1260</FONT><A NAME="1260"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setOutputFormatFromDialog() {
+<FONT ID="LN">1261</FONT><A NAME="1261"></A>    <A HREF="../../../weka/gui/experiment/OutputFormatDialog.java.html">OutputFormatDialog</A> dialog = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/experiment/OutputFormatDialog.java.html">OutputFormatDialog</A>(PropertyDialog.getParentFrame(<FONT ID="This">this</FONT>));
+<FONT ID="LN">1262</FONT><A NAME="1262"></A>
+<FONT ID="LN">1263</FONT><A NAME="1263"></A>    m_ResultMatrix.setShowStdDev(m_ShowStdDevs.isSelected());
+<FONT ID="LN">1264</FONT><A NAME="1264"></A>    dialog.setResultMatrix(m_ResultMatrix);
+<FONT ID="LN">1265</FONT><A NAME="1265"></A>    dialog.setLocationRelativeTo(<FONT ID="This">this</FONT>);
+<FONT ID="LN">1266</FONT><A NAME="1266"></A>    
+<FONT ID="LN">1267</FONT><A NAME="1267"></A>    <FONT ID="If">if</FONT> (dialog.showDialog() == OutputFormatDialog.APPROVE_OPTION) {
+<FONT ID="LN">1268</FONT><A NAME="1268"></A>      m_ResultMatrix = dialog.getResultMatrix();
+<FONT ID="LN">1269</FONT><A NAME="1269"></A>      m_ShowStdDevs.setSelected(m_ResultMatrix.getShowStdDev());
+<FONT ID="LN">1270</FONT><A NAME="1270"></A>    }
+<FONT ID="LN">1271</FONT><A NAME="1271"></A>  }
+<FONT ID="LN">1272</FONT><A NAME="1272"></A>
+<FONT ID="LN">1273</FONT><A NAME="1273"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1274</FONT><A NAME="1274"></A>   * Save the currently selected result buffer to a file.
+<FONT ID="LN">1275</FONT><A NAME="1275"></A>   */</FONT>
+<FONT ID="LN">1276</FONT><A NAME="1276"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> saveBuffer() {
+<FONT ID="LN">1277</FONT><A NAME="1277"></A>    StringBuffer sb = m_History.getSelectedBuffer();
+<FONT ID="LN">1278</FONT><A NAME="1278"></A>    <FONT ID="If">if</FONT> (sb != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1279</FONT><A NAME="1279"></A>      <FONT ID="If">if</FONT> (m_SaveOut.save(sb)) {
+<FONT ID="LN">1280</FONT><A NAME="1280"></A>    JOptionPane.showMessageDialog(<FONT ID="This">this</FONT>,
+<FONT ID="LN">1281</FONT><A NAME="1281"></A>                      <FONT ID="StringLiteral">"File saved"</FONT>,
+<FONT ID="LN">1282</FONT><A NAME="1282"></A>                      <FONT ID="StringLiteral">"Results"</FONT>,
+<FONT ID="LN">1283</FONT><A NAME="1283"></A>                      JOptionPane.INFORMATION_MESSAGE);
+<FONT ID="LN">1284</FONT><A NAME="1284"></A>      }
+<FONT ID="LN">1285</FONT><A NAME="1285"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">1286</FONT><A NAME="1286"></A>      m_SaveOutBut.setEnabled(<FONT ID="False">false</FONT>);
+<FONT ID="LN">1287</FONT><A NAME="1287"></A>    }
+<FONT ID="LN">1288</FONT><A NAME="1288"></A>  }
+<FONT ID="LN">1289</FONT><A NAME="1289"></A>
+<FONT ID="LN">1290</FONT><A NAME="1290"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1291</FONT><A NAME="1291"></A>   * sets the currently selected Tester-Class.
+<FONT ID="LN">1292</FONT><A NAME="1292"></A>   */</FONT>
+<FONT ID="LN">1293</FONT><A NAME="1293"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setTester() {
+<FONT ID="LN">1294</FONT><A NAME="1294"></A>    <A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">Tester</A>        tester;
+<FONT ID="LN">1295</FONT><A NAME="1295"></A>    <A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">Tester</A>        t;
+<FONT ID="LN">1296</FONT><A NAME="1296"></A>    <FONT ID="Int">int</FONT>           i;
+<FONT ID="LN">1297</FONT><A NAME="1297"></A>    
+<FONT ID="LN">1298</FONT><A NAME="1298"></A>    <FONT ID="If">if</FONT> (m_TesterClasses.getSelectedItem() == <FONT ID="Null">null</FONT>)
+<FONT ID="LN">1299</FONT><A NAME="1299"></A>      <FONT ID="Return">return</FONT>;
+<FONT ID="LN">1300</FONT><A NAME="1300"></A>
+<FONT ID="LN">1301</FONT><A NAME="1301"></A>    tester = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">1302</FONT><A NAME="1302"></A>    
+<FONT ID="LN">1303</FONT><A NAME="1303"></A>    <FONT ID="SingleLineComment">// find display name
+<FONT ID="LN">1304</FONT><A NAME="1304"></A></FONT>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1305</FONT><A NAME="1305"></A>      <FONT ID="For">for</FONT> (i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_Testers.size(); i++) {
+<FONT ID="LN">1306</FONT><A NAME="1306"></A>        t = (<A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">Tester</A>) ((Class) m_Testers.get(i)).newInstance();
+<FONT ID="LN">1307</FONT><A NAME="1307"></A>        <FONT ID="If">if</FONT> (t.getDisplayName().equals(m_TesterClasses.getSelectedItem())) {
+<FONT ID="LN">1308</FONT><A NAME="1308"></A>          tester = t;
+<FONT ID="LN">1309</FONT><A NAME="1309"></A>          <FONT ID="Break">break</FONT>;
+<FONT ID="LN">1310</FONT><A NAME="1310"></A>        }
+<FONT ID="LN">1311</FONT><A NAME="1311"></A>      }
+<FONT ID="LN">1312</FONT><A NAME="1312"></A>    }
+<FONT ID="LN">1313</FONT><A NAME="1313"></A>    <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">1314</FONT><A NAME="1314"></A>      e.printStackTrace();
+<FONT ID="LN">1315</FONT><A NAME="1315"></A>    }
+<FONT ID="LN">1316</FONT><A NAME="1316"></A>
+<FONT ID="LN">1317</FONT><A NAME="1317"></A>    <FONT ID="If">if</FONT> (tester == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">1318</FONT><A NAME="1318"></A>      tester  = <FONT ID="New">new</FONT> <A HREF="../../../weka/experiment/PairedCorrectedTTester.java.html">PairedCorrectedTTester</A>();  <FONT ID="SingleLineComment">// default
+<FONT ID="LN">1319</FONT><A NAME="1319"></A></FONT>      m_TesterClasses.setSelectedItem(tester.getDisplayName());
+<FONT ID="LN">1320</FONT><A NAME="1320"></A>    }
+<FONT ID="LN">1321</FONT><A NAME="1321"></A>
+<FONT ID="LN">1322</FONT><A NAME="1322"></A>    tester.assign(m_TTester);
+<FONT ID="LN">1323</FONT><A NAME="1323"></A>    m_TTester = tester;
+<FONT ID="LN">1324</FONT><A NAME="1324"></A>    m_PerformBut.setToolTipText(m_TTester.getToolTipText());
+<FONT ID="LN">1325</FONT><A NAME="1325"></A>    System.out.println(<FONT ID="StringLiteral">"Tester set to: "</FONT> + m_TTester.getClass().getName());
+<FONT ID="LN">1326</FONT><A NAME="1326"></A>  }
+<FONT ID="LN">1327</FONT><A NAME="1327"></A>  
+<FONT ID="LN">1328</FONT><A NAME="1328"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">1329</FONT><A NAME="1329"></A>   * Tests out the results panel from the command line.
+<FONT ID="LN">1330</FONT><A NAME="1330"></A>   *
+<FONT ID="LN">1331</FONT><A NAME="1331"></A>   * @param args ignored
+<FONT ID="LN">1332</FONT><A NAME="1332"></A>   */</FONT>
+<FONT ID="LN">1333</FONT><A NAME="1333"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> main(String [] args) {
+<FONT ID="LN">1334</FONT><A NAME="1334"></A>
+<FONT ID="LN">1335</FONT><A NAME="1335"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">1336</FONT><A NAME="1336"></A>      <FONT ID="Final">final</FONT> JFrame jf = <FONT ID="New">new</FONT> JFrame(<FONT ID="StringLiteral">"Weka Experiment: Results Analysis"</FONT>);
+<FONT ID="LN">1337</FONT><A NAME="1337"></A>      jf.getContentPane().setLayout(<FONT ID="New">new</FONT> BorderLayout());
+<FONT ID="LN">1338</FONT><A NAME="1338"></A>      <FONT ID="Final">final</FONT> <A HREF="../../../weka/gui/experiment/ResultsPanel.java.html">ResultsPanel</A> sp = <FONT ID="New">new</FONT> <A HREF="../../../weka/gui/experiment/ResultsPanel.java.html">ResultsPanel</A>();
+<FONT ID="LN">1339</FONT><A NAME="1339"></A>      <FONT ID="SingleLineComment">//sp.setBorder(BorderFactory.createTitledBorder("Setup"));
+<FONT ID="LN">1340</FONT><A NAME="1340"></A></FONT>      jf.getContentPane().add(sp, BorderLayout.CENTER);
+<FONT ID="LN">1341</FONT><A NAME="1341"></A>      jf.addWindowListener(<FONT ID="New">new</FONT> WindowAdapter() {
+<FONT ID="LN">1342</FONT><A NAME="1342"></A>    <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> windowClosing(WindowEvent e) {
+<FONT ID="LN">1343</FONT><A NAME="1343"></A>      jf.dispose();
+<FONT ID="LN">1344</FONT><A NAME="1344"></A>      System.exit(<FONT ID="IntegerLiteral">0</FONT>);
+<FONT ID="LN">1345</FONT><A NAME="1345"></A>    }
+<FONT ID="LN">1346</FONT><A NAME="1346"></A>      });
+<FONT ID="LN">1347</FONT><A NAME="1347"></A>      jf.pack();
+<FONT ID="LN">1348</FONT><A NAME="1348"></A>      jf.setSize(<FONT ID="IntegerLiteral">700</FONT>, <FONT ID="IntegerLiteral">550</FONT>);
+<FONT ID="LN">1349</FONT><A NAME="1349"></A>      jf.setVisible(<FONT ID="True">true</FONT>);
+<FONT ID="LN">1350</FONT><A NAME="1350"></A>    } <FONT ID="Catch">catch</FONT> (Exception ex) {
+<FONT ID="LN">1351</FONT><A NAME="1351"></A>      ex.printStackTrace();
+<FONT ID="LN">1352</FONT><A NAME="1352"></A>      System.err.println(ex.getMessage());
+<FONT ID="LN">1353</FONT><A NAME="1353"></A>    }
+<FONT ID="LN">1354</FONT><A NAME="1354"></A>  }
+<FONT ID="LN">1355</FONT><A NAME="1355"></A>}
+<FONT ID="LN">1356</FONT><A NAME="1356"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">ResultsPanel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

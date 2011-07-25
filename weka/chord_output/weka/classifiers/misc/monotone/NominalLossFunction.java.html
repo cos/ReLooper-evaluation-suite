@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.classifiers.misc.monotone.NominalLossFunction (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">NominalLossFunction.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    NominalLossFunction.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2004 Stijn Lievens
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.classifiers.misc.monotone;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">26  </FONT><A NAME="26"></A> * Interface for incorporating different loss functions.
+<FONT ID="LN">27  </FONT><A NAME="27"></A> * &lt;p&gt;
+<FONT ID="LN">28  </FONT><A NAME="28"></A> * This interface contains only one method, namely &lt;code&gt; loss
+<FONT ID="LN">29  </FONT><A NAME="29"></A> * &lt;/code&gt; that measures the error between an actual class
+<FONT ID="LN">30  </FONT><A NAME="30"></A> * value &lt;code&gt; actual &lt;/code&gt; and a predicted value &lt;code&gt;
+<FONT ID="LN">31  </FONT><A NAME="31"></A> * predicted. &lt;/code&gt;  It is understood that the return value
+<FONT ID="LN">32  </FONT><A NAME="32"></A> * of this method is always be positive and that it is zero
+<FONT ID="LN">33  </FONT><A NAME="33"></A> * if and only if the actual and the predicted value coincide.
+<FONT ID="LN">34  </FONT><A NAME="34"></A> * &lt;/p&gt;
+<FONT ID="LN">35  </FONT><A NAME="35"></A> * &lt;p&gt;
+<FONT ID="LN">36  </FONT><A NAME="36"></A> * This implementation is done as part of the master's thesis: "Studie
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * en implementatie van instantie-gebaseerde algoritmen voor gesuperviseerd
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * rangschikken", Stijn Lievens, Ghent University, 2004. 
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * &lt;/p&gt;
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * 
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * @author Stijn Lievens (stijn.lievens@ugent.be)
+<FONT ID="LN">42  </FONT><A NAME="42"></A> * @version $Revision: 5922 $
+<FONT ID="LN">43  </FONT><A NAME="43"></A> */</FONT>
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Public">public</FONT> <FONT ID="Interface">interface</FONT> NominalLossFunction {
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">47  </FONT><A NAME="47"></A>   * Calculate the loss between an actual and a predicted class value.
+<FONT ID="LN">48  </FONT><A NAME="48"></A>   *
+<FONT ID="LN">49  </FONT><A NAME="49"></A>   * @param actual the actual class value
+<FONT ID="LN">50  </FONT><A NAME="50"></A>   * @param predicted the predicted class value
+<FONT ID="LN">51  </FONT><A NAME="51"></A>   * @return a measure for the error of making the prediction
+<FONT ID="LN">52  </FONT><A NAME="52"></A>   * &lt;code&gt; predicted &lt;/code&gt; instead of &lt;code&gt; actual &lt;/code&gt;
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   */</FONT>
+<FONT ID="LN">54  </FONT><A NAME="54"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> loss(<FONT ID="Double">double</FONT> actual, <FONT ID="Double">double</FONT> predicted);
+<FONT ID="LN">55  </FONT><A NAME="55"></A>}
+<FONT ID="LN">56  </FONT><A NAME="56"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">NominalLossFunction.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

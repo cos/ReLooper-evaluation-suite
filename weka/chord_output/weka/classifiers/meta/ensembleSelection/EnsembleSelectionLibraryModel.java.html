@@ -1,0 +1,879 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.classifiers.meta.ensembleSelection.EnsembleSelectionLibraryModel (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">EnsembleSelectionLibraryModel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    EnsembleSelection.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2006 David Michael
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.classifiers.meta.ensembleSelection;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/classifiers/Classifier.java.html">weka.classifiers.Classifier</A>;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/classifiers/AbstractClassifier.java.html">weka.classifiers.AbstractClassifier</A>;
+<FONT ID="LN">27  </FONT><A NAME="27"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/classifiers/EnsembleLibraryModel.java.html">weka.classifiers.EnsembleLibraryModel</A>;
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instance.java.html">weka.core.Instance</A>;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/RevisionUtils.java.html">weka.core.RevisionUtils</A>;
+<FONT ID="LN">31  </FONT><A NAME="31"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/Utils.java.html">weka.core.Utils</A>;
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../../weka/core/OptionHandler.java.html">weka.core.OptionHandler</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A>
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> java.io.File;
+<FONT ID="LN">35  </FONT><A NAME="35"></A><FONT ID="Import">import</FONT> java.io.FileInputStream;
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="Import">import</FONT> java.io.FileOutputStream;
+<FONT ID="LN">37  </FONT><A NAME="37"></A><FONT ID="Import">import</FONT> java.io.IOException;
+<FONT ID="LN">38  </FONT><A NAME="38"></A><FONT ID="Import">import</FONT> java.io.ObjectInputStream;
+<FONT ID="LN">39  </FONT><A NAME="39"></A><FONT ID="Import">import</FONT> java.io.ObjectOutput;
+<FONT ID="LN">40  </FONT><A NAME="40"></A><FONT ID="Import">import</FONT> java.io.ObjectOutputStream;
+<FONT ID="LN">41  </FONT><A NAME="41"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">42  </FONT><A NAME="42"></A><FONT ID="Import">import</FONT> java.io.UnsupportedEncodingException;
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Import">import</FONT> java.util.Date;
+<FONT ID="LN">44  </FONT><A NAME="44"></A><FONT ID="Import">import</FONT> java.util.zip.Adler32;
+<FONT ID="LN">45  </FONT><A NAME="45"></A>
+<FONT ID="LN">46  </FONT><A NAME="46"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">47  </FONT><A NAME="47"></A> * This class represents a library model that is used for EnsembleSelection. At
+<FONT ID="LN">48  </FONT><A NAME="48"></A> * this level the concept of cross validation is abstracted away. This class
+<FONT ID="LN">49  </FONT><A NAME="49"></A> * keeps track of the performance statistics and bookkeeping information for its
+<FONT ID="LN">50  </FONT><A NAME="50"></A> * "model type" accross all the CV folds. By "model type", I mean the
+<FONT ID="LN">51  </FONT><A NAME="51"></A> * combination of both the Classifier type (e.g. J48), and its set of parameters
+<FONT ID="LN">52  </FONT><A NAME="52"></A> * (e.g. -C 0.5 -X 1 -Y 5). So for example, if you are using 5 fold cross
+<FONT ID="LN">53  </FONT><A NAME="53"></A> * validaiton, this model will keep an array of classifiers[] of length 5 and
+<FONT ID="LN">54  </FONT><A NAME="54"></A> * will keep track of their performances accordingly. This class also has
+<FONT ID="LN">55  </FONT><A NAME="55"></A> * methods to deal with serializing all of this information into the .elm file
+<FONT ID="LN">56  </FONT><A NAME="56"></A> * that will represent this model.
+<FONT ID="LN">57  </FONT><A NAME="57"></A> * &lt;p/&gt;
+<FONT ID="LN">58  </FONT><A NAME="58"></A> * Also it is worth mentioning that another important function of this class is
+<FONT ID="LN">59  </FONT><A NAME="59"></A> * to track all of the dataset information that was used to create this model.
+<FONT ID="LN">60  </FONT><A NAME="60"></A> * This is because we want to protect users from doing foreseeably bad things.
+<FONT ID="LN">61  </FONT><A NAME="61"></A> * e.g., trying to build an ensemble for a dataset with models that were trained
+<FONT ID="LN">62  </FONT><A NAME="62"></A> * on the wrong partitioning of the dataset. This could lead to artificially high
+<FONT ID="LN">63  </FONT><A NAME="63"></A> * performance due to the fact that instances used for the test set to gauge
+<FONT ID="LN">64  </FONT><A NAME="64"></A> * performance could have accidentally been used to train the base classifiers.
+<FONT ID="LN">65  </FONT><A NAME="65"></A> * So in a nutshell, we are preventing people from unintentionally "cheating" by
+<FONT ID="LN">66  </FONT><A NAME="66"></A> * enforcing that the seed, #folds, validation ration, and the checksum of the 
+<FONT ID="LN">67  </FONT><A NAME="67"></A> * Instances.toString() method ALL match exactly.  Otherwise we throw an 
+<FONT ID="LN">68  </FONT><A NAME="68"></A> * exception.
+<FONT ID="LN">69  </FONT><A NAME="69"></A> * 
+<FONT ID="LN">70  </FONT><A NAME="70"></A> * @author  Robert Jung (mrbobjung@gmail.com)
+<FONT ID="LN">71  </FONT><A NAME="71"></A> * @version $Revision: 5928 $ 
+<FONT ID="LN">72  </FONT><A NAME="72"></A> */</FONT>
+<FONT ID="LN">73  </FONT><A NAME="73"></A><FONT ID="Public">public</FONT> <FONT ID="Class">class</FONT> EnsembleSelectionLibraryModel
+<FONT ID="LN">74  </FONT><A NAME="74"></A>  <FONT ID="Extends">extends</FONT> <A HREF="../../../../weka/classifiers/EnsembleLibraryModel.java.html">EnsembleLibraryModel</A>
+<FONT ID="LN">75  </FONT><A NAME="75"></A>  <FONT ID="Implements">implements</FONT> Serializable {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>  
+<FONT ID="LN">77  </FONT><A NAME="77"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">78  </FONT><A NAME="78"></A>   * This is the serialVersionUID that SHOULD stay the same so that future
+<FONT ID="LN">79  </FONT><A NAME="79"></A>   * modified versions of this class will be backwards compatible with older
+<FONT ID="LN">80  </FONT><A NAME="80"></A>   * model versions.
+<FONT ID="LN">81  </FONT><A NAME="81"></A>   */</FONT>
+<FONT ID="LN">82  </FONT><A NAME="82"></A>  <FONT ID="Private">private</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> <FONT ID="Long">long</FONT> serialVersionUID = -<FONT ID="IntegerLiteral">6426075459862947640L</FONT>;
+<FONT ID="LN">83  </FONT><A NAME="83"></A>  
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  <FONT ID="FormalComment">/** The default file extension for ensemble library models */</FONT>
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Final">final</FONT> String FILE_EXTENSION = <FONT ID="StringLiteral">".elm"</FONT>;
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  
+<FONT ID="LN">87  </FONT><A NAME="87"></A>  <FONT ID="FormalComment">/** the models */</FONT>
+<FONT ID="LN">88  </FONT><A NAME="88"></A>  <FONT ID="Private">private</FONT> <A HREF="../../../../weka/classifiers/Classifier.java.html">Classifier</A>[] m_models = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">89  </FONT><A NAME="89"></A>  
+<FONT ID="LN">90  </FONT><A NAME="90"></A>  <FONT ID="FormalComment">/** The seed that was used to create this model */</FONT>
+<FONT ID="LN">91  </FONT><A NAME="91"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_seed;
+<FONT ID="LN">92  </FONT><A NAME="92"></A>  
+<FONT ID="LN">93  </FONT><A NAME="93"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * The checksum of the instances.arff object that was used to create this
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * model
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   */</FONT>
+<FONT ID="LN">97  </FONT><A NAME="97"></A>  <FONT ID="Private">private</FONT> String m_checksum;
+<FONT ID="LN">98  </FONT><A NAME="98"></A>  
+<FONT ID="LN">99  </FONT><A NAME="99"></A>  <FONT ID="FormalComment">/** The validation ratio that was used to create this model */</FONT>
+<FONT ID="LN">100 </FONT><A NAME="100"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT> m_validationRatio;
+<FONT ID="LN">101 </FONT><A NAME="101"></A>  
+<FONT ID="LN">102 </FONT><A NAME="102"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * The number of folds, or number of CV models that was used to create this
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * "model"
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="Private">private</FONT> <FONT ID="Int">int</FONT> m_folds;
+<FONT ID="LN">107 </FONT><A NAME="107"></A>  
+<FONT ID="LN">108 </FONT><A NAME="108"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">109 </FONT><A NAME="109"></A>   * The .elm file name that this model should be saved/loaded to/from
+<FONT ID="LN">110 </FONT><A NAME="110"></A>   */</FONT>
+<FONT ID="LN">111 </FONT><A NAME="111"></A>  <FONT ID="Private">private</FONT> String m_fileName;
+<FONT ID="LN">112 </FONT><A NAME="112"></A>  
+<FONT ID="LN">113 </FONT><A NAME="113"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">114 </FONT><A NAME="114"></A>   * The debug flag as propagated from the main EnsembleSelection class.
+<FONT ID="LN">115 </FONT><A NAME="115"></A>   */</FONT>
+<FONT ID="LN">116 </FONT><A NAME="116"></A>  <FONT ID="Public">public</FONT> <FONT ID="Transient">transient</FONT> <FONT ID="Boolean">boolean</FONT> m_Debug = <FONT ID="True">true</FONT>;
+<FONT ID="LN">117 </FONT><A NAME="117"></A>  
+<FONT ID="LN">118 </FONT><A NAME="118"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">119 </FONT><A NAME="119"></A>   * the validation predictions of this model. First index for the instance.
+<FONT ID="LN">120 </FONT><A NAME="120"></A>   * third is for the class (we use distributionForInstance).
+<FONT ID="LN">121 </FONT><A NAME="121"></A>   */</FONT>
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  <FONT ID="Private">private</FONT> <FONT ID="Double">double</FONT>[][] m_validationPredictions = <FONT ID="Null">null</FONT>; <FONT ID="SingleLineComment">// = new double[0][0];
+<FONT ID="LN">123 </FONT><A NAME="123"></A></FONT>  
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * Default Constructor
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   */</FONT>
+<FONT ID="LN">127 </FONT><A NAME="127"></A>  <FONT ID="Public">public</FONT> EnsembleSelectionLibraryModel() {
+<FONT ID="LN">128 </FONT><A NAME="128"></A>  }
+<FONT ID="LN">129 </FONT><A NAME="129"></A>  
+<FONT ID="LN">130 </FONT><A NAME="130"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">131 </FONT><A NAME="131"></A>   * Constructor for LibaryModel
+<FONT ID="LN">132 </FONT><A NAME="132"></A>   * 
+<FONT ID="LN">133 </FONT><A NAME="133"></A>   * @param classifier      the classifier to use
+<FONT ID="LN">134 </FONT><A NAME="134"></A>   * @param seed        the random seed value
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * @param checksum        the checksum
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   * @param validationRatio the ration to use
+<FONT ID="LN">137 </FONT><A NAME="137"></A>   * @param folds       the number of folds to use
+<FONT ID="LN">138 </FONT><A NAME="138"></A>   */</FONT>
+<FONT ID="LN">139 </FONT><A NAME="139"></A>  <FONT ID="Public">public</FONT> EnsembleSelectionLibraryModel(<A HREF="../../../../weka/classifiers/Classifier.java.html">Classifier</A> classifier, <FONT ID="Int">int</FONT> seed,
+<FONT ID="LN">140 </FONT><A NAME="140"></A>      String checksum, <FONT ID="Double">double</FONT> validationRatio, <FONT ID="Int">int</FONT> folds) {
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    <FONT ID="Super">super</FONT>(classifier);
+<FONT ID="LN">143 </FONT><A NAME="143"></A>    
+<FONT ID="LN">144 </FONT><A NAME="144"></A>    m_seed = seed;
+<FONT ID="LN">145 </FONT><A NAME="145"></A>    m_checksum = checksum;
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    m_validationRatio = validationRatio;
+<FONT ID="LN">147 </FONT><A NAME="147"></A>    m_models = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">148 </FONT><A NAME="148"></A>    m_folds = folds;
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  }
+<FONT ID="LN">150 </FONT><A NAME="150"></A>  
+<FONT ID="LN">151 </FONT><A NAME="151"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * This is used to propagate the m_Debug flag of the EnsembleSelection
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * classifier to this class. There are things we would want to print out
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * here also.
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * 
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   * @param debug   if true additional information is output
+<FONT ID="LN">157 </FONT><A NAME="157"></A>   */</FONT>
+<FONT ID="LN">158 </FONT><A NAME="158"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setDebug(<FONT ID="Boolean">boolean</FONT> debug) {
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    m_Debug = debug;
+<FONT ID="LN">160 </FONT><A NAME="160"></A>  }
+<FONT ID="LN">161 </FONT><A NAME="161"></A>  
+<FONT ID="LN">162 </FONT><A NAME="162"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">163 </FONT><A NAME="163"></A>   * Returns the average of the prediction of the models across all folds.
+<FONT ID="LN">164 </FONT><A NAME="164"></A>   * 
+<FONT ID="LN">165 </FONT><A NAME="165"></A>   * @param instance    the instance to get predictions for
+<FONT ID="LN">166 </FONT><A NAME="166"></A>   * @return        the average prediction
+<FONT ID="LN">167 </FONT><A NAME="167"></A>   * @throws Exception  if something goes wrong
+<FONT ID="LN">168 </FONT><A NAME="168"></A>   */</FONT>
+<FONT ID="LN">169 </FONT><A NAME="169"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT>[] getAveragePrediction(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">170 </FONT><A NAME="170"></A>    
+<FONT ID="LN">171 </FONT><A NAME="171"></A>    <FONT ID="SingleLineComment">// Return the average prediction from all classifiers that make up
+<FONT ID="LN">172 </FONT><A NAME="172"></A></FONT>    <FONT ID="SingleLineComment">// this model.
+<FONT ID="LN">173 </FONT><A NAME="173"></A></FONT>    <FONT ID="Double">double</FONT> average[] = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[instance.numClasses()];
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_folds; ++i) {
+<FONT ID="LN">175 </FONT><A NAME="175"></A>      <FONT ID="SingleLineComment">// Some models alter the instance (MultiLayerPerceptron), so we need
+<FONT ID="LN">176 </FONT><A NAME="176"></A></FONT>      <FONT ID="SingleLineComment">// to copy it.
+<FONT ID="LN">177 </FONT><A NAME="177"></A></FONT>      <A HREF="../../../../weka/core/Instance.java.html">Instance</A> temp_instance = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) instance.copy();
+<FONT ID="LN">178 </FONT><A NAME="178"></A>      <FONT ID="Double">double</FONT>[] pred = getFoldPrediction(temp_instance, i);
+<FONT ID="LN">179 </FONT><A NAME="179"></A>      <FONT ID="If">if</FONT> (pred == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    <FONT ID="SingleLineComment">// Some models have bugs whereby they can return a null
+<FONT ID="LN">181 </FONT><A NAME="181"></A></FONT>    <FONT ID="SingleLineComment">// prediction
+<FONT ID="LN">182 </FONT><A NAME="182"></A></FONT>    <FONT ID="SingleLineComment">// array (again, MultiLayerPerceptron). We return null, and this
+<FONT ID="LN">183 </FONT><A NAME="183"></A></FONT>    <FONT ID="SingleLineComment">// should be handled above in EnsembleSelection.
+<FONT ID="LN">184 </FONT><A NAME="184"></A></FONT>    System.err.println(<FONT ID="StringLiteral">"Null validation predictions given: "</FONT>
+<FONT ID="LN">185 </FONT><A NAME="185"></A>        + getStringRepresentation());
+<FONT ID="LN">186 </FONT><A NAME="186"></A>    <FONT ID="Return">return</FONT> <FONT ID="Null">null</FONT>;
+<FONT ID="LN">187 </FONT><A NAME="187"></A>      }
+<FONT ID="LN">188 </FONT><A NAME="188"></A>      <FONT ID="If">if</FONT> (i == <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    <FONT ID="SingleLineComment">// The first time through the loop, just use the first returned
+<FONT ID="LN">190 </FONT><A NAME="190"></A></FONT>    <FONT ID="SingleLineComment">// prediction array. Just a simple optimization.
+<FONT ID="LN">191 </FONT><A NAME="191"></A></FONT>    average = pred;
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">193 </FONT><A NAME="193"></A>    <FONT ID="SingleLineComment">// For the rest, add the prediction to the average array.
+<FONT ID="LN">194 </FONT><A NAME="194"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; pred.length; ++j) {
+<FONT ID="LN">195 </FONT><A NAME="195"></A>      average[j] += pred[j];
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    }
+<FONT ID="LN">197 </FONT><A NAME="197"></A>      }
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    }
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    <FONT ID="If">if</FONT> (instance.classAttribute().isNominal()) {
+<FONT ID="LN">200 </FONT><A NAME="200"></A>      <FONT ID="SingleLineComment">// Normalize predictions for classes to add up to 1.
+<FONT ID="LN">201 </FONT><A NAME="201"></A></FONT>      Utils.normalize(average);
+<FONT ID="LN">202 </FONT><A NAME="202"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">203 </FONT><A NAME="203"></A>      average[<FONT ID="IntegerLiteral">0</FONT>] /= m_folds;
+<FONT ID="LN">204 </FONT><A NAME="204"></A>    }
+<FONT ID="LN">205 </FONT><A NAME="205"></A>    <FONT ID="Return">return</FONT> average;
+<FONT ID="LN">206 </FONT><A NAME="206"></A>  }
+<FONT ID="LN">207 </FONT><A NAME="207"></A>  
+<FONT ID="LN">208 </FONT><A NAME="208"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">209 </FONT><A NAME="209"></A>   * Basic Constructor
+<FONT ID="LN">210 </FONT><A NAME="210"></A>   * 
+<FONT ID="LN">211 </FONT><A NAME="211"></A>   * @param classifier  the classifier to use
+<FONT ID="LN">212 </FONT><A NAME="212"></A>   */</FONT>
+<FONT ID="LN">213 </FONT><A NAME="213"></A>  <FONT ID="Public">public</FONT> EnsembleSelectionLibraryModel(<A HREF="../../../../weka/classifiers/Classifier.java.html">Classifier</A> classifier) {
+<FONT ID="LN">214 </FONT><A NAME="214"></A>    <FONT ID="Super">super</FONT>(classifier);
+<FONT ID="LN">215 </FONT><A NAME="215"></A>  }
+<FONT ID="LN">216 </FONT><A NAME="216"></A>  
+<FONT ID="LN">217 </FONT><A NAME="217"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">218 </FONT><A NAME="218"></A>   * Returns prediction of the classifier for the specified fold.
+<FONT ID="LN">219 </FONT><A NAME="219"></A>   * 
+<FONT ID="LN">220 </FONT><A NAME="220"></A>   * @param instance
+<FONT ID="LN">221 </FONT><A NAME="221"></A>   *            instance for which to make a prediction.
+<FONT ID="LN">222 </FONT><A NAME="222"></A>   * @param fold
+<FONT ID="LN">223 </FONT><A NAME="223"></A>   *            fold number of the classifier to use.
+<FONT ID="LN">224 </FONT><A NAME="224"></A>   * @return the prediction for the classes
+<FONT ID="LN">225 </FONT><A NAME="225"></A>   * @throws Exception if prediction fails
+<FONT ID="LN">226 </FONT><A NAME="226"></A>   */</FONT>
+<FONT ID="LN">227 </FONT><A NAME="227"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT>[] getFoldPrediction(<A HREF="../../../../weka/core/Instance.java.html">Instance</A> instance, <FONT ID="Int">int</FONT> fold)
+<FONT ID="LN">228 </FONT><A NAME="228"></A>    <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">229 </FONT><A NAME="229"></A>    
+<FONT ID="LN">230 </FONT><A NAME="230"></A>    <FONT ID="Return">return</FONT> m_models[fold].distributionForInstance(instance);
+<FONT ID="LN">231 </FONT><A NAME="231"></A>  }
+<FONT ID="LN">232 </FONT><A NAME="232"></A>  
+<FONT ID="LN">233 </FONT><A NAME="233"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">234 </FONT><A NAME="234"></A>   * Creates the model. If there are n folds, it constructs n classifiers
+<FONT ID="LN">235 </FONT><A NAME="235"></A>   * using the current Classifier class and options. If the model has already
+<FONT ID="LN">236 </FONT><A NAME="236"></A>   * been created or loaded, starts fresh.
+<FONT ID="LN">237 </FONT><A NAME="237"></A>   * 
+<FONT ID="LN">238 </FONT><A NAME="238"></A>   * @param data        the data to work with
+<FONT ID="LN">239 </FONT><A NAME="239"></A>   * @param hillclimbData   the data for hillclimbing
+<FONT ID="LN">240 </FONT><A NAME="240"></A>   * @param dataDirectoryName   the directory to use
+<FONT ID="LN">241 </FONT><A NAME="241"></A>   * @param algorithm       the type of algorithm
+<FONT ID="LN">242 </FONT><A NAME="242"></A>   * @throws Exception      if something goeds wrong
+<FONT ID="LN">243 </FONT><A NAME="243"></A>   */</FONT>
+<FONT ID="LN">244 </FONT><A NAME="244"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> createModel(<A HREF="../../../../weka/core/Instances.java.html">Instances</A>[] data, <A HREF="../../../../weka/core/Instances.java.html">Instances</A>[] hillclimbData,
+<FONT ID="LN">245 </FONT><A NAME="245"></A>      String dataDirectoryName, <FONT ID="Int">int</FONT> algorithm) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">246 </FONT><A NAME="246"></A>    
+<FONT ID="LN">247 </FONT><A NAME="247"></A>    String modelFileName = getFileName(getStringRepresentation());
+<FONT ID="LN">248 </FONT><A NAME="248"></A>    
+<FONT ID="LN">249 </FONT><A NAME="249"></A>    File modelFile = <FONT ID="New">new</FONT> File(dataDirectoryName, modelFileName);
+<FONT ID="LN">250 </FONT><A NAME="250"></A>    
+<FONT ID="LN">251 </FONT><A NAME="251"></A>    String relativePath = (<FONT ID="New">new</FONT> File(dataDirectoryName)).getName()
+<FONT ID="LN">252 </FONT><A NAME="252"></A>    + File.separatorChar + modelFileName;
+<FONT ID="LN">253 </FONT><A NAME="253"></A>    <FONT ID="SingleLineComment">// if (m_Debug) System.out.println("setting relative path to:
+<FONT ID="LN">254 </FONT><A NAME="254"></A></FONT>    <FONT ID="SingleLineComment">// "+relativePath);
+<FONT ID="LN">255 </FONT><A NAME="255"></A></FONT>    setFileName(relativePath);
+<FONT ID="LN">256 </FONT><A NAME="256"></A>    
+<FONT ID="LN">257 </FONT><A NAME="257"></A>    <FONT ID="If">if</FONT> (!modelFile.exists()) {
+<FONT ID="LN">258 </FONT><A NAME="258"></A>      
+<FONT ID="LN">259 </FONT><A NAME="259"></A>      Date startTime = <FONT ID="New">new</FONT> Date();
+<FONT ID="LN">260 </FONT><A NAME="260"></A>      
+<FONT ID="LN">261 </FONT><A NAME="261"></A>      String lockFileName = EnsembleSelectionLibraryModel
+<FONT ID="LN">262 </FONT><A NAME="262"></A>      .getFileName(getStringRepresentation());
+<FONT ID="LN">263 </FONT><A NAME="263"></A>      lockFileName = lockFileName.substring(<FONT ID="IntegerLiteral">0</FONT>, lockFileName.length() - <FONT ID="IntegerLiteral">3</FONT>)
+<FONT ID="LN">264 </FONT><A NAME="264"></A>      + <FONT ID="StringLiteral">"LCK"</FONT>;
+<FONT ID="LN">265 </FONT><A NAME="265"></A>      File lockFile = <FONT ID="New">new</FONT> File(dataDirectoryName, lockFileName);
+<FONT ID="LN">266 </FONT><A NAME="266"></A>      
+<FONT ID="LN">267 </FONT><A NAME="267"></A>      <FONT ID="If">if</FONT> (lockFile.exists()) {
+<FONT ID="LN">268 </FONT><A NAME="268"></A>    <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">269 </FONT><A NAME="269"></A>      System.out.println(<FONT ID="StringLiteral">"Detected lock file.  Skipping: "</FONT>
+<FONT ID="LN">270 </FONT><A NAME="270"></A>          + lockFileName);
+<FONT ID="LN">271 </FONT><A NAME="271"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Lock File Detected: "</FONT> + lockFile.getName());
+<FONT ID="LN">272 </FONT><A NAME="272"></A>    
+<FONT ID="LN">273 </FONT><A NAME="273"></A>      } <FONT ID="Else">else</FONT> { <FONT ID="SingleLineComment">// if (algorithm ==
+<FONT ID="LN">274 </FONT><A NAME="274"></A></FONT>    <FONT ID="SingleLineComment">// EnsembleSelection.ALGORITHM_BUILD_LIBRARY) {
+<FONT ID="LN">275 </FONT><A NAME="275"></A></FONT>    <FONT ID="SingleLineComment">// This lock file lets other computers that might be sharing the
+<FONT ID="LN">276 </FONT><A NAME="276"></A></FONT>    <FONT ID="SingleLineComment">// same file
+<FONT ID="LN">277 </FONT><A NAME="277"></A></FONT>    <FONT ID="SingleLineComment">// system that this model is already being trained so they know
+<FONT ID="LN">278 </FONT><A NAME="278"></A></FONT>    <FONT ID="SingleLineComment">// to move ahead
+<FONT ID="LN">279 </FONT><A NAME="279"></A></FONT>    <FONT ID="SingleLineComment">// and train other models.
+<FONT ID="LN">280 </FONT><A NAME="280"></A></FONT>    
+<FONT ID="LN">281 </FONT><A NAME="281"></A>    <FONT ID="If">if</FONT> (lockFile.createNewFile()) {
+<FONT ID="LN">282 </FONT><A NAME="282"></A>      
+<FONT ID="LN">283 </FONT><A NAME="283"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">284 </FONT><A NAME="284"></A>        System.out
+<FONT ID="LN">285 </FONT><A NAME="285"></A>        .println(<FONT ID="StringLiteral">"lock file created: "</FONT> + lockFileName);
+<FONT ID="LN">286 </FONT><A NAME="286"></A>      
+<FONT ID="LN">287 </FONT><A NAME="287"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">288 </FONT><A NAME="288"></A>        System.out.println(<FONT ID="StringLiteral">"Creating model in locked mode: "</FONT>
+<FONT ID="LN">289 </FONT><A NAME="289"></A>        + modelFile.getPath());
+<FONT ID="LN">290 </FONT><A NAME="290"></A>      
+<FONT ID="LN">291 </FONT><A NAME="291"></A>      m_models = <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/Classifier.java.html">Classifier</A>[m_folds];
+<FONT ID="LN">292 </FONT><A NAME="292"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_folds; ++i) {
+<FONT ID="LN">293 </FONT><A NAME="293"></A>        
+<FONT ID="LN">294 </FONT><A NAME="294"></A>        <FONT ID="Try">try</FONT> {
+<FONT ID="LN">295 </FONT><A NAME="295"></A>          m_models[i] = AbstractClassifier.forName(getModelClass()
+<FONT ID="LN">296 </FONT><A NAME="296"></A>          .getName(), <FONT ID="Null">null</FONT>);
+<FONT ID="LN">297 </FONT><A NAME="297"></A>          ((<A HREF="../../../../weka/core/OptionHandler.java.html">OptionHandler</A>)m_models[i]).setOptions(getOptions());
+<FONT ID="LN">298 </FONT><A NAME="298"></A>        } <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">299 </FONT><A NAME="299"></A>          <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Invalid Options: "</FONT>
+<FONT ID="LN">300 </FONT><A NAME="300"></A>          + e.getMessage());
+<FONT ID="LN">301 </FONT><A NAME="301"></A>        }
+<FONT ID="LN">302 </FONT><A NAME="302"></A>      }
+<FONT ID="LN">303 </FONT><A NAME="303"></A>      
+<FONT ID="LN">304 </FONT><A NAME="304"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">305 </FONT><A NAME="305"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_folds; ++i) {
+<FONT ID="LN">306 </FONT><A NAME="306"></A>          train(data[i], i);
+<FONT ID="LN">307 </FONT><A NAME="307"></A>        }
+<FONT ID="LN">308 </FONT><A NAME="308"></A>      } <FONT ID="Catch">catch</FONT> (Exception e) {
+<FONT ID="LN">309 </FONT><A NAME="309"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Could not Train: "</FONT>
+<FONT ID="LN">310 </FONT><A NAME="310"></A>        + e.getMessage());
+<FONT ID="LN">311 </FONT><A NAME="311"></A>      }
+<FONT ID="LN">312 </FONT><A NAME="312"></A>      
+<FONT ID="LN">313 </FONT><A NAME="313"></A>      Date endTime = <FONT ID="New">new</FONT> Date();
+<FONT ID="LN">314 </FONT><A NAME="314"></A>      <FONT ID="Int">int</FONT> diff = (<FONT ID="Int">int</FONT>) (endTime.getTime() - startTime.getTime());
+<FONT ID="LN">315 </FONT><A NAME="315"></A>      
+<FONT ID="LN">316 </FONT><A NAME="316"></A>      <FONT ID="SingleLineComment">// We don't need the actual model for hillclimbing. To save
+<FONT ID="LN">317 </FONT><A NAME="317"></A></FONT>      <FONT ID="SingleLineComment">// memory, release
+<FONT ID="LN">318 </FONT><A NAME="318"></A></FONT>      <FONT ID="SingleLineComment">// it.
+<FONT ID="LN">319 </FONT><A NAME="319"></A></FONT>      
+<FONT ID="LN">320 </FONT><A NAME="320"></A>      <FONT ID="SingleLineComment">// if (!invalidModels.contains(model)) {
+<FONT ID="LN">321 </FONT><A NAME="321"></A></FONT>      <FONT ID="SingleLineComment">// EnsembleLibraryModel.saveModel(dataDirectory.getPath(),
+<FONT ID="LN">322 </FONT><A NAME="322"></A></FONT>      <FONT ID="SingleLineComment">// model);
+<FONT ID="LN">323 </FONT><A NAME="323"></A></FONT>      <FONT ID="SingleLineComment">// model.releaseModel();
+<FONT ID="LN">324 </FONT><A NAME="324"></A></FONT>      <FONT ID="SingleLineComment">// }
+<FONT ID="LN">325 </FONT><A NAME="325"></A></FONT>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">326 </FONT><A NAME="326"></A>        System.out.println(<FONT ID="StringLiteral">"Train time for "</FONT> + modelFileName
+<FONT ID="LN">327 </FONT><A NAME="327"></A>        + <FONT ID="StringLiteral">" was: "</FONT> + diff);
+<FONT ID="LN">328 </FONT><A NAME="328"></A>      
+<FONT ID="LN">329 </FONT><A NAME="329"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">330 </FONT><A NAME="330"></A>        System.out
+<FONT ID="LN">331 </FONT><A NAME="331"></A>        .println(<FONT ID="StringLiteral">"Generating validation set predictions"</FONT>);
+<FONT ID="LN">332 </FONT><A NAME="332"></A>      
+<FONT ID="LN">333 </FONT><A NAME="333"></A>      startTime = <FONT ID="New">new</FONT> Date();
+<FONT ID="LN">334 </FONT><A NAME="334"></A>      
+<FONT ID="LN">335 </FONT><A NAME="335"></A>      <FONT ID="Int">int</FONT> total = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">336 </FONT><A NAME="336"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_folds; ++i) {
+<FONT ID="LN">337 </FONT><A NAME="337"></A>        total += hillclimbData[i].numInstances();
+<FONT ID="LN">338 </FONT><A NAME="338"></A>      }
+<FONT ID="LN">339 </FONT><A NAME="339"></A>      
+<FONT ID="LN">340 </FONT><A NAME="340"></A>      m_validationPredictions = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[total][];
+<FONT ID="LN">341 </FONT><A NAME="341"></A>      
+<FONT ID="LN">342 </FONT><A NAME="342"></A>      <FONT ID="Int">int</FONT> preds_index = <FONT ID="IntegerLiteral">0</FONT>;
+<FONT ID="LN">343 </FONT><A NAME="343"></A>      <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_folds; ++i) {
+<FONT ID="LN">344 </FONT><A NAME="344"></A>        <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> j = <FONT ID="IntegerLiteral">0</FONT>; j &lt; hillclimbData[i].numInstances(); ++j) {
+<FONT ID="LN">345 </FONT><A NAME="345"></A>          <A HREF="../../../../weka/core/Instance.java.html">Instance</A> temp = (<A HREF="../../../../weka/core/Instance.java.html">Instance</A>) hillclimbData[i]
+<FONT ID="LN">346 </FONT><A NAME="346"></A>                                                   .instance(j).copy();<FONT ID="SingleLineComment">// new
+<FONT ID="LN">347 </FONT><A NAME="347"></A></FONT>          <FONT ID="SingleLineComment">// Instance(m_hillclimbData[i].instance(j));
+<FONT ID="LN">348 </FONT><A NAME="348"></A></FONT>          <FONT ID="SingleLineComment">// must copy the instance because SOME classifiers
+<FONT ID="LN">349 </FONT><A NAME="349"></A></FONT>          <FONT ID="SingleLineComment">// (I'm not pointing fingers...
+<FONT ID="LN">350 </FONT><A NAME="350"></A></FONT>          <FONT ID="SingleLineComment">// MULTILAYERPERCEPTRON)
+<FONT ID="LN">351 </FONT><A NAME="351"></A></FONT>          <FONT ID="SingleLineComment">// change the instance!
+<FONT ID="LN">352 </FONT><A NAME="352"></A></FONT>          
+<FONT ID="LN">353 </FONT><A NAME="353"></A>          m_validationPredictions[preds_index] = getFoldPrediction(
+<FONT ID="LN">354 </FONT><A NAME="354"></A>          temp, i);
+<FONT ID="LN">355 </FONT><A NAME="355"></A>          
+<FONT ID="LN">356 </FONT><A NAME="356"></A>          <FONT ID="If">if</FONT> (m_validationPredictions[preds_index] == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">357 </FONT><A NAME="357"></A>        <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(
+<FONT ID="LN">358 </FONT><A NAME="358"></A>            <FONT ID="StringLiteral">"Null validation predictions given: "</FONT>
+<FONT ID="LN">359 </FONT><A NAME="359"></A>            + getStringRepresentation());
+<FONT ID="LN">360 </FONT><A NAME="360"></A>          }
+<FONT ID="LN">361 </FONT><A NAME="361"></A>          
+<FONT ID="LN">362 </FONT><A NAME="362"></A>          ++preds_index;
+<FONT ID="LN">363 </FONT><A NAME="363"></A>        }
+<FONT ID="LN">364 </FONT><A NAME="364"></A>      }
+<FONT ID="LN">365 </FONT><A NAME="365"></A>      
+<FONT ID="LN">366 </FONT><A NAME="366"></A>      endTime = <FONT ID="New">new</FONT> Date();
+<FONT ID="LN">367 </FONT><A NAME="367"></A>      diff = (<FONT ID="Int">int</FONT>) (endTime.getTime() - startTime.getTime());
+<FONT ID="LN">368 </FONT><A NAME="368"></A>      
+<FONT ID="LN">369 </FONT><A NAME="369"></A>      <FONT ID="SingleLineComment">// if (m_Debug) System.out.println("Generated a validation
+<FONT ID="LN">370 </FONT><A NAME="370"></A></FONT>      <FONT ID="SingleLineComment">// set array of size: "+m_validationPredictions.length);
+<FONT ID="LN">371 </FONT><A NAME="371"></A></FONT>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">372 </FONT><A NAME="372"></A>        System.out
+<FONT ID="LN">373 </FONT><A NAME="373"></A>        .println(<FONT ID="StringLiteral">"Time to create validation predictions was: "</FONT>
+<FONT ID="LN">374 </FONT><A NAME="374"></A>        + diff);
+<FONT ID="LN">375 </FONT><A NAME="375"></A>      
+<FONT ID="LN">376 </FONT><A NAME="376"></A>      EnsembleSelectionLibraryModel.saveModel(dataDirectoryName,
+<FONT ID="LN">377 </FONT><A NAME="377"></A>          <FONT ID="This">this</FONT>);
+<FONT ID="LN">378 </FONT><A NAME="378"></A>      
+<FONT ID="LN">379 </FONT><A NAME="379"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">380 </FONT><A NAME="380"></A>        System.out.println(<FONT ID="StringLiteral">"deleting lock file: "</FONT>
+<FONT ID="LN">381 </FONT><A NAME="381"></A>        + lockFileName);
+<FONT ID="LN">382 </FONT><A NAME="382"></A>      lockFile.delete();
+<FONT ID="LN">383 </FONT><A NAME="383"></A>      
+<FONT ID="LN">384 </FONT><A NAME="384"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">385 </FONT><A NAME="385"></A>      
+<FONT ID="LN">386 </FONT><A NAME="386"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">387 </FONT><A NAME="387"></A>        System.out
+<FONT ID="LN">388 </FONT><A NAME="388"></A>        .println(<FONT ID="StringLiteral">"Could not create lock file.  Skipping: "</FONT>
+<FONT ID="LN">389 </FONT><A NAME="389"></A>        + lockFileName);
+<FONT ID="LN">390 </FONT><A NAME="390"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(
+<FONT ID="LN">391 </FONT><A NAME="391"></A>          <FONT ID="StringLiteral">"Could not create lock file.  Skipping: "</FONT>
+<FONT ID="LN">392 </FONT><A NAME="392"></A>          + lockFile.getName());
+<FONT ID="LN">393 </FONT><A NAME="393"></A>      
+<FONT ID="LN">394 </FONT><A NAME="394"></A>    }
+<FONT ID="LN">395 </FONT><A NAME="395"></A>    
+<FONT ID="LN">396 </FONT><A NAME="396"></A>      }
+<FONT ID="LN">397 </FONT><A NAME="397"></A>      
+<FONT ID="LN">398 </FONT><A NAME="398"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">399 </FONT><A NAME="399"></A>      <FONT ID="SingleLineComment">// This branch is responsible for loading a model from a .elm file
+<FONT ID="LN">400 </FONT><A NAME="400"></A></FONT>      
+<FONT ID="LN">401 </FONT><A NAME="401"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">402 </FONT><A NAME="402"></A>    System.out.println(<FONT ID="StringLiteral">"Loading model: "</FONT> + modelFile.getPath());
+<FONT ID="LN">403 </FONT><A NAME="403"></A>      <FONT ID="SingleLineComment">// now we need to check to see if the model is valid, if so then
+<FONT ID="LN">404 </FONT><A NAME="404"></A></FONT>      <FONT ID="SingleLineComment">// load it
+<FONT ID="LN">405 </FONT><A NAME="405"></A></FONT>      Date startTime = <FONT ID="New">new</FONT> Date();
+<FONT ID="LN">406 </FONT><A NAME="406"></A>      
+<FONT ID="LN">407 </FONT><A NAME="407"></A>      <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleSelectionLibraryModel.java.html">EnsembleSelectionLibraryModel</A> newModel = loadModel(modelFile
+<FONT ID="LN">408 </FONT><A NAME="408"></A>      .getPath());
+<FONT ID="LN">409 </FONT><A NAME="409"></A>      
+<FONT ID="LN">410 </FONT><A NAME="410"></A>      <FONT ID="If">if</FONT> (!newModel.getStringRepresentation().equals(
+<FONT ID="LN">411 </FONT><A NAME="411"></A>      getStringRepresentation()))
+<FONT ID="LN">412 </FONT><A NAME="412"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleModelMismatchException.java.html">EnsembleModelMismatchException</A>(
+<FONT ID="LN">413 </FONT><A NAME="413"></A>        <FONT ID="StringLiteral">"String representations "</FONT>
+<FONT ID="LN">414 </FONT><A NAME="414"></A>        + newModel.getStringRepresentation() + <FONT ID="StringLiteral">" and "</FONT>
+<FONT ID="LN">415 </FONT><A NAME="415"></A>        + getStringRepresentation() + <FONT ID="StringLiteral">" not equal"</FONT>);
+<FONT ID="LN">416 </FONT><A NAME="416"></A>      
+<FONT ID="LN">417 </FONT><A NAME="417"></A>      <FONT ID="If">if</FONT> (!newModel.getChecksum().equals(getChecksum()))
+<FONT ID="LN">418 </FONT><A NAME="418"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleModelMismatchException.java.html">EnsembleModelMismatchException</A>(<FONT ID="StringLiteral">"Checksums "</FONT>
+<FONT ID="LN">419 </FONT><A NAME="419"></A>        + newModel.getChecksum() + <FONT ID="StringLiteral">" and "</FONT> + getChecksum()
+<FONT ID="LN">420 </FONT><A NAME="420"></A>        + <FONT ID="StringLiteral">" not equal"</FONT>);
+<FONT ID="LN">421 </FONT><A NAME="421"></A>      
+<FONT ID="LN">422 </FONT><A NAME="422"></A>      <FONT ID="If">if</FONT> (newModel.getSeed() != getSeed())
+<FONT ID="LN">423 </FONT><A NAME="423"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleModelMismatchException.java.html">EnsembleModelMismatchException</A>(<FONT ID="StringLiteral">"Seeds "</FONT>
+<FONT ID="LN">424 </FONT><A NAME="424"></A>        + newModel.getSeed() + <FONT ID="StringLiteral">" and "</FONT> + getSeed()
+<FONT ID="LN">425 </FONT><A NAME="425"></A>        + <FONT ID="StringLiteral">" not equal"</FONT>);
+<FONT ID="LN">426 </FONT><A NAME="426"></A>      
+<FONT ID="LN">427 </FONT><A NAME="427"></A>      <FONT ID="If">if</FONT> (newModel.getFolds() != getFolds())
+<FONT ID="LN">428 </FONT><A NAME="428"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleModelMismatchException.java.html">EnsembleModelMismatchException</A>(<FONT ID="StringLiteral">"Folds "</FONT>
+<FONT ID="LN">429 </FONT><A NAME="429"></A>        + newModel.getFolds() + <FONT ID="StringLiteral">" and "</FONT> + getFolds()
+<FONT ID="LN">430 </FONT><A NAME="430"></A>        + <FONT ID="StringLiteral">" not equal"</FONT>);
+<FONT ID="LN">431 </FONT><A NAME="431"></A>      
+<FONT ID="LN">432 </FONT><A NAME="432"></A>      <FONT ID="If">if</FONT> (newModel.getValidationRatio() != getValidationRatio())
+<FONT ID="LN">433 </FONT><A NAME="433"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleModelMismatchException.java.html">EnsembleModelMismatchException</A>(<FONT ID="StringLiteral">"Validation Ratios "</FONT>
+<FONT ID="LN">434 </FONT><A NAME="434"></A>        + newModel.getValidationRatio() + <FONT ID="StringLiteral">" and "</FONT>
+<FONT ID="LN">435 </FONT><A NAME="435"></A>        + getValidationRatio() + <FONT ID="StringLiteral">" not equal"</FONT>);
+<FONT ID="LN">436 </FONT><A NAME="436"></A>      
+<FONT ID="LN">437 </FONT><A NAME="437"></A>      <FONT ID="SingleLineComment">// setFileName(modelFileName);
+<FONT ID="LN">438 </FONT><A NAME="438"></A></FONT>      
+<FONT ID="LN">439 </FONT><A NAME="439"></A>      m_models = newModel.getModels();
+<FONT ID="LN">440 </FONT><A NAME="440"></A>      m_validationPredictions = newModel.getValidationPredictions();
+<FONT ID="LN">441 </FONT><A NAME="441"></A>      
+<FONT ID="LN">442 </FONT><A NAME="442"></A>      Date endTime = <FONT ID="New">new</FONT> Date();
+<FONT ID="LN">443 </FONT><A NAME="443"></A>      <FONT ID="Int">int</FONT> diff = (<FONT ID="Int">int</FONT>) (endTime.getTime() - startTime.getTime());
+<FONT ID="LN">444 </FONT><A NAME="444"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">445 </FONT><A NAME="445"></A>    System.out.println(<FONT ID="StringLiteral">"Time to load "</FONT> + modelFileName + <FONT ID="StringLiteral">" was: "</FONT>
+<FONT ID="LN">446 </FONT><A NAME="446"></A>        + diff);
+<FONT ID="LN">447 </FONT><A NAME="447"></A>    }
+<FONT ID="LN">448 </FONT><A NAME="448"></A>  }
+<FONT ID="LN">449 </FONT><A NAME="449"></A>  
+<FONT ID="LN">450 </FONT><A NAME="450"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">451 </FONT><A NAME="451"></A>   * The purpose of this method is to "rehydrate" the classifier object fot
+<FONT ID="LN">452 </FONT><A NAME="452"></A>   * this library model from the filesystem.
+<FONT ID="LN">453 </FONT><A NAME="453"></A>   * 
+<FONT ID="LN">454 </FONT><A NAME="454"></A>   * @param workingDirectory    the working directory to use
+<FONT ID="LN">455 </FONT><A NAME="455"></A>   */</FONT>
+<FONT ID="LN">456 </FONT><A NAME="456"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> rehydrateModel(String workingDirectory) {
+<FONT ID="LN">457 </FONT><A NAME="457"></A>    
+<FONT ID="LN">458 </FONT><A NAME="458"></A>    <FONT ID="If">if</FONT> (m_models == <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">459 </FONT><A NAME="459"></A>      
+<FONT ID="LN">460 </FONT><A NAME="460"></A>      File file = <FONT ID="New">new</FONT> File(workingDirectory, m_fileName);
+<FONT ID="LN">461 </FONT><A NAME="461"></A>      
+<FONT ID="LN">462 </FONT><A NAME="462"></A>      <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">463 </FONT><A NAME="463"></A>    System.out.println(<FONT ID="StringLiteral">"Rehydrating Model: "</FONT> + file.getPath());
+<FONT ID="LN">464 </FONT><A NAME="464"></A>      <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleSelectionLibraryModel.java.html">EnsembleSelectionLibraryModel</A> model = EnsembleSelectionLibraryModel
+<FONT ID="LN">465 </FONT><A NAME="465"></A>      .loadModel(file.getPath());
+<FONT ID="LN">466 </FONT><A NAME="466"></A>      
+<FONT ID="LN">467 </FONT><A NAME="467"></A>      m_models = model.getModels();
+<FONT ID="LN">468 </FONT><A NAME="468"></A>      
+<FONT ID="LN">469 </FONT><A NAME="469"></A>    }
+<FONT ID="LN">470 </FONT><A NAME="470"></A>  }
+<FONT ID="LN">471 </FONT><A NAME="471"></A>  
+<FONT ID="LN">472 </FONT><A NAME="472"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">473 </FONT><A NAME="473"></A>   * Releases the model from memory. TODO - need to be saving these so we can
+<FONT ID="LN">474 </FONT><A NAME="474"></A>   * retrieve them later!!
+<FONT ID="LN">475 </FONT><A NAME="475"></A>   */</FONT>
+<FONT ID="LN">476 </FONT><A NAME="476"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> releaseModel() {
+<FONT ID="LN">477 </FONT><A NAME="477"></A>    <FONT ID="MultiLineComment">/*
+<FONT ID="LN">478 </FONT><A NAME="478"></A>     * if (m_unsaved) { saveModel(); }
+<FONT ID="LN">479 </FONT><A NAME="479"></A>     */</FONT>
+<FONT ID="LN">480 </FONT><A NAME="480"></A>    m_models = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">481 </FONT><A NAME="481"></A>  }
+<FONT ID="LN">482 </FONT><A NAME="482"></A>  
+<FONT ID="LN">483 </FONT><A NAME="483"></A>  <FONT ID="FormalComment">/** 
+<FONT ID="LN">484 </FONT><A NAME="484"></A>   * Train the classifier for the specified fold on the given data
+<FONT ID="LN">485 </FONT><A NAME="485"></A>   * 
+<FONT ID="LN">486 </FONT><A NAME="486"></A>   * @param trainData   the data to train with
+<FONT ID="LN">487 </FONT><A NAME="487"></A>   * @param fold    the fold number
+<FONT ID="LN">488 </FONT><A NAME="488"></A>   * @throws Exception  if something goes wrong, e.g., out of memory
+<FONT ID="LN">489 </FONT><A NAME="489"></A>   */</FONT>
+<FONT ID="LN">490 </FONT><A NAME="490"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> train(<A HREF="../../../../weka/core/Instances.java.html">Instances</A> trainData, <FONT ID="Int">int</FONT> fold) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">491 </FONT><A NAME="491"></A>    <FONT ID="If">if</FONT> (m_models != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">492 </FONT><A NAME="492"></A>      
+<FONT ID="LN">493 </FONT><A NAME="493"></A>      <FONT ID="Try">try</FONT> {
+<FONT ID="LN">494 </FONT><A NAME="494"></A>    <FONT ID="SingleLineComment">// OK, this is it... this is the point where our code surrenders
+<FONT ID="LN">495 </FONT><A NAME="495"></A></FONT>    <FONT ID="SingleLineComment">// to the weka classifiers.
+<FONT ID="LN">496 </FONT><A NAME="496"></A></FONT>    m_models[fold].buildClassifier(trainData);
+<FONT ID="LN">497 </FONT><A NAME="497"></A>      } <FONT ID="Catch">catch</FONT> (Throwable t) {
+<FONT ID="LN">498 </FONT><A NAME="498"></A>    m_models[fold] = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">499 </FONT><A NAME="499"></A>    <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(
+<FONT ID="LN">500 </FONT><A NAME="500"></A>        <FONT ID="StringLiteral">"Exception caught while training: (null could mean out of memory)"</FONT>
+<FONT ID="LN">501 </FONT><A NAME="501"></A>        + t.getMessage());
+<FONT ID="LN">502 </FONT><A NAME="502"></A>      }
+<FONT ID="LN">503 </FONT><A NAME="503"></A>      
+<FONT ID="LN">504 </FONT><A NAME="504"></A>    } <FONT ID="Else">else</FONT> {
+<FONT ID="LN">505 </FONT><A NAME="505"></A>      <FONT ID="Throw">throw</FONT> <FONT ID="New">new</FONT> Exception(<FONT ID="StringLiteral">"Cannot train: model was null"</FONT>);
+<FONT ID="LN">506 </FONT><A NAME="506"></A>      <FONT ID="SingleLineComment">// TODO: throw Exception?
+<FONT ID="LN">507 </FONT><A NAME="507"></A></FONT>    }
+<FONT ID="LN">508 </FONT><A NAME="508"></A>  }
+<FONT ID="LN">509 </FONT><A NAME="509"></A>  
+<FONT ID="LN">510 </FONT><A NAME="510"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">511 </FONT><A NAME="511"></A>   * Set the seed
+<FONT ID="LN">512 </FONT><A NAME="512"></A>   * 
+<FONT ID="LN">513 </FONT><A NAME="513"></A>   * @param seed    the seed value
+<FONT ID="LN">514 </FONT><A NAME="514"></A>   */</FONT>
+<FONT ID="LN">515 </FONT><A NAME="515"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setSeed(<FONT ID="Int">int</FONT> seed) {
+<FONT ID="LN">516 </FONT><A NAME="516"></A>    m_seed = seed;
+<FONT ID="LN">517 </FONT><A NAME="517"></A>  }
+<FONT ID="LN">518 </FONT><A NAME="518"></A>  
+<FONT ID="LN">519 </FONT><A NAME="519"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">520 </FONT><A NAME="520"></A>   * Get the seed
+<FONT ID="LN">521 </FONT><A NAME="521"></A>   * 
+<FONT ID="LN">522 </FONT><A NAME="522"></A>   * @return the seed value
+<FONT ID="LN">523 </FONT><A NAME="523"></A>   */</FONT>
+<FONT ID="LN">524 </FONT><A NAME="524"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getSeed() {
+<FONT ID="LN">525 </FONT><A NAME="525"></A>    <FONT ID="Return">return</FONT> m_seed;
+<FONT ID="LN">526 </FONT><A NAME="526"></A>  }
+<FONT ID="LN">527 </FONT><A NAME="527"></A>  
+<FONT ID="LN">528 </FONT><A NAME="528"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">529 </FONT><A NAME="529"></A>   * Sets the validation set ratio (only meaningful if folds == 1)
+<FONT ID="LN">530 </FONT><A NAME="530"></A>   * 
+<FONT ID="LN">531 </FONT><A NAME="531"></A>   * @param validationRatio the new ration
+<FONT ID="LN">532 </FONT><A NAME="532"></A>   */</FONT>
+<FONT ID="LN">533 </FONT><A NAME="533"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setValidationRatio(<FONT ID="Double">double</FONT> validationRatio) {
+<FONT ID="LN">534 </FONT><A NAME="534"></A>    m_validationRatio = validationRatio;
+<FONT ID="LN">535 </FONT><A NAME="535"></A>  }
+<FONT ID="LN">536 </FONT><A NAME="536"></A>  
+<FONT ID="LN">537 </FONT><A NAME="537"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">538 </FONT><A NAME="538"></A>   * get validationRatio
+<FONT ID="LN">539 </FONT><A NAME="539"></A>   * 
+<FONT ID="LN">540 </FONT><A NAME="540"></A>   * @return        the current ratio
+<FONT ID="LN">541 </FONT><A NAME="541"></A>   */</FONT>
+<FONT ID="LN">542 </FONT><A NAME="542"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT> getValidationRatio() {
+<FONT ID="LN">543 </FONT><A NAME="543"></A>    <FONT ID="Return">return</FONT> m_validationRatio;
+<FONT ID="LN">544 </FONT><A NAME="544"></A>  }
+<FONT ID="LN">545 </FONT><A NAME="545"></A>  
+<FONT ID="LN">546 </FONT><A NAME="546"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">547 </FONT><A NAME="547"></A>   * Set the number of folds for cross validation. The number of folds also
+<FONT ID="LN">548 </FONT><A NAME="548"></A>   * indicates how many classifiers will be built to represent this model.
+<FONT ID="LN">549 </FONT><A NAME="549"></A>   * 
+<FONT ID="LN">550 </FONT><A NAME="550"></A>   * @param folds   the number of folds to use
+<FONT ID="LN">551 </FONT><A NAME="551"></A>   */</FONT>
+<FONT ID="LN">552 </FONT><A NAME="552"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setFolds(<FONT ID="Int">int</FONT> folds) {
+<FONT ID="LN">553 </FONT><A NAME="553"></A>    m_folds = folds;
+<FONT ID="LN">554 </FONT><A NAME="554"></A>  }
+<FONT ID="LN">555 </FONT><A NAME="555"></A>  
+<FONT ID="LN">556 </FONT><A NAME="556"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">557 </FONT><A NAME="557"></A>   * get the number of folds
+<FONT ID="LN">558 </FONT><A NAME="558"></A>   * 
+<FONT ID="LN">559 </FONT><A NAME="559"></A>   * @return        the current number of folds
+<FONT ID="LN">560 </FONT><A NAME="560"></A>   */</FONT>
+<FONT ID="LN">561 </FONT><A NAME="561"></A>  <FONT ID="Public">public</FONT> <FONT ID="Int">int</FONT> getFolds() {
+<FONT ID="LN">562 </FONT><A NAME="562"></A>    <FONT ID="Return">return</FONT> m_folds;
+<FONT ID="LN">563 </FONT><A NAME="563"></A>  }
+<FONT ID="LN">564 </FONT><A NAME="564"></A>  
+<FONT ID="LN">565 </FONT><A NAME="565"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">566 </FONT><A NAME="566"></A>   * set the checksum
+<FONT ID="LN">567 </FONT><A NAME="567"></A>   * 
+<FONT ID="LN">568 </FONT><A NAME="568"></A>   * @param instancesChecksum   the new checksum
+<FONT ID="LN">569 </FONT><A NAME="569"></A>   */</FONT>
+<FONT ID="LN">570 </FONT><A NAME="570"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setChecksum(String instancesChecksum) {
+<FONT ID="LN">571 </FONT><A NAME="571"></A>    m_checksum = instancesChecksum;
+<FONT ID="LN">572 </FONT><A NAME="572"></A>  }
+<FONT ID="LN">573 </FONT><A NAME="573"></A>  
+<FONT ID="LN">574 </FONT><A NAME="574"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">575 </FONT><A NAME="575"></A>   * get the checksum
+<FONT ID="LN">576 </FONT><A NAME="576"></A>   * 
+<FONT ID="LN">577 </FONT><A NAME="577"></A>   * @return        the current checksum
+<FONT ID="LN">578 </FONT><A NAME="578"></A>   */</FONT>
+<FONT ID="LN">579 </FONT><A NAME="579"></A>  <FONT ID="Public">public</FONT> String getChecksum() {
+<FONT ID="LN">580 </FONT><A NAME="580"></A>    <FONT ID="Return">return</FONT> m_checksum;
+<FONT ID="LN">581 </FONT><A NAME="581"></A>  }
+<FONT ID="LN">582 </FONT><A NAME="582"></A>  
+<FONT ID="LN">583 </FONT><A NAME="583"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">584 </FONT><A NAME="584"></A>   * Returs the array of classifiers
+<FONT ID="LN">585 </FONT><A NAME="585"></A>   * 
+<FONT ID="LN">586 </FONT><A NAME="586"></A>   * @return        the current models
+<FONT ID="LN">587 </FONT><A NAME="587"></A>   */</FONT>
+<FONT ID="LN">588 </FONT><A NAME="588"></A>  <FONT ID="Public">public</FONT> <A HREF="../../../../weka/classifiers/Classifier.java.html">Classifier</A>[] getModels() {
+<FONT ID="LN">589 </FONT><A NAME="589"></A>    <FONT ID="Return">return</FONT> m_models;
+<FONT ID="LN">590 </FONT><A NAME="590"></A>  }
+<FONT ID="LN">591 </FONT><A NAME="591"></A>  
+<FONT ID="LN">592 </FONT><A NAME="592"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">593 </FONT><A NAME="593"></A>   * Sets the .elm file name for this library model
+<FONT ID="LN">594 </FONT><A NAME="594"></A>   * 
+<FONT ID="LN">595 </FONT><A NAME="595"></A>   * @param fileName    the new filename
+<FONT ID="LN">596 </FONT><A NAME="596"></A>   */</FONT>
+<FONT ID="LN">597 </FONT><A NAME="597"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setFileName(String fileName) {
+<FONT ID="LN">598 </FONT><A NAME="598"></A>    m_fileName = fileName;
+<FONT ID="LN">599 </FONT><A NAME="599"></A>  }
+<FONT ID="LN">600 </FONT><A NAME="600"></A>  
+<FONT ID="LN">601 </FONT><A NAME="601"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">602 </FONT><A NAME="602"></A>   * Gets a checksum for the string defining this classifier. This is used to
+<FONT ID="LN">603 </FONT><A NAME="603"></A>   * preserve uniqueness in the classifier names.
+<FONT ID="LN">604 </FONT><A NAME="604"></A>   * 
+<FONT ID="LN">605 </FONT><A NAME="605"></A>   * @param string  the classifier definition
+<FONT ID="LN">606 </FONT><A NAME="606"></A>   * @return        the checksum string
+<FONT ID="LN">607 </FONT><A NAME="607"></A>   */</FONT>
+<FONT ID="LN">608 </FONT><A NAME="608"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String getStringChecksum(String string) {
+<FONT ID="LN">609 </FONT><A NAME="609"></A>    
+<FONT ID="LN">610 </FONT><A NAME="610"></A>    String checksumString = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">611 </FONT><A NAME="611"></A>    
+<FONT ID="LN">612 </FONT><A NAME="612"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">613 </FONT><A NAME="613"></A>      
+<FONT ID="LN">614 </FONT><A NAME="614"></A>      Adler32 checkSummer = <FONT ID="New">new</FONT> Adler32();
+<FONT ID="LN">615 </FONT><A NAME="615"></A>      
+<FONT ID="LN">616 </FONT><A NAME="616"></A>      <FONT ID="Byte">byte</FONT>[] utf8 = string.toString().getBytes(<FONT ID="StringLiteral">"UTF8"</FONT>);
+<FONT ID="LN">617 </FONT><A NAME="617"></A>      ;
+<FONT ID="LN">618 </FONT><A NAME="618"></A>      
+<FONT ID="LN">619 </FONT><A NAME="619"></A>      checkSummer.update(utf8);
+<FONT ID="LN">620 </FONT><A NAME="620"></A>      checksumString = Long.toHexString(checkSummer.getValue());
+<FONT ID="LN">621 </FONT><A NAME="621"></A>      
+<FONT ID="LN">622 </FONT><A NAME="622"></A>    } <FONT ID="Catch">catch</FONT> (UnsupportedEncodingException e) {
+<FONT ID="LN">623 </FONT><A NAME="623"></A>      <FONT ID="SingleLineComment">// TODO Auto-generated catch block
+<FONT ID="LN">624 </FONT><A NAME="624"></A></FONT>      e.printStackTrace();
+<FONT ID="LN">625 </FONT><A NAME="625"></A>    }
+<FONT ID="LN">626 </FONT><A NAME="626"></A>    
+<FONT ID="LN">627 </FONT><A NAME="627"></A>    <FONT ID="Return">return</FONT> checksumString;
+<FONT ID="LN">628 </FONT><A NAME="628"></A>  }
+<FONT ID="LN">629 </FONT><A NAME="629"></A>  
+<FONT ID="LN">630 </FONT><A NAME="630"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">631 </FONT><A NAME="631"></A>   * The purpose of this method is to get an appropriate file name for a model
+<FONT ID="LN">632 </FONT><A NAME="632"></A>   * based on its string representation of a model. All generated filenames
+<FONT ID="LN">633 </FONT><A NAME="633"></A>   * are limited to less than 128 characters and all of them will end with a
+<FONT ID="LN">634 </FONT><A NAME="634"></A>   * 64 bit checksum value of their string representation to try to maintain
+<FONT ID="LN">635 </FONT><A NAME="635"></A>   * some uniqueness of file names.
+<FONT ID="LN">636 </FONT><A NAME="636"></A>   * 
+<FONT ID="LN">637 </FONT><A NAME="637"></A>   * @param stringRepresentation    string representation of model
+<FONT ID="LN">638 </FONT><A NAME="638"></A>   * @return                unique filename
+<FONT ID="LN">639 </FONT><A NAME="639"></A>   */</FONT>
+<FONT ID="LN">640 </FONT><A NAME="640"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> String getFileName(String stringRepresentation) {
+<FONT ID="LN">641 </FONT><A NAME="641"></A>    
+<FONT ID="LN">642 </FONT><A NAME="642"></A>    <FONT ID="SingleLineComment">// Get rid of space and quote marks(windows doesn't lke them)
+<FONT ID="LN">643 </FONT><A NAME="643"></A></FONT>    String fileName = stringRepresentation.trim().replace(<FONT ID="CharacerLiteral">' '</FONT>, <FONT ID="CharacerLiteral">'_'</FONT>)
+<FONT ID="LN">644 </FONT><A NAME="644"></A>    .replace(<FONT ID="CharacerLiteral">'"'</FONT>, <FONT ID="CharacerLiteral">'_'</FONT>);
+<FONT ID="LN">645 </FONT><A NAME="645"></A>    
+<FONT ID="LN">646 </FONT><A NAME="646"></A>    <FONT ID="If">if</FONT> (fileName.length() &gt; <FONT ID="IntegerLiteral">115</FONT>) {
+<FONT ID="LN">647 </FONT><A NAME="647"></A>      
+<FONT ID="LN">648 </FONT><A NAME="648"></A>      fileName = fileName.substring(<FONT ID="IntegerLiteral">0</FONT>, <FONT ID="IntegerLiteral">115</FONT>);
+<FONT ID="LN">649 </FONT><A NAME="649"></A>      
+<FONT ID="LN">650 </FONT><A NAME="650"></A>    }
+<FONT ID="LN">651 </FONT><A NAME="651"></A>    
+<FONT ID="LN">652 </FONT><A NAME="652"></A>    fileName += getStringChecksum(stringRepresentation)
+<FONT ID="LN">653 </FONT><A NAME="653"></A>    + EnsembleSelectionLibraryModel.FILE_EXTENSION;
+<FONT ID="LN">654 </FONT><A NAME="654"></A>    
+<FONT ID="LN">655 </FONT><A NAME="655"></A>    <FONT ID="Return">return</FONT> fileName;
+<FONT ID="LN">656 </FONT><A NAME="656"></A>  }
+<FONT ID="LN">657 </FONT><A NAME="657"></A>  
+<FONT ID="LN">658 </FONT><A NAME="658"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">659 </FONT><A NAME="659"></A>   * Saves the given model to the specified file.
+<FONT ID="LN">660 </FONT><A NAME="660"></A>   * 
+<FONT ID="LN">661 </FONT><A NAME="661"></A>   * @param directory   the directory to save the model to
+<FONT ID="LN">662 </FONT><A NAME="662"></A>   * @param model   the model to save
+<FONT ID="LN">663 </FONT><A NAME="663"></A>   */</FONT>
+<FONT ID="LN">664 </FONT><A NAME="664"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <FONT ID="Void">void</FONT> saveModel(String directory,
+<FONT ID="LN">665 </FONT><A NAME="665"></A>      <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleSelectionLibraryModel.java.html">EnsembleSelectionLibraryModel</A> model) {
+<FONT ID="LN">666 </FONT><A NAME="666"></A>    
+<FONT ID="LN">667 </FONT><A NAME="667"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">668 </FONT><A NAME="668"></A>      String fileName = getFileName(model.getStringRepresentation());
+<FONT ID="LN">669 </FONT><A NAME="669"></A>      
+<FONT ID="LN">670 </FONT><A NAME="670"></A>      File file = <FONT ID="New">new</FONT> File(directory, fileName);
+<FONT ID="LN">671 </FONT><A NAME="671"></A>      
+<FONT ID="LN">672 </FONT><A NAME="672"></A>      <FONT ID="SingleLineComment">// System.out.println("Saving model: "+file.getPath());
+<FONT ID="LN">673 </FONT><A NAME="673"></A></FONT>      
+<FONT ID="LN">674 </FONT><A NAME="674"></A>      <FONT ID="SingleLineComment">// model.setFileName(new String(file.getPath()));
+<FONT ID="LN">675 </FONT><A NAME="675"></A></FONT>      
+<FONT ID="LN">676 </FONT><A NAME="676"></A>      <FONT ID="SingleLineComment">// Serialize to a file
+<FONT ID="LN">677 </FONT><A NAME="677"></A></FONT>      ObjectOutput out = <FONT ID="New">new</FONT> ObjectOutputStream(
+<FONT ID="LN">678 </FONT><A NAME="678"></A>      <FONT ID="New">new</FONT> FileOutputStream(file));
+<FONT ID="LN">679 </FONT><A NAME="679"></A>      out.writeObject(model);
+<FONT ID="LN">680 </FONT><A NAME="680"></A>      
+<FONT ID="LN">681 </FONT><A NAME="681"></A>      out.close();
+<FONT ID="LN">682 </FONT><A NAME="682"></A>      
+<FONT ID="LN">683 </FONT><A NAME="683"></A>    } <FONT ID="Catch">catch</FONT> (IOException e) {
+<FONT ID="LN">684 </FONT><A NAME="684"></A>      
+<FONT ID="LN">685 </FONT><A NAME="685"></A>      e.printStackTrace();
+<FONT ID="LN">686 </FONT><A NAME="686"></A>    }
+<FONT ID="LN">687 </FONT><A NAME="687"></A>  }
+<FONT ID="LN">688 </FONT><A NAME="688"></A>  
+<FONT ID="LN">689 </FONT><A NAME="689"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">690 </FONT><A NAME="690"></A>   * loads the specified model
+<FONT ID="LN">691 </FONT><A NAME="691"></A>   * 
+<FONT ID="LN">692 </FONT><A NAME="692"></A>   * @param modelFilePath   the path of the model
+<FONT ID="LN">693 </FONT><A NAME="693"></A>   * @return            the model
+<FONT ID="LN">694 </FONT><A NAME="694"></A>   */</FONT>
+<FONT ID="LN">695 </FONT><A NAME="695"></A>  <FONT ID="Public">public</FONT> <FONT ID="Static">static</FONT> <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleSelectionLibraryModel.java.html">EnsembleSelectionLibraryModel</A> loadModel(String modelFilePath) {
+<FONT ID="LN">696 </FONT><A NAME="696"></A>    
+<FONT ID="LN">697 </FONT><A NAME="697"></A>    <A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleSelectionLibraryModel.java.html">EnsembleSelectionLibraryModel</A> model = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">698 </FONT><A NAME="698"></A>    
+<FONT ID="LN">699 </FONT><A NAME="699"></A>    <FONT ID="Try">try</FONT> {
+<FONT ID="LN">700 </FONT><A NAME="700"></A>      
+<FONT ID="LN">701 </FONT><A NAME="701"></A>      File file = <FONT ID="New">new</FONT> File(modelFilePath);
+<FONT ID="LN">702 </FONT><A NAME="702"></A>      
+<FONT ID="LN">703 </FONT><A NAME="703"></A>      ObjectInputStream in = <FONT ID="New">new</FONT> ObjectInputStream(<FONT ID="New">new</FONT> FileInputStream(
+<FONT ID="LN">704 </FONT><A NAME="704"></A>      file));
+<FONT ID="LN">705 </FONT><A NAME="705"></A>      
+<FONT ID="LN">706 </FONT><A NAME="706"></A>      model = (<A HREF="../../../../weka/classifiers/meta/ensembleSelection/EnsembleSelectionLibraryModel.java.html">EnsembleSelectionLibraryModel</A>) in.readObject();
+<FONT ID="LN">707 </FONT><A NAME="707"></A>      
+<FONT ID="LN">708 </FONT><A NAME="708"></A>      in.close();
+<FONT ID="LN">709 </FONT><A NAME="709"></A>      
+<FONT ID="LN">710 </FONT><A NAME="710"></A>    } <FONT ID="Catch">catch</FONT> (ClassNotFoundException e) {
+<FONT ID="LN">711 </FONT><A NAME="711"></A>      
+<FONT ID="LN">712 </FONT><A NAME="712"></A>      e.printStackTrace();
+<FONT ID="LN">713 </FONT><A NAME="713"></A>      
+<FONT ID="LN">714 </FONT><A NAME="714"></A>    } <FONT ID="Catch">catch</FONT> (IOException e) {
+<FONT ID="LN">715 </FONT><A NAME="715"></A>      
+<FONT ID="LN">716 </FONT><A NAME="716"></A>      e.printStackTrace();
+<FONT ID="LN">717 </FONT><A NAME="717"></A>      
+<FONT ID="LN">718 </FONT><A NAME="718"></A>    }
+<FONT ID="LN">719 </FONT><A NAME="719"></A>    
+<FONT ID="LN">720 </FONT><A NAME="720"></A>    <FONT ID="Return">return</FONT> model;
+<FONT ID="LN">721 </FONT><A NAME="721"></A>  }
+<FONT ID="LN">722 </FONT><A NAME="722"></A>  
+<FONT ID="LN">723 </FONT><A NAME="723"></A>  <FONT ID="MultiLineComment">/*
+<FONT ID="LN">724 </FONT><A NAME="724"></A>   * Problems persist in this code so we left it commented out. The intent was
+<FONT ID="LN">725 </FONT><A NAME="725"></A>   * to create the methods necessary for custom serialization to allow for
+<FONT ID="LN">726 </FONT><A NAME="726"></A>   * forwards/backwards compatability of .elm files accross multiple versions
+<FONT ID="LN">727 </FONT><A NAME="727"></A>   * of this classifier. The main problem however is that these methods do not
+<FONT ID="LN">728 </FONT><A NAME="728"></A>   * appear to be called. I'm not sure what the problem is, but this would be
+<FONT ID="LN">729 </FONT><A NAME="729"></A>   * a great feature. If anyone is a seasoned veteran of this serialization
+<FONT ID="LN">730 </FONT><A NAME="730"></A>   * stuff, please help!
+<FONT ID="LN">731 </FONT><A NAME="731"></A>   * 
+<FONT ID="LN">732 </FONT><A NAME="732"></A>   * private void writeObject(ObjectOutputStream stream) throws IOException {
+<FONT ID="LN">733 </FONT><A NAME="733"></A>   * //stream.defaultWriteObject(); //stream.writeObject(b);
+<FONT ID="LN">734 </FONT><A NAME="734"></A>   * 
+<FONT ID="LN">735 </FONT><A NAME="735"></A>   * //first serialize the LibraryModel fields
+<FONT ID="LN">736 </FONT><A NAME="736"></A>   * 
+<FONT ID="LN">737 </FONT><A NAME="737"></A>   * //super.writeObject(stream);
+<FONT ID="LN">738 </FONT><A NAME="738"></A>   * 
+<FONT ID="LN">739 </FONT><A NAME="739"></A>   * //now serialize the LibraryModel fields
+<FONT ID="LN">740 </FONT><A NAME="740"></A>   * 
+<FONT ID="LN">741 </FONT><A NAME="741"></A>   * stream.writeObject(m_Classifier);
+<FONT ID="LN">742 </FONT><A NAME="742"></A>   * 
+<FONT ID="LN">743 </FONT><A NAME="743"></A>   * stream.writeObject(m_DescriptionText);
+<FONT ID="LN">744 </FONT><A NAME="744"></A>   * 
+<FONT ID="LN">745 </FONT><A NAME="745"></A>   * stream.writeObject(m_ErrorText);
+<FONT ID="LN">746 </FONT><A NAME="746"></A>   * 
+<FONT ID="LN">747 </FONT><A NAME="747"></A>   * stream.writeObject(new Boolean(m_OptionsWereValid));
+<FONT ID="LN">748 </FONT><A NAME="748"></A>   * 
+<FONT ID="LN">749 </FONT><A NAME="749"></A>   * stream.writeObject(m_StringRepresentation);
+<FONT ID="LN">750 </FONT><A NAME="750"></A>   * 
+<FONT ID="LN">751 </FONT><A NAME="751"></A>   * stream.writeObject(m_models);
+<FONT ID="LN">752 </FONT><A NAME="752"></A>   * 
+<FONT ID="LN">753 </FONT><A NAME="753"></A>   * 
+<FONT ID="LN">754 </FONT><A NAME="754"></A>   * //now serialize the EnsembleLibraryModel fields //stream.writeObject(new
+<FONT ID="LN">755 </FONT><A NAME="755"></A>   * String("blah"));
+<FONT ID="LN">756 </FONT><A NAME="756"></A>   * 
+<FONT ID="LN">757 </FONT><A NAME="757"></A>   * stream.writeObject(new Integer(m_seed));
+<FONT ID="LN">758 </FONT><A NAME="758"></A>   * 
+<FONT ID="LN">759 </FONT><A NAME="759"></A>   * stream.writeObject(m_checksum);
+<FONT ID="LN">760 </FONT><A NAME="760"></A>   * 
+<FONT ID="LN">761 </FONT><A NAME="761"></A>   * stream.writeObject(new Double(m_validationRatio));
+<FONT ID="LN">762 </FONT><A NAME="762"></A>   * 
+<FONT ID="LN">763 </FONT><A NAME="763"></A>   * stream.writeObject(new Integer(m_folds));
+<FONT ID="LN">764 </FONT><A NAME="764"></A>   * 
+<FONT ID="LN">765 </FONT><A NAME="765"></A>   * stream.writeObject(m_fileName);
+<FONT ID="LN">766 </FONT><A NAME="766"></A>   * 
+<FONT ID="LN">767 </FONT><A NAME="767"></A>   * stream.writeObject(new Boolean(m_isTrained));
+<FONT ID="LN">768 </FONT><A NAME="768"></A>   * 
+<FONT ID="LN">769 </FONT><A NAME="769"></A>   * 
+<FONT ID="LN">770 </FONT><A NAME="770"></A>   * if (m_validationPredictions == null) {
+<FONT ID="LN">771 </FONT><A NAME="771"></A>   *  }
+<FONT ID="LN">772 </FONT><A NAME="772"></A>   * 
+<FONT ID="LN">773 </FONT><A NAME="773"></A>   * if (m_Debug) System.out.println("Saving
+<FONT ID="LN">774 </FONT><A NAME="774"></A>   * "+m_validationPredictions.length+" indexed array");
+<FONT ID="LN">775 </FONT><A NAME="775"></A>   * stream.writeObject(m_validationPredictions);
+<FONT ID="LN">776 </FONT><A NAME="776"></A>   *  }
+<FONT ID="LN">777 </FONT><A NAME="777"></A>   * 
+<FONT ID="LN">778 </FONT><A NAME="778"></A>   * private void readObject(ObjectInputStream stream) throws IOException,
+<FONT ID="LN">779 </FONT><A NAME="779"></A>   * ClassNotFoundException { //stream.defaultReadObject(); //b = (String)
+<FONT ID="LN">780 </FONT><A NAME="780"></A>   * stream.readObject();
+<FONT ID="LN">781 </FONT><A NAME="781"></A>   * 
+<FONT ID="LN">782 </FONT><A NAME="782"></A>   * //super.readObject(stream);
+<FONT ID="LN">783 </FONT><A NAME="783"></A>   * 
+<FONT ID="LN">784 </FONT><A NAME="784"></A>   * //deserialize the LibraryModel fields m_Classifier =
+<FONT ID="LN">785 </FONT><A NAME="785"></A>   * (Classifier)stream.readObject();
+<FONT ID="LN">786 </FONT><A NAME="786"></A>   * 
+<FONT ID="LN">787 </FONT><A NAME="787"></A>   * m_DescriptionText = (String)stream.readObject();
+<FONT ID="LN">788 </FONT><A NAME="788"></A>   * 
+<FONT ID="LN">789 </FONT><A NAME="789"></A>   * m_ErrorText = (String)stream.readObject();
+<FONT ID="LN">790 </FONT><A NAME="790"></A>   * 
+<FONT ID="LN">791 </FONT><A NAME="791"></A>   * m_OptionsWereValid = ((Boolean)stream.readObject()).booleanValue();
+<FONT ID="LN">792 </FONT><A NAME="792"></A>   * 
+<FONT ID="LN">793 </FONT><A NAME="793"></A>   * m_StringRepresentation = (String)stream.readObject();
+<FONT ID="LN">794 </FONT><A NAME="794"></A>   * 
+<FONT ID="LN">795 </FONT><A NAME="795"></A>   * 
+<FONT ID="LN">796 </FONT><A NAME="796"></A>   * 
+<FONT ID="LN">797 </FONT><A NAME="797"></A>   * //now deserialize the EnsembleLibraryModel fields m_models =
+<FONT ID="LN">798 </FONT><A NAME="798"></A>   * (Classifier[])stream.readObject();
+<FONT ID="LN">799 </FONT><A NAME="799"></A>   * 
+<FONT ID="LN">800 </FONT><A NAME="800"></A>   * m_seed = ((Integer)stream.readObject()).intValue();
+<FONT ID="LN">801 </FONT><A NAME="801"></A>   * 
+<FONT ID="LN">802 </FONT><A NAME="802"></A>   * m_checksum = (String)stream.readObject();
+<FONT ID="LN">803 </FONT><A NAME="803"></A>   * 
+<FONT ID="LN">804 </FONT><A NAME="804"></A>   * m_validationRatio = ((Double)stream.readObject()).doubleValue();
+<FONT ID="LN">805 </FONT><A NAME="805"></A>   * 
+<FONT ID="LN">806 </FONT><A NAME="806"></A>   * m_folds = ((Integer)stream.readObject()).intValue();
+<FONT ID="LN">807 </FONT><A NAME="807"></A>   * 
+<FONT ID="LN">808 </FONT><A NAME="808"></A>   * m_fileName = (String)stream.readObject();
+<FONT ID="LN">809 </FONT><A NAME="809"></A>   * 
+<FONT ID="LN">810 </FONT><A NAME="810"></A>   * m_isTrained = ((Boolean)stream.readObject()).booleanValue();
+<FONT ID="LN">811 </FONT><A NAME="811"></A>   * 
+<FONT ID="LN">812 </FONT><A NAME="812"></A>   * m_validationPredictions = (double[][])stream.readObject();
+<FONT ID="LN">813 </FONT><A NAME="813"></A>   * 
+<FONT ID="LN">814 </FONT><A NAME="814"></A>   * if (m_Debug) System.out.println("Loaded
+<FONT ID="LN">815 </FONT><A NAME="815"></A>   * "+m_validationPredictions.length+" indexed array"); }
+<FONT ID="LN">816 </FONT><A NAME="816"></A>   * 
+<FONT ID="LN">817 </FONT><A NAME="817"></A>   */</FONT>
+<FONT ID="LN">818 </FONT><A NAME="818"></A>  
+<FONT ID="LN">819 </FONT><A NAME="819"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">820 </FONT><A NAME="820"></A>   * getter for validation predictions
+<FONT ID="LN">821 </FONT><A NAME="821"></A>   * 
+<FONT ID="LN">822 </FONT><A NAME="822"></A>   * @return        the current validation predictions
+<FONT ID="LN">823 </FONT><A NAME="823"></A>   */</FONT>
+<FONT ID="LN">824 </FONT><A NAME="824"></A>  <FONT ID="Public">public</FONT> <FONT ID="Double">double</FONT>[][] getValidationPredictions() {
+<FONT ID="LN">825 </FONT><A NAME="825"></A>    <FONT ID="Return">return</FONT> m_validationPredictions;
+<FONT ID="LN">826 </FONT><A NAME="826"></A>  }
+<FONT ID="LN">827 </FONT><A NAME="827"></A>  
+<FONT ID="LN">828 </FONT><A NAME="828"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">829 </FONT><A NAME="829"></A>   * setter for validation predictions
+<FONT ID="LN">830 </FONT><A NAME="830"></A>   * 
+<FONT ID="LN">831 </FONT><A NAME="831"></A>   * @param predictions the new validation predictions
+<FONT ID="LN">832 </FONT><A NAME="832"></A>   */</FONT>
+<FONT ID="LN">833 </FONT><A NAME="833"></A>  <FONT ID="Public">public</FONT> <FONT ID="Void">void</FONT> setValidationPredictions(<FONT ID="Double">double</FONT>[][] predictions) {
+<FONT ID="LN">834 </FONT><A NAME="834"></A>    <FONT ID="If">if</FONT> (m_Debug)
+<FONT ID="LN">835 </FONT><A NAME="835"></A>      System.out.println(<FONT ID="StringLiteral">"Saving validation array of size "</FONT>
+<FONT ID="LN">836 </FONT><A NAME="836"></A>      + predictions.length);
+<FONT ID="LN">837 </FONT><A NAME="837"></A>    m_validationPredictions = <FONT ID="New">new</FONT> <FONT ID="Double">double</FONT>[predictions.length][];
+<FONT ID="LN">838 </FONT><A NAME="838"></A>    System.arraycopy(predictions, <FONT ID="IntegerLiteral">0</FONT>, m_validationPredictions, <FONT ID="IntegerLiteral">0</FONT>,
+<FONT ID="LN">839 </FONT><A NAME="839"></A>    predictions.length);
+<FONT ID="LN">840 </FONT><A NAME="840"></A>  }
+<FONT ID="LN">841 </FONT><A NAME="841"></A>  
+<FONT ID="LN">842 </FONT><A NAME="842"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">843 </FONT><A NAME="843"></A>   * Returns the revision string.
+<FONT ID="LN">844 </FONT><A NAME="844"></A>   * 
+<FONT ID="LN">845 </FONT><A NAME="845"></A>   * @return        the revision
+<FONT ID="LN">846 </FONT><A NAME="846"></A>   */</FONT>
+<FONT ID="LN">847 </FONT><A NAME="847"></A>  <FONT ID="Public">public</FONT> String getRevision() {
+<FONT ID="LN">848 </FONT><A NAME="848"></A>    <FONT ID="Return">return</FONT> RevisionUtils.extract(<FONT ID="StringLiteral">"$Revision: 5928 $"</FONT>);
+<FONT ID="LN">849 </FONT><A NAME="849"></A>  }
+<FONT ID="LN">850 </FONT><A NAME="850"></A>}
+<FONT ID="LN">851 </FONT><A NAME="851"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">EnsembleSelectionLibraryModel.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>

@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<HTML>
+<HEAD>
+<LINK REL=STYLESHEET TYPE="text/css" HREF="../../../stylesheet.css" TITLE="Style">
+<META NAME="GENERATOR" CONTENT="Java2HTML Version 1.5">
+<TITLE>weka.core.pmml.TransformationDictionary (Java2HTML)</TITLE>
+</HEAD>
+<BODY><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TransformationDictionary.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+<pre ID="Classes">
+<FONT ID="LN">1   </FONT><A NAME="1"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">2   </FONT><A NAME="2"></A> *    This program is free software; you can redistribute it and/or modify
+<FONT ID="LN">3   </FONT><A NAME="3"></A> *    it under the terms of the GNU General Public License as published by
+<FONT ID="LN">4   </FONT><A NAME="4"></A> *    the Free Software Foundation; either version 2 of the License, or
+<FONT ID="LN">5   </FONT><A NAME="5"></A> *    (at your option) any later version.
+<FONT ID="LN">6   </FONT><A NAME="6"></A> *
+<FONT ID="LN">7   </FONT><A NAME="7"></A> *    This program is distributed in the hope that it will be useful,
+<FONT ID="LN">8   </FONT><A NAME="8"></A> *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+<FONT ID="LN">9   </FONT><A NAME="9"></A> *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+<FONT ID="LN">10  </FONT><A NAME="10"></A> *    GNU General Public License for more details.
+<FONT ID="LN">11  </FONT><A NAME="11"></A> *
+<FONT ID="LN">12  </FONT><A NAME="12"></A> *    You should have received a copy of the GNU General Public License
+<FONT ID="LN">13  </FONT><A NAME="13"></A> *    along with this program; if not, write to the Free Software
+<FONT ID="LN">14  </FONT><A NAME="14"></A> *    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+<FONT ID="LN">15  </FONT><A NAME="15"></A> */</FONT>
+<FONT ID="LN">16  </FONT><A NAME="16"></A>
+<FONT ID="LN">17  </FONT><A NAME="17"></A><FONT ID="MultiLineComment">/*
+<FONT ID="LN">18  </FONT><A NAME="18"></A> *    TransformationDictionary.java
+<FONT ID="LN">19  </FONT><A NAME="19"></A> *    Copyright (C) 2008 University of Waikato, Hamilton, New Zealand
+<FONT ID="LN">20  </FONT><A NAME="20"></A> *
+<FONT ID="LN">21  </FONT><A NAME="21"></A> */</FONT>
+<FONT ID="LN">22  </FONT><A NAME="22"></A>
+<FONT ID="LN">23  </FONT><A NAME="23"></A><FONT ID="Package">package</FONT> weka.core.pmml;
+<FONT ID="LN">24  </FONT><A NAME="24"></A>
+<FONT ID="LN">25  </FONT><A NAME="25"></A><FONT ID="Import">import</FONT> java.io.Serializable;
+<FONT ID="LN">26  </FONT><A NAME="26"></A><FONT ID="Import">import</FONT> java.util.ArrayList;
+<FONT ID="LN">27  </FONT><A NAME="27"></A>
+<FONT ID="LN">28  </FONT><A NAME="28"></A><FONT ID="Import">import</FONT> org.w3c.dom.Element;
+<FONT ID="LN">29  </FONT><A NAME="29"></A><FONT ID="Import">import</FONT> org.w3c.dom.Node;
+<FONT ID="LN">30  </FONT><A NAME="30"></A><FONT ID="Import">import</FONT> org.w3c.dom.NodeList;
+<FONT ID="LN">31  </FONT><A NAME="31"></A>
+<FONT ID="LN">32  </FONT><A NAME="32"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Attribute.java.html">weka.core.Attribute</A>;
+<FONT ID="LN">33  </FONT><A NAME="33"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/Instances.java.html">weka.core.Instances</A>;
+<FONT ID="LN">34  </FONT><A NAME="34"></A><FONT ID="Import">import</FONT> <A HREF="../../../weka/core/SerializedObject.java.html">weka.core.SerializedObject</A>;
+<FONT ID="LN">35  </FONT><A NAME="35"></A>
+<FONT ID="LN">36  </FONT><A NAME="36"></A><FONT ID="FormalComment">/**
+<FONT ID="LN">37  </FONT><A NAME="37"></A> * Class encapsulating the TransformationDictionary element. Contains
+<FONT ID="LN">38  </FONT><A NAME="38"></A> * a list of DefineFunctions and DerivedFields (if any).
+<FONT ID="LN">39  </FONT><A NAME="39"></A> * 
+<FONT ID="LN">40  </FONT><A NAME="40"></A> * @author Mark Hall (mhall{[at]}pentaho{[dot]}com
+<FONT ID="LN">41  </FONT><A NAME="41"></A> * @version $Revision 1.0 $
+<FONT ID="LN">42  </FONT><A NAME="42"></A> */</FONT>
+<FONT ID="LN">43  </FONT><A NAME="43"></A><FONT ID="Class">class</FONT> TransformationDictionary <FONT ID="Implements">implements</FONT> Serializable {
+<FONT ID="LN">44  </FONT><A NAME="44"></A>  
+<FONT ID="LN">45  </FONT><A NAME="45"></A>  <FONT ID="FormalComment">/** The defined functions (if any) */</FONT>
+<FONT ID="LN">46  </FONT><A NAME="46"></A>  <FONT ID="Protected">protected</FONT> ArrayList&lt;<A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A>&gt; m_defineFunctions = <FONT ID="New">new</FONT> ArrayList&lt;<A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A>&gt;();
+<FONT ID="LN">47  </FONT><A NAME="47"></A>  
+<FONT ID="LN">48  </FONT><A NAME="48"></A>  <FONT ID="FormalComment">/** The derived fields (if any) */</FONT>
+<FONT ID="LN">49  </FONT><A NAME="49"></A>  <FONT ID="Protected">protected</FONT> ArrayList&lt;<A HREF="../../../weka/core/pmml/DerivedFieldMetaInfo.java.html">DerivedFieldMetaInfo</A>&gt; m_derivedFields = 
+<FONT ID="LN">50  </FONT><A NAME="50"></A>    <FONT ID="New">new</FONT> ArrayList&lt;<A HREF="../../../weka/core/pmml/DerivedFieldMetaInfo.java.html">DerivedFieldMetaInfo</A>&gt;();
+<FONT ID="LN">51  </FONT><A NAME="51"></A>  
+<FONT ID="LN">52  </FONT><A NAME="52"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">53  </FONT><A NAME="53"></A>   * Construct a new TransformationDictionary
+<FONT ID="LN">54  </FONT><A NAME="54"></A>   * 
+<FONT ID="LN">55  </FONT><A NAME="55"></A>   * @param dictionary the Element containing the dictionary
+<FONT ID="LN">56  </FONT><A NAME="56"></A>   * @param dataDictionary the data dictionary as an Instances object
+<FONT ID="LN">57  </FONT><A NAME="57"></A>   * @throws Exception if there is a problem constructing the transformation
+<FONT ID="LN">58  </FONT><A NAME="58"></A>   * dictionary
+<FONT ID="LN">59  </FONT><A NAME="59"></A>   */</FONT>
+<FONT ID="LN">60  </FONT><A NAME="60"></A>  <FONT ID="Protected">protected</FONT> TransformationDictionary(Element dictionary, 
+<FONT ID="LN">61  </FONT><A NAME="61"></A>                                  <A HREF="../../../weka/core/Instances.java.html">Instances</A> dataDictionary) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">62  </FONT><A NAME="62"></A>    
+<FONT ID="LN">63  </FONT><A NAME="63"></A>    <FONT ID="SingleLineComment">// set up incoming field definitions
+<FONT ID="LN">64  </FONT><A NAME="64"></A></FONT><FONT ID="MultiLineComment">/*    ArrayList&lt;Attribute&gt; incomingFieldDefs = new ArrayList&lt;Attribute&gt;();
+<FONT ID="LN">65  </FONT><A NAME="65"></A>    for (int i = 0; i &lt; dataDictionary.numAttributes(); i++) {
+<FONT ID="LN">66  </FONT><A NAME="66"></A>      incomingFieldDefs.add(dataDictionary.attribute(i));
+<FONT ID="LN">67  </FONT><A NAME="67"></A>    } */</FONT>
+<FONT ID="LN">68  </FONT><A NAME="68"></A>    
+<FONT ID="LN">69  </FONT><A NAME="69"></A>    <FONT ID="SingleLineComment">// get any derived fields and DefineFunctions
+<FONT ID="LN">70  </FONT><A NAME="70"></A></FONT>    NodeList derivedL = dictionary.getChildNodes();
+<FONT ID="LN">71  </FONT><A NAME="71"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; derivedL.getLength(); i++) {
+<FONT ID="LN">72  </FONT><A NAME="72"></A>      Node child = derivedL.item(i);
+<FONT ID="LN">73  </FONT><A NAME="73"></A>      <FONT ID="If">if</FONT> (child.getNodeType() == Node.ELEMENT_NODE) {
+<FONT ID="LN">74  </FONT><A NAME="74"></A>        String tagName = ((Element)child).getTagName();
+<FONT ID="LN">75  </FONT><A NAME="75"></A>        <FONT ID="If">if</FONT> (tagName.equals(<FONT ID="StringLiteral">"DerivedField"</FONT>)) {
+<FONT ID="LN">76  </FONT><A NAME="76"></A>          <A HREF="../../../weka/core/pmml/DerivedFieldMetaInfo.java.html">DerivedFieldMetaInfo</A> df = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/pmml/DerivedFieldMetaInfo.java.html">DerivedFieldMetaInfo</A>((Element)child, <FONT ID="Null">null</FONT> <FONT ID="MultiLineComment">/*incomingFieldDefs*/</FONT>, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">77  </FONT><A NAME="77"></A>          m_derivedFields.add(df);
+<FONT ID="LN">78  </FONT><A NAME="78"></A>        } <FONT ID="Else">else</FONT> <FONT ID="If">if</FONT> (tagName.equals(<FONT ID="StringLiteral">"DefineFunction"</FONT>)) {
+<FONT ID="LN">79  </FONT><A NAME="79"></A>          <A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A> defF = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A>((Element)child, <FONT ID="Null">null</FONT>);
+<FONT ID="LN">80  </FONT><A NAME="80"></A>          m_defineFunctions.add(defF);
+<FONT ID="LN">81  </FONT><A NAME="81"></A>        }
+<FONT ID="LN">82  </FONT><A NAME="82"></A>      }
+<FONT ID="LN">83  </FONT><A NAME="83"></A>    }
+<FONT ID="LN">84  </FONT><A NAME="84"></A>  }
+<FONT ID="LN">85  </FONT><A NAME="85"></A>  
+<FONT ID="LN">86  </FONT><A NAME="86"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">87  </FONT><A NAME="87"></A>   * Set the field definitions for the derived fields. Usually called once the
+<FONT ID="LN">88  </FONT><A NAME="88"></A>   * structure of the mining schema + derived fields has been determined. 
+<FONT ID="LN">89  </FONT><A NAME="89"></A>   * Calling this method with an array list of field definitions in the order of 
+<FONT ID="LN">90  </FONT><A NAME="90"></A>   * attributes in the mining schema + derived fields will allow the expressions 
+<FONT ID="LN">91  </FONT><A NAME="91"></A>   * used in the derived fields to access the correct attribute values from the 
+<FONT ID="LN">92  </FONT><A NAME="92"></A>   * incoming instance (also allows for derived fields to reference other
+<FONT ID="LN">93  </FONT><A NAME="93"></A>   * derived fields). This is necessary because construction of the TransformationDictionary uses the
+<FONT ID="LN">94  </FONT><A NAME="94"></A>   * data dictionary to reference fields (the order of fields in the data dictionary
+<FONT ID="LN">95  </FONT><A NAME="95"></A>   * is not guaranteed to be the same as the order in the mining schema).
+<FONT ID="LN">96  </FONT><A NAME="96"></A>   * 
+<FONT ID="LN">97  </FONT><A NAME="97"></A>   * IMPORTANT: for derived field x to be able to reference derived field y, y must
+<FONT ID="LN">98  </FONT><A NAME="98"></A>   * have been declared before x in the PMML file. This is because the process
+<FONT ID="LN">99  </FONT><A NAME="99"></A>   * of constructing an input vector of values to the model proceeds in a linear
+<FONT ID="LN">100 </FONT><A NAME="100"></A>   * left-to-right fashion - so any referenced derived field (e.g. field y),
+<FONT ID="LN">101 </FONT><A NAME="101"></A>   * must have already computed its value when x is evaluated.
+<FONT ID="LN">102 </FONT><A NAME="102"></A>   * 
+<FONT ID="LN">103 </FONT><A NAME="103"></A>   * @param fieldDefs the definition of the incoming fields as an array list of attributes
+<FONT ID="LN">104 </FONT><A NAME="104"></A>   * @throws Exception if a problem occurs
+<FONT ID="LN">105 </FONT><A NAME="105"></A>   */</FONT>
+<FONT ID="LN">106 </FONT><A NAME="106"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setFieldDefsForDerivedFields(ArrayList&lt;<A HREF="../../../weka/core/Attribute.java.html">Attribute</A>&gt; fieldDefs) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">107 </FONT><A NAME="107"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_derivedFields.size(); i++) {
+<FONT ID="LN">108 </FONT><A NAME="108"></A>      m_derivedFields.get(i).setFieldDefs(fieldDefs);
+<FONT ID="LN">109 </FONT><A NAME="109"></A>    }
+<FONT ID="LN">110 </FONT><A NAME="110"></A>    
+<FONT ID="LN">111 </FONT><A NAME="111"></A>    <FONT ID="SingleLineComment">// refresh the define functions - force them to pass on their parameter
+<FONT ID="LN">112 </FONT><A NAME="112"></A></FONT>    <FONT ID="SingleLineComment">// definitions as field defs to their encapsulated expression. Parameter
+<FONT ID="LN">113 </FONT><A NAME="113"></A></FONT>    <FONT ID="SingleLineComment">// defs were not passed on by expressions encapsulated in DefineFunctions
+<FONT ID="LN">114 </FONT><A NAME="114"></A></FONT>    <FONT ID="SingleLineComment">// at construction time because the encapsulated expression does not know
+<FONT ID="LN">115 </FONT><A NAME="115"></A></FONT>    <FONT ID="SingleLineComment">// whether it is contained in a DefineFunction or a DerivedField. Since
+<FONT ID="LN">116 </FONT><A NAME="116"></A></FONT>    <FONT ID="SingleLineComment">// we delay passing on field definitions until all derived fields are 
+<FONT ID="LN">117 </FONT><A NAME="117"></A></FONT>    <FONT ID="SingleLineComment">// loaded (in order to allow derived fields to reference other derived fields),
+<FONT ID="LN">118 </FONT><A NAME="118"></A></FONT>    <FONT ID="SingleLineComment">// we must tell DefineFunctions to pass on their parameter definitions
+<FONT ID="LN">119 </FONT><A NAME="119"></A></FONT>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; m_defineFunctions.size(); i++) {
+<FONT ID="LN">120 </FONT><A NAME="120"></A>      m_defineFunctions.get(i).pushParameterDefs();
+<FONT ID="LN">121 </FONT><A NAME="121"></A>    }
+<FONT ID="LN">122 </FONT><A NAME="122"></A>  }
+<FONT ID="LN">123 </FONT><A NAME="123"></A>  
+<FONT ID="LN">124 </FONT><A NAME="124"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">125 </FONT><A NAME="125"></A>   * Set the field definitions for the derived fields. Usually called once the
+<FONT ID="LN">126 </FONT><A NAME="126"></A>   * structure of the mining schema has been determined. Calling this method
+<FONT ID="LN">127 </FONT><A NAME="127"></A>   * with an array list of field definitions in the order of attributes in the
+<FONT ID="LN">128 </FONT><A NAME="128"></A>   * mining schema will allow the expressions used in the derived fields to
+<FONT ID="LN">129 </FONT><A NAME="129"></A>   * access the correct attribute values from the incoming instances. This is
+<FONT ID="LN">130 </FONT><A NAME="130"></A>   * necessary because construction of the TransformationDictionary uses the
+<FONT ID="LN">131 </FONT><A NAME="131"></A>   * data dictionary to reference fields (the order of fields in the data dictionary
+<FONT ID="LN">132 </FONT><A NAME="132"></A>   * is not guaranteed to be the same as the order in the mining schema).
+<FONT ID="LN">133 </FONT><A NAME="133"></A>   * 
+<FONT ID="LN">134 </FONT><A NAME="134"></A>   * @param fieldDefs the definition of the incoming fields as an Instances object
+<FONT ID="LN">135 </FONT><A NAME="135"></A>   * @throws Exception if a problem occurs
+<FONT ID="LN">136 </FONT><A NAME="136"></A>   */</FONT>
+<FONT ID="LN">137 </FONT><A NAME="137"></A>  <FONT ID="Protected">protected</FONT> <FONT ID="Void">void</FONT> setFieldDefsForDerivedFields(<A HREF="../../../weka/core/Instances.java.html">Instances</A> fieldDefs) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">138 </FONT><A NAME="138"></A>    ArrayList&lt;<A HREF="../../../weka/core/Attribute.java.html">Attribute</A>&gt; tempDefs = <FONT ID="New">new</FONT> ArrayList&lt;<A HREF="../../../weka/core/Attribute.java.html">Attribute</A>&gt;();
+<FONT ID="LN">139 </FONT><A NAME="139"></A>    <FONT ID="For">for</FONT> (<FONT ID="Int">int</FONT> i = <FONT ID="IntegerLiteral">0</FONT>; i &lt; fieldDefs.numAttributes(); i++) {
+<FONT ID="LN">140 </FONT><A NAME="140"></A>      tempDefs.add(fieldDefs.attribute(i));
+<FONT ID="LN">141 </FONT><A NAME="141"></A>    }
+<FONT ID="LN">142 </FONT><A NAME="142"></A>    setFieldDefsForDerivedFields(tempDefs);
+<FONT ID="LN">143 </FONT><A NAME="143"></A>  }
+<FONT ID="LN">144 </FONT><A NAME="144"></A>  
+<FONT ID="LN">145 </FONT><A NAME="145"></A>  <FONT ID="Protected">protected</FONT> ArrayList&lt;<A HREF="../../../weka/core/pmml/DerivedFieldMetaInfo.java.html">DerivedFieldMetaInfo</A>&gt; getDerivedFields() {
+<FONT ID="LN">146 </FONT><A NAME="146"></A>    <FONT ID="Return">return</FONT> <FONT ID="New">new</FONT> ArrayList&lt;<A HREF="../../../weka/core/pmml/DerivedFieldMetaInfo.java.html">DerivedFieldMetaInfo</A>&gt;(m_derivedFields);
+<FONT ID="LN">147 </FONT><A NAME="147"></A>  }
+<FONT ID="LN">148 </FONT><A NAME="148"></A>  
+<FONT ID="LN">149 </FONT><A NAME="149"></A>  <FONT ID="FormalComment">/**
+<FONT ID="LN">150 </FONT><A NAME="150"></A>   * Get a named DefineFunction. Returns a deep copy of the
+<FONT ID="LN">151 </FONT><A NAME="151"></A>   * function.
+<FONT ID="LN">152 </FONT><A NAME="152"></A>   * 
+<FONT ID="LN">153 </FONT><A NAME="153"></A>   * @param functionName the name of the function to get
+<FONT ID="LN">154 </FONT><A NAME="154"></A>   * @return the named function or null if it cannot be found
+<FONT ID="LN">155 </FONT><A NAME="155"></A>   * @throws Exception if there is a problem deep copying the function
+<FONT ID="LN">156 </FONT><A NAME="156"></A>   */</FONT>
+<FONT ID="LN">157 </FONT><A NAME="157"></A>  <FONT ID="Protected">protected</FONT> <A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A> getFunction(String functionName) <FONT ID="Throws">throws</FONT> Exception {
+<FONT ID="LN">158 </FONT><A NAME="158"></A>
+<FONT ID="LN">159 </FONT><A NAME="159"></A>    <A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A> copy = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">160 </FONT><A NAME="160"></A>    <A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A> match = <FONT ID="Null">null</FONT>;
+<FONT ID="LN">161 </FONT><A NAME="161"></A>    <FONT ID="For">for</FONT> (<A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A> f : m_defineFunctions) {
+<FONT ID="LN">162 </FONT><A NAME="162"></A>      <FONT ID="If">if</FONT> (f.getName().equals(functionName)) {
+<FONT ID="LN">163 </FONT><A NAME="163"></A>        match = f;
+<FONT ID="LN">164 </FONT><A NAME="164"></A>        <FONT ID="SingleLineComment">//System.err.println("Found a match!!!");
+<FONT ID="LN">165 </FONT><A NAME="165"></A></FONT>        <FONT ID="Break">break</FONT>;
+<FONT ID="LN">166 </FONT><A NAME="166"></A>      }
+<FONT ID="LN">167 </FONT><A NAME="167"></A>    }
+<FONT ID="LN">168 </FONT><A NAME="168"></A>    
+<FONT ID="LN">169 </FONT><A NAME="169"></A>    <FONT ID="If">if</FONT> (match != <FONT ID="Null">null</FONT>) {
+<FONT ID="LN">170 </FONT><A NAME="170"></A>      <A HREF="../../../weka/core/SerializedObject.java.html">SerializedObject</A> so = <FONT ID="New">new</FONT> <A HREF="../../../weka/core/SerializedObject.java.html">SerializedObject</A>(match, <FONT ID="False">false</FONT>);
+<FONT ID="LN">171 </FONT><A NAME="171"></A>      copy = (<A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A>)so.getObject();
+<FONT ID="LN">172 </FONT><A NAME="172"></A>      <FONT ID="SingleLineComment">//System.err.println(copy);
+<FONT ID="LN">173 </FONT><A NAME="173"></A></FONT>    }
+<FONT ID="LN">174 </FONT><A NAME="174"></A>    
+<FONT ID="LN">175 </FONT><A NAME="175"></A>    <FONT ID="Return">return</FONT> copy;
+<FONT ID="LN">176 </FONT><A NAME="176"></A>  }
+<FONT ID="LN">177 </FONT><A NAME="177"></A>  
+<FONT ID="LN">178 </FONT><A NAME="178"></A>  <FONT ID="Public">public</FONT> String toString() {
+<FONT ID="LN">179 </FONT><A NAME="179"></A>    StringBuffer buff = <FONT ID="New">new</FONT> StringBuffer();
+<FONT ID="LN">180 </FONT><A NAME="180"></A>    
+<FONT ID="LN">181 </FONT><A NAME="181"></A>    buff.append(<FONT ID="StringLiteral">"Transformation dictionary:\n"</FONT>);
+<FONT ID="LN">182 </FONT><A NAME="182"></A>    
+<FONT ID="LN">183 </FONT><A NAME="183"></A>    <FONT ID="If">if</FONT> (m_derivedFields.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">184 </FONT><A NAME="184"></A>      buff.append(<FONT ID="StringLiteral">"derived fields:\n"</FONT>);
+<FONT ID="LN">185 </FONT><A NAME="185"></A>      <FONT ID="For">for</FONT> (<A HREF="../../../weka/core/pmml/DerivedFieldMetaInfo.java.html">DerivedFieldMetaInfo</A> d : m_derivedFields) {
+<FONT ID="LN">186 </FONT><A NAME="186"></A>        buff.append(<FONT ID="StringLiteral">""</FONT> + d.getFieldAsAttribute() + <FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">187 </FONT><A NAME="187"></A>      }
+<FONT ID="LN">188 </FONT><A NAME="188"></A>    }
+<FONT ID="LN">189 </FONT><A NAME="189"></A>    
+<FONT ID="LN">190 </FONT><A NAME="190"></A>    <FONT ID="If">if</FONT> (m_defineFunctions.size() &gt; <FONT ID="IntegerLiteral">0</FONT>) {
+<FONT ID="LN">191 </FONT><A NAME="191"></A>      buff.append(<FONT ID="StringLiteral">"\nfunctions:\n"</FONT>);
+<FONT ID="LN">192 </FONT><A NAME="192"></A>      <FONT ID="For">for</FONT> (<A HREF="../../../weka/core/pmml/DefineFunction.java.html">DefineFunction</A> f : m_defineFunctions) {
+<FONT ID="LN">193 </FONT><A NAME="193"></A>        buff.append(f.toString(<FONT ID="StringLiteral">"  "</FONT>) + <FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">194 </FONT><A NAME="194"></A>      }
+<FONT ID="LN">195 </FONT><A NAME="195"></A>    }
+<FONT ID="LN">196 </FONT><A NAME="196"></A>    
+<FONT ID="LN">197 </FONT><A NAME="197"></A>    buff.append(<FONT ID="StringLiteral">"\n"</FONT>);
+<FONT ID="LN">198 </FONT><A NAME="198"></A>    
+<FONT ID="LN">199 </FONT><A NAME="199"></A>    <FONT ID="Return">return</FONT> buff.toString();
+<FONT ID="LN">200 </FONT><A NAME="200"></A>  }
+<FONT ID="LN">201 </FONT><A NAME="201"></A>}
+<FONT ID="LN">202 </FONT><A NAME="202"></A></pre><TABLE id="Header" border="0" cellpadding="0" cellspacing="0" width="100%">
+<tr>
+<td colspan="2" width="33%">&nbsp;</td>
+<td align="center" colspan="2" width="33%">
+<font size="4">TransformationDictionary.java</font>
+</td>
+<td align="right" colspan="2" width="33%">&nbsp;</td>
+</tr>
+</TABLE>
+
+</BODY>
+</HTML>
