@@ -1,1 +1,0 @@
-ant -f ../compare/chord/main/build.xml -Dchord.work.dir=/evaluation/coref run

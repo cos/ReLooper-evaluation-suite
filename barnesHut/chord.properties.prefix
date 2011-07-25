@@ -1,0 +1,2 @@
+chord.main.class=barnesHut.ThreadsBarneshut
+chord.class.path=../../lib/parallelArray.threads;bin
