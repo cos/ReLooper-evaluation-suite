@@ -1,2 +1,2 @@
-chord.main.class=barnesHut.ThreadsBarneshut
+chord.main.class=weka.clusterers.EM
 chord.class.path=../../lib/parallelArray.threads;bin

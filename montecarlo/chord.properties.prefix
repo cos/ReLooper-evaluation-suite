@@ -1,0 +1,2 @@
+chord.main.class=montecarlo.parallel.JGFMonteCarloBench
+chord.class.path=../../lib/parallelArray.threads;bin

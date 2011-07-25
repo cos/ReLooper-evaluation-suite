@@ -1,2 +1,2 @@
-chord.main.class=barnesHut.ThreadsBarneshut
+chord.main.class=org.dacapo.lusearch.Search
 chord.class.path=../../lib/parallelArray.threads;bin

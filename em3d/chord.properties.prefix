@@ -1,2 +1,2 @@
-chord.main.class=barnesHut.ThreadsBarneshut
+chord.main.class=em3d.threads.Em3d
 chord.class.path=../../lib/parallelArray.threads;bin

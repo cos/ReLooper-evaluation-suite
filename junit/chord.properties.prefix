@@ -1,0 +1,2 @@
+chord.main.class=junit.tests.ParallelThreadsAllTests
+chord.class.path=../../lib/parallelArray.threads/bin;bin
