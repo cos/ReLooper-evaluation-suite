@@ -1,2 +1,2 @@
-chord.main.class=weka.clusterers.EM
-chord.class.path=../../lib/parallelArray.threads;bin
+chord.main.class=weka.clusterers.EM_JChordEntrypoint
+chord.class.path=../../lib/parallelArray.threads/bin;bin;lib/java-cup.jar;lib/JFlex.jar;lib/junit.jar

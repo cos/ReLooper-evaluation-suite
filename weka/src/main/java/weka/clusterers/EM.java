@@ -115,8 +115,8 @@ import extra166y.ParallelArray;
  * @author Eibe Frank (eibe@cs.waikato.ac.nz)
  * @version $Revision: 1.44 $
  */
-public class EM extends RandomizableDensityBasedClusterer implements NumberOfClustersRequestable,
-    WeightedInstancesHandler {
+public class EM extends RandomizableDensityBasedClusterer implements
+		NumberOfClustersRequestable, WeightedInstancesHandler {
 
 	/** for serialization */
 	static final long serialVersionUID = 8348181483812829475L;
@@ -150,8 +150,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	private int m_num_clusters;
 
 	/**
-	 * the initial number of clusters requested by the user--- -1 if xval is to be
-	 * used to find the number of clusters
+	 * the initial number of clusters requested by the user--- -1 if xval is to
+	 * be used to find the number of clusters
 	 */
 	private int m_initialNumClusters;
 
@@ -190,19 +190,21 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 */
 	public String globalInfo() {
 		return "Simple EM (expectation maximisation) class.\n\n"
-		    + "EM assigns a probability distribution to each instance which "
-		    + "indicates the probability of it belonging to each of the clusters. "
-		    + "EM can decide how many clusters to create by cross validation, or you "
-		    + "may specify apriori how many clusters to generate.\n\n"
-		    + "The cross validation performed to determine the number of clusters " + "is done in the following steps:\n"
-		    + "1. the number of clusters is set to 1\n" + "2. the training set is split randomly into 10 folds.\n"
-		    + "3. EM is performed 10 times using the 10 folds the usual CV way.\n"
-		    + "4. the loglikelihood is averaged over all 10 results.\n"
-		    + "5. if loglikelihood has increased the number of clusters is increased "
-		    + "by 1 and the program continues at step 2. \n\n"
-		    + "The number of folds is fixed to 10, as long as the number of "
-		    + "instances in the training set is not smaller 10. If this is the case "
-		    + "the number of folds is set equal to the number of instances.";
+				+ "EM assigns a probability distribution to each instance which "
+				+ "indicates the probability of it belonging to each of the clusters. "
+				+ "EM can decide how many clusters to create by cross validation, or you "
+				+ "may specify apriori how many clusters to generate.\n\n"
+				+ "The cross validation performed to determine the number of clusters "
+				+ "is done in the following steps:\n"
+				+ "1. the number of clusters is set to 1\n"
+				+ "2. the training set is split randomly into 10 folds.\n"
+				+ "3. EM is performed 10 times using the 10 folds the usual CV way.\n"
+				+ "4. the loglikelihood is averaged over all 10 results.\n"
+				+ "5. if loglikelihood has increased the number of clusters is increased "
+				+ "by 1 and the program continues at step 2. \n\n"
+				+ "The number of folds is fixed to 10, as long as the number of "
+				+ "instances in the training set is not smaller 10. If this is the case "
+				+ "the number of folds is set equal to the number of instances.";
 	}
 
 	/**
@@ -213,18 +215,24 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	public Enumeration listOptions() {
 		Vector result = new Vector();
 
-		result.addElement(new Option("\tnumber of clusters. If omitted or -1 specified, then \n"
-		    + "\tcross validation is used to select the number of clusters.", "N", 1, "-N <num>"));
+		result.addElement(new Option(
+				"\tnumber of clusters. If omitted or -1 specified, then \n"
+						+ "\tcross validation is used to select the number of clusters.",
+				"N", 1, "-N <num>"));
 
-		result.addElement(new Option("\tmax iterations." + "\n(default 100)", "I", 1, "-I <num>"));
+		result.addElement(new Option("\tmax iterations." + "\n(default 100)",
+				"I", 1, "-I <num>"));
 
 		result.addElement(new Option("\tverbose.", "V", 0, "-V"));
 
-		result.addElement(new Option("\tminimum allowable standard deviation for normal density\n" + "\tcomputation\n"
-		    + "\t(default 1e-6)", "M", 1, "-M <num>"));
+		result.addElement(new Option(
+				"\tminimum allowable standard deviation for normal density\n"
+						+ "\tcomputation\n" + "\t(default 1e-6)", "M", 1,
+				"-M <num>"));
 
-		result.addElement(new Option("\tDisplay model in old format (good when there are " + "many clusters)\n", "O", 0,
-		    "-O"));
+		result.addElement(new Option(
+				"\tDisplay model in old format (good when there are "
+						+ "many clusters)\n", "O", 0, "-O"));
 
 		Enumeration en = super.listOptions();
 		while (en.hasMoreElements())
@@ -278,9 +286,9 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * <!-- options-end -->
 	 * 
 	 * @param options
-	 *          the list of options as an array of strings
+	 *            the list of options as an array of strings
 	 * @throws Exception
-	 *           if an option is not supported
+	 *             if an option is not supported
 	 */
 	public void setOptions(String[] options) throws Exception {
 		resetOptions();
@@ -314,15 +322,15 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 */
 	public String displayModelInOldFormatTipText() {
 		return "Use old format for model output. The old format is "
-		    + "better when there are many clusters. The new format "
-		    + "is better when there are fewer clusters and many attributes.";
+				+ "better when there are many clusters. The new format "
+				+ "is better when there are fewer clusters and many attributes.";
 	}
 
 	/**
 	 * Set whether to display model output in the old, original format.
 	 * 
 	 * @param d
-	 *          true if model ouput is to be shown in the old format
+	 *            true if model ouput is to be shown in the old format
 	 */
 	public void setDisplayModelInOldFormat(boolean d) {
 		m_displayModelInOldFormat = d;
@@ -349,12 +357,12 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 
 	/**
 	 * Set the minimum value for standard deviation when calculating normal
-	 * density. Reducing this value can help prevent arithmetic overflow resulting
-	 * from multiplying large densities (arising from small standard deviations)
-	 * when there are many singleton or near singleton values.
+	 * density. Reducing this value can help prevent arithmetic overflow
+	 * resulting from multiplying large densities (arising from small standard
+	 * deviations) when there are many singleton or near singleton values.
 	 * 
 	 * @param m
-	 *          minimum value for standard deviation
+	 *            minimum value for standard deviation
 	 */
 	public void setMinStdDev(double m) {
 		m_minStdDev = m;
@@ -380,21 +388,23 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 *         explorer/experimenter gui
 	 */
 	public String numClustersTipText() {
-		return "set number of clusters. -1 to select number of clusters " + "automatically by cross validation.";
+		return "set number of clusters. -1 to select number of clusters "
+				+ "automatically by cross validation.";
 	}
 
 	/**
 	 * Set the number of clusters (-1 to select by CV).
 	 * 
 	 * @param n
-	 *          the number of clusters
+	 *            the number of clusters
 	 * @throws Exception
-	 *           if n is 0
+	 *             if n is 0
 	 */
 	public void setNumClusters(int n) throws Exception {
 
 		if (n == 0) {
-			throw new Exception("Number of clusters must be > 0. (or -1 to " + "select by cross validation).");
+			throw new Exception("Number of clusters must be > 0. (or -1 to "
+					+ "select by cross validation).");
 		}
 
 		if (n < 0) {
@@ -429,9 +439,9 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * Set the maximum number of iterations to perform
 	 * 
 	 * @param i
-	 *          the number of iterations
+	 *            the number of iterations
 	 * @throws Exception
-	 *           if i is less than 1
+	 *             if i is less than 1
 	 */
 	public void setMaxIterations(int i) throws Exception {
 		if (i < 1) {
@@ -457,14 +467,15 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 *         explorer/experimenter gui
 	 */
 	public String debugTipText() {
-		return "If set to true, clusterer may output additional info to " + "the console.";
+		return "If set to true, clusterer may output additional info to "
+				+ "the console.";
 	}
 
 	/**
 	 * Set debug mode - verbose output
 	 * 
 	 * @param v
-	 *          true for verbose output
+	 *            true for verbose output
 	 */
 	public void setDebug(boolean v) {
 		m_verbose = v;
@@ -509,23 +520,196 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	}
 
 	public void workaroundForPrivateEMInit() throws Exception {
-		EM_Init(m_theInstances);
+		EM_Init_withThreads(m_theInstances);
 	}
-	
+
+	private void EM_Init_withThreads(final Instances inst) throws Exception {
+		int i, j, k;
+
+		// run k means 10 times and choose best solution
+		 SimpleKMeans bestK = new SimpleKMeans();
+		 double bestSqE;
+		bestSqE = Double.MAX_VALUE;
+
+		int[] seeds = new int[10];
+		for (i = 0; i < 10; i++) {
+			seeds[i] = m_rr.nextInt();
+		}
+		final SimpleKMeans[] skArrs = new SimpleKMeans[10];
+		long startArrLoop = System.nanoTime();
+		for (i = 0; i < 10; i++) {
+			SimpleKMeans sk = new SimpleKMeans();
+			// sk.setSeed(seeds[i]);
+			sk.setSeed(m_rr.nextInt());
+			;
+			sk.setNumClusters(m_num_clusters);
+			sk.setDisplayStdDevs(true);
+			skArrs[i] = sk;
+		}
+		Thread t[] = new Thread[skArrs.length];
+		long start = System.nanoTime();
+		for (i = 0; i < skArrs.length; i++) {
+			final int ti = i;
+			t[ti] = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					try {
+						skArrs[ti].buildClusterer(inst);
+					} catch (Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}		
+				}});
+			t[ti].start();
+		}
+		for (i = 0; i < skArrs.length; i++) {
+			t[i].join();
+		}
+		long end = System.nanoTime();
+		System.out.println("buildCluster invoke [ms] " + (end - start)
+				/ 1000000.0);
+		for (i = 0; i < 10; i++) {
+			if (skArrs[i].getSquaredError() < bestSqE) {
+				bestSqE = skArrs[i].getSquaredError();
+				bestK = skArrs[i];
+			}
+		}
+
+		long endArrLoop = System.nanoTime();
+		double arrTime = (endArrLoop - startArrLoop) / 1000000.0;
+		// System.out.println("Seq_Array Loop of buildCluster invokes [ms] " +
+		// arrTime);
+
+		// Parallel loop
+		// long startLoop = System.nanoTime();
+		// ParallelArray<SimpleKMeans> sks = ParallelArray.create(10,
+		// SimpleKMeans.class, ParallelArray.defaultExecutor());
+		// for (i = 0; i < 10; i++) {
+		// SimpleKMeans sk = new SimpleKMeans();
+		// sk.setSeed(seeds[i]);
+		// sk.setNumClusters(m_num_clusters);
+		// sk.setDisplayStdDevs(true);
+		// sks.set(i, sk);
+		// }
+		// sks.apply(new Ops.Procedure<SimpleKMeans>() {
+		// @Override
+		// public void op(SimpleKMeans elt) {
+		// try {
+		// elt.buildClusterer(inst);
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
+		// }
+		// });
+		// // long start = System.nanoTime();
+		// //sk.buildClusterer(inst);
+		// //long end = System.nanoTime();
+		// //System.out.println("buildCluster invoke [ms] " +
+		// (end-start)/1000000.0);
+		// for (i = 0; i < 10; i++){
+		// if (sks.get(i).getSquaredError() < bestSqE) {
+		// bestSqE = sks.get(i).getSquaredError();
+		// bestK = sks.get(i);
+		// }
+		// }
+		// long endLoop = System.nanoTime();
+		// double timeSpan = (endLoop-startLoop)/1000000.0;
+		// //System.out.println("Parallel Loop of buildCluster invokes [ms] " +
+		// timeSpan);
+		// statistics.add(arrTime/timeSpan);
+		// totalArrTime += arrTime;
+		// totalParTime += timeSpan;
+		// System.out.println(arrTime/timeSpan);
+
+		// long startSeqLoop = System.nanoTime();
+		// for (i = 0; i < 10; i++) {
+		// SimpleKMeans sk = new SimpleKMeans();
+		// sk.setSeed(m_rr.nextInt());
+		// sk.setNumClusters(m_num_clusters);
+		// sk.setDisplayStdDevs(true);
+		// //long start = System.nanoTime();
+		// sk.buildClusterer(inst);
+		// //long end = System.nanoTime();
+		// //System.out.println("buildCluster invoke [ms] " +
+		// (end-start)/1000000.0);
+		// if (sk.getSquaredError() < bestSqE) {
+		// bestSqE = sk.getSquaredError();
+		// bestK = sk;
+		// }
+		// }
+		// long endSeqLoop = System.nanoTime();
+		// System.out.println("Loop of buildCluster invokes [ms] " +
+		// (endSeqLoop-startSeqLoop)/1000000.0);
+
+		// initialize with best k-means solution
+		m_num_clusters = bestK.numberOfClusters();
+		m_weights = new double[inst.numInstances()][m_num_clusters];
+		m_model = new DiscreteEstimator[m_num_clusters][m_num_attribs];
+		m_modelNormal = new double[m_num_clusters][m_num_attribs][3];
+		m_priors = new double[m_num_clusters];
+		Instances centers = bestK.getClusterCentroids();
+		Instances stdD = bestK.getClusterStandardDevs();
+		int[][][] nominalCounts = bestK.getClusterNominalCounts();
+		int[] clusterSizes = bestK.getClusterSizes();
+
+		for (i = 0; i < m_num_clusters; i++) {
+			Instance center = centers.instance(i);
+			for (j = 0; j < m_num_attribs; j++) {
+				if (inst.attribute(j).isNominal()) {
+					m_model[i][j] = new DiscreteEstimator(m_theInstances
+							.attribute(j).numValues(), true);
+					for (k = 0; k < inst.attribute(j).numValues(); k++) {
+						m_model[i][j].addValue(k, nominalCounts[i][j][k]);
+					}
+				} else {
+					double minStdD = (m_minStdDevPerAtt != null) ? m_minStdDevPerAtt[j]
+							: m_minStdDev;
+					double mean = (center.isMissing(j)) ? inst.meanOrMode(j)
+							: center.value(j);
+					m_modelNormal[i][j][0] = mean;
+					double stdv = (stdD.instance(i).isMissing(j)) ? ((m_maxValues[j] - m_minValues[j]) / (2 * m_num_clusters))
+							: stdD.instance(i).value(j);
+					if (stdv < minStdD) {
+						stdv = inst.attributeStats(j).numericStats.stdDev;
+						if (Double.isInfinite(stdv)) {
+							stdv = minStdD;
+						}
+						if (stdv < minStdD) {
+							stdv = minStdD;
+						}
+					}
+					if (stdv <= 0) {
+						stdv = m_minStdDev;
+					}
+
+					m_modelNormal[i][j][1] = stdv;
+					m_modelNormal[i][j][2] = 1.0;
+				}
+			}
+		}
+
+		for (j = 0; j < m_num_clusters; j++) {
+			// m_priors[j] += 1.0;
+			m_priors[j] = clusterSizes[j];
+		}
+		Utils.normalize(m_priors);
+	}
+
 	/**
 	 * Initialise estimators and storage.
 	 * 
 	 * @param inst
-	 *          the instances
+	 *            the instances
 	 * @throws Exception
-	 *           if initialization fails
+	 *             if initialization fails
 	 **/
 	private void EM_Init(final Instances inst) throws Exception {
 		int i, j, k;
 
 		// run k means 10 times and choose best solution
-		final SimpleKMeans[] bestK = new SimpleKMeans[1]; 
-		final double bestSqE[] = new double[1]; 
+		final SimpleKMeans[] bestK = new SimpleKMeans[1];
+		final double bestSqE[] = new double[1];
 		bestSqE[0] = Double.MAX_VALUE;
 
 		int[] seeds = new int[10];
@@ -558,48 +742,51 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		// }
 
 		// ---- Parallelized with parallel array ------
-		ParallelArray<SimpleKMeans> skArrs = ParallelArray.createUsingHandoff(new SimpleKMeans[10], ParallelArray.defaultExecutor());
+		ParallelArray<SimpleKMeans> skArrs = ParallelArray.createUsingHandoff(
+				new SimpleKMeans[10], ParallelArray.defaultExecutor());
 		long startArrLoop = System.nanoTime();
-		skArrs.replaceWithGeneratedValue(new Generator<SimpleKMeans>() {
+		skArrs.replaceWithGeneratedValueSeq(new Generator<SimpleKMeans>() {
 			@Override
-      public SimpleKMeans op() {
+			public SimpleKMeans op() {
 				SimpleKMeans sk = new SimpleKMeans();
 				// sk.setSeed(seeds[i]);
 				sk.setSeed(m_rr.nextInt());
 				;
 				try {
-	        sk.setNumClusters(m_num_clusters);
-        } catch (Exception e) {
-	        // TODO Auto-generated catch block
-	        e.printStackTrace();
-        }
+					sk.setNumClusters(m_num_clusters);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				sk.setDisplayStdDevs(true);
 				return sk;
-      }
+			}
 		});
 		skArrs.apply(new Procedure<SimpleKMeans>() {
 			@Override
-      public void op(SimpleKMeans e) {
+			public void op(SimpleKMeans e) {
 				try {
-	        e.buildClusterer(inst);
-        } catch (Exception e1) {
-	        // TODO Auto-generated catch block
-	        e1.printStackTrace();
-        } 
-      }
+					e.buildClusterer(inst);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
 		});
 		// long start = System.nanoTime();
 		// sk.buildClusterer(inst);
 		// long end = System.nanoTime();
-		// System.out.println("buildCluster invoke [ms] " + (end-start)/1000000.0);
-		skArrs.applySeq(new Procedure<SimpleKMeans>(){
+		// System.out.println("buildCluster invoke [ms] " +
+		// (end-start)/1000000.0);
+		skArrs.applySeq(new Procedure<SimpleKMeans>() {
 			@Override
-      public void op(SimpleKMeans e) {
+			public void op(SimpleKMeans e) {
 				if (e.getSquaredError() < bestSqE[0]) {
 					bestSqE[0] = e.getSquaredError();
 					bestK[0] = e;
-				}  
-      }});
+				}
+			}
+		});
 		// ---- End of parallel array parallelization
 
 		long endArrLoop = System.nanoTime();
@@ -683,16 +870,19 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 			Instance center = centers.instance(i);
 			for (j = 0; j < m_num_attribs; j++) {
 				if (inst.attribute(j).isNominal()) {
-					m_model[i][j] = new DiscreteEstimator(m_theInstances.attribute(j).numValues(), true);
+					m_model[i][j] = new DiscreteEstimator(m_theInstances
+							.attribute(j).numValues(), true);
 					for (k = 0; k < inst.attribute(j).numValues(); k++) {
 						m_model[i][j].addValue(k, nominalCounts[i][j][k]);
 					}
 				} else {
-					double minStdD = (m_minStdDevPerAtt != null) ? m_minStdDevPerAtt[j] : m_minStdDev;
-					double mean = (center.isMissing(j)) ? inst.meanOrMode(j) : center.value(j);
+					double minStdD = (m_minStdDevPerAtt != null) ? m_minStdDevPerAtt[j]
+							: m_minStdDev;
+					double mean = (center.isMissing(j)) ? inst.meanOrMode(j)
+							: center.value(j);
 					m_modelNormal[i][j][0] = mean;
 					double stdv = (stdD.instance(i).isMissing(j)) ? ((m_maxValues[j] - m_minValues[j]) / (2 * m_num_clusters))
-					    : stdD.instance(i).value(j);
+							: stdD.instance(i).value(j);
 					if (stdv < minStdD) {
 						stdv = inst.attributeStats(j).numericStats.stdDev;
 						if (Double.isInfinite(stdv)) {
@@ -723,9 +913,9 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * calculate prior probabilites for the clusters
 	 * 
 	 * @param inst
-	 *          the instances
+	 *            the instances
 	 * @throws Exception
-	 *           if priors can't be calculated
+	 *             if priors can't be calculated
 	 **/
 	private void estimate_priors(Instances inst) throws Exception {
 
@@ -755,11 +945,11 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * Density function of normal distribution.
 	 * 
 	 * @param x
-	 *          input value
+	 *            input value
 	 * @param mean
-	 *          mean of distribution
+	 *            mean of distribution
 	 * @param stdDev
-	 *          standard deviation of distribution
+	 *            standard deviation of distribution
 	 * @return the density
 	 */
 	private double logNormalDens(double x, double mean, double stdDev) {
@@ -769,7 +959,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		// System.err.println("diff*diff/(2*stdv*stdv): "+ (diff * diff / (2 *
 		// stdDev * stdDev)));
 
-		return -(diff * diff / (2 * stdDev * stdDev)) - m_normConst - Math.log(stdDev);
+		return -(diff * diff / (2 * stdDev * stdDev)) - m_normConst
+				- Math.log(stdDev);
 	}
 
 	/**
@@ -779,7 +970,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		for (int i = 0; i < m_num_clusters; i++) {
 			for (int j = 0; j < m_num_attribs; j++) {
 				if (m_theInstances.attribute(j).isNominal()) {
-					m_model[i][j] = new DiscreteEstimator(m_theInstances.attribute(j).numValues(), true);
+					m_model[i][j] = new DiscreteEstimator(m_theInstances
+							.attribute(j).numValues(), true);
 				} else {
 					m_modelNormal[i][j][0] = m_modelNormal[i][j][1] = m_modelNormal[i][j][2] = 0.0;
 				}
@@ -791,9 +983,9 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * The M step of the EM algorithm.
 	 * 
 	 * @param inst
-	 *          the training instances
+	 *            the training instances
 	 * @throws Exception
-	 *           if something goes wrong
+	 *             if something goes wrong
 	 */
 	private void M(Instances inst) throws Exception {
 
@@ -807,11 +999,15 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 					Instance in = inst.instance(l);
 					if (!in.isMissing(j)) {
 						if (inst.attribute(j).isNominal()) {
-							m_model[i][j].addValue(in.value(j), in.weight() * m_weights[l][i]);
+							m_model[i][j].addValue(in.value(j), in.weight()
+									* m_weights[l][i]);
 						} else {
-							m_modelNormal[i][j][0] += (in.value(j) * in.weight() * m_weights[l][i]);
-							m_modelNormal[i][j][2] += in.weight() * m_weights[l][i];
-							m_modelNormal[i][j][1] += (in.value(j) * in.value(j) * in.weight() * m_weights[l][i]);
+							m_modelNormal[i][j][0] += (in.value(j)
+									* in.weight() * m_weights[l][i]);
+							m_modelNormal[i][j][2] += in.weight()
+									* m_weights[l][i];
+							m_modelNormal[i][j][1] += (in.value(j)
+									* in.value(j) * in.weight() * m_weights[l][i]);
 						}
 					}
 				}
@@ -829,17 +1025,20 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 					} else {
 
 						// variance
-						m_modelNormal[i][j][1] = (m_modelNormal[i][j][1] - (m_modelNormal[i][j][0] * m_modelNormal[i][j][0] / m_modelNormal[i][j][2]))
-						    / (m_modelNormal[i][j][2]);
+						m_modelNormal[i][j][1] = (m_modelNormal[i][j][1] - (m_modelNormal[i][j][0]
+								* m_modelNormal[i][j][0] / m_modelNormal[i][j][2]))
+								/ (m_modelNormal[i][j][2]);
 
 						if (m_modelNormal[i][j][1] < 0) {
 							m_modelNormal[i][j][1] = 0;
 						}
 
 						// std dev
-						double minStdD = (m_minStdDevPerAtt != null) ? m_minStdDevPerAtt[j] : m_minStdDev;
+						double minStdD = (m_minStdDevPerAtt != null) ? m_minStdDevPerAtt[j]
+								: m_minStdDev;
 
-						m_modelNormal[i][j][1] = Math.sqrt(m_modelNormal[i][j][1]);
+						m_modelNormal[i][j][1] = Math
+								.sqrt(m_modelNormal[i][j][1]);
 
 						if ((m_modelNormal[i][j][1] <= minStdD)) {
 							m_modelNormal[i][j][1] = inst.attributeStats(j).numericStats.stdDev;
@@ -863,15 +1062,16 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	}
 
 	/**
-	 * The E step of the EM algorithm. Estimate cluster membership probabilities.
+	 * The E step of the EM algorithm. Estimate cluster membership
+	 * probabilities.
 	 * 
 	 * @param inst
-	 *          the training instances
+	 *            the training instances
 	 * @param change_weights
-	 *          whether to change the weights
+	 *            whether to change the weights
 	 * @return the average log likelihood
 	 * @throws Exception
-	 *           if computation fails
+	 *             if computation fails
 	 */
 	private double E(Instances inst, boolean change_weights) throws Exception {
 
@@ -953,7 +1153,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		StringBuffer temp = new StringBuffer();
 		temp.append("\nEM\n==\n");
 		if (m_initialNumClusters == -1) {
-			temp.append("\nNumber of clusters selected by cross validation: " + m_num_clusters + "\n");
+			temp.append("\nNumber of clusters selected by cross validation: "
+					+ m_num_clusters + "\n");
 		} else {
 			temp.append("\nNumber of clusters: " + m_num_clusters + "\n");
 		}
@@ -984,8 +1185,10 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 			for (int j = 0; j < m_num_attribs; j++) {
 				if (m_theInstances.attribute(j).isNumeric()) {
 					// check mean and std. dev. against maxWidth
-					double mean = Math.log(Math.abs(m_modelNormal[i][j][0])) / Math.log(10.0);
-					double stdD = Math.log(Math.abs(m_modelNormal[i][j][1])) / Math.log(10.0);
+					double mean = Math.log(Math.abs(m_modelNormal[i][j][0]))
+							/ Math.log(10.0);
+					double stdD = Math.log(Math.abs(m_modelNormal[i][j][1]))
+							/ Math.log(10.0);
 					double width = (mean > stdD) ? mean : stdD;
 					if (width < 0) {
 						width = 1;
@@ -999,12 +1202,15 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 					// nominal distributions
 					DiscreteEstimator d = (DiscreteEstimator) m_model[i][j];
 					for (int k = 0; k < d.getNumSymbols(); k++) {
-						String size = Utils.doubleToString(d.getCount(k), maxWidth, 4).trim();
+						String size = Utils.doubleToString(d.getCount(k),
+								maxWidth, 4).trim();
 						if (size.length() > maxWidth) {
 							maxWidth = size.length();
 						}
 					}
-					int sum = Utils.doubleToString(d.getSumOfCounts(), maxWidth, 4).trim().length();
+					int sum = Utils
+							.doubleToString(d.getSumOfCounts(), maxWidth, 4)
+							.trim().length();
 					if (sum > maxWidth) {
 						maxWidth = sum;
 					}
@@ -1019,10 +1225,12 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		maxAttWidth += 2;
 
 		temp.append("\n\n");
-		temp.append(pad("Cluster", " ", (maxAttWidth + maxWidth + 1) - "Cluster".length(), true));
+		temp.append(pad("Cluster", " ", (maxAttWidth + maxWidth + 1)
+				- "Cluster".length(), true));
 
 		temp.append("\n");
-		temp.append(pad("Attribute", " ", maxAttWidth - "Attribute".length(), false));
+		temp.append(pad("Attribute", " ", maxAttWidth - "Attribute".length(),
+				false));
 
 		// cluster #'s
 		for (int i = 0; i < m_num_clusters; i++) {
@@ -1034,13 +1242,15 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		// cluster priors
 		temp.append(pad("", " ", maxAttWidth, true));
 		for (int i = 0; i < m_num_clusters; i++) {
-			String priorP = Utils.doubleToString(m_priors[i], maxWidth, 2).trim();
+			String priorP = Utils.doubleToString(m_priors[i], maxWidth, 2)
+					.trim();
 			priorP = "(" + priorP + ")";
 			temp.append(pad(priorP, " ", maxWidth + 1 - priorP.length(), true));
 		}
 
 		temp.append("\n");
-		temp.append(pad("", "=", maxAttWidth + (maxWidth * m_num_clusters) + m_num_clusters + 1, true));
+		temp.append(pad("", "=", maxAttWidth + (maxWidth * m_num_clusters)
+				+ m_num_clusters + 1, true));
 		temp.append("\n");
 
 		for (int i = 0; i < m_num_attribs; i++) {
@@ -1049,40 +1259,52 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 
 			if (m_theInstances.attribute(i).isNumeric()) {
 				String meanL = "  mean";
-				temp.append(pad(meanL, " ", maxAttWidth + 1 - meanL.length(), false));
+				temp.append(pad(meanL, " ", maxAttWidth + 1 - meanL.length(),
+						false));
 				for (int j = 0; j < m_num_clusters; j++) {
 					// means
-					String mean = Utils.doubleToString(m_modelNormal[j][i][0], maxWidth, 4).trim();
-					temp.append(pad(mean, " ", maxWidth + 1 - mean.length(), true));
+					String mean = Utils.doubleToString(m_modelNormal[j][i][0],
+							maxWidth, 4).trim();
+					temp.append(pad(mean, " ", maxWidth + 1 - mean.length(),
+							true));
 				}
 				temp.append("\n");
 				// now do std deviations
 				String stdDevL = "  std. dev.";
-				temp.append(pad(stdDevL, " ", maxAttWidth + 1 - stdDevL.length(), false));
+				temp.append(pad(stdDevL, " ",
+						maxAttWidth + 1 - stdDevL.length(), false));
 				for (int j = 0; j < m_num_clusters; j++) {
-					String stdDev = Utils.doubleToString(m_modelNormal[j][i][1], maxWidth, 4).trim();
-					temp.append(pad(stdDev, " ", maxWidth + 1 - stdDev.length(), true));
+					String stdDev = Utils.doubleToString(
+							m_modelNormal[j][i][1], maxWidth, 4).trim();
+					temp.append(pad(stdDev, " ",
+							maxWidth + 1 - stdDev.length(), true));
 				}
 				temp.append("\n\n");
 			} else {
 				Attribute a = m_theInstances.attribute(i);
 				for (int j = 0; j < a.numValues(); j++) {
 					String val = "  " + a.value(j);
-					temp.append(pad(val, " ", maxAttWidth + 1 - val.length(), false));
+					temp.append(pad(val, " ", maxAttWidth + 1 - val.length(),
+							false));
 					for (int k = 0; k < m_num_clusters; k++) {
 						DiscreteEstimator d = (DiscreteEstimator) m_model[k][i];
-						String count = Utils.doubleToString(d.getCount(j), maxWidth, 4).trim();
-						temp.append(pad(count, " ", maxWidth + 1 - count.length(), true));
+						String count = Utils.doubleToString(d.getCount(j),
+								maxWidth, 4).trim();
+						temp.append(pad(count, " ",
+								maxWidth + 1 - count.length(), true));
 					}
 					temp.append("\n");
 				}
 				// do the totals
 				String total = "  [total]";
-				temp.append(pad(total, " ", maxAttWidth + 1 - total.length(), false));
+				temp.append(pad(total, " ", maxAttWidth + 1 - total.length(),
+						false));
 				for (int k = 0; k < m_num_clusters; k++) {
 					DiscreteEstimator d = (DiscreteEstimator) m_model[k][i];
-					String count = Utils.doubleToString(d.getSumOfCounts(), maxWidth, 4).trim();
-					temp.append(pad(count, " ", maxWidth + 1 - count.length(), true));
+					String count = Utils.doubleToString(d.getSumOfCounts(),
+							maxWidth, 4).trim();
+					temp.append(pad(count, " ", maxWidth + 1 - count.length(),
+							true));
 				}
 				temp.append("\n");
 			}
@@ -1091,7 +1313,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		return temp.toString();
 	}
 
-	private String pad(String source, String padChar, int length, boolean leftPad) {
+	private String pad(String source, String padChar, int length,
+			boolean leftPad) {
 		StringBuffer temp = new StringBuffer();
 
 		if (leftPad) {
@@ -1120,24 +1343,30 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		StringBuffer temp = new StringBuffer();
 		temp.append("\nEM\n==\n");
 		if (m_initialNumClusters == -1) {
-			temp.append("\nNumber of clusters selected by cross validation: " + m_num_clusters + "\n");
+			temp.append("\nNumber of clusters selected by cross validation: "
+					+ m_num_clusters + "\n");
 		} else {
 			temp.append("\nNumber of clusters: " + m_num_clusters + "\n");
 		}
 
 		for (int j = 0; j < m_num_clusters; j++) {
-			temp.append("\nCluster: " + j + " Prior probability: " + Utils.doubleToString(m_priors[j], 4) + "\n\n");
+			temp.append("\nCluster: " + j + " Prior probability: "
+					+ Utils.doubleToString(m_priors[j], 4) + "\n\n");
 
 			for (int i = 0; i < m_num_attribs; i++) {
-				temp.append("Attribute: " + m_theInstances.attribute(i).name() + "\n");
+				temp.append("Attribute: " + m_theInstances.attribute(i).name()
+						+ "\n");
 
 				if (m_theInstances.attribute(i).isNominal()) {
 					if (m_model[j][i] != null) {
 						temp.append(m_model[j][i].toString());
 					}
 				} else {
-					temp.append("Normal Distribution. Mean = " + Utils.doubleToString(m_modelNormal[j][i][0], 4) + " StdDev = "
-					    + Utils.doubleToString(m_modelNormal[j][i][1], 4) + "\n");
+					temp.append("Normal Distribution. Mean = "
+							+ Utils.doubleToString(m_modelNormal[j][i][0], 4)
+							+ " StdDev = "
+							+ Utils.doubleToString(m_modelNormal[j][i][1], 4)
+							+ "\n");
 				}
 			}
 		}
@@ -1149,7 +1378,7 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * verbose output for debugging
 	 * 
 	 * @param inst
-	 *          the training instances
+	 *            the training instances
 	 */
 	private void EM_Report(Instances inst) {
 		int i, j, l, m;
@@ -1164,18 +1393,27 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 						System.out.println(m_model[j][i].toString());
 					}
 				} else {
-					System.out.println("Normal Distribution. Mean = " + Utils.doubleToString(m_modelNormal[j][i][0], 8, 4)
-					    + " StandardDev = " + Utils.doubleToString(m_modelNormal[j][i][1], 8, 4) + " WeightSum = "
-					    + Utils.doubleToString(m_modelNormal[j][i][2], 8, 4));
+					System.out
+							.println("Normal Distribution. Mean = "
+									+ Utils.doubleToString(
+											m_modelNormal[j][i][0], 8, 4)
+									+ " StandardDev = "
+									+ Utils.doubleToString(
+											m_modelNormal[j][i][1], 8, 4)
+									+ " WeightSum = "
+									+ Utils.doubleToString(
+											m_modelNormal[j][i][2], 8, 4));
 				}
 			}
 		}
 
 		for (l = 0; l < inst.numInstances(); l++) {
 			m = Utils.maxIndex(m_weights[l]);
-			System.out.print("Inst " + Utils.doubleToString((double) l, 5, 0) + " Class " + m + "\t");
+			System.out.print("Inst " + Utils.doubleToString((double) l, 5, 0)
+					+ " Class " + m + "\t");
 			for (j = 0; j < m_num_clusters; j++) {
-				System.out.print(Utils.doubleToString(m_weights[l][j], 7, 5) + "  ");
+				System.out.print(Utils.doubleToString(m_weights[l][j], 7, 5)
+						+ "  ");
 			}
 			System.out.println();
 		}
@@ -1185,7 +1423,7 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * estimate the number of clusters by cross validation on the training data.
 	 * 
 	 * @throws Exception
-	 *           if something goes wrong
+	 *             if something goes wrong
 	 */
 	private void CVClusters() throws Exception {
 		double CVLogLikely = -Double.MAX_VALUE;
@@ -1196,7 +1434,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		int i;
 		Random cvr;
 		Instances trainCopy;
-		int numFolds = (m_theInstances.numInstances() < 10) ? m_theInstances.numInstances() : 10;
+		int numFolds = (m_theInstances.numInstances() < 10) ? m_theInstances
+				.numInstances() : 10;
 
 		boolean ok = true;
 		int seed = getSeed();
@@ -1252,7 +1491,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 				}
 
 				if (m_verbose) {
-					System.out.println("# clust: " + num_clusters + " Fold: " + i + " Loglikely: " + tll);
+					System.out.println("# clust: " + num_clusters + " Fold: "
+							+ i + " Loglikely: " + tll);
 				}
 				templl += tll;
 			}
@@ -1263,8 +1503,11 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 				templl /= (double) numFolds;
 
 				if (m_verbose) {
-					System.out.println("===================================" + "==============\n# clust: " + num_clusters
-					    + " Mean Loglikely: " + templl + "\n================================" + "=================");
+					System.out.println("==================================="
+							+ "==============\n# clust: " + num_clusters
+							+ " Mean Loglikely: " + templl
+							+ "\n================================"
+							+ "=================");
 				}
 
 				if (templl > CVLogLikely) {
@@ -1287,7 +1530,7 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * 
 	 * @return the number of clusters generated for a training dataset.
 	 * @throws Exception
-	 *           if number of clusters could not be returned successfully
+	 *             if number of clusters could not be returned successfully
 	 */
 	public int numberOfClusters() throws Exception {
 		if (m_num_clusters == -1) {
@@ -1302,7 +1545,7 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * new instance.
 	 * 
 	 * @param instance
-	 *          the new instance
+	 *            the new instance
 	 */
 	private void updateMinMax(Instance instance) {
 
@@ -1341,9 +1584,9 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * are not being set via options.
 	 * 
 	 * @param data
-	 *          set of instances serving as training data
+	 *            set of instances serving as training data
 	 * @throws Exception
-	 *           if the clusterer has not been generated successfully
+	 *             if the clusterer has not been generated successfully
 	 */
 	public void buildClusterer(Instances data) throws Exception {
 
@@ -1377,8 +1620,10 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 			avgSpeedup += speedup;
 		}
 		System.out.println(statistics);
-		System.out.println("AVERAGE of Speedups=" + avgSpeedup / statistics.size());
-		System.out.println("Average Time speedup=" + totalArrTime / totalParTime);
+		System.out.println("AVERAGE of Speedups=" + avgSpeedup
+				/ statistics.size());
+		System.out.println("Average Time speedup=" + totalArrTime
+				/ totalParTime);
 
 		// save memory
 		m_theInstances = new Instances(m_theInstances, 0);
@@ -1402,12 +1647,13 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * instance.
 	 * 
 	 * @param inst
-	 *          the instance to compute the density for
+	 *            the instance to compute the density for
 	 * @return an array containing the estimated densities
 	 * @throws Exception
-	 *           if the density could not be computed successfully
+	 *             if the density could not be computed successfully
 	 */
-	public double[] logDensityPerClusterForInstance(Instance inst) throws Exception {
+	public double[] logDensityPerClusterForInstance(Instance inst)
+			throws Exception {
 
 		int i, j;
 		double logprob;
@@ -1423,12 +1669,15 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 			for (j = 0; j < m_num_attribs; j++) {
 				if (!inst.isMissing(j)) {
 					if (inst.attribute(j).isNominal()) {
-						logprob += Math.log(m_model[i][j].getProbability(inst.value(j)));
+						logprob += Math.log(m_model[i][j].getProbability(inst
+								.value(j)));
 					} else { // numeric attribute
-						logprob += logNormalDens(inst.value(j), m_modelNormal[i][j][0], m_modelNormal[i][j][1]);
+						logprob += logNormalDens(inst.value(j),
+								m_modelNormal[i][j][0], m_modelNormal[i][j][1]);
 						/*
 						 * System.err.println(logNormalDens(inst.value(j),
-						 * m_modelNormal[i][j][0], m_modelNormal[i][j][1]) + " ");
+						 * m_modelNormal[i][j][0], m_modelNormal[i][j][1]) +
+						 * " ");
 						 */
 					}
 				}
@@ -1444,7 +1693,7 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * Perform the EM algorithm
 	 * 
 	 * @throws Exception
-	 *           if something goes wrong
+	 *             if something goes wrong
 	 */
 	private void doEM() throws Exception {
 
@@ -1463,7 +1712,8 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		m_num_attribs = m_theInstances.numAttributes();
 
 		if (m_verbose) {
-			System.out.println("Number of instances: " + m_num_instances + "\nNumber of atts: " + m_num_attribs + "\n");
+			System.out.println("Number of instances: " + m_num_instances
+					+ "\nNumber of atts: " + m_num_attribs + "\n");
 		}
 
 		// setDefaultStdDevs(theInstances);
@@ -1485,15 +1735,16 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	}
 
 	/**
-	 * iterates the E and M steps until the log likelihood of the data converges.
+	 * iterates the E and M steps until the log likelihood of the data
+	 * converges.
 	 * 
 	 * @param inst
-	 *          the training instances.
+	 *            the training instances.
 	 * @param report
-	 *          be verbose.
+	 *            be verbose.
 	 * @return the log likelihood of the data
 	 * @throws Exception
-	 *           if something goes wrong
+	 *             if something goes wrong
 	 */
 	private double iterate(Instances inst, boolean report) throws Exception {
 
@@ -1568,10 +1819,10 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 	 * Main method for testing this class.
 	 * 
 	 * @param argv
-	 *          should contain the following arguments:
-	 *          <p>
-	 *          -t training file [-T test file] [-N number of clusters] [-S random
-	 *          seed]
+	 *            should contain the following arguments:
+	 *            <p>
+	 *            -t training file [-T test file] [-N number of clusters] [-S
+	 *            random seed]
 	 */
 	public static void main(String[] argv) {
 		runClusterer(new EM(), argv);
