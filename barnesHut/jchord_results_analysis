@@ -1,0 +1,16 @@
+229 - in RecurseForce
+122 - in ComputeForce
+176 - in ComputeForce
+105 - between ComputeForce and RecurseForce
+129 - between ComputeForce and RecurseForce
+214 - in RecurseForce
+
+all false races analyzed before - the above set was also randomly selected
+
+the new random set suggested for analysis (with the automated tool) is:
+1.166
+1.223
+1.172
+1.123
+1.166
+but I think there is no point in looking through these ones. we already have the equally good above set.
