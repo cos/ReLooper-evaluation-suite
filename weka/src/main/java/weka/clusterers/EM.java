@@ -508,6 +508,10 @@ public class EM extends RandomizableDensityBasedClusterer implements NumberOfClu
 		return (String[]) result.toArray(new String[result.size()]);
 	}
 
+	public void workaroundForPrivateEMInit() throws Exception {
+		EM_Init(m_theInstances);
+	}
+	
 	/**
 	 * Initialise estimators and storage.
 	 * 
