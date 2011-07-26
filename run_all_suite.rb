@@ -1,4 +1,4 @@
-$programs = ["barnesHut","montecarlo","em3d","junit","coref","weka","lusearch"]
+$programs = ["barnesHut","montecarlo.threads","em3d","junit","coref","weka","lusearch"]
 
 $programs = [ARGV[0]] if !ARGV[0].nil?
 

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+      <title>Datarace Details</title>
+      <link rel="stylesheet" href="style.css" type="text/css" />
+   </head>
+   <body>
+      <table class="details">
+         <tr>
+            <td class="head1" colspan="2">Datarace Details</td>
+         </tr>
+         <tr>
+            <td class="head2" colspan="2">
+               							Field: <a href="org/apache/lucene/search/BooleanClause.java.html#0">org.apache.lucene.search.BooleanClause.occur</a></td>
+         </tr>
+         <tr>
+            <td class="head2" colspan="2">
+               							Object: {[<a href="org/apache/lucene/queryParser/QueryParser.java.html#816">org.
+                  <wbr></wbr>apache.
+                  <wbr></wbr>lucene.
+                  <wbr></wbr>search.
+                  <wbr></wbr>BooleanClause</a>], [<a href="org/apache/lucene/search/BooleanQuery.java.html#144">org.
+                  <wbr></wbr>apache.
+                  <wbr></wbr>lucene.
+                  <wbr></wbr>search.
+                  <wbr></wbr>BooleanClause</a>], [<a href="org/apache/lucene/search/BooleanQuery.java.html#442">org.
+                  <wbr></wbr>apache.
+                  <wbr></wbr>lucene.
+                  <wbr></wbr>search.
+                  <wbr></wbr>BooleanClause</a>]}
+            </td>
+         </tr>
+         <tr>
+            <td style="width:50%">
+               <table class="details">
+                  <colgroup>
+                     <col width="35%" />
+                     <col width="65%" />
+                  </colgroup>
+                  <tr>
+                     <td class="head4" colspan="2">
+                        							Path
+                        							(complete)
+                     </td>
+                  </tr>
+                  <tr>
+                     <td class="head4">Enclosing Lock(s)</td>
+                     <td class="head4">Call Site(s)</td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="java/lang/Thread.java.html#0">java.lang.Thread.start()</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/dacapo/lusearch/SearchThreads.java.html#212">org.dacapo.lusearch.SearchThreads$QueryThread.run()</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/dacapo/lusearch/SearchThreads.java.html#270">org.dacapo.lusearch.SearchThreads$QueryProcessor.run()</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/apache/lucene/queryParser/QueryParser.java.html#200">org.apache.lucene.queryParser.QueryParser.parse(java.lang.String)</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/apache/lucene/queryParser/QueryParser.java.html#1254">org.apache.lucene.queryParser.QueryParser.TopLevelQuery(java.lang.String)</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/apache/lucene/queryParser/QueryParser.java.html#1266">org.apache.lucene.queryParser.QueryParser.Query(java.lang.String)</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/apache/lucene/queryParser/QueryParser.java.html#552">org.apache.lucene.queryParser.QueryParser.addClause(java.util.List,int,int,org.apache.lucene.search.Query)</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/apache/lucene/queryParser/QueryParser.java.html#816">org.apache.lucene.queryParser.QueryParser.newBooleanClause(org.apache.lucene.search.Query,org.apache.lucene.search.BooleanClause$Occur)</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/apache/lucene/search/BooleanClause.java.html#66">org.apache.lucene.search.BooleanClause.&lt;init&gt;(org.apache.lucene.search.Query,org.apache.lucene.search.BooleanClause$Occur)</a>
+                        	(Wr)
+                        <br />
+                        							Context: [main]
+                     </td>
+                  </tr>
+               </table>
+            </td>
+            <td style="width:50%">
+               <table class="details">
+                  <colgroup>
+                     <col width="35%" />
+                     <col width="65%" />
+                  </colgroup>
+                  <tr>
+                     <td class="head4" colspan="2">
+                        							Path
+                        							(complete)
+                     </td>
+                  </tr>
+                  <tr>
+                     <td class="head4">Enclosing Lock(s)</td>
+                     <td class="head4">Call Site(s)</td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/dacapo/lusearch/SearchThreads.java.html#84">org.dacapo.lusearch.SearchThreads.main(java.lang.String[])</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="java/lang/String.java.html#2826">java.lang.String.valueOf(java.lang.Object)</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="java/lang/Object.java.html#219">java.lang.Object.toString()</a><br />
+                        								Context: [main]
+                     </td>
+                  </tr>
+                  <tr>
+                     <td></td>
+                     <td><a href="org/apache/lucene/search/BooleanClause.java.html#108">org.apache.lucene.search.BooleanClause.hashCode()</a>
+                        	(Rd)
+                        <br />
+                        							Context: [main]
+                     </td>
+                  </tr>
+               </table>
+            </td>
+         </tr>
+      </table>
+   </body>
+</html>
